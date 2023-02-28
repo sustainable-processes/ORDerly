@@ -500,7 +500,7 @@ def canonicalize_smiles(smiles):
     return Chem.MolToSmiles(mol)
     
 def build_solvents_set_and_dict():
-    solvents = pd.read_csv('data/USPTO/solvents.csv', index_col=0)
+    solvents = pd.read_csv('data/solvents.csv', index_col=0)
     
     solvents['canonical_smiles'] = solvents['smiles'].apply(canonicalize_smiles)
     
