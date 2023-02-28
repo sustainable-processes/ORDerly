@@ -1,17 +1,41 @@
 """
-After downloading the USPTO dataset from ORD, this script will extract the data and write it to a pickle file.
+After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
 
-Instructions:
-1) Create a folder called "data/USPTO" in the same directory as this script 
-2) Download the USPTO data from ORD
-2.1) While inside USPTO: git clone https://github.com/open-reaction-database/ord-data and you'll find the data in ord-data/data/
-2.2) You'll notice that the data is split into folders, each containing a number of ord files. They are batched by year.
-3) python USPTO_extraction.py True
-4) Solvents list originally from https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv (I've added methanol (CO), and also added 'ClP(Cl)Cl' and 'ClS(Cl)=O' as smiles strings)
+    Args:
+    
+1) merge_conditions: Bool
+        - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
+        - If False, maintain the labelling and ordering of the original data.
 
-# Output:
+
+
+    Functionality:
+    
+1) USPTO data extracted from ORD comes in a large number of files (.pd.gz) batched in a large number of sub-folders. First step is to extract all filepaths that contain USPTO data (by checking whether the string 'uspto' is contained in the filename).
+2) Iterated over all filepaths to extract the following data:
+    - The mapped reaction (unchanged)
+    - Reactants and products (extracted from the mapped reaction)
+    - Reagents: some reagents were extracted from the mapped reaction (if between the >> symbols) while other reagents were labelled as reagents in ORD
+    - Solvents and catalysts: labelled as such in ORD
+    - Temperature: All temperatures were converted to Celcius. If only the control type was specified, the following mapping was used: 'AMBIENT' -> 25, 'ICE_BATH' -> 0, 'DRY_ICE' -> -78.5, 'LIQUID_NITROGEN' -> -196.
+    - Time: All times were converted to hours.
+    - Yield (for each product): The PERCENTAGEYIELD was preferred, but if this was not available, the CALCULATEDPERCENTYIELD was used instead. If neither was available, the value was set to np.nan.
+3) Canonicalisation and light cleaning
+    - All SMILES strings were canonicalised using RDKit.
+    - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
+    - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
+4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
+5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
+6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl"). 
+
+
+
+    Output:
+    
 1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
+2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
 """
+
 
 # Import modules
 #import ord_schema
@@ -231,7 +255,7 @@ class OrdToPickle():
                             elif temp_control_type == 6: #ICE_BATH
                                 temperatures +=[0]
                             elif temp_control_type == 9: #DRY_ICE_BATH
-                                temperatures +=[-79]
+                                temperatures +=[-78.5]
                             elif temp_control_type == 11: #LIQUID_NITROGEN
                                 temperatures +=[-196]   
                 except IndexError:
@@ -550,14 +574,14 @@ def build_replacements():
     return molecule_replacements
 
 
-def main(file, merge_cat_and_reag):
+def main(file, merge_conditions):
     
     manual_replacements_dict = build_replacements()
     solvents_set, solvents_dict = build_solvents_set_and_dict()
     replacements_dict = manual_replacements_dict.update(solvents_dict)
     
     
-    instance = OrdToPickle(file, merge_cat_and_reag, replacements_dict, solvents_set)
+    instance = OrdToPickle(file, merge_conditions, replacements_dict, solvents_set)
     instance.main()
     
     
@@ -569,11 +593,11 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     
     try:
-        merge_cat_and_reag = args[0]
-        if merge_cat_and_reag == 'True':
-            merge_cat_and_reag = True
-        elif merge_cat_and_reag == 'False':
-            merge_cat_and_reag = False
+        merge_conditions = args[0]
+        if merge_conditions == 'True':
+            merge_conditions = True
+        elif merge_conditions == 'False':
+            merge_conditions = False
         else:
             raise IndexError
     except IndexError:
@@ -593,7 +617,7 @@ if __name__ == "__main__":
     
     num_cores = multiprocessing.cpu_count()
     inputs = tqdm(files)
-    Parallel(n_jobs=num_cores)(delayed(main)(i, merge_cat_and_reag) for i in inputs)
+    Parallel(n_jobs=num_cores)(delayed(main)(i, merge_conditions) for i in inputs)
     
 
     # Create a list of all the unique molecule names
