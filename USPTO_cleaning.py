@@ -111,7 +111,7 @@ def remove_rare_molecules(df, columns: list, cutoff: int):
 
     
 
-def main(clean_data_file_name = 'clean_data', consistent_yield = True, num_reactant=4, num_product=4, num_cat=1, num_solv=2, num_reag=2, rare_solv_0_cutoff=100, rare_solv_1_cutoff=50, rare_reag_0_cutoff=100, rare_reag_1_cutoff=50):
+def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reactant=5, num_product=5, num_solv=2, num_agent=3, num_cat=0, num_reag=0, min_frequency_of_occurance = 100):
     
     # Merge all the pickled data into one big df
     df = merge_pickles()
@@ -265,9 +265,8 @@ if __name__ == "__main__":
     
     args = sys.argv[1:]
     # args is a list of the command line args
-    # args: num_cat, num_solv, num_reag
     try:
-        clean_data_file_name, consistent_yield, num_reactant, num_product, num_cat, num_solv, num_reag, rare_solv_0_cutoff, rare_solv_1_cutoff, rare_reag_0_cutoff, rare_reag_1_cutoff,  = args[0], args[1], int(args[2]), int(args[3]), int(args[4]), int(args[5]), int(args[6]), int(args[7]), int(args[8]), int(args[9]), int(args[10])
+        clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance  = args[0], args[1], int(args[2]), int(args[3]), int(args[4]), int(args[5]), int(args[6]), int(args[7]), int(args[8])
         
         assert consistent_yield in ['True', 'False']
         
@@ -276,11 +275,12 @@ if __name__ == "__main__":
         else:
             consistent_yield = False
             
-        main(clean_data_file_name, consistent_yield, num_reactant, num_product, num_cat, num_solv, num_reag, rare_solv_0_cutoff, rare_solv_1_cutoff, rare_reag_0_cutoff, rare_reag_1_cutoff)
+        main(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance)
     except IndexError:
         print('Please enter the correct number of arguments')
-        print('Usage: python USPTO_cleaning.py clean_data_file_name, num_reactant, num_product, num_cat, num_solv, num_reag, rare_solv_0_cutoff, rare_solv_1_cutoff, rare_reag_0_cutoff, rare_reag_1_cutoff, clean_data_file_name')
-        print('Example: python USPTO_cleaning.py clean_test True 4 4 1 2 2 100 100 100 100')
+        print('Usage: python USPTO_cleaning.py clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance')
+        print('Example: python USPTO_cleaning.py clean_test True 5 5 2 3 0 0 100')
+        print('NB: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0.')
         sys.exit(1)
     
         
