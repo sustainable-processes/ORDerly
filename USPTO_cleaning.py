@@ -1,25 +1,33 @@
 # Clean the USPTO data
 
-"""
-# Usage:
-python USPTO_cleaning.py 
-NB: Requires all the pickle files created by USPTO_extraction.py
+    """
+After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
 
-# Output:
-1) A pickle file with the cleaned data in a pickle file
+    Example: 
 
-# Functionality:
-1) Merge all the data to one big df
-#####2) Move reagents that are also catalysts to the catalyst column
-3) Remove reactions where the reagent is Pd
-4) Remove reactions with too many components
-5) Remove reactions with rare molecules
-6) Remove reactions with inconsistent yields
-7) Handle molecules with names instead of SMILES
-8) Remove duplicate reactions
-9) Save the cleaned data to a pickle file
+python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100
 
-"""
+    Args:
+    
+1) clean_data_file_name: (str) The filepath where the cleaned data will be saved
+2) consistent_yield: (bool) Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed) 
+3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if merge_conditions=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if merge_conditions=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if merge_conditions=True, num_catalyst and num_reagent should be set to 0, and if merge_conditions=False, num_agent should be set to 0. It is recommended to set merge_conditions=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
+9) min_frequency_of_occurance: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them.
+
+    Functionality:
+
+1) Merge the pickle files from USPTO_extraction.py into a df
+2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
+3) Remove reactions with inconsistent yields (consistent_yield)
+4) Remove molecules that appear less than min_frequency_of_occurance times
+5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
+6) Remove duplicate reactions
+7) Pickle the final df
+
+    Output:
+
+1) A pickle file containing the cleaned data
+    """
 
 
 
@@ -64,7 +72,7 @@ def remove_reactions_with_too_many_of_component(df, component_name, number_of_co
         if component_name in col:
             count += 1
     
-    columns = []
+    columns = [] # columns to remove
     for i in range(count):
         if i >= number_of_columns_to_keep:
             columns += [component_name+str(i)]
@@ -128,58 +136,17 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
     df = remove_reactions_with_too_many_of_component(df, 'yield_', num_product)
     print('After removing reactions with too many products: ', len(df))
     
-    # Map to canonical names using the dicts we created
+    #solv
+    df = remove_reactions_with_too_many_of_component(df, 'solvent_', num_solv)
+    print('After removing reactions with too many solvents: ', len(df))
     
-    # Hanlding of molecules with names instead of SMILES
-    
-    # Make replacements for molecules with names instead of SMILES
-    # do the catalyst replacements that Alexander found, as well as other replacements
-    print('molecule replacements started')
-    molecule_replacements = build_replacements()
-    df = df.replace(molecule_replacements) 
-    print('molecule replacements done')
-    
-    # Do solvents replacements (in case there are any smiles represented with names)
-    
-    solvents_list, solvents_dict = build_solvents_list_and_dict()
-    df = df.replace(solvents_dict) # This line was taking too long. Prbably good idea to restrict the number of columns this is run on, e.g. only on the agent columns, and we should remove the unnecessary columns before this step (ie if num solv+cat+reag is 10, we should remove all reactions with more than 10 agents).
-    print('solvents replacements done')
-    
-    ## Remove reactions that have a catalyst with a non-molecular name, e.g. 'Catalyst A'
-    wrong_cat_names = ['Catalyst A', 'catalyst', 'catalyst 1', 'catalyst A', 'catalyst VI', 'reaction mixture', 'same catalyst', 'solution']
-    molecule_names = pd.read_pickle('data/USPTO/molecule_names/molecule_names.pkl')
-    
-    molecules_to_remove = wrong_cat_names + molecule_names
-    
-    cols = []
-    for col in list(df.columns):
-        if 'reagent' in col or 'solvent' in col or 'catalyst' in col:
-            cols += [col]
-    
-    for col in tqdm(cols):
-        df = df[~df[col].isin(molecules_to_remove)]
-    
-    print('After removing reactions with nonsensical/unresolvable names: ', len(df))
-    
-    # Replace any instances of an empty string with None
-    df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-    
-    
-    # Find solvents from the solvents_list that are in any of the solv/reag/cat columns, and put them in their own column
-    
-    
-    
-    
-    
-    
+    #agent
+    df = remove_reactions_with_too_many_of_component(df, 'agent_', num_agent)
+    print('After removing reactions with too many agents: ', len(df))
         
     #cat
     df = remove_reactions_with_too_many_of_component(df, 'catalyst_', num_cat)
     print('After removing reactions with too many catalysts: ', len(df))
-    
-    #solv
-    df = remove_reactions_with_too_many_of_component(df, 'solvent_', num_solv)
-    print('After removing reactions with too many solvents: ', len(df))
     
     #reag
     df = remove_reactions_with_too_many_of_component(df, 'reagent_', num_reag)
@@ -217,34 +184,42 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
     
     
     # Remove reactions with rare molecules
-    # solv_0
-    if rare_solv_0_cutoff != 0:
-        df = remove_rare_molecules(df, ['solvent_0'], rare_solv_0_cutoff)
-        print('After removing reactions with rare solvent_0: ', len(df))
+    # Apply this to each column (this implies that if our cutoff is 100, and there's 60 instances of a molecule in one column, and 60 instances of the same molecule in another column, we will still remove the reaction)
     
-    # solv_1
-    if rare_solv_1_cutoff != 0:
-        df = remove_rare_molecules(df, ['solvent_1'], rare_solv_1_cutoff)
-        print('After removing reactions with rare solvent_1: ', len(df))
+    # Get a list of columns with either solvent, reagent, catalyst, or agent in the name
     
-    # reag_0
-    if rare_reag_0_cutoff != 0:
-        df = remove_rare_molecules(df, ['reagent_0'], rare_reag_0_cutoff)
-        print('After removing reactions with rare reagent_0: ', len(df))
+    columns = []
+    for col in list(df.columns):
+        if 'reagent' in col or 'solvent' in col or 'catalyst' in col or 'agent' in col:
+            columns += [col]
+            
+
+    if min_frequency_of_occurance != 0:
+        for col in columns:
+            df = remove_rare_molecules(df, [col], min_frequency_of_occurance)
+            print('After removing reactions with rare ', col, ': ', len(df))
+            
+            
+    ## Remove reactions that are represented by a name instead of a SMILES string
+    molecules_to_remove = pd.read_pickle('data/USPTO/molecule_names/molecule_names.pkl')
+    # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. I'm not sure what to do with these. I have decided to stay on the safe side and remove any reactions that includes one of these. However, other researchers are welcome to revisit this assumption - maybe we can recover a lot of insightful reactions by replacing 'ice' with 'O' (as in, the SMILES string for water). 
     
-    # reag_1
-    if rare_reag_1_cutoff != 0:
-        df = remove_rare_molecules(df, ['reagent_1'], rare_reag_1_cutoff)
-        print('After removing reactions with rare reagent_1: ', len(df))
+    # cols = []
+    # for col in list(df.columns):
+    #     if 'reagent' in col or 'solvent' in col or 'catalyst' in col or 'agent' in col:
+    #         cols += [col]
+    # It may be faster to only loop over columns containing cat, solv, reag, or agent, however, if time isn't an issue we might as well loop over the whole df.
     
-        
+    for col in tqdm(df.columns):
+        df = df[~df[col].isin(molecules_to_remove)]
+    
+    print('After removing reactions with nonsensical/unresolvable names: ', len(df))
+    
+    # Replace any instances of an empty string with None
+    df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+    
     
 
-    
-    
-    
-    
-    
     # drop duplicates
     df = df.drop_duplicates()
     print('After removing duplicates: ', len(df))
@@ -254,9 +229,6 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
     # pickle the final cleaned dataset
     with open(f'data/USPTO/{clean_data_file_name}.pkl', 'wb') as f:
         pickle.dump(df, f)
-    
-    
- 
     
     
 
@@ -275,11 +247,13 @@ if __name__ == "__main__":
         else:
             consistent_yield = False
             
+        assert num_agent == 0 or num_cat == 0 and num_reag == 0
+            
         main(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance)
+        
     except IndexError:
         print('Please enter the correct number of arguments')
-        print('Usage: python USPTO_cleaning.py clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance')
-        print('Example: python USPTO_cleaning.py clean_test True 5 5 2 3 0 0 100')
+        print('Usage: python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100')
         print('NB: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0.')
         sys.exit(1)
     
