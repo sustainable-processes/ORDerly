@@ -26,6 +26,7 @@ Example: python USPTO_extraction.py True
     - All SMILES strings were canonicalised using RDKit.
     - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
     - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
+    - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
 4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
 5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
 6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl"). 
@@ -332,52 +333,6 @@ class OrdToPickle():
             
             # if reagent appears in reactant list, remove it
             reagents = [reagent for reagent in reagents if reagent not in reactants]
-            
-            
-            mapped_rxn_all += [mapped_rxn]
-            reactants_all += [reactants]
-            
-            
-            
-            if self.merge_cat_solv_reag == True:
-                agents = catalysts + solvents + reagents # merge the solvents, reagents, and catalysts into one list
-                agents_set = set(agents) # this includes the solvnts
-                
-                # build two new lists, one with the solvents, and one with the reagents+catalysts
-                # Create a new set of solvents from agents_set
-                solvents = agents_set.intersection(self.solvents_set)
-
-                # Remove the solvents from agents_set
-                agents = agents_set.difference(solvents)
-                
-                     
-                # I think we should add some ordering to the agents
-                # What if we first order them alphabetically, and afterwards by putting the metals first in the list
-                
-                agents = sorted(list(agents))
-                solvents = sorted(list(solvents))
-           
-
-                # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
-                # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
-                # Instead, let's move all agents that contain a metal centre to the front of the list
-                
-                metals = [
-    'Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv'
-]
-                agents = [agent for agent in agents if any(metal in agent for metal in metals)] + [agent for agent in agents if not any(metal in agent for metal in metals)]
- 
-                agents_all += [agents]
-                solvents_all += [solvents]
-            else:
-                solvents_all += [list(set(solvents))]
-                reagents_all += [list(set(reagents))]
-                catalysts_all += [list(set(catalysts))]
-                
-            
-            temperature_all = [temperatures]
-
-            rxn_times_all += [rxn_times]
 
 
             # products logic
@@ -407,8 +362,52 @@ class OrdToPickle():
                     mapped_yields += [np.nan]
             
 
-            products_all += [products] 
-            yields_all +=[mapped_yields]
+            if set(reactants) != set(products):  # If the reactants and products are the same, then we don't want to add this reaction to our dataset
+                mapped_rxn_all += [mapped_rxn]
+                reactants_all += [reactants]
+                    
+                products_all += [products] 
+                yields_all +=[mapped_yields]
+                
+                temperature_all = [temperatures]
+
+                rxn_times_all += [rxn_times]
+                
+                # Finally we also need to add the agents
+                if self.merge_cat_solv_reag == True:
+                    agents = catalysts + solvents + reagents # merge the solvents, reagents, and catalysts into one list
+                    agents_set = set(agents) # this includes the solvnts
+                    
+                    # build two new lists, one with the solvents, and one with the reagents+catalysts
+                    # Create a new set of solvents from agents_set
+                    solvents = agents_set.intersection(self.solvents_set)
+
+                    # Remove the solvents from agents_set
+                    agents = agents_set.difference(solvents)
+                    
+                        
+                    # I think we should add some ordering to the agents
+                    # What if we first order them alphabetically, and afterwards by putting the metals first in the list
+                    
+                    agents = sorted(list(agents))
+                    solvents = sorted(list(solvents))
+            
+
+                    # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
+                    # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
+                    # Instead, let's move all agents that contain a metal centre to the front of the list
+                    
+                    metals = [
+        'Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv'
+    ]
+                    agents = [agent for agent in agents if any(metal in agent for metal in metals)] + [agent for agent in agents if not any(metal in agent for metal in metals)]
+    
+                    agents_all += [agents]
+                    solvents_all += [solvents]
+                else:
+                    solvents_all += [list(set(solvents))]
+                    reagents_all += [list(set(reagents))]
+                    catalysts_all += [list(set(catalysts))]
 
 
         
