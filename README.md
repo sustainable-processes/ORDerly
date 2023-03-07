@@ -5,15 +5,15 @@ The scripts herein will extract and clean USPTO data from ORD with various manua
 
 # Instructions
 1) Git clone this repo
-2) Download the USPTO data from ORD:
+2) Download the USPTO data from ORD into data/:
     - While inside USPTO: git clone https://github.com/open-reaction-database/ord-data 
     - You'll find the data in ord-data/data/
     - You'll notice that the data is split into folders, each containing a number of ORD files. They are batched by year.
-3) Run the following command in the root directory:
+3) Run the following command in the root directory (This took 16 min on a mac studio):
     - python USPTO_extraction.py True
     - For alternate usage, see the documentation in the corresponsing file
-4) Run the following command in the root director:
-    - python USPTO_cleaning.py args*
+4) Run the following command in the root director (This took 8 min on a mac studio):
+    - python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100
     - For alternate usage, see the documentation in the corresponsing file
 5) Find the cleaned USPTO data in the data folder 
 

@@ -1,18 +1,20 @@
-# Clean the USPTO data
-
-    """
+"""
 After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
 
     Example: 
 
-python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100
+python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=50 --min_frequency_of_occurance_secondary=10
+
+To keep more reactions:
+python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=4 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=25 --min_frequency_of_occurance_secondary=5
 
     Args:
     
 1) clean_data_file_name: (str) The filepath where the cleaned data will be saved
 2) consistent_yield: (bool) Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed) 
 3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if merge_conditions=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if merge_conditions=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if merge_conditions=True, num_catalyst and num_reagent should be set to 0, and if merge_conditions=False, num_agent should be set to 0. It is recommended to set merge_conditions=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
-9) min_frequency_of_occurance: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them.
+9) min_frequency_of_occurance_primary: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0
+10) min_frequency_of_occurance_secondary: (int) See above. Secondary: Any other columns than the first.
 
     Functionality:
 
@@ -27,7 +29,7 @@ python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield
     Output:
 
 1) A pickle file containing the cleaned data
-    """
+"""
 
 
 
@@ -49,6 +51,7 @@ from rdkit import Chem
 import pickle
 from datetime import datetime
 import numpy as np
+import argparse
 
 
 def merge_pickles():
@@ -119,7 +122,7 @@ def remove_rare_molecules(df, columns: list, cutoff: int):
 
     
 
-def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reactant=5, num_product=5, num_solv=2, num_agent=3, num_cat=0, num_reag=0, min_frequency_of_occurance = 100):
+def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reactant=5, num_product=5, num_solv=2, num_agent=3, num_cat=0, num_reag=0, min_frequency_of_occurance_primary = 50, min_frequency_of_occurance_secondary=10):
     
     # Merge all the pickled data into one big df
     df = merge_pickles()
@@ -194,14 +197,18 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
             columns += [col]
             
 
-    if min_frequency_of_occurance != 0:
+    if min_frequency_of_occurance_primary or min_frequency_of_occurance_secondary != 0:
         for col in columns:
-            df = remove_rare_molecules(df, [col], min_frequency_of_occurance)
-            print('After removing reactions with rare ', col, ': ', len(df))
+            if '0' in col:
+                df = remove_rare_molecules(df, [col], min_frequency_of_occurance_primary)
+                print('After removing reactions with rare ', col, ': ', len(df))
+            else:
+                df = remove_rare_molecules(df, [col], min_frequency_of_occurance_secondary)
+                print('After removing reactions with rare ', col, ': ', len(df))
             
             
     ## Remove reactions that are represented by a name instead of a SMILES string
-    molecules_to_remove = pd.read_pickle('data/USPTO/molecule_names/molecule_names.pkl')
+    molecules_to_remove = pd.read_pickle('data/USPTO/molecule_names/all_molecule_names.pkl')
     # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. I'm not sure what to do with these. I have decided to stay on the safe side and remove any reactions that includes one of these. However, other researchers are welcome to revisit this assumption - maybe we can recover a lot of insightful reactions by replacing 'ice' with 'O' (as in, the SMILES string for water). 
     
     # cols = []
@@ -215,8 +222,13 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
     
     print('After removing reactions with nonsensical/unresolvable names: ', len(df))
     
+    
+    
     # Replace any instances of an empty string with None
     df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+    
+    # Replace nan with None
+    df.replace(np.nan, None, inplace=True)
     
     
 
@@ -235,28 +247,35 @@ def main(clean_data_file_name = 'cleaned_USPTO', consistent_yield=True, num_reac
 if __name__ == "__main__":
     start_time = datetime.now()
     
-    args = sys.argv[1:]
-    # args is a list of the command line args
-    try:
-        clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance  = args[0], args[1], int(args[2]), int(args[3]), int(args[4]), int(args[5]), int(args[6]), int(args[7]), int(args[8])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--clean_data_file_name', type=str, default='cleaned_USPTO')
+    parser.add_argument('--consistent_yield', type=bool, default=True)
+    parser.add_argument('--num_reactant', type=int, default=5)
+    parser.add_argument('--num_product', type=int, default=5)
+    parser.add_argument('--num_solv', type=int, default=2)
+    parser.add_argument('--num_agent', type=int, default=3)
+    parser.add_argument('--num_cat', type=int, default=0)
+    parser.add_argument('--num_reag', type=int, default=0)
+    parser.add_argument('--min_frequency_of_occurance_primary', type=int, default=50)
+    parser.add_argument('--min_frequency_of_occurance_secondary', type=int, default=10)
+
+    args = parser.parse_args()
+
+    # Access the arguments as attributes of the args object
+    clean_data_file_name = args.clean_data_file_name
+    consistent_yield = args.consistent_yield
+    num_reactant = args.num_reactant
+    num_product = args.num_product
+    num_solv = args.num_solv
+    num_agent = args.num_agent
+    num_cat = args.num_cat
+    num_reag = args.num_reag
+    min_frequency_of_occurance_primary = args.min_frequency_of_occurance_primary
+    min_frequency_of_occurance_secondary = args.min_frequency_of_occurance_secondary
         
-        assert consistent_yield in ['True', 'False']
-        
-        if consistent_yield == 'True': # NB: This will not remove nan yields!
-            consistent_yield = True
-        else:
-            consistent_yield = False
-            
-        assert num_agent == 0 or num_cat == 0 and num_reag == 0
-            
-        main(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance)
-        
-    except IndexError:
-        print('Please enter the correct number of arguments')
-        print('Usage: python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100')
-        print('NB: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0.')
-        sys.exit(1)
-    
+    assert num_agent == 0 or num_cat == 0 and num_reag == 0, "Invalid input: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0."
+
+    main(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance_primary, min_frequency_of_occurance_secondary)
         
     end_time = datetime.now()
 

@@ -310,10 +310,9 @@ class OrdToPickle():
             
             #clean the smiles
 
-            #remove reagents that are integers
-            #reagents = [x for x in reagents if not (x.isdigit() or x[0] == '-' and x[1:].isdigit())]
-            # I'm assuming there are no negative integers
+            #remove molecules that are integers
             reagents = [x for x in reagents if not (x.isdigit())]
+            catalysts = [x for x in catalysts if not (x.isdigit())]
 
             reactants = [self.clean_mapped_smiles(smi) for smi in reactants]
             
@@ -330,6 +329,9 @@ class OrdToPickle():
             reagents = [substring for reagent in reagents for substring in reagent.split('.')]
             solvents = [substring for solvent in solvents for substring in solvent.split('.')]
             catalysts = [substring for catalyst in catalysts for substring in catalyst.split('.')]
+            
+            # if reagent appears in reactant list, remove it
+            reagents = [reagent for reagent in reagents if reagent not in reactants]
             
             
             mapped_rxn_all += [mapped_rxn]
@@ -575,6 +577,12 @@ def build_replacements():
     molecule_replacements["N,N'-carbonyldiimidazole"] = 'O=C(n1cncc1)n2ccnc2'
     # SiO2
     # Went down the list of molecule_names until frequency was 806
+    
+    # Alternative replacements. These words may be more ambiguous than the replacements above. (e.g. does 'ice' mean icebath or ice in the reaction?)
+    molecule_replacements['aqueous solution'] = 'O'
+    molecule_replacements['ice water'] = 'O'
+    molecule_replacements['water'] = 'O'
+    molecule_replacements['ice'] = 'O'
 
     # Iterate over the dictionary and canonicalize each SMILES string
     for key, value in molecule_replacements.items():
@@ -582,6 +590,7 @@ def build_replacements():
         if mol is not None:
             molecule_replacements[key] = Chem.MolToSmiles(mol)
         
+    molecule_replacements['solution'] = None # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
         
     return molecule_replacements
 
