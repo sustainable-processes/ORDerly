@@ -5,7 +5,7 @@ The scripts herein will extract and clean USPTO data from ORD with various manua
 
 # Instructions
 1) Git clone this repo
-2) Download the USPTO data from ORD into data/:
+2) Download the USPTO data from ORD into data/USPTO/:
     - While inside USPTO: git clone https://github.com/open-reaction-database/ord-data 
     - You'll find the data in ord-data/data/
     - You'll notice that the data is split into folders, each containing a number of ORD files. They are batched by year.
