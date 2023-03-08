@@ -9,7 +9,7 @@ The scripts herein will extract and clean USPTO data from ORD with various manua
     - While inside USPTO: git clone https://github.com/open-reaction-database/ord-data 
     - You'll find the data in ord-data/data/
     - You'll notice that the data is split into folders, each containing a number of ORD files. They are batched by year.
-3) Run the following command in the root directory (This took 16 min on a mac studio):
+3) Run the following command in the root directory (This took 19 min on a mac studio):
     - python USPTO_extraction.py True
     - For alternate usage, see the documentation in the corresponsing file
 4) Run the following command in the root director (This took 8 min on a mac studio):

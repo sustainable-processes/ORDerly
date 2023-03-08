@@ -84,13 +84,13 @@ class OrdToPickle():
     3) Write to a pickle file
     """
 
-    def __init__(self, ord_file_path, merge_cat_and_reag, replacements_dict, solvents_set):
+    def __init__(self, ord_file_path, merge_cat_and_reag, manual_replacements_dict, solvents_set):
         self.ord_file_path = ord_file_path
         self.data = message_helpers.load_message(self.ord_file_path, dataset_pb2.Dataset)
         self.filename = self.data.name
         self.names_list = []
         self.merge_cat_solv_reag = merge_cat_and_reag 
-        self.replacements_dict = replacements_dict
+        self.manual_replacements_dict = manual_replacements_dict
         self.solvents_set = solvents_set
         
     def find_smiles(self, identifiers):
@@ -321,10 +321,12 @@ class OrdToPickle():
             solvents = [self.clean_smiles(smi) for smi in solvents]
             catalysts = [self.clean_smiles(smi) for smi in catalysts]
 
-            # Apply the replacements_dict to the reagents, solvents, and catalysts
-            reagents  = list((pd.Series(reagents, dtype=pd.StringDtype())).replace(self.replacements_dict))
-            solvents  = list((pd.Series(solvents, dtype=pd.StringDtype())).replace(self.replacements_dict))
-            catalysts = list((pd.Series(catalysts, dtype=pd.StringDtype())).replace(self.replacements_dict))
+            # Apply the manual_replacements_dict to the reagents, solvents, and catalysts
+            reagents = [x for x in pd.Series(reagents, dtype=pd.StringDtype()).map(lambda x: self.manual_replacements_dict.get(x, x), na_action='ignore').tolist() if x is not None]
+
+            solvents = [x for x in pd.Series(reagents, dtype=pd.StringDtype()).map(lambda x: self.manual_replacements_dict.get(x, x), na_action='ignore').tolist() if x is not None]
+            catalysts = [x for x in pd.Series(reagents, dtype=pd.StringDtype()).map(lambda x: self.manual_replacements_dict.get(x, x), na_action='ignore').tolist() if x is not None]
+            
             
             # Split out any instances of a . in the smiles strings
             reagents = [substring for reagent in reagents for substring in reagent.split('.')]
@@ -594,14 +596,9 @@ def build_replacements():
     return molecule_replacements
 
 
-def main(file, merge_conditions):
+def main(file, merge_conditions, manual_replacements_dict, solvents_set):
     
-    manual_replacements_dict = build_replacements()
-    solvents_set, solvents_dict = build_solvents_set_and_dict()
-    replacements_dict = manual_replacements_dict.update(solvents_dict)
-    
-    
-    instance = OrdToPickle(file, merge_conditions, replacements_dict, solvents_set)
+    instance = OrdToPickle(file, merge_conditions, manual_replacements_dict, solvents_set)
     instance.main()
     
     
@@ -610,19 +607,13 @@ if __name__ == "__main__":
     
     start_time = datetime.now()
     
-    args = sys.argv[1:]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--merge_conditions', type=bool, default=True)
     
-    try:
-        merge_conditions = args[0]
-        if merge_conditions == 'True':
-            merge_conditions = True
-        elif merge_conditions == 'False':
-            merge_conditions = False
-        else:
-            raise IndexError
-    except IndexError:
-        print('Please enter True or False for the first argument')
-        print('Example: python USPTO_extraction.py True')
+    args = parser.parse_args()
+
+    # Access the arguments as attributes of the args object
+    merge_conditions = args.merge_conditions
      
     
     pickled_data_path = 'data/USPTO/pickled_data'
@@ -635,14 +626,18 @@ if __name__ == "__main__":
     
     files = get_file_names()
     
+    manual_replacements_dict = build_replacements()
+    solvents_set, solvents_dict = build_solvents_set_and_dict()
+    manual_replacements_dict.update(solvents_dict)
+    
+    
     num_cores = multiprocessing.cpu_count()
     inputs = tqdm(files)
-    Parallel(n_jobs=num_cores)(delayed(main)(i, merge_conditions) for i in inputs)
+    Parallel(n_jobs=num_cores)(delayed(main)(i, merge_conditions, manual_replacements_dict, solvents_set) for i in inputs)
     
 
     # Create a list of all the unique molecule names
     merge_pickled_mol_names()
-    
     
     end_time = datetime.now()
 

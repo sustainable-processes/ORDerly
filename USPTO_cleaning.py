@@ -119,11 +119,12 @@ class USPTO_cleaning():
                 
                 if '0' in col:
                     # Select the values where the count is less than cutoff
-                    other_values = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_primary)].index
+                    set_to_other = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_primary)].index
                     to_remove = value_counts[value_counts < self.min_frequency_of_occurance_other].index
                     
-                    # Replace values in other_values with 'other' for all columns
-                    df[col] = df[col].replace(other_values, 'other')
+                    # Replace values in set_to_other with 'other' for all columns
+                    df[col] = df[col].map(lambda x: 'other' if x in set_to_other else x)
+
                     
                     # Remove rows with a very rare molecule
                     df = df[~df[col].isin(to_remove)]
@@ -132,11 +133,12 @@ class USPTO_cleaning():
                     
                 else:
                     # Select the values where the count is less than cutoff
-                    other_values = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_secondary)].index
+                    set_to_other = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_secondary)].index
                     to_remove = value_counts[value_counts < self.min_frequency_of_occurance_other].index
                     
-                    # Replace values in other_values with 'other' for all columns
-                    df[col] = df[col].replace(other_values, 'other')
+                    # Replace values in set_to_other with 'other' for all columns
+                    df[col] = df[col].map(lambda x: 'other' if x in set_to_other else x)
+
                     
                     
                     # Remove rows with a very rare molecule
@@ -267,12 +269,19 @@ class USPTO_cleaning():
         print('After removing reactions with nonsensical/unresolvable names: ', len(df))
         
         
+        # This method is apparently very slow
+        # # Replace any instances of an empty string with None
+        # df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+        
+        # # Replace nan with None
+        # df.replace(np.nan, None, inplace=True)
         
         # Replace any instances of an empty string with None
-        df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-        
-        # Replace nan with None
-        df.replace(np.nan, None, inplace=True)
+        df = df.applymap(lambda x: None if (isinstance(x, str) and x.strip() == '') else x)
+
+        # Replace np.nan with None
+        df = df.applymap(lambda x: None if pd.isna(x) else x)
+
         
         
 
