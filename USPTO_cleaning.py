@@ -3,7 +3,7 @@ After running USPTO_extraction.py, this script will merge and apply further clea
 
     Example: 
 
-python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=50 --min_frequency_of_occurance_secondary=10 --include_other_category=True --min_frequency_of_occurance_other=10
+python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
 
 
     Args:
@@ -13,13 +13,15 @@ python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield
 3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if merge_conditions=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if merge_conditions=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if merge_conditions=True, num_catalyst and num_reagent should be set to 0, and if merge_conditions=False, num_agent should be set to 0. It is recommended to set merge_conditions=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
 9) min_frequency_of_occurance_primary: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0
 10) min_frequency_of_occurance_secondary: (int) See above. Secondary: Any other columns than the first.
+11) include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'
+12) save_with_label_called_other (int): Frequency cutoff (see above).
 
     Functionality:
 
 1) Merge the pickle files from USPTO_extraction.py into a df
 2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
 3) Remove reactions with inconsistent yields (consistent_yield)
-4) Remove molecules that appear less than min_frequency_of_occurance times
+4) Removal or remapping to 'other' of rare molecules
 5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
 6) Remove duplicate reactions
 7) Pickle the final df
