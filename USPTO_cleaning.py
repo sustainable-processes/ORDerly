@@ -150,33 +150,44 @@ class USPTO_cleaning():
         else:
             upper_cutoff = self.min_frequency_of_occurance_secondary
             
-        
-        if self.include_other_category:
-            # Select the values where the count is less than cutoff
-            set_to_other = value_counts[(value_counts >= self.save_with_label_called_other) & (value_counts < upper_cutoff)].index
-            set_to_other = set(set_to_other)
-            # Create a boolean mask for the rows with values in set_to_other
-            mask = df[col].isin(set_to_other)
+        pre_len, post_len = 2, 1
+        while_loop_counter = 0
+        while pre_len > post_len:
+            while_loop_counter +=1
+            if while_loop_counter >15:
+                raise TimeoutError('Looped to many times in trying to remove rare molecules')
+            # When we remove rows that feature rare molecules, we iterate through the columns. This means that we may remove a row with a rare molecule with a frequency that was just above the threshold before, and just under the threshold after. So we loop through this code again and again until all solvent and agent molecules appear at least cutoff times.
+            
+            pre_len = len(df)
+            
+            if self.include_other_category:
+                # Select the values where the count is less than cutoff
+                set_to_other = value_counts[(value_counts >= self.save_with_label_called_other) & (value_counts < upper_cutoff)].index
+                set_to_other = set(set_to_other)
+                # Create a boolean mask for the rows with values in set_to_other
+                mask = df[col].isin(set_to_other)
 
-            # Replace the values in the selected rows and columns with 'other'
-            df.loc[mask, col] = 'other'
+                # Replace the values in the selected rows and columns with 'other'
+                df.loc[mask, col] = 'other'
+                
+                # Remove rows with a very rare molecule
+                to_remove = value_counts[value_counts < self.save_with_label_called_other].index
+                
+                
+            else:
+                # Remove rows with a very rare molecule
+                to_remove = value_counts[value_counts < upper_cutoff].index
+                
+                
+            to_remove = set(to_remove)
             
-            # Remove rows with a very rare molecule
-            to_remove = value_counts[value_counts < self.save_with_label_called_other].index
-            
-            
-        else:
-            # Remove rows with a very rare molecule
-            to_remove = value_counts[value_counts < upper_cutoff].index
-            
-            
-        to_remove = set(to_remove)
-        
-        # Create a boolean mask for the rows that do not contain rare molecules
-        mask = ~df[col].isin(to_remove)
+            # Create a boolean mask for the rows that do not contain rare molecules
+            mask = ~df[col].isin(to_remove)
 
-        # Create a new DataFrame with the selected rows
-        df = df.loc[mask]
+            # Create a new DataFrame with the selected rows
+            df = df.loc[mask]
+            
+            post_len = len(df)
 
         
         return df
