@@ -1,9 +1,12 @@
 """
 After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
 
-Example: python USPTO_extraction.py True
+    Example: 
+    
+python USPTO_extraction.py --merge_conditions=True
 
-    Args: merge_conditions
+
+    Args:
     
 1) merge_conditions: Bool
         - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
