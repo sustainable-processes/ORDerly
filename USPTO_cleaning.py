@@ -5,8 +5,6 @@ After running USPTO_extraction.py, this script will merge and apply further clea
 
 python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=50 --min_frequency_of_occurance_secondary=10 --include_other_category=True --min_frequency_of_occurance_other=10
 
-To keep more reactions:
-python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=4 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=25 --min_frequency_of_occurance_secondary=15 --include_other_category=True --min_frequency_of_occurance_other=5
 
     Args:
     
@@ -29,6 +27,9 @@ python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield
     Output:
 
 1) A pickle file containing the cleaned data
+
+    NB:
+1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
 """
 
 
@@ -55,7 +56,7 @@ import argparse
 
 class USPTO_cleaning():
     
-    def __init__(self, clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance_primary, min_frequency_of_occurance_secondary, include_other_category, min_frequency_of_occurance_other):
+    def __init__(self, clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance_primary, min_frequency_of_occurance_secondary, include_other_category, save_with_label_called_other):
         self.clean_data_file_name = clean_data_file_name
         self.consistent_yield = consistent_yield
         self.num_reactant = num_reactant
@@ -67,7 +68,7 @@ class USPTO_cleaning():
         self.min_frequency_of_occurance_primary = min_frequency_of_occurance_primary
         self.min_frequency_of_occurance_secondary = min_frequency_of_occurance_secondary
         self.include_other_category = include_other_category
-        self.min_frequency_of_occurance_other = min_frequency_of_occurance_other
+        self.save_with_label_called_other = save_with_label_called_other
 
     def merge_pickles(self):
         #create one big df of all the pickled data
@@ -82,7 +83,24 @@ class USPTO_cleaning():
                 
         return full_df
 
-    def remove_reactions_with_too_many_of_component(self, df, component_name, number_of_columns_to_keep):
+    def remove_reactions_with_too_many_of_component(self, df, component_name):
+        if component_name == 'reactant':
+            number_of_columns_to_keep = self.num_reactant
+        elif component_name == 'product':
+            number_of_columns_to_keep = self.num_product
+        elif component_name == 'yield':
+            number_of_columns_to_keep = self.num_product
+        elif component_name == 'solvent':
+            number_of_columns_to_keep = self.num_solv
+        elif component_name == 'agent':
+            number_of_columns_to_keep = self.num_agent
+        elif component_name == 'catalyst':
+            number_of_columns_to_keep = self.num_cat
+        elif component_name == 'reagent':
+            number_of_columns_to_keep = self.num_reag
+        else:
+            raise KeyError('component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent')
+        
         
         cols = list(df.columns)
         count = 0
@@ -90,15 +108,20 @@ class USPTO_cleaning():
             if component_name in col:
                 count += 1
         
-        columns = [] # columns to remove
+        columns_to_remove = [] # columns to remove
         for i in range(count):
             if i >= number_of_columns_to_keep:
-                columns += [component_name+str(i)]
+                columns_to_remove += [component_name+'_'+str(i)]
                 
-        for col in columns:
-            df = df[pd.isnull(df[col])]
+        for col in columns_to_remove:
+            # Create a boolean mask for the rows with missing values in col
+            mask = pd.isnull(df[col])
+
+            # Create a new DataFrame with the selected rows
+            df = df.loc[mask]
+
             
-        df = df.drop(columns, axis=1)
+        df = df.drop(columns_to_remove, axis=1)
                 
         return df
 
@@ -112,65 +135,52 @@ class USPTO_cleaning():
         value_counts = df[columns[0]].value_counts()
         for i in range(1, len(columns)):
             value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
-          
-        if self.include_other_category:
             
-            for col in tqdm(columns):
-                
-                if '0' in col:
-                    # Select the values where the count is less than cutoff
-                    set_to_other = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_primary)].index
-                    to_remove = value_counts[value_counts < self.min_frequency_of_occurance_other].index
-                    
-                    # Replace values in set_to_other with 'other' for all columns
-                    df[col] = df[col].map(lambda x: 'other' if x in set_to_other else x)
-
-                    
-                    # Remove rows with a very rare molecule
-                    df = df[~df[col].isin(to_remove)]
-                    print('After removing reactions with rare ', col, ': ', len(df))
-                    
-                    
-                else:
-                    # Select the values where the count is less than cutoff
-                    set_to_other = value_counts[(value_counts >= self.min_frequency_of_occurance_other) & (value_counts < self.min_frequency_of_occurance_secondary)].index
-                    to_remove = value_counts[value_counts < self.min_frequency_of_occurance_other].index
-                    
-                    # Replace values in set_to_other with 'other' for all columns
-                    df[col] = df[col].map(lambda x: 'other' if x in set_to_other else x)
-
-                    
-                    
-                    # Remove rows with a very rare molecule
-                    df = df[~df[col].isin(to_remove)]
-                    print('After removing reactions with rare ', col, ': ', len(df))
-            
-                
-                
-        else:
-            for col in tqdm(columns):
-                
-                if '0' in col:
-                    # Select the values where the count is less than cutoff
-                    to_remove = value_counts[value_counts < self.min_frequency_of_occurance_primary].index
-                    
-                    # Remove rows with a very rare molecule
-                    df = df[~df[col].isin(to_remove)]
-                    print('After removing reactions with rare ', col, ': ', len(df))
-                    
-                    
-                else:
-                    # Select the values where the count is less than cutoff
-                    to_remove = value_counts[value_counts < self.min_frequency_of_occurance_secondary].index
-                    
-                    # Remove rows with a very rare molecule
-                    df = df[~df[col].isin(to_remove)]
-                    print('After removing reactions with rare ', col, ': ', len(df))
+        for col in columns:
+            df = self.filtering_and_removal(df, col, value_counts)        
+            print('After removing reactions with rare', col+ ': ', len(df))
             
         return df
 
             
 
+    def filtering_and_removal(self, df, col, value_counts):
+        if '0' in col:
+            upper_cutoff = self.min_frequency_of_occurance_primary
+        else:
+            upper_cutoff = self.min_frequency_of_occurance_secondary
+            
+        
+        if self.include_other_category:
+            # Select the values where the count is less than cutoff
+            set_to_other = value_counts[(value_counts >= self.save_with_label_called_other) & (value_counts < upper_cutoff)].index
+            set_to_other = set(set_to_other)
+            # Create a boolean mask for the rows with values in set_to_other
+            mask = df[col].isin(set_to_other)
+
+            # Replace the values in the selected rows and columns with 'other'
+            df.loc[mask, col] = 'other'
+            
+            # Remove rows with a very rare molecule
+            to_remove = value_counts[value_counts < self.save_with_label_called_other].index
+            
+            
+        else:
+            # Remove rows with a very rare molecule
+            to_remove = value_counts[value_counts < upper_cutoff].index
+            
+            
+        to_remove = set(to_remove)
+        
+        # Create a boolean mask for the rows that do not contain rare molecules
+        mask = ~df[col].isin(to_remove)
+
+        # Create a new DataFrame with the selected rows
+        df = df.loc[mask]
+
+        
+        return df
+        
         
 
     def main(self):
@@ -179,32 +189,12 @@ class USPTO_cleaning():
         df = self.merge_pickles()
         print('All data: ', len(df))
         
-        # Remove reactions with too many reactants or products
-        
-        #reactant
-        df = self.remove_reactions_with_too_many_of_component(df, 'reactant_', self.num_reactant)
-        print('After removing reactions with too many reactants: ', len(df))
-        
-        #product
-        df = self.remove_reactions_with_too_many_of_component(df, 'product_', self.num_product)
-        df = self.remove_reactions_with_too_many_of_component(df, 'yield_', self.num_product)
-        print('After removing reactions with too many products: ', len(df))
-        
-        #solv
-        df = self.remove_reactions_with_too_many_of_component(df, 'solvent_', self.num_solv)
-        print('After removing reactions with too many solvents: ', len(df))
-        
-        #agent
-        df = self.remove_reactions_with_too_many_of_component(df, 'agent_', self.num_agent)
-        print('After removing reactions with too many agents: ', len(df))
-            
-        #cat
-        df = self.remove_reactions_with_too_many_of_component(df, 'catalyst_', self.num_cat)
-        print('After removing reactions with too many catalysts: ', len(df))
-        
-        #reag
-        df = self.remove_reactions_with_too_many_of_component(df, 'reagent_', self.num_reag)
-        print('After removing reactions with too many reagents: ', len(df))
+        # Remove reactions with too many of a certain component
+        columns = ['reactant', 'product', 'yield', 'solvent', 'agent', 'catalyst', 'reagent']
+        for col in columns:
+            df = self.remove_reactions_with_too_many_of_component(df, col)
+            if col != 'yield':
+                print('After removing reactions with too many', col+'s: ', len(df))
         
         
         # Ensure consistent yield
@@ -249,7 +239,7 @@ class USPTO_cleaning():
                 
 
         if self.min_frequency_of_occurance_primary or self.min_frequency_of_occurance_secondary != 0:
-            self.remove_rare_molecules(df, columns)
+            df = self.remove_rare_molecules(df, columns)
             
                 
                 
@@ -309,10 +299,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_agent', type=int, default=3)
     parser.add_argument('--num_cat', type=int, default=0)
     parser.add_argument('--num_reag', type=int, default=0)
-    parser.add_argument('--min_frequency_of_occurance_primary', type=int, default=50)
-    parser.add_argument('--min_frequency_of_occurance_secondary', type=int, default=25)
+    parser.add_argument('--min_frequency_of_occurance_primary', type=int, default=30)
+    parser.add_argument('--min_frequency_of_occurance_secondary', type=int, default=15)
     parser.add_argument('--include_other_category', type=bool, default=True)
-    parser.add_argument('--min_frequency_of_occurance_other', type=int, default=3)
+    parser.add_argument('--save_with_label_called_other', type=int, default=5)
     
 
     args = parser.parse_args()
@@ -329,14 +319,13 @@ if __name__ == "__main__":
     min_frequency_of_occurance_primary = args.min_frequency_of_occurance_primary
     min_frequency_of_occurance_secondary = args.min_frequency_of_occurance_secondary
     include_other_category = args.include_other_category
-    min_frequency_of_occurance_other = args.min_frequency_of_occurance_other
+    save_with_label_called_other = args.save_with_label_called_other
         
     assert num_agent == 0 or num_cat == 0 and num_reag == 0, "Invalid input: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0."
     
-    assert min_frequency_of_occurance_primary > min_frequency_of_occurance_other, "min_frequency_of_occurance_primary must be greater than min_frequency_of_occurance_other"
-    assert min_frequency_of_occurance_secondary > min_frequency_of_occurance_other, "min_frequency_of_occurance_secondary must be greater than min_frequency_of_occurance_other"
+    assert min_frequency_of_occurance_primary > save_with_label_called_other and min_frequency_of_occurance_secondary > save_with_label_called_other, "min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary must be greater than save_with_label_called_other. Anything between save_with_label_called_other and min_frequency_of_occurance_primary/secondary will be set to 'other' if include_other_category=True."
 
-    instance = USPTO_cleaning(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance_primary, min_frequency_of_occurance_secondary, include_other_category, min_frequency_of_occurance_other)
+    instance = USPTO_cleaning(clean_data_file_name, consistent_yield, num_reactant, num_product, num_solv, num_agent, num_cat, num_reag, min_frequency_of_occurance_primary, min_frequency_of_occurance_secondary, include_other_category, save_with_label_called_other)
     
     instance.main()
         
