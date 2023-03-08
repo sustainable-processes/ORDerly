@@ -75,7 +75,7 @@ class USPTO_cleaning():
         folder_path = 'data/USPTO/pickled_data/'
         onlyfiles = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
         full_df = pd.DataFrame()
-        for file in tqdm(onlyfiles[:50]):
+        for file in tqdm(onlyfiles):
             if file[0] != '.': #We don't want to try to unpickle .DS_Store
                 filepath = folder_path+file 
                 unpickled_df = pd.read_pickle(filepath)
