@@ -75,7 +75,7 @@ class USPTO_cleaning():
         folder_path = 'data/USPTO/pickled_data/'
         onlyfiles = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
         full_df = pd.DataFrame()
-        for file in tqdm(onlyfiles):
+        for file in tqdm(onlyfiles[:50]):
             if file[0] != '.': #We don't want to try to unpickle .DS_Store
                 filepath = folder_path+file 
                 unpickled_df = pd.read_pickle(filepath)
@@ -310,10 +310,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_agent', type=int, default=3)
     parser.add_argument('--num_cat', type=int, default=0)
     parser.add_argument('--num_reag', type=int, default=0)
-    parser.add_argument('--min_frequency_of_occurance_primary', type=int, default=30)
+    parser.add_argument('--min_frequency_of_occurance_primary', type=int, default=15)
     parser.add_argument('--min_frequency_of_occurance_secondary', type=int, default=15)
     parser.add_argument('--include_other_category', type=bool, default=True)
-    parser.add_argument('--save_with_label_called_other', type=int, default=5)
+    parser.add_argument('--save_with_label_called_other', type=int, default=3) #save the reaction: label the rare molecule with 'other' rather than removing it
     
 
     args = parser.parse_args()
