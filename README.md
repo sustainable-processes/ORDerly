@@ -18,6 +18,11 @@ The scripts herein will extract and clean USPTO data from ORD with various manua
 5) Find the cleaned USPTO data in the data folder 
 
 
+
+For ubuntu: 
+1) sudo apt-get install libpq-dev
+
+
 ## Solvents
 In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in USPTO), this list was created from the intersection of the following two lists (excluding acids, bases, and polymers):
  - https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv
