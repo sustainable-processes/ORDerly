@@ -62,7 +62,7 @@ from ord_schema.proto import dataset_pb2
 from rdkit import Chem
 
 
-import ORDerly.extraction.defaults
+import orderly.extraction.defaults
 
 from tqdm import tqdm
 
@@ -145,7 +145,7 @@ class OrdToPickle:
 
     def build_rxn_lists(self, metals: typing.Optional[typing.List[str]] = None):
         if metals is None:
-            metals = ORDerly.extraction.defaults.get_metals_list()
+            metals = orderly.extraction.defaults.get_metals_list()
 
         mapped_rxn_all = []
         reactants_all = []
@@ -612,7 +612,7 @@ def build_replacements(
     block = BlockLogs()  # removes excessive warnings
 
     if molecule_replacements is None:
-        molecule_replacements = ORDerly.extraction.defaults.get_molecule_replacements()
+        molecule_replacements = orderly.extraction.defaults.get_molecule_replacements()
 
     # Iterate over the dictionary and canonicalize each SMILES string
     for key, value in molecule_replacements.items():
@@ -622,7 +622,7 @@ def build_replacements(
 
     if molecule_str_force_nones is None:
         molecule_str_force_nones = (
-            ORDerly.extraction.defaults.get_molecule_str_force_nones()
+            orderly.extraction.defaults.get_molecule_str_force_nones()
         )
 
     for molecule_str in molecule_str_force_nones:
