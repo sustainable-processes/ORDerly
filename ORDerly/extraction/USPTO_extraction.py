@@ -45,6 +45,9 @@ python USPTO_extraction.py --merge_conditions=True
 import logging
 import typing
 import os
+import pathlib
+import datetime
+
 import argparse
 import pickle
 import multiprocessing
@@ -53,24 +56,24 @@ import pandas as pd
 import numpy as np
 
 from joblib import Parallel, delayed
-from datetime import datetime
 
 from ord_schema import message_helpers
 from ord_schema.proto import dataset_pb2
 from rdkit import Chem
+
+
+import ORDerly.extraction.defaults
+
+from tqdm import tqdm
+
 import rdkit.rdBase as rkrb
 import rdkit.RDLogger as rkl
 from rdkit.rdBase import BlockLogs
 
-
-import uspto_cleaning.defaults
-
-from tqdm import tqdm
-
 LOG = logging.getLogger(__name__)
 
-# logger = rkl.logger()
-# logger.setLevel(rkl.ERROR)
+logger = rkl.logger()
+logger.setLevel(rkl.ERROR)
 rkrb.DisableLog("rdApp.error")  # Disables RDKit whiny logging.
 
 
@@ -83,7 +86,11 @@ class OrdToPickle:
     """
 
     def __init__(
-        self, ord_file_path, merge_cat_and_reag, manual_replacements_dict, solvents_set
+        self,
+        ord_file_path: pathlib.Path,
+        merge_cat_solv_reag: bool,
+        manual_replacements_dict: typing.Dict[str, str],
+        solvents_set: typing.Set[str],
     ):
         self.ord_file_path = ord_file_path
         self.data = message_helpers.load_message(
@@ -91,7 +98,7 @@ class OrdToPickle:
         )
         self.filename = self.data.name
         self.names_list = []
-        self.merge_cat_solv_reag = merge_cat_and_reag
+        self.merge_cat_solv_reag = merge_cat_solv_reag
         self.manual_replacements_dict = manual_replacements_dict
         self.solvents_set = solvents_set
 
@@ -136,9 +143,9 @@ class OrdToPickle:
     # its probably a lot faster to sanitise the whole thing at the end
     # NB: And create a hash map/dict
 
-    def build_rxn_lists(self, metals: typing.Optional[typing.List[str]]):
+    def build_rxn_lists(self, metals: typing.Optional[typing.List[str]] = None):
         if metals is None:
-            metals = uspto_cleaning.defaults.get_metals_list()
+            metals = ORDerly.extraction.defaults.get_metals_list()
 
         mapped_rxn_all = []
         reactants_all = []
@@ -197,10 +204,8 @@ class OrdToPickle:
                     else:
                         not_mapped_products += [p]
 
-                # inputs
-                for (
-                    key
-                ) in rxn.inputs:  # these are the keys in the 'dict' style data struct
+                # loop through the keys in the 'dict' style data struct
+                for key in rxn.inputs:
                     try:
                         components = rxn.inputs[key].components
                         for component in components:
@@ -225,17 +230,13 @@ class OrdToPickle:
                             elif rxn_role == 4:  # catalyst
                                 # catalysts += [smiles] same as solvents
                                 catalysts += [r for r in smiles.split(".")]
-                            elif rxn_role in [
-                                5,
-                                6,
-                                7,
-                            ]:  # workup, internal standard, authentic standard. don't care about these
+                            elif rxn_role in [5, 6, 7]:
+                                # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
                                 continue
                             # elif rxn_role ==8: #product
                             #     #products += [smiles]
                             # there are no products recorded in rxn_role == 8, they're all stored in "outcomes"
                     except IndexError:
-                        # print(i, key )
                         continue
 
                 # temperature
@@ -466,13 +467,15 @@ class OrdToPickle:
         )
 
     # create the column headers for the df
-    def create_column_headers(self, df, base_string):
+    def create_column_headers(
+        self, df: pd.DataFrame, base_string: str
+    ) -> typing.List[str]:
         column_headers = []
         for i in range(len(df.columns)):
             column_headers += [base_string + str(i)]
         return column_headers
 
-    def build_full_df(self):
+    def build_full_df(self) -> pd.DataFrame:
         headers = [
             "mapped_rxn_",
             "reactant_",
@@ -517,13 +520,13 @@ class OrdToPickle:
         # print(f'The following does not contain USPTO data: {self.filename}')
 
 
-def get_file_names():
-    # Set the directory you want to look in
-    directory = "data/USPTO/ord-data/data/"
-
+def get_file_names(
+    directory=pathlib.Path("data/USPTO/ord-data/data/"),
+) -> typing.List[pathlib.Path]:
     # Use listdir to get a list of all files in the directory
     folders = os.listdir(directory)
     files = []
+
     # Use a for loop to iterate over the files and print their names
     for folder in folders:
         if not folder.startswith("."):
@@ -569,7 +572,21 @@ def canonicalize_smiles(smiles):
     return Chem.MolToSmiles(mol)
 
 
-def build_solvents_set_and_dict():
+import pkg_resources
+
+
+def get_csv():
+    file_path = pkg_resources.resource_filename(
+        "uspto_cleaning", resource_name="data/solvents.csv"
+    )
+    print(file_path)
+    # import pkgutil
+    # pkgutil.get_data(package="uspto_cleaning", resource="data/solvents.csv")
+
+    # return pd.read_csv("data/solvents.csv", index_col=0)
+
+
+def build_solvents_set_and_dict() -> typing.Tuple[typing.Set, typing.Dict]:
     solvents = pd.read_csv("data/solvents.csv", index_col=0)
 
     solvents["canonical_smiles"] = solvents["smiles"].apply(canonicalize_smiles)
@@ -589,12 +606,13 @@ def build_solvents_set_and_dict():
 
 
 def build_replacements(
-    molecule_replacements: typing.Optional[typing.Dict[str, str]] = None
-):
-    block = BlockLogs()
+    molecule_replacements: typing.Optional[typing.Dict[str, str]] = None,
+    molecule_str_force_nones: typing.Optional[typing.List[str]] = None,
+) -> typing.Dict[str, typing.Optional[str]]:
+    block = BlockLogs()  # removes excessive warnings
 
     if molecule_replacements is None:
-        molecule_replacements = uspto_cleaning.defaults.get_molecule_replacements()
+        molecule_replacements = ORDerly.extraction.defaults.get_molecule_replacements()
 
     # Iterate over the dictionary and canonicalize each SMILES string
     for key, value in molecule_replacements.items():
@@ -602,9 +620,13 @@ def build_replacements(
         if mol is not None:
             molecule_replacements[key] = Chem.MolToSmiles(mol)
 
-    molecule_replacements[
-        "solution"
-    ] = None  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+    if molecule_str_force_nones is None:
+        molecule_str_force_nones = (
+            ORDerly.extraction.defaults.get_molecule_str_force_nones()
+        )
+
+    for molecule_str in molecule_str_force_nones:
+        molecule_replacements[molecule_str] = None
 
     return molecule_replacements
 
@@ -617,7 +639,7 @@ def main(file, merge_conditions, manual_replacements_dict, solvents_set):
 
 
 if __name__ == "__main__":
-    start_time = datetime.now()
+    start_time = datetime.datetime.now()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--merge_conditions", type=bool, default=True)

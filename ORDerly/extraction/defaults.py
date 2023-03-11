@@ -203,3 +203,9 @@ def get_molecule_replacements() -> typing.Dict[str, str]:
     molecule_replacements["water"] = "O"
     molecule_replacements["ice"] = "O"
     return molecule_replacements
+
+
+def get_molecule_str_force_nones() -> typing.List[str]:
+    return [
+        "solution"  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+    ]
