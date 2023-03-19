@@ -1,5 +1,5 @@
 ---
-title: 'ORDerly: Reaction cleaning of USPTO from ORD'
+title: 'ORDerly: A Python package for cleaning Open Reaction Database'
 tags:
   - Python
   - Organic Reactions
