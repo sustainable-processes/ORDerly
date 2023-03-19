@@ -9,6 +9,7 @@ authors:
     orcid: 0000-0002-0494-643X
     affiliation: 1
   - name: Joe Arrowsmith
+  - orcid: 0009-0008-9616-3782
     affiliation: 2
   - name: Alexander Pomberger
     orcid: 0000-0003-2267-7090
