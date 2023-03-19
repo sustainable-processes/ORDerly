@@ -1,8 +1,0 @@
-[ ] Add logging: 
-[ ] TQDM add logging: https://stackoverflow.com/questions/38543506/change-logging-print-function-to-tqdm-write-so-logging-doesnt-interfere-wit
-[ ] Add documentations 
-[ ] Add main script 
-[ ] Clean extraction script
-[ ] DF to parquet
-[ ] Extract out plain text description
-[ ] Check freq makes sense
