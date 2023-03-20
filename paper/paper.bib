@@ -99,3 +99,35 @@
 	note = {Publisher: American Chemical Society},
 	pages = {39--53},
 }
+
+@misc{Lowe:2017,
+	title = {Chemical reactions from {US} patents (1976-{Sep2016})},
+	url = {https://figshare.com/articles/Chemical_reactions_from_US_patents_1976-Sep2016_/5104873},
+	abstract = {Reactions extracted by text-mining from United States patents published between 1976 and September 2016. The reactions are available as CML or reaction SMILES. Note that the reactions SMILES are derived from the CML. The files can be unzipped using a program like 7-Zip.The reactions were extracted using an enhanced version of the reaction extraction code described in https://www.repository.cam.ac.uk/handle/1810/244727with LeadMine (https://www.nextmovesoftware.com/leadmine.html) used for chemical entity recognition.General tips:Duplicate reactions are frequent due to the same or highly similar text occurring in multiple patents, this is especially true when combining the applications and grant datasets, many reactions from applications will later appear in patent grants.Paragraph numbers are only present for 2005+ patent grants and patent applications.Multiple reactions can be extracted from the same paragraph.Atom maps in the reactions SMILES are derived using Epam's 
+Indigo toolkit. While typically correct, the atom-maps are wrong in many
+cases and hence should not be entirely relied on.The reactions have been filtered to remove common cases of incorrectly extracted reactions:All product atoms must be accounted for by the atom-mappingThe product(s) must have {\textgreater}8 heavy atomsThe product must not be charged if it is a single componentThe number of products must be {\textless}5 and number of reactants+agents {\textless}16CML:A schema for the CML is present in cml\_xsd.zipReaction SMILESFor convenience the reaction SMILES includes tab delimited columns for:PatentNumber, ParagraphNum, Year, TextMinedYield, CalculatedYieldAll of this information is also present in the CML (year is inferred from the folders)},
+	urldate = {2020-05-21},
+	author = {Lowe, Daniel},
+	month = jun,
+	year = {2017},
+	doi = {10.6084/m9.figshare.5104873.v1},
+	keywords = {Chemical reactions, organic synthesis, patents, reaction yield, text-mining results},
+}
+
+
+@article{wigh_review:2022,
+	title = {A review of molecular representation in the age of machine learning},
+	volume = {12},
+	issn = {1759-0884},
+	url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/wcms.1603},
+	doi = {10.1002/wcms.1603},
+	abstract = {Research in chemistry increasingly requires interdisciplinary work prompted by, among other things, advances in computing, machine learning, and artificial intelligence. Everyone working with molecules, whether chemist or not, needs an understanding of the representation of molecules in a machine-readable format, as this is central to computational chemistry. Four classes of representations are introduced: string, connection table, feature-based, and computer-learned representations. Three of the most significant representations are simplified molecular-input line-entry system (SMILES), International Chemical Identifier (InChI), and the MDL molfile, of which SMILES was the first to successfully be used in conjunction with a variational autoencoder (VAE) to yield a continuous representation of molecules. This is noteworthy because a continuous representation allows for efficient navigation of the immensely large chemical space of possible molecules. Since 2018, when the first model of this type was published, considerable effort has been put into developing novel and improved methodologies. Most, if not all, researchers in the community make their work easily accessible on GitHub, though discussion of computation time and domain of applicability is often overlooked. Herein, we present questions for consideration in future work which we believe will make chemical VAEs even more accessible. This article is categorized under: Data Science {\textgreater} Chemoinformatics},
+	language = {en},
+	number = {5},
+	urldate = {2022-10-05},
+	journal = {WIREs Computational Molecular Science},
+	author = {Wigh, Daniel S. and Goodman, Jonathan M. and Lapkin, Alexei A.},
+	year = {2022},
+	keywords = {chemoinformatics, fingerprints, machine learning, molecular representation, variational autoencoder},
+	pages = {e1603},
+}
