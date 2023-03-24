@@ -105,7 +105,7 @@ python-versions = "*"
 
 [[package]]
 name = "beautifulsoup4"
-version = "4.11.2"
+version = "4.12.0"
 description = "Screen-scraping library"
 category = "dev"
 optional = false
@@ -203,7 +203,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "comm"
-version = "0.1.2"
+version = "0.1.3"
 description = "Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc."
 category = "dev"
 optional = false
@@ -213,7 +213,30 @@ python-versions = ">=3.6"
 traitlets = ">=5.3"
 
 [package.extras]
+lint = ["black (>=22.6.0)", "mdformat-gfm (>=0.3.5)", "mdformat (>0.7)", "ruff (>=0.0.156)"]
 test = ["pytest"]
+typing = ["mypy (>=0.990)"]
+
+[[package]]
+name = "cryptography"
+version = "39.0.2"
+description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+cffi = ">=1.12"
+
+[package.extras]
+docs = ["sphinx (>=5.3.0)", "sphinx-rtd-theme (>=1.1.1)"]
+docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+pep8test = ["black", "ruff", "mypy", "types-pytz", "types-requests", "check-manifest"]
+sdist = ["setuptools-rust (>=0.11.4)"]
+ssh = ["bcrypt (>=3.1.5)"]
+test = ["pytest (>=6.2.0)", "pytest-shard (>=0.1.2)", "pytest-benchmark", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+test-randomorder = ["pytest-randomly"]
+tox = ["tox"]
 
 [[package]]
 name = "debugpy"
@@ -271,7 +294,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "exceptiongroup"
-version = "1.1.0"
+version = "1.1.1"
 description = "Backport of PEP 654 (exception groups)"
 category = "dev"
 optional = false
@@ -366,7 +389,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "ipykernel"
-version = "6.21.3"
+version = "6.22.0"
 description = "IPython Kernel for Jupyter"
 category = "dev"
 optional = false
@@ -439,21 +462,20 @@ python-versions = "*"
 
 [[package]]
 name = "ipywidgets"
-version = "8.0.4"
+version = "8.0.5"
 description = "Jupyter interactive widgets"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-ipykernel = ">=4.5.1"
 ipython = ">=6.1.0"
 jupyterlab-widgets = ">=3.0,<4.0"
 traitlets = ">=4.3.1"
 widgetsnbextension = ">=4.0,<5.0"
 
 [package.extras]
-test = ["jsonschema", "pytest (>=3.6.0)", "pytest-cov", "pytz"]
+test = ["jsonschema", "ipykernel", "pytest (>=3.6.0)", "pytest-cov", "pytz"]
 
 [[package]]
 name = "isoduration"
@@ -562,7 +584,7 @@ qtconsole = "*"
 
 [[package]]
 name = "jupyter-client"
-version = "8.0.3"
+version = "8.1.0"
 description = "Jupyter protocol implementation and client libraries"
 category = "dev"
 optional = false
@@ -602,7 +624,7 @@ test = ["flaky", "pexpect", "pytest"]
 
 [[package]]
 name = "jupyter-core"
-version = "5.2.0"
+version = "5.3.0"
 description = "Jupyter core package. A base package on which Jupyter projects rely."
 category = "dev"
 optional = false
@@ -610,7 +632,7 @@ python-versions = ">=3.8"
 
 [package.dependencies]
 platformdirs = ">=2.5"
-pywin32 = {version = ">=1.0", markers = "sys_platform == \"win32\" and platform_python_implementation != \"PyPy\""}
+pywin32 = {version = ">=300", markers = "sys_platform == \"win32\" and platform_python_implementation != \"PyPy\""}
 traitlets = ">=5.3"
 
 [package.extras]
@@ -640,7 +662,7 @@ test = ["click", "coverage", "pre-commit", "pytest-asyncio (>=0.19.0)", "pytest-
 
 [[package]]
 name = "jupyter-server"
-version = "2.4.0"
+version = "2.5.0"
 description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications."
 category = "dev"
 optional = false
@@ -696,7 +718,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "jupyterlab-widgets"
-version = "3.0.5"
+version = "3.0.6"
 description = "Jupyter interactive widgets for JupyterLab"
 category = "dev"
 optional = false
@@ -790,7 +812,7 @@ test = ["ipykernel", "ipython", "ipywidgets", "nbconvert (>=7.0.0)", "pytest-asy
 
 [[package]]
 name = "nbconvert"
-version = "7.2.9"
+version = "7.2.10"
 description = "Converting Jupyter Notebooks"
 category = "dev"
 optional = false
@@ -824,7 +846,7 @@ webpdf = ["pyppeteer (>=1,<1.1)"]
 
 [[package]]
 name = "nbformat"
-version = "5.7.3"
+version = "5.8.0"
 description = "The Jupyter Notebook format"
 category = "dev"
 optional = false
@@ -903,7 +925,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "openpyxl"
-version = "3.1.1"
+version = "3.1.2"
 description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
 category = "main"
 optional = false
@@ -914,7 +936,7 @@ et-xmlfile = "*"
 
 [[package]]
 name = "ord-schema"
-version = "0.3.43"
+version = "0.3.44"
 description = "Schema for the Open Reaction Database"
 category = "main"
 optional = false
@@ -992,7 +1014,7 @@ testing = ["docopt", "pytest (<6.0.0)"]
 
 [[package]]
 name = "pathspec"
-version = "0.11.0"
+version = "0.11.1"
 description = "Utility library for gitignore style pattern matching of file paths."
 category = "dev"
 optional = false
@@ -1031,7 +1053,7 @@ tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "pa
 
 [[package]]
 name = "platformdirs"
-version = "3.1.0"
+version = "3.1.1"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
@@ -1131,7 +1153,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pygithub"
-version = "1.58.0"
+version = "1.58.1"
 description = "Use the full Github API v3"
 category = "main"
 optional = false
@@ -1139,12 +1161,9 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 deprecated = "*"
-pyjwt = ">=2.4.0"
+pyjwt = {version = ">=2.4.0", extras = ["crypto"]}
 pynacl = ">=1.4.0"
 requests = ">=2.14.0"
-
-[package.extras]
-integrations = ["cryptography"]
 
 [[package]]
 name = "pygments"
@@ -1164,6 +1183,9 @@ description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
 python-versions = ">=3.7"
+
+[package.dependencies]
+cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"crypto\""}
 
 [package.extras]
 crypto = ["cryptography (>=3.4.0)"]
@@ -1267,7 +1289,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "pyzmq"
-version = "25.0.0"
+version = "25.0.2"
 description = "Python bindings for 0MQ"
 category = "dev"
 optional = false
@@ -1278,7 +1300,7 @@ cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
 name = "qtconsole"
-version = "5.4.0"
+version = "5.4.1"
 description = "Jupyter Qt console"
 category = "dev"
 optional = false
@@ -1289,6 +1311,7 @@ ipykernel = ">=4.1"
 ipython-genutils = "*"
 jupyter-client = ">=4.1"
 jupyter-core = "*"
+packaging = "*"
 pygments = "*"
 pyzmq = ">=17.1"
 qtpy = ">=2.0.1"
@@ -1400,7 +1423,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "sqlalchemy"
-version = "2.0.5.post1"
+version = "2.0.7"
 description = "Database Abstraction Library"
 category = "main"
 optional = false
@@ -1547,7 +1570,7 @@ dev = ["mypy", "flake8 (<4.0.0)", "flake8-annotations", "flake8-bugbear", "flake
 
 [[package]]
 name = "urllib3"
-version = "1.26.14"
+version = "1.26.15"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
@@ -1611,7 +1634,7 @@ watchdog = ["watchdog"]
 
 [[package]]
 name = "widgetsnbextension"
-version = "4.0.5"
+version = "4.0.6"
 description = "Jupyter interactive widgets for Jupyter Notebook"
 category = "dev"
 optional = false
@@ -1669,6 +1692,7 @@ charset-normalizer = []
 click = []
 colorama = []
 comm = []
+cryptography = []
 debugpy = []
 decorator = []
 defusedxml = []

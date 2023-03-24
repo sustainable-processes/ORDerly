@@ -2,7 +2,7 @@
 name = "ORDerly"
 version = "0.1.0"
 description = "Cleaning and extraction of USPTO data from ORD"
-authors = ["Daniel Wigh", "Joe Arrowsmith <joearrowsmith0@gmail.com>", "Alexander", "Lapkin"] # TODO
+authors = ["Daniel S. Wigh", "Joe Arrowsmith", "Alexander Pomberger", "Alexei A. Lapkin"]
 # New attributes
 license = "MIT"
 readme = "README.md"
