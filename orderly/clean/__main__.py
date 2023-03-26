@@ -1,5 +1,5 @@
 import logging
-from orderly.cleaning.cleaner import main
+from orderly.clean.cleaner import main
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(

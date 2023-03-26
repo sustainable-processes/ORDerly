@@ -311,26 +311,27 @@ class Cleaner:
 
 
 @click.command()
-@click.option("--clean_data_path", type=str, default="./cleaned_USPTO.parquet")
+@click.option("--clean_data_path", type=str, default="./cleaned_USPTO.parquet", show_default=True)
 @click.option("--pickles_path", type=str)
 @click.option("--molecules_to_remove_path", type=str)
-@click.option("--consistent_yield", type=bool, default=True)
-@click.option("--num_reactant", type=int, default=5)
-@click.option("--num_product", type=int, default=5)
-@click.option("--num_solv", type=int, default=2)
-@click.option("--num_agent", type=int, default=3)
-@click.option("--num_cat", type=int, default=0)
-@click.option("--num_reag", type=int, default=0)
-@click.option("--min_frequency_of_occurance_primary", type=int, default=15)
-@click.option("--min_frequency_of_occurance_secondary", type=int, default=15)
+@click.option("--consistent_yield", type=bool, default=True, show_default=True)
+@click.option("--num_reactant", type=int, default=5, show_default=True)
+@click.option("--num_product", type=int, default=5, show_default=True)
+@click.option("--num_solv", type=int, default=2, show_default=True)
+@click.option("--num_agent", type=int, default=3, show_default=True)
+@click.option("--num_cat", type=int, default=0, show_default=True)
+@click.option("--num_reag", type=int, default=0, show_default=True)
+@click.option("--min_frequency_of_occurance_primary", type=int, default=15, show_default=True)
+@click.option("--min_frequency_of_occurance_secondary", type=int, default=15, show_default=True)
 @click.option("--include_other_category", type=bool, default=True)
 @click.option(
     "--map_rate_to_other",
     type=int,
     default=3,
     help="save the reaction: label the rare molecule with 'other' rather than removing it",
+    show_default=True,
 )
-@click.option("--disable_tqdm", type=bool, default=False)
+@click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 def main(
     clean_data_path: pathlib.Path,
     pickles_path: pathlib.Path,

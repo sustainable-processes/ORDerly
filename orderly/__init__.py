@@ -1,7 +1,7 @@
-import orderly.cleaning.cleaner
-from orderly.cleaning.cleaner import main as clean
+import orderly.clean.cleaner
+from orderly.clean.cleaner import main as clean
 
-import orderly.extraction
+import orderly.extract
 
 import logging
 

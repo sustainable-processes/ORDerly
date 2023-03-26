@@ -1,5 +1,5 @@
 import logging
-from orderly.extraction.main import main
+from orderly.extract.main import main
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(

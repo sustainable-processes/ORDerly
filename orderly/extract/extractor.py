@@ -12,7 +12,7 @@ from ord_schema.proto import dataset_pb2 as ord_dataset_pb2
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
-import orderly.extraction.defaults
+import orderly.extract.defaults
 
 LOG = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class OrdExtractor:
     manual_replacements_dict: typing.Dict[str, str]
     solvents_set: typing.Set[str]
     filename: typing.Optional[str] = None
-    contains_substring: typing.Optional[str] = None  # None or uspto TODO
+    contains_substring: typing.Optional[str] = None  # None or uspto
 
     def __post_init__(self):
         LOG.debug(f"Extracting data from {self.ord_file_path}")
@@ -107,7 +107,7 @@ class OrdExtractor:
         typing.List,
     ]:
         if metals is None:
-            metals = orderly.extraction.defaults.get_metals_list()
+            metals = orderly.extract.defaults.get_metals_list()
 
         mapped_rxn_all = []
         reactants_all = []

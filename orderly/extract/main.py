@@ -14,8 +14,8 @@ import tqdm.contrib.logging
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
-import orderly.extraction.extractor
-import orderly.extraction.defaults
+import orderly.extract.extractor
+import orderly.extract.defaults
 import orderly.data
 
 LOG = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ def build_replacements(
     _ = rdkit_BlockLogs()  # removes excessive warnings
 
     if molecule_replacements is None:
-        molecule_replacements = orderly.extraction.defaults.get_molecule_replacements()
+        molecule_replacements = orderly.extract.defaults.get_molecule_replacements()
 
     # Iterate over the dictionary and canonicalize each SMILES string
     for key, value in molecule_replacements.items():
@@ -114,7 +114,7 @@ def build_replacements(
 
     if molecule_str_force_nones is None:
         molecule_str_force_nones = (
-            orderly.extraction.defaults.get_molecule_str_force_nones()
+            orderly.extract.defaults.get_molecule_str_force_nones()
         )
 
     for molecule_str in molecule_str_force_nones:
@@ -134,7 +134,7 @@ def extract(
     molecule_names_folder: str = "molecule_names",
 ):
     LOG.debug(f"Attempting extraction for {file}")
-    instance = orderly.extraction.extractor.OrdExtractor(
+    instance = orderly.extract.extractor.OrdExtractor(
         ord_file_path=file,
         merge_cat_solv_reag=merge_conditions,
         manual_replacements_dict=manual_replacements_dict,
@@ -158,15 +158,16 @@ def extract(
 
 
 @click.command()
-@click.option("--data_path", type=str, default="data/ord/")
+@click.option("--data_path", type=str, default="data/ord/", show_default=True)
 @click.option(
-    "--file_ending", type=str, default=".pb.gz", help="The file ending for the ord data"
+    "--file_ending", type=str, default=".pb.gz", help="The file ending for the ord data", show_default=True
 )
-@click.option("--merge_conditions", type=bool, default=True)
-@click.option("--output_path", type=str, default="data/USPTO/")
-@click.option("--pickled_data_folder", type=str, default="pickled_data")
-@click.option("--molecule_names_folder", type=str, default="molecule_names")
-@click.option("--use_multiprocessing", type=bool, default=True)
+@click.option("--merge_conditions", type=bool, default=True, show_default=True)
+@click.option("--output_path", type=str, default="data/USPTO/", show_default=True)
+@click.option("--pickled_data_folder", type=str, default="pickled_data", show_default=True)
+@click.option("--molecule_names_folder", type=str, default="molecule_names", show_default=True)
+@click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
+@click.option("--name_contains_substring", type=str, default="uspto", show_default=True)
 def main(
     data_path: str,
     file_ending: str,
@@ -175,6 +176,7 @@ def main(
     pickled_data_folder: str,
     molecule_names_folder: str,
     use_multiprocessing: bool,
+    name_contains_substring: str,
 ):
     """
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
@@ -186,7 +188,8 @@ def main(
     1) merge_conditions: Bool
             - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
             - If False, maintain the labelling and ordering of the original data.
-        Functionality:
+    
+    Functionality:
 
     1) USPTO data extracted from ORD comes in a large number of files (.pd.gz) batched in a large number of sub-folders. First step is to extract all filepaths that contain USPTO data (by checking whether the string 'uspto' is contained in the filename).
     2) Iterated over all filepaths to extract the following data:
@@ -205,7 +208,8 @@ def main(
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
     6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl").
-        Output:
+        
+    Output:
 
     1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
     2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
@@ -235,6 +239,7 @@ def main(
         "solvents_set": solvents_set,
         "pickled_data_folder": pickled_data_folder,
         "molecule_names_folder": molecule_names_folder,
+        "contains_substring": name_contains_substring,
     }
 
     if use_multiprocessing:
