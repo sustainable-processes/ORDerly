@@ -141,3 +141,6 @@ dmypy.json
 # JOSS
 *.jats
 *.pdf
+
+!orderly/data
+!orderly/data/solvents.csv

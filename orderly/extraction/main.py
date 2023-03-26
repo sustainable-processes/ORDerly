@@ -246,3 +246,7 @@ def main(
     merge_pickled_mol_names()
     end_time = datetime.now()
     LOG.info("Duration: {}".format(end_time - start_time))
+
+
+def log_msg():
+    LOG.error("H")
