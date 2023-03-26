@@ -1,5 +1,5 @@
 import logging
-from orderly.extract.main import main
+from orderly.extract.main import main_click
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(
@@ -11,5 +11,5 @@ logging.basicConfig(
 )
 
 LOG.info("Running extract main")
-main()
+main_click()
 LOG.info("Completed extract main")

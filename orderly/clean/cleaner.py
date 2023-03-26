@@ -338,6 +338,78 @@ class Cleaner:
     show_default=True,
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
+def main_click(
+    clean_data_path: pathlib.Path,
+    pickles_path: pathlib.Path,
+    molecules_to_remove_path: pathlib.Path,
+    consistent_yield: bool,
+    num_reactant: int,
+    num_product: int,
+    num_solv: int,
+    num_agent: int,
+    num_cat: int,
+    num_reag: int,
+    min_frequency_of_occurance_primary: int,
+    min_frequency_of_occurance_secondary: int,
+    include_other_category: bool,
+    map_rate_to_other: int,
+    disable_tqdm: bool,
+):
+    """
+    After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
+
+        Example:
+
+    python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
+
+
+        Args:
+
+    1) clean_data_file_name: (str) The filepath where the cleaned data will be saved
+    2) consistent_yield: (bool) Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
+    3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if merge_conditions=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if merge_conditions=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if merge_conditions=True, num_catalyst and num_reagent should be set to 0, and if merge_conditions=False, num_agent should be set to 0. It is recommended to set merge_conditions=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
+    9) min_frequency_of_occurance_primary: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0
+    10) min_frequency_of_occurance_secondary: (int) See above. Secondary: Any other columns than the first.
+    11) include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'
+    12) save_with_label_called_other (int): Frequency cutoff (see above).
+
+        Functionality:
+
+    1) Merge the pickle files from USPTO_extraction.py into a df
+
+    2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
+    3) Remove reactions with inconsistent yields (consistent_yield)
+    4) Removal or remapping to 'other' of rare molecules
+    5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
+    6) Remove duplicate reactions
+    7) Pickle the final df
+
+        Output:
+
+    1) A pickle file containing the cleaned data
+
+        NB:
+    1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
+    """
+    main(
+        clean_data_path=clean_data_path,
+        pickles_path=pickles_path,
+        molecules_to_remove_path=molecules_to_remove_path,
+        consistent_yield=consistent_yield,
+        num_reactant=num_reactant,
+        num_product=num_product,
+        num_solv=num_solv,
+        num_agent=num_agent,
+        num_cat=num_cat,
+        num_reag=num_reag,
+        min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
+        min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
+        include_other_category=include_other_category,
+        map_rate_to_other=map_rate_to_other,
+        disable_tqdm=disable_tqdm,
+    )
+
+
 def main(
     clean_data_path: pathlib.Path,
     pickles_path: pathlib.Path,

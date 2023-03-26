@@ -1,5 +1,5 @@
 import logging
-from orderly.clean.cleaner import main
+from orderly.clean.cleaner import main_click
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(
@@ -11,5 +11,5 @@ logging.basicConfig(
 )
 
 LOG.info("Running clean main")
-main()
+main_click()
 LOG.info("Completed clean main")

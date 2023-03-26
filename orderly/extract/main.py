@@ -219,6 +219,68 @@ def extract(
     show_default=True,
     help="If true, will overwrite existing files, else will through an error if a file exists",
 )
+def main_click(
+    data_path: str,
+    ord_file_ending: str,
+    merge_conditions: bool,
+    output_path: str,
+    pickled_data_folder: str,
+    molecule_names_folder: str,
+    merged_molecules_file: str,
+    use_multiprocessing: bool,
+    name_contains_substring: str,
+    overwrite: bool,
+):
+    """
+    After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
+        Example:
+
+    python USPTO_extraction.py --merge_conditions=True
+        Args:
+
+    1) merge_conditions: Bool
+            - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
+            - If False, maintain the labelling and ordering of the original data.
+
+    Functionality:
+
+    1) USPTO data extracted from ORD comes in a large number of files (.pd.gz) batched in a large number of sub-folders. First step is to extract all filepaths that contain USPTO data (by checking whether the string 'uspto' is contained in the filename).
+    2) Iterated over all filepaths to extract the following data:
+        - The mapped reaction (unchanged)
+        - Reactants and products (extracted from the mapped reaction)
+        - Reagents: some reagents were extracted from the mapped reaction (if between the >> symbols) while other reagents were labelled as reagents in ORD
+        - Solvents and catalysts: labelled as such in ORD
+        - Temperature: All temperatures were converted to Celcius. If only the control type was specified, the following mapping was used: 'AMBIENT' -> 25, 'ICE_BATH' -> 0, 'DRY_ICE' -> -78.5, 'LIQUID_NITROGEN' -> -196.
+        - Time: All times were converted to hours.
+        - Yield (for each product): The PERCENTAGEYIELD was preferred, but if this was not available, the CALCULATEDPERCENTYIELD was used instead. If neither was available, the value was set to np.nan.
+    3) Canonicalisation and light cleaning
+        - All SMILES strings were canonicalised using RDKit.
+        - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
+        - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
+        - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
+    4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
+    5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
+    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl").
+
+    Output:
+
+    1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
+    2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
+    """
+
+    main(
+        data_path=data_path,
+        ord_file_ending=ord_file_ending,
+        merge_conditions=merge_conditions,
+        output_path=output_path,
+        pickled_data_folder=pickled_data_folder,
+        molecule_names_folder=molecule_names_folder,
+        merged_molecules_file=merged_molecules_file,
+        use_multiprocessing=use_multiprocessing,
+        name_contains_substring=name_contains_substring,
+        overwrite=overwrite,
+    )
+
 def main(
     data_path: str,
     ord_file_ending: str,
