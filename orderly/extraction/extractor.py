@@ -1,83 +1,24 @@
-"""
-After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
-
-    Example: 
-    
-python USPTO_extraction.py --merge_conditions=True
-
-
-    Args:
-    
-1) merge_conditions: Bool
-        - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
-        - If False, maintain the labelling and ordering of the original data.
-
-
-
-    Functionality:
-    
-1) USPTO data extracted from ORD comes in a large number of files (.pd.gz) batched in a large number of sub-folders. First step is to extract all filepaths that contain USPTO data (by checking whether the string 'uspto' is contained in the filename).
-2) Iterated over all filepaths to extract the following data:
-    - The mapped reaction (unchanged)
-    - Reactants and products (extracted from the mapped reaction)
-    - Reagents: some reagents were extracted from the mapped reaction (if between the >> symbols) while other reagents were labelled as reagents in ORD
-    - Solvents and catalysts: labelled as such in ORD
-    - Temperature: All temperatures were converted to Celcius. If only the control type was specified, the following mapping was used: 'AMBIENT' -> 25, 'ICE_BATH' -> 0, 'DRY_ICE' -> -78.5, 'LIQUID_NITROGEN' -> -196.
-    - Time: All times were converted to hours.
-    - Yield (for each product): The PERCENTAGEYIELD was preferred, but if this was not available, the CALCULATEDPERCENTYIELD was used instead. If neither was available, the value was set to np.nan.
-3) Canonicalisation and light cleaning
-    - All SMILES strings were canonicalised using RDKit.
-    - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
-    - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
-    - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
-4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
-5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl"). 
-
-
-
-    Output:
-    
-1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
-2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
-"""
-
 import logging
 import typing
-import os
 import pathlib
-import datetime
+import dataclasses 
 
-import argparse
-import pickle
-import multiprocessing
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from joblib import Parallel, delayed
+from ord_schema import message_helpers as ord_message_helpers
+from ord_schema.proto import dataset_pb2 as ord_dataset_pb2
 
-from ord_schema import message_helpers
-from ord_schema.proto import dataset_pb2
-from rdkit import Chem
-
+from rdkit import Chem as rdkit_Chem
+from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
 import orderly.extraction.defaults
 
-from tqdm import tqdm
-
-import rdkit.rdBase as rkrb
-import rdkit.RDLogger as rkl
-from rdkit.rdBase import BlockLogs
-
 LOG = logging.getLogger(__name__)
 
-logger = rkl.logger()
-logger.setLevel(rkl.ERROR)
-rkrb.DisableLog("rdApp.error")  # Disables RDKit whiny logging.
 
-
-class OrdToPickle:
+@dataclasses.dataclass(kw_only=True)
+class OrdExtractor:
     """
     Read in an ord file, check if it contains USPTO data, and then:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
@@ -85,25 +26,27 @@ class OrdToPickle:
     3) Write to a pickle file
     """
 
-    def __init__(
-        self,
-        ord_file_path: pathlib.Path,
-        merge_cat_solv_reag: bool,
-        manual_replacements_dict: typing.Dict[str, str],
-        solvents_set: typing.Set[str],
-    ):
-        self.ord_file_path = ord_file_path
-        self.data = message_helpers.load_message(
-            self.ord_file_path, dataset_pb2.Dataset
+    ord_file_path: pathlib.Path
+    merge_cat_solv_reag: bool
+    manual_replacements_dict: typing.Dict[str, str]
+    solvents_set: typing.Set[str]
+    filename: typing.Optional[str] = None
+
+    def __post_init__(self):
+        LOG.debug(f"Extracting data from {self.ord_file_path}")
+        self.data = ord_message_helpers.load_message(
+            str(self.ord_file_path), ord_dataset_pb2.Dataset
         )
-        self.filename = self.data.name
+        if self.filename is None:
+            self.filename = self.data.name
         self.names_list = []
-        self.merge_cat_solv_reag = merge_cat_solv_reag
-        self.manual_replacements_dict = manual_replacements_dict
-        self.solvents_set = solvents_set
+        self.full_df = self.build_full_df()
+        LOG.debug(f"Got data from {self.ord_file_path}")
+    
+
 
     def find_smiles(self, identifiers):
-        block = BlockLogs()
+        _ = rdkit_BlockLogs()
         for i in identifiers:
             if i.type == 2:
                 smiles = self.clean_smiles(i.value)
@@ -116,25 +59,25 @@ class OrdToPickle:
         return None
 
     def clean_mapped_smiles(self, smiles):
-        block = BlockLogs()
+        _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
         # converting to mol and back canonicalises the smiles string
         try:
-            m = Chem.MolFromSmiles(smiles)
+            m = rdkit_Chem.MolFromSmiles(smiles)
             for atom in m.GetAtoms():
                 atom.SetAtomMapNum(0)
-            cleaned_smiles = Chem.MolToSmiles(m)
+            cleaned_smiles = rdkit_Chem.MolToSmiles(m)
             return cleaned_smiles
         except AttributeError:
             self.names_list += [smiles]
             return smiles
 
     def clean_smiles(self, smiles):
-        block = BlockLogs()
+        _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
         # converting to mol and back canonicalises the smiles string
         try:
-            cleaned_smiles = Chem.CanonSmiles(smiles)
+            cleaned_smiles = rdkit_Chem.CanonSmiles(smiles)
             return cleaned_smiles
         except:
             self.names_list += [smiles]
@@ -143,7 +86,22 @@ class OrdToPickle:
     # its probably a lot faster to sanitise the whole thing at the end
     # NB: And create a hash map/dict
 
-    def build_rxn_lists(self, metals: typing.Optional[typing.List[str]] = None):
+    def build_rxn_lists(
+            self, 
+            metals: typing.Optional[typing.List[str]] = None
+        ) -> typing.Tuple[
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+            typing.List,
+        ]:
+
         if metals is None:
             metals = orderly.extraction.defaults.get_metals_list()
 
@@ -156,7 +114,6 @@ class OrdToPickle:
         catalysts_all = []
 
         temperature_all = []
-
         rxn_times_all = []
 
         yields_all = []
@@ -174,7 +131,6 @@ class OrdToPickle:
             not_mapped_products = []
 
             temperatures = []
-
             rxn_times = []
 
             yields = []
@@ -466,14 +422,19 @@ class OrdToPickle:
             yields_all,
         )
 
-    # create the column headers for the df
+    
     def create_column_headers(
         self, df: pd.DataFrame, base_string: str
     ) -> typing.List[str]:
+        """
+        create the column headers for the df
+        adds a base_string to the columns (prefix)
+        """
         column_headers = []
         for i in range(len(df.columns)):
             column_headers += [base_string + str(i)]
         return column_headers
+
 
     def build_full_df(self) -> pd.DataFrame:
         headers = [
@@ -498,181 +459,3 @@ class OrdToPickle:
             else:
                 full_df = pd.concat([full_df, new_df], axis=1)
         return full_df
-
-    def main(self):
-        # This function doesn't return anything. Instead, it saves the requested data as a pickle file at the path you see below
-        # So you need to unpickle the data to see the output
-        if "uspto" in self.filename:
-            full_df = self.build_full_df()
-            # cleaned_df = self.clean_df(full_df)
-
-            # save data to pickle
-            filename = self.data.name
-            full_df.to_pickle(f"data/USPTO/pickled_data/{filename}.pkl")
-
-            # save names to pickle
-            # list of the names used for molecules, as opposed to SMILES strings
-            # save the names_list to pickle file
-            with open(f"data/USPTO/molecule_names/molecules_{filename}.pkl", "wb") as f:
-                pickle.dump(self.names_list, f)
-
-        # else:
-        # print(f'The following does not contain USPTO data: {self.filename}')
-
-
-def get_file_names(
-    directory=pathlib.Path("data/USPTO/ord-data/data/"),
-) -> typing.List[pathlib.Path]:
-    # Use listdir to get a list of all files in the directory
-    folders = os.listdir(directory)
-    files = []
-
-    # Use a for loop to iterate over the files and print their names
-    for folder in folders:
-        if not folder.startswith("."):
-            new_dir = directory + folder
-            file_list = os.listdir(new_dir)
-            # Check if the file name starts with a .
-            for file in file_list:
-                if not file.startswith("."):
-                    new_file = new_dir + "/" + file
-                    files += [new_file]
-    return files
-
-
-def merge_pickled_mol_names():
-    # if the file already exists, delete it
-    output_file_path = "data/USPTO/molecule_names/all_molecule_names.pkl"
-    if os.path.exists(output_file_path):
-        os.remove(output_file_path)
-    # create one big list of all the pickled names
-    folder_path = "data/USPTO/molecule_names/"
-    onlyfiles = [
-        f
-        for f in os.listdir(folder_path)
-        if os.path.isfile(os.path.join(folder_path, f))
-    ]
-    full_lst = []
-    for file in tqdm(onlyfiles):
-        if file[0] != ".":  # We don't want to try to unpickle .DS_Store
-            filepath = folder_path + file
-            unpickled_lst = pd.read_pickle(filepath)
-            full_lst = full_lst + unpickled_lst
-
-    unique_molecule_names = list(set(full_lst))
-
-    # pickle the list
-    with open(output_file_path, "wb") as f:
-        pickle.dump(unique_molecule_names, f)
-
-
-def canonicalize_smiles(smiles):
-    block = BlockLogs()
-    mol = Chem.MolFromSmiles(smiles)
-    return Chem.MolToSmiles(mol)
-
-
-import pkg_resources
-
-
-def get_csv():
-    file_path = pkg_resources.resource_filename(
-        "uspto_cleaning", resource_name="data/solvents.csv"
-    )
-    print(file_path)
-    # import pkgutil
-    # pkgutil.get_data(package="uspto_cleaning", resource="data/solvents.csv")
-
-    # return pd.read_csv("data/solvents.csv", index_col=0)
-
-
-def build_solvents_set_and_dict() -> typing.Tuple[typing.Set, typing.Dict]:
-    solvents = pd.read_csv("data/solvents.csv", index_col=0)
-
-    solvents["canonical_smiles"] = solvents["smiles"].apply(canonicalize_smiles)
-
-    solvents_set = set(solvents["canonical_smiles"])
-
-    # Combine the lists into a sequence of key-value pairs
-    key_value_pairs = zip(
-        list(solvents["stenutz_name"]) + list(solvents["cosmo_name"]),
-        list(solvents["canonical_smiles"]) + list(solvents["canonical_smiles"]),
-    )
-
-    # Create a dictionary from the sequence
-    solvents_dict = dict(key_value_pairs)
-
-    return solvents_set, solvents_dict
-
-
-def build_replacements(
-    molecule_replacements: typing.Optional[typing.Dict[str, str]] = None,
-    molecule_str_force_nones: typing.Optional[typing.List[str]] = None,
-) -> typing.Dict[str, typing.Optional[str]]:
-    block = BlockLogs()  # removes excessive warnings
-
-    if molecule_replacements is None:
-        molecule_replacements = orderly.extraction.defaults.get_molecule_replacements()
-
-    # Iterate over the dictionary and canonicalize each SMILES string
-    for key, value in molecule_replacements.items():
-        mol = Chem.MolFromSmiles(value)
-        if mol is not None:
-            molecule_replacements[key] = Chem.MolToSmiles(mol)
-
-    if molecule_str_force_nones is None:
-        molecule_str_force_nones = (
-            orderly.extraction.defaults.get_molecule_str_force_nones()
-        )
-
-    for molecule_str in molecule_str_force_nones:
-        molecule_replacements[molecule_str] = None
-
-    return molecule_replacements
-
-
-def main(file, merge_conditions, manual_replacements_dict, solvents_set):
-    instance = OrdToPickle(
-        file, merge_conditions, manual_replacements_dict, solvents_set
-    )
-    instance.main()
-
-
-if __name__ == "__main__":
-    start_time = datetime.datetime.now()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--merge_conditions", type=bool, default=True)
-
-    args = parser.parse_args()
-
-    # Access the arguments as attributes of the args object
-    merge_conditions = args.merge_conditions
-
-    pickled_data_path = "data/USPTO/pickled_data"
-    molecule_name_path = "data/USPTO/molecule_names"
-
-    if not os.path.exists(pickled_data_path):
-        os.makedirs(pickled_data_path)
-    if not os.path.exists(molecule_name_path):
-        os.makedirs(molecule_name_path)
-
-    files = get_file_names()
-
-    manual_replacements_dict = build_replacements()
-    solvents_set, solvents_dict = build_solvents_set_and_dict()
-    manual_replacements_dict.update(solvents_dict)
-
-    num_cores = multiprocessing.cpu_count()
-    inputs = tqdm(files)
-    Parallel(n_jobs=num_cores)(
-        delayed(main)(i, merge_conditions, manual_replacements_dict, solvents_set)
-        for i in inputs
-    )
-
-    # Create a list of all the unique molecule names
-    merge_pickled_mol_names()
-
-    end_time = datetime.now()
-
-    LOG.info("Duration: {}".format(end_time - start_time))
