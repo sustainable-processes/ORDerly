@@ -40,34 +40,36 @@ def get_file_names(
 
 
 def merge_pickled_mol_names(
+    molecule_names_path: pathlib.Path = pathlib.Path(
+        "data/USPTO/molecule_names"
+    ),
     output_file_path: pathlib.Path = pathlib.Path(
-        "data/USPTO/molecule_names/all_molecule_names.pkl"
+        "data/USPTO/all_molecule_names.pkl"
     ),
     overwrite: bool = True,
+    molecule_names_file_ending: str = ".pkl",
 ):
-    if overwrite and os.path.exists(output_file_path):
-        # if the file already exists, delete it
-        os.remove(output_file_path)
 
-    # create one big list of all the pickled names
-    folder_path = output_file_path.parent
-    onlyfiles = [
-        f
-        for f in os.listdir(folder_path)
-        if os.path.isfile(os.path.join(folder_path, f))
-    ]
+    if output_file_path.suffix != ".pkl":
+        raise ValueError(f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}")
+    output_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if not overwrite:
+        if output_file_path.exists():
+            e = FileExistsError(f"{output_file_path} exists, with {overwrite=}, we expect the file to not exist.")
+            LOG.error(e)
+            raise e
+
     full_lst = []
-    for file in tqdm.tqdm(onlyfiles):
-        if file[0] != ".":  # We don't want to try to unpickle .DS_Store
-            filepath = folder_path + file
-            unpickled_lst = pd.read_pickle(filepath)
-            full_lst = full_lst + unpickled_lst
+    for f in molecule_names_path.glob(f"./*{molecule_names_file_ending}"):
+        full_lst += pd.read_pickle(f)
 
     unique_molecule_names = list(set(full_lst))
 
     # pickle the list
     with open(output_file_path, "wb") as f:
         pickle.dump(unique_molecule_names, f)
+    LOG.info(f"Pickled list of unique molecule names at {output_file_path=}")
 
 
 def canonicalize_smiles(smiles):
@@ -133,6 +135,7 @@ def extract(
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
     name_contains_substring: typing.Optional[str] = None,
+    overwrite: bool = True,
 ):
     LOG.debug(f"Attempting extraction for {file}")
     instance = orderly.extract.extractor.OrdExtractor(
@@ -146,9 +149,23 @@ def extract(
         LOG.debug(f"Skipping extraction for {file}")
         return
 
-    LOG.debug(f"Completed extraction for {file}")
     filename = instance.filename
-    instance.full_df.to_pickle(output_path / pickled_data_folder / f"{filename}.pkl")
+    LOG.info(f"Completed extraction for {file}: {filename}")
+
+    df_path = output_path / pickled_data_folder / f"{filename}.pkl"
+    molecule_names_path = output_path / molecule_names_folder / f"molecules_{filename}.pkl"
+    if not overwrite:
+        if df_path.exists():
+            e = FileExistsError(f"Trying to overwrite {df_path} which exists, overwrite must be true to do this")
+            LOG.error(e)
+            raise e
+        if molecule_names_path.exists():
+            e = FileExistsError(f"Trying to overwrite {molecule_names_path} which exists, overwrite must be true to do this")
+            LOG.error(e)
+            raise e
+
+    instance.full_df.to_pickle(df_path)
+    LOG.debug(f"Saved df at {df_path}")
 
     # list of the names used for molecules, as opposed to SMILES strings
     # save the names_list to pickle file
@@ -156,13 +173,13 @@ def extract(
         output_path / molecule_names_folder / f"molecules_{filename}.pkl", "wb"
     ) as f:
         pickle.dump(instance.names_list, f)
-    LOG.debug(f"Saves molecule names for {filename}")
-
+    LOG.debug(f"Saves molecule names for {filename} at {molecule_names_path}")
+    
 
 @click.command()
 @click.option("--data_path", type=str, default="data/ord/", show_default=True)
 @click.option(
-    "--file_ending",
+    "--ord_file_ending",
     type=str,
     default=".pb.gz",
     help="The file ending for the ord data",
@@ -176,23 +193,32 @@ def extract(
 @click.option(
     "--molecule_names_folder", type=str, default="molecule_names", show_default=True
 )
+@click.option(
+    "--merged_molecules_file", type=str, default="all_molecule_names.pkl", show_default=True,
+)
 @click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
 @click.option(
     "--name_contains_substring",
-    type=typing.Optional[str],
-    default=None,
+    type=str,
+    default="uspto",
     show_default=True,
     help="checks a substring exists in the ord data file name, for example 'uspto' grabs only uspto data",
 )
+@click.option(
+    "--overwrite", type=bool, default=True, show_default=True, help="If true, will overwrite existing files, else will through an error if a file exists"
+)
 def main(
     data_path: str,
-    file_ending: str,
+    ord_file_ending: str,
     merge_conditions: bool,
     output_path: str,
     pickled_data_folder: str,
     molecule_names_folder: str,
+    merged_molecules_file: str,
     use_multiprocessing: bool,
     name_contains_substring: str,
+    overwrite: bool,
+    
 ):
     """
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
@@ -242,7 +268,7 @@ def main(
     pickled_data_path.mkdir(parents=True, exist_ok=True)
     molecule_name_path.mkdir(parents=True, exist_ok=True)
 
-    files = get_file_names(directory=data_path, file_ending=file_ending)
+    files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
     manual_replacements_dict = build_replacements()
     solvents_set, solvents_dict = build_solvents_set_and_dict()
@@ -256,6 +282,7 @@ def main(
         "pickled_data_folder": pickled_data_folder,
         "molecule_names_folder": molecule_names_folder,
         "name_contains_substring": name_contains_substring,
+        "overwrite": overwrite,
     }
 
     if use_multiprocessing:
@@ -274,6 +301,11 @@ def main(
             for file in tqdm.tqdm(files):
                 extract(file=file, **kwargs)
 
-    merge_pickled_mol_names()
-    end_time = datetime.now()
+    merge_pickled_mol_names(
+        molecule_names_path=molecule_name_path,
+        output_file_path=output_path / merged_molecules_file,
+        overwrite=overwrite,
+        molecule_names_file_ending=".pkl",
+    )
+    end_time = datetime.datetime.now()
     LOG.info("Duration: {}".format(end_time - start_time))
