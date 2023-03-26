@@ -40,23 +40,22 @@ def get_file_names(
 
 
 def merge_pickled_mol_names(
-    molecule_names_path: pathlib.Path = pathlib.Path(
-        "data/USPTO/molecule_names"
-    ),
-    output_file_path: pathlib.Path = pathlib.Path(
-        "data/USPTO/all_molecule_names.pkl"
-    ),
+    molecule_names_path: pathlib.Path = pathlib.Path("data/USPTO/molecule_names"),
+    output_file_path: pathlib.Path = pathlib.Path("data/USPTO/all_molecule_names.pkl"),
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
 ):
-
     if output_file_path.suffix != ".pkl":
-        raise ValueError(f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}")
+        raise ValueError(
+            f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}"
+        )
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not overwrite:
         if output_file_path.exists():
-            e = FileExistsError(f"{output_file_path} exists, with {overwrite=}, we expect the file to not exist.")
+            e = FileExistsError(
+                f"{output_file_path} exists, with {overwrite=}, we expect the file to not exist."
+            )
             LOG.error(e)
             raise e
 
@@ -153,14 +152,20 @@ def extract(
     LOG.info(f"Completed extraction for {file}: {filename}")
 
     df_path = output_path / pickled_data_folder / f"{filename}.pkl"
-    molecule_names_path = output_path / molecule_names_folder / f"molecules_{filename}.pkl"
+    molecule_names_path = (
+        output_path / molecule_names_folder / f"molecules_{filename}.pkl"
+    )
     if not overwrite:
         if df_path.exists():
-            e = FileExistsError(f"Trying to overwrite {df_path} which exists, overwrite must be true to do this")
+            e = FileExistsError(
+                f"Trying to overwrite {df_path} which exists, overwrite must be true to do this"
+            )
             LOG.error(e)
             raise e
         if molecule_names_path.exists():
-            e = FileExistsError(f"Trying to overwrite {molecule_names_path} which exists, overwrite must be true to do this")
+            e = FileExistsError(
+                f"Trying to overwrite {molecule_names_path} which exists, overwrite must be true to do this"
+            )
             LOG.error(e)
             raise e
 
@@ -174,7 +179,7 @@ def extract(
     ) as f:
         pickle.dump(instance.names_list, f)
     LOG.debug(f"Saves molecule names for {filename} at {molecule_names_path}")
-    
+
 
 @click.command()
 @click.option("--data_path", type=str, default="data/ord/", show_default=True)
@@ -194,7 +199,10 @@ def extract(
     "--molecule_names_folder", type=str, default="molecule_names", show_default=True
 )
 @click.option(
-    "--merged_molecules_file", type=str, default="all_molecule_names.pkl", show_default=True,
+    "--merged_molecules_file",
+    type=str,
+    default="all_molecule_names.pkl",
+    show_default=True,
 )
 @click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
 @click.option(
@@ -205,7 +213,11 @@ def extract(
     help="checks a substring exists in the ord data file name, for example 'uspto' grabs only uspto data",
 )
 @click.option(
-    "--overwrite", type=bool, default=True, show_default=True, help="If true, will overwrite existing files, else will through an error if a file exists"
+    "--overwrite",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="If true, will overwrite existing files, else will through an error if a file exists",
 )
 def main(
     data_path: str,
@@ -218,7 +230,6 @@ def main(
     use_multiprocessing: bool,
     name_contains_substring: str,
     overwrite: bool,
-    
 ):
     """
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.

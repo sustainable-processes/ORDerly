@@ -1,3 +1,5 @@
+import os
+import sys
 import typing
 import io
 import pathlib
@@ -13,3 +15,10 @@ def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
         return pd.read_csv(io.BytesIO(data), index_col=0)
 
     return pd.read_csv(path, index_col=0)
+
+
+def get_path_of_test_ords():
+    return (
+        pathlib.Path(os.path.dirname(sys.modules["orderly.data"].__file__))
+        / "ord_test_data"
+    )
