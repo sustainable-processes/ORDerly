@@ -132,6 +132,7 @@ def extract(
     solvents_set,
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
+    name_contains_substring: typing.Optional[str] = None,
 ):
     LOG.debug(f"Attempting extraction for {file}")
     instance = orderly.extract.extractor.OrdExtractor(
@@ -139,6 +140,7 @@ def extract(
         merge_cat_solv_reag=merge_conditions,
         manual_replacements_dict=manual_replacements_dict,
         solvents_set=solvents_set,
+        contains_substring=name_contains_substring,
     )
     if instance.full_df is None:
         LOG.debug(f"Skipping extraction for {file}")
@@ -247,7 +249,7 @@ def main(
         "solvents_set": solvents_set,
         "pickled_data_folder": pickled_data_folder,
         "molecule_names_folder": molecule_names_folder,
-        "contains_substring": name_contains_substring,
+        "name_contains_substring": name_contains_substring,
     }
 
     if use_multiprocessing:
