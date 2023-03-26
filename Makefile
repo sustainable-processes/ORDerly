@@ -46,6 +46,8 @@ prune:
 clear:
 	sudo rm -rf ./data/
 
-
 extract:
 	poetry run python -m orderly.extraction
+
+black:
+	poetry run python -m black .

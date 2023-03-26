@@ -1,7 +1,7 @@
 import logging
 import typing
 import pathlib
-import dataclasses 
+import dataclasses
 
 import numpy as np
 import pandas as pd
@@ -31,6 +31,7 @@ class OrdExtractor:
     manual_replacements_dict: typing.Dict[str, str]
     solvents_set: typing.Set[str]
     filename: typing.Optional[str] = None
+    contains_substring: typing.Optional[str] = None  # None or uspto TODO
 
     def __post_init__(self):
         LOG.debug(f"Extracting data from {self.ord_file_path}")
@@ -39,11 +40,16 @@ class OrdExtractor:
         )
         if self.filename is None:
             self.filename = self.data.name
+
+        self.names_list = self.full_df = None
+        if self.contains_substring is not None:
+            if self.contains_substring.lower() not in self.filename.lower():
+                LOG.debug(f"Skipping {self.ord_file_path}: {self.filename} as ")
+                return
+        
         self.names_list = []
         self.full_df = self.build_full_df()
-        LOG.debug(f"Got data from {self.ord_file_path}")
-    
-
+        LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
     def find_smiles(self, identifiers):
         _ = rdkit_BlockLogs()
@@ -87,21 +93,19 @@ class OrdExtractor:
     # NB: And create a hash map/dict
 
     def build_rxn_lists(
-            self, 
-            metals: typing.Optional[typing.List[str]] = None
-        ) -> typing.Tuple[
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-            typing.List,
-        ]:
-
+        self, metals: typing.Optional[typing.List[str]] = None
+    ) -> typing.Tuple[
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+        typing.List,
+    ]:
         if metals is None:
             metals = orderly.extraction.defaults.get_metals_list()
 
@@ -422,7 +426,6 @@ class OrdExtractor:
             yields_all,
         )
 
-    
     def create_column_headers(
         self, df: pd.DataFrame, base_string: str
     ) -> typing.List[str]:
@@ -434,7 +437,6 @@ class OrdExtractor:
         for i in range(len(df.columns)):
             column_headers += [base_string + str(i)]
         return column_headers
-
 
     def build_full_df(self) -> pd.DataFrame:
         headers = [
