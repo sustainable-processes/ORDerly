@@ -1,10 +1,10 @@
-import click
-import typing
 import logging
+import os
+import typing
 import dataclasses
 import datetime
 import pathlib
-import os
+import click
 
 import tqdm
 import tqdm.contrib.logging
@@ -142,7 +142,7 @@ class Cleaner:
 
         for col in columns:
             df = self.filtering_and_removal(df, col, value_counts)
-            LOG.info("After removing reactions with rare", col + ": ", len(df))
+            LOG.info(f"After removing reactions with rare {col}: {len(df)}")
 
         return df
 
@@ -223,7 +223,7 @@ class Cleaner:
         for col in columns:
             df = self.remove_reactions_with_too_many_of_component(df, col)
             if col != "yield":
-                LOG.info("After removing reactions with too many", col + "s: ", len(df))
+                LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -254,7 +254,7 @@ class Cleaner:
 
             # Drop the 'total_yield' column from the DataFrame
             df = df.drop("total_yield", axis=1)
-            LOG.info("After removing reactions with inconsistent yields: ", len(df))
+            LOG.info(f"After removing reactions with inconsistent yields: {len(df)}")
 
         # Remove reactions with rare molecules
         # Apply this to each column (this implies that if our cutoff is 100, and there's 60 instances of a molecule in one column,
@@ -284,7 +284,7 @@ class Cleaner:
             # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. I'm not sure what to do with these. I have decided to stay on the safe side and remove any reactions that includes one of these. However, other researchers are welcome to revisit this assumption - maybe we can recover a lot of insightful reactions by replacing 'ice' with 'O' (as in, the SMILES string for water).
 
         LOG.info(
-            "After removing reactions with nonsensical/unresolvable names: ", len(df)
+            f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
         )
 
         # This method is apparently very slow
@@ -304,7 +304,7 @@ class Cleaner:
 
         # drop duplicates
         df = df.drop_duplicates()
-        LOG.info("After removing duplicates: ", len(df))
+        LOG.info(f"After removing duplicates: {len(df)}")
 
         df.reset_index(inplace=True)
         return df
