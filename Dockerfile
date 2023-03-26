@@ -1,9 +1,25 @@
 FROM ubuntu:20.04 as orderly_download
 
-WORKDIR /tmp
-ADD Makefile /tmp/
+RUN apt-get update && apt-get install -y make curl unzip
+
+WORKDIR /app
+ADD Makefile /app
 
 CMD ["make", "get_ord"]
+
+FROM ubuntu:20.04 as orderly_download_safe
+
+RUN apt-get update && apt-get install -y make curl unzip
+
+RUN adduser worker
+
+WORKDIR /app
+ADD Makefile /app
+
+RUN chown worker:worker /app
+USER worker
+
+CMD ["make", "get_ord_safe"]
 
 FROM python:3.10-slim-buster as orderly_base
 
