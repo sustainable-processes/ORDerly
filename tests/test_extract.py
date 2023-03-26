@@ -23,8 +23,6 @@ def test_extract(tmp_path, merge_conditions, use_multiprocessing, name_contains_
     import orderly.extract.main
     import orderly.data
 
-    orderly.data.get_path_of_test_ords
-
     orderly.extract.main.main(
         data_path=str(orderly.data.get_path_of_test_ords()),
         ord_file_ending=".pb.gz",
