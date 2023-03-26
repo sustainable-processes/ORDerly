@@ -46,7 +46,7 @@ class OrdExtractor:
             if self.contains_substring.lower() not in self.filename.lower():
                 LOG.debug(f"Skipping {self.ord_file_path}: {self.filename} as ")
                 return
-        
+
         self.names_list = []
         self.full_df = self.build_full_df()
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")

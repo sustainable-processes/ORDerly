@@ -142,7 +142,7 @@ def extract(
     )
     if instance.full_df is None:
         LOG.debug(f"Skipping extraction for {file}")
-        return 
+        return
 
     LOG.debug(f"Completed extraction for {file}")
     filename = instance.filename
@@ -160,12 +160,20 @@ def extract(
 @click.command()
 @click.option("--data_path", type=str, default="data/ord/", show_default=True)
 @click.option(
-    "--file_ending", type=str, default=".pb.gz", help="The file ending for the ord data", show_default=True
+    "--file_ending",
+    type=str,
+    default=".pb.gz",
+    help="The file ending for the ord data",
+    show_default=True,
 )
 @click.option("--merge_conditions", type=bool, default=True, show_default=True)
 @click.option("--output_path", type=str, default="data/USPTO/", show_default=True)
-@click.option("--pickled_data_folder", type=str, default="pickled_data", show_default=True)
-@click.option("--molecule_names_folder", type=str, default="molecule_names", show_default=True)
+@click.option(
+    "--pickled_data_folder", type=str, default="pickled_data", show_default=True
+)
+@click.option(
+    "--molecule_names_folder", type=str, default="molecule_names", show_default=True
+)
 @click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
 @click.option("--name_contains_substring", type=str, default="uspto", show_default=True)
 def main(
@@ -188,7 +196,7 @@ def main(
     1) merge_conditions: Bool
             - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
             - If False, maintain the labelling and ordering of the original data.
-    
+
     Functionality:
 
     1) USPTO data extracted from ORD comes in a large number of files (.pd.gz) batched in a large number of sub-folders. First step is to extract all filepaths that contain USPTO data (by checking whether the string 'uspto' is contained in the filename).
@@ -208,7 +216,7 @@ def main(
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
     6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl").
-        
+
     Output:
 
     1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
@@ -261,4 +269,3 @@ def main(
     merge_pickled_mol_names()
     end_time = datetime.now()
     LOG.info("Duration: {}".format(end_time - start_time))
-

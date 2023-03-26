@@ -311,7 +311,9 @@ class Cleaner:
 
 
 @click.command()
-@click.option("--clean_data_path", type=str, default="./cleaned_USPTO.parquet", show_default=True)
+@click.option(
+    "--clean_data_path", type=str, default="./cleaned_USPTO.parquet", show_default=True
+)
 @click.option("--pickles_path", type=str)
 @click.option("--molecules_to_remove_path", type=str)
 @click.option("--consistent_yield", type=bool, default=True, show_default=True)
@@ -321,8 +323,12 @@ class Cleaner:
 @click.option("--num_agent", type=int, default=3, show_default=True)
 @click.option("--num_cat", type=int, default=0, show_default=True)
 @click.option("--num_reag", type=int, default=0, show_default=True)
-@click.option("--min_frequency_of_occurance_primary", type=int, default=15, show_default=True)
-@click.option("--min_frequency_of_occurance_secondary", type=int, default=15, show_default=True)
+@click.option(
+    "--min_frequency_of_occurance_primary", type=int, default=15, show_default=True
+)
+@click.option(
+    "--min_frequency_of_occurance_secondary", type=int, default=15, show_default=True
+)
 @click.option("--include_other_category", type=bool, default=True)
 @click.option(
     "--map_rate_to_other",

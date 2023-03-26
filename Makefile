@@ -47,7 +47,7 @@ clear:
 	sudo rm -rf ./data/
 
 extract:
-	poetry run python -m orderly.extraction
+	poetry run python -m orderly.extract
 
 black:
 	poetry run python -m black .
