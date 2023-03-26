@@ -177,7 +177,13 @@ def extract(
     "--molecule_names_folder", type=str, default="molecule_names", show_default=True
 )
 @click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
-@click.option("--name_contains_substring", type=str, default="uspto", show_default=True)
+@click.option(
+    "--name_contains_substring",
+    type=typing.Optional[str],
+    default=None,
+    show_default=True,
+    help="checks a substring exists in the ord data file name, for example 'uspto' grabs only uspto data",
+)
 def main(
     data_path: str,
     file_ending: str,
