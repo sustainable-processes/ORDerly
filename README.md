@@ -38,3 +38,13 @@ sudo apt-get install libpq-dev
 In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in USPTO), this list was created from the intersection of the following two lists (excluding acids, bases, and polymers):
  - https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv
  - https://github.com/sustainable-processes/summit/blob/main/data/ucb_pharma_approved_list.csv
+
+
+make build_download_ord
+make run_download_ord
+
+poetry install
+
+poetry run python -m orderly.extraction [--help]
+
+poetry run python -m orderly.cleaning [--help]
