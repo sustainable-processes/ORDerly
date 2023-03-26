@@ -1,6 +1,7 @@
 # misc
 .DS_Store
 schneider_fp/.DS_Store
+*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
