@@ -6,15 +6,16 @@ def test_hello_world():
 
 
 @pytest.mark.parametrize(
-    "merge_conditions,use_multiprocessing,name_contains_substring", 
+    "merge_conditions,use_multiprocessing,name_contains_substring",
     (
         [False, True, "uspto"],
         [True, False, "uspto"],
         [True, True, None],
-    )
+    ),
 )
-def test_extract(tmp_path, merge_conditions, use_multiprocessing, name_contains_substring):
-
+def test_extract(
+    tmp_path, merge_conditions, use_multiprocessing, name_contains_substring
+):
     pickled_data_folder = tmp_path / "pkl_data"
     pickled_data_folder.mkdir()
     molecule_names_folder = tmp_path / "molecule_names"
