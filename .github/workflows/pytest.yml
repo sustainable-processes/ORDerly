@@ -21,15 +21,17 @@ jobs:
 
       - name: Install poetry
         run: python -m pip install --upgrade poetry wheel
-      #   id: cache-poetry
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/.local/share/virtualenvs
-      #     key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-
-      # - name: Install dependencies
-      #   if: steps.cache-poetry.outputs.cache-hit != 'true'
-      #   run: poetry install --no-interaction --no-root
       
-      # - name: Run test suite
-      #   run: poetry run pytest
+      - name: Cache Poetry
+        id: cache-poetry
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      
+      - name: Run test suite
+        run: poetry run pytest
