@@ -1,4 +1,4 @@
-name: Create Draft PDF
+name: Create_PDF
 on: [push]
 
 jobs:
