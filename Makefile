@@ -51,3 +51,6 @@ extract:
 
 black:
 	poetry run python -m black .
+
+get_test_data:
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
