@@ -26,7 +26,7 @@ jobs:
         id: cache-poetry
         uses: actions/cache@v2
         with:
-          path: ~/virtualenvs
+          path: ~/.virtualenvs
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
