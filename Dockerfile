@@ -76,11 +76,11 @@ ADD Makefile /app
 
 CMD ["make", "linux_get_ord"]
 
-FROM ubuntu:20.04 as orderly_download_sudo
+FROM ubuntu:20.04 as orderly_download_root
 
 RUN apt-get update && apt-get install -y make curl unzip
 
 WORKDIR /app
 ADD Makefile /app
 
-CMD ["make", "sudo_get_ord"]
+CMD ["make", "root_get_ord"]

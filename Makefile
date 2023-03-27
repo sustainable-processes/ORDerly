@@ -52,7 +52,6 @@ debug_run:
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
 	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) orderly_download_linux
-	# docker rm -f orderly_download_linux
 
 linux_get_ord:
 	mkdir -p /tmp_data/${download_path}
@@ -62,16 +61,17 @@ linux_get_ord:
 	unzip -o /app/repo.zip -d /app
 	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
 
-sudo_download_ord:
-	docker image build --target orderly_download_sudo --tag orderly_download_sudo .
-	docker run -v $(current_dir)/data:/tmp_data orderly_download_sudo
-	docker rm -f orderly_download_sudo
-	sudo chown -R $(uid):$(gid) $(current_dir)/data
-
-sudo_get_ord:
+root_download_ord:
+	docker image build --target orderly_download_root --tag orderly_download_root .
+	docker run -v $(current_dir)/data:/tmp_data orderly_download_root
+	
+root_get_ord:
 	mkdir -p /tmp_data/${download_path}
 	touch /tmp_data/${download_path}/tst_permissions_file.txt
 	rm /tmp_data/${download_path}/tst_permissions_file.txt
 	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
 	unzip -o /app/repo.zip -d /app
 	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
+
+sudo_chown:
+	sudo chown -R $(uid):$(gid) $(current_dir)
