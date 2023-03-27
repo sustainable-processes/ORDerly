@@ -5,17 +5,15 @@ def test_hello_world():
     assert True
 
 
-def test_clean(
-    tmp_path
-):
-
+def test_clean(tmp_path):
     import orderly.clean.cleaner
     import orderly.data
-    
+
     orderly.clean.cleaner.main(
         clean_data_path=tmp_path / "cleaned_USPTO.parquet",
         pickles_path=orderly.data.get_path_of_test_extracted_ords() / "pickled_data",
-        molecules_to_remove_path=orderly.data.get_path_of_test_extracted_ords() / "all_molecule_names.pkl",
+        molecules_to_remove_path=orderly.data.get_path_of_test_extracted_ords()
+        / "all_molecule_names.pkl",
         consistent_yield=True,
         num_reactant=5,
         num_product=5,
