@@ -43,3 +43,4 @@ jobs:
       
       - name: Code Quality
         run: poetry run black . --check
+
