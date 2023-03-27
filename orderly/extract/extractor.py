@@ -138,6 +138,7 @@ class OrdExtractor:
         typing.List,
         typing.List,
         typing.List,
+        typing.List,
     ]:
         if metals is None:
             metals = orderly.extract.defaults.get_metals_list()
@@ -154,6 +155,7 @@ class OrdExtractor:
         rxn_times_all = []
 
         yields_all = []
+        procedure_details_all = []
 
         for i in range(len(self.data.reactions)):
             rxn = self.data.reactions[i]
@@ -172,6 +174,10 @@ class OrdExtractor:
 
             yields = []
             mapped_yields = []
+
+            # Add procedure_details
+            procedure_details = [rxn.notes.procedure_details]
+            procedure_details_all += [procedure_details]
 
             # if reaction has been mapped, get reactant and product from the mapped reaction
             # Actually, we should only extract data from reactions that have been mapped
@@ -461,6 +467,7 @@ class OrdExtractor:
             rxn_times_all,
             products_all,
             yields_all,
+            procedure_details_all,
         )
 
     def create_column_headers(
