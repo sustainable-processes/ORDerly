@@ -1,5 +1,8 @@
 name: Test_Ord_Download
 on: push
+# workflow_dispactch:
+# pull_request:
+# branches: [main]
 
 jobs:
   test:
@@ -14,7 +17,7 @@ jobs:
         run: sudo apt-get install -y docker make
 
       - name: test docker
-        run: docker --version
+        run: which docker
 
       - name: see end
         run: ls -la
