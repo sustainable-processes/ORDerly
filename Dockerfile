@@ -81,4 +81,5 @@ USER worker
 WORKDIR /app
 ADD Makefile /app
 
-CMD ["make", "debug_get_ord"]
+CMD ["bash"]
+# CMD ["make", "debug_get_ord"]

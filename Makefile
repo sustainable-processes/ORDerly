@@ -64,13 +64,12 @@ debug_run:
 
 debug_download:
 	docker image build --target debug_orderly_download_safe --tag debug_orderly_download_safe .
-	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) debug_orderly_download_safe
-	docker rm -f debug_orderly_download_safe
+	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it debug_orderly_download_safe
+	# docker rm -f debug_orderly_download_safe
 
 debug_get_ord:
 	mkdir -p /tmp_data/${download_path}
 	touch /tmp_data/${download_path}tst_permissions_file.txt
-	sleep 5
 	rm /tmp_data/${download_path}tst_permissions_file.txt
 	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
 	unzip -o /app/repo.zip -d /app
