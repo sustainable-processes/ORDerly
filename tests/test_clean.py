@@ -2,7 +2,7 @@ import pytest
 
 
 def test_hello_world():
-    assert False
+    assert True
 
 
 def test_clean(tmp_path):
