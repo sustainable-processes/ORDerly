@@ -80,6 +80,8 @@ RUN adduser worker
 USER worker
 WORKDIR /app
 ADD Makefile /app
+RUN chown worker:worker /app
+RUN chown worker:worker /app/Makefile
 
 CMD ["bash"]
 # CMD ["make", "debug_get_ord"]
