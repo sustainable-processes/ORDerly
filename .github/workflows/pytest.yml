@@ -33,7 +33,8 @@ jobs:
 
       - name: Set Poetry config
         run: |
-          poetry config settings.virtualenvs.path ~/.virtualenvs
+          poetry config virtualenvs.in-project true
+          poetry config virtualenvs.path ~/.virtualenvs
 
       # run poetry install if the poetry lock has changed
       - name: Install dependencies
