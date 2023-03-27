@@ -1,11 +1,4 @@
-FROM ubuntu:20.04 as orderly_download
 
-RUN apt-get update && apt-get install -y make curl unzip
-
-WORKDIR /app
-ADD Makefile /app
-
-CMD ["make", "get_ord"]
 
 FROM ubuntu:20.04 as orderly_download_safe
 
@@ -82,3 +75,12 @@ WORKDIR /app
 ADD Makefile /app
 
 CMD ["make", "linux_get_ord"]
+
+FROM ubuntu:20.04 as orderly_download_sudo
+
+RUN apt-get update && apt-get install -y make curl unzip
+
+WORKDIR /app
+ADD Makefile /app
+
+CMD ["make", "sudo_get_ord"]
