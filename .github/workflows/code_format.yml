@@ -26,8 +26,15 @@ jobs:
         id: cache-poetry
         uses: actions/cache@v2
         with:
-          path: ~/.local/share/virtualenvs
+          path: ~/virtualenvs
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Set Poetry config
+        run: |
+          poetry config settings.virtualenvs.in-project false
+          poetry config settings.virtualenvs.path ~/.virtualenvs
 
       # run poetry install if the poetry lock has changed
       - name: Install dependencies
