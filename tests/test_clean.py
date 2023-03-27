@@ -24,6 +24,6 @@ def test_clean(tmp_path):
         min_frequency_of_occurance_primary=15,
         min_frequency_of_occurance_secondary=15,
         include_other_category=True,
-        map_rare_to_other=3,
+        map_rare_to_other_threshold=3,
         disable_tqdm=False,
     )

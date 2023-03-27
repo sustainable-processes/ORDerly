@@ -41,8 +41,8 @@ class Cleaner:
                                                     that type, ie solvent_0, agent_0, catalyst_0, reagent_0
         min_frequency_of_occurance_secondary (int): See above. Secondary: Any other columns than the first.
         include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary
-                                       but above map_rare_to_other) by mapping these molecules to the string 'other'
-        map_rare_to_other (bool): Frequency cutoff (see above).
+                                       but above map_rare_to_other_threshold) by mapping these molecules to the string 'other'
+        map_rare_to_other_threshold (bool): Frequency cutoff (see above).
         molecules_to_remove (pd.DataFrame: Remove reactions that are represented by a name instead of a SMILES string
         disable_tqdm (bool, optional): Controls the use of tqdm progress bar. Defaults to False.
     """
@@ -58,7 +58,7 @@ class Cleaner:
     min_frequency_of_occurance_primary: int
     min_frequency_of_occurance_secondary: int
     include_other_category: bool
-    map_rare_to_other: bool
+    map_rare_to_other_threshold: bool
     molecules_to_remove: pd.DataFrame
     disable_tqdm: bool = False
 
@@ -176,7 +176,7 @@ class Cleaner:
             if self.include_other_category:
                 # Select the values where the count is less than cutoff
                 set_to_other = value_counts[
-                    (value_counts >= self.map_rare_to_other)
+                    (value_counts >= self.map_rare_to_other_threshold)
                     & (value_counts < upper_cutoff)
                 ].index
                 set_to_other = set(set_to_other)
@@ -187,7 +187,7 @@ class Cleaner:
                 df.loc[mask, col] = "other"
 
                 # Remove rows with a very rare molecule
-                to_remove = value_counts[value_counts < self.map_rare_to_other].index
+                to_remove = value_counts[value_counts < self.map_rare_to_other_threshold].index
 
             else:
                 # Remove rows with a very rare molecule
@@ -332,7 +332,7 @@ class Cleaner:
 )
 @click.option("--include_other_category", type=bool, default=True)
 @click.option(
-    "--map_rare_to_other",
+    "--map_rare_to_other_threshold",
     type=int,
     default=3,
     help="save the reaction: label the rare molecule with 'other' rather than removing it",
@@ -353,7 +353,7 @@ def main_click(
     min_frequency_of_occurance_primary: int,
     min_frequency_of_occurance_secondary: int,
     include_other_category: bool,
-    map_rare_to_other: int,
+    map_rare_to_other_threshold: int,
     disable_tqdm: bool,
 ):
     """
@@ -406,7 +406,7 @@ def main_click(
         min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
         min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
         include_other_category=include_other_category,
-        map_rare_to_other=map_rare_to_other,
+        map_rare_to_other_threshold=map_rare_to_other_threshold,
         disable_tqdm=disable_tqdm,
     )
 
@@ -425,7 +425,7 @@ def main(
     min_frequency_of_occurance_primary: int,
     min_frequency_of_occurance_secondary: int,
     include_other_category: bool,
-    map_rare_to_other: int,
+    map_rare_to_other_threshold: int,
     disable_tqdm: bool,
 ):
     """
@@ -476,8 +476,8 @@ def main(
         num_agent == 0 or num_cat == 0 and num_reag == 0
     ), "Invalid input: If merge_conditions=True in USPTO_extraction, then num_cat and num_reag must be 0. If merge_conditions=False, then num_agent must be 0."
     assert (
-        min_frequency_of_occurance_primary > map_rare_to_other
-        and min_frequency_of_occurance_secondary > map_rare_to_other
+        min_frequency_of_occurance_primary > map_rare_to_other_threshold
+        and min_frequency_of_occurance_secondary > map_rare_to_other_threshold
     ), "min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary must be greater than save_with_label_called_other. Anything between save_with_label_called_other and min_frequency_of_occurance_primary/secondary will be set to 'other' if include_other_category=True."
 
     instance = Cleaner(
@@ -492,7 +492,7 @@ def main(
         min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
         min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
         include_other_category=include_other_category,
-        map_rare_to_other=map_rare_to_other,
+        map_rare_to_other_threshold=map_rare_to_other_threshold,
         molecules_to_remove=molecules_to_remove,
         disable_tqdm=disable_tqdm,
     )
