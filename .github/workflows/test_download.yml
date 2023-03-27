@@ -10,13 +10,8 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      # Setup Python (faster than using Python container)
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.10"
-
       - name: Install docker
-        run: sudo apt-get install -y docker
-      
+        run: sudo apt-get install -y docker make
 
+      - name: Get data
+        run: make linux_download_ord
