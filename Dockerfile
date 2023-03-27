@@ -72,17 +72,13 @@ FROM orderly_base as orderly_clean
 CMD ["bash"]
 
 
-FROM ubuntu:20.04 as debug_orderly_download_safe
+FROM ubuntu:20.04 as orderly_download_linux
 
 RUN apt-get update && apt-get install -y make curl unzip
 
 RUN adduser worker
+USER worker
 WORKDIR /app
 ADD Makefile /app
-RUN chown worker:worker /app
-RUN chown worker:worker /app/Makefile
 
-USER worker
-
-CMD ["bash"]
-# CMD ["make", "debug_get_ord"]
+CMD ["make", "linux_get_ord"]

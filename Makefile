@@ -1,7 +1,6 @@
 current_dir = $(shell pwd)
 uid = $(shell id -u)
 gid = $(shell id -g)
-
 download_path=ord/
 
 get_ord_safe:
@@ -11,11 +10,6 @@ get_ord_safe:
 	cp -a /app/ord-data-main/data/. /app/data/ord
 	rm /app/repo.zip
 
-get_ord:
-	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
-	unzip -o /app/repo.zip -d /data
-	rm /app/repo.zip
-
 build_download_ord:
 	docker image build --target orderly_download_safe --tag ord_download_safe .
 
@@ -23,13 +17,6 @@ run_download_ord:
 	docker run -u $(uid):$(gid) -it --name tmp_download_ord_safe ord_download_safe
 	docker cp tmp_download_ord_safe:/app/data .
 	docker rm -f tmp_download_ord_safe
-
-sudo_build_download_ord:
-	docker image build --target orderly_download --tag ord_download .
-
-sudo_run_download_ord:
-	docker run -v $(current_dir)/data:/data ord_download
-	sudo chown -R $(uid):$(gid) $(current_dir)
 
 build_orderly:
 	docker image build --tag orderly .
@@ -62,19 +49,28 @@ debug_build:
 debug_run:
 	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly_download_mounted
 
-debug_download:
-	docker image build --target debug_orderly_download_safe --tag debug_orderly_download_safe .
-	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it debug_orderly_download_safe
-	# docker rm -f debug_orderly_download_safe
+linux_download_ord:
+	docker image build --target orderly_download_linux --tag orderly_download_linux .
+	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly_download_linux
+	# docker rm -f orderly_download_linux
 
-debug_get_ord:
+linux_get_ord:
 	mkdir -p /tmp_data/${download_path}
-	touch /tmp_data/${download_path}tst_permissions_file.txt
-	rm /tmp_data/${download_path}tst_permissions_file.txt
+	touch /tmp_data/${download_path}/tst_permissions_file.txt
+	rm /tmp_data/${download_path}/tst_permissions_file.txt
 	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
 	unzip -o /app/repo.zip -d /app
 	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
 	rm /app/repo.zip
 
-debug_echo:
-	echo ${download_path}
+sudo_download_ord:
+	docker image build --target orderly_download --tag ord_download .
+	docker run -v $(current_dir)/tmp_data:/data ord_download
+	docker rm -f ord_download
+	sudo chown -R $(uid):$(gid) $(current_dir)/data
+
+sudo_get_ord:
+	mkdir -p /tmp_data/${download_path}
+	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
+	unzip -o /app/repo.zip -d /tmp_data/${download_path}
+	rm /app/repo.zip
