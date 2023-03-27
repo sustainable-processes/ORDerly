@@ -3,39 +3,6 @@ uid = $(shell id -u)
 gid = $(shell id -g)
 download_path=ord/
 
-get_ord_safe:
-	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
-	unzip -o /app/repo.zip -d /app
-	mkdir -p /app/data/ord
-	cp -a /app/ord-data-main/data/. /app/data/ord
-	rm /app/repo.zip
-
-build_download_ord:
-	docker image build --target orderly_download_safe --tag ord_download_safe .
-
-run_download_ord:
-	docker run -u $(uid):$(gid) -it --name tmp_download_ord_safe ord_download_safe
-	docker cp tmp_download_ord_safe:/app/data .
-	docker rm -f tmp_download_ord_safe
-
-build_orderly:
-	docker image build --tag orderly .
-
-run_orderly:
-	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly
-
-get_paper:
-	docker run --rm --volume $(current_dir)/paper:/data --user $(uid):$(gid) --env JOURNAL=joss openjournals/inara
-	rm $(current_dir)/paper/paper.jats
-
-prune:
-	docker system prune -a --volumes
-
-clear:
-	sudo rm -rf ./data/
-
-extract:
-	poetry run python -m orderly.extract
 
 black:
 	poetry run python -m black .
@@ -43,17 +10,20 @@ black:
 get_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
 
-debug_build:
-	docker image build --tag orderly_download_mounted .
+build_orderly:
+	docker image build --target orderly_base --tag orderly_base .
 
-debug_run:
-	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly_download_mounted
+run_orderly:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
+
+run_orderly_sudo:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base
 
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
 	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) orderly_download_linux
 
-linux_get_ord:
+_linux_get_ord:
 	mkdir -p /tmp_data/${download_path}
 	touch /tmp_data/${download_path}/tst_permissions_file.txt
 	rm /tmp_data/${download_path}/tst_permissions_file.txt
@@ -65,7 +35,7 @@ root_download_ord:
 	docker image build --target orderly_download_root --tag orderly_download_root .
 	docker run -v $(current_dir)/data:/tmp_data orderly_download_root
 	
-root_get_ord:
+_root_get_ord:
 	mkdir -p /tmp_data/${download_path}
 	touch /tmp_data/${download_path}/tst_permissions_file.txt
 	rm /tmp_data/${download_path}/tst_permissions_file.txt
@@ -75,3 +45,19 @@ root_get_ord:
 
 sudo_chown:
 	sudo chown -R $(uid):$(gid) $(current_dir)
+
+get_paper:
+	docker run --rm --volume $(current_dir)/paper:/data --user $(uid):$(gid) --env JOURNAL=joss openjournals/inara
+	rm $(current_dir)/paper/paper.jats
+
+prune_docker:
+	docker system prune -a --volumes
+
+build_rxnmapper:
+	docker image build --target rxnmapper --tag rxnmapper .
+
+run_rxnmapper:
+	docker run -v $(current_dir)/data/:/home/worker/repo/data/ -u $(uid):$(gid) -it rxnmapper
+
+run_rxnmapper_sudo:
+	docker run -v $(current_dir)/data/:/home/worker/repo/data/ -it rxnmapper
