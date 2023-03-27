@@ -19,7 +19,6 @@ jobs:
       - name: Install libpq-dev
         run: sudo apt-get install -y libpq-dev
 
-
       # - uses: awalsh128/cache-apt-pkgs-action@latest
       #   with:
       #     packages: libpq-dev
