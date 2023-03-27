@@ -187,7 +187,9 @@ class Cleaner:
                 df.loc[mask, col] = "other"
 
                 # Remove rows with a very rare molecule
-                to_remove = value_counts[value_counts < self.map_rare_to_other_threshold].index
+                to_remove = value_counts[
+                    value_counts < self.map_rare_to_other_threshold
+                ].index
 
             else:
                 # Remove rows with a very rare molecule
