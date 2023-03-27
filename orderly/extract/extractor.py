@@ -17,6 +17,14 @@ import orderly.extract.defaults
 LOG = logging.getLogger(__name__)
 
 
+def strip_filename(
+    filename: str, replacements: typing.List[typing.Tuple[str, str]]
+) -> str:
+    for _from, _to in replacements:
+        filename = filename.replace(_from, _to)
+    return filename
+
+
 @dataclasses.dataclass(kw_only=True)
 class OrdExtractor:
     """
@@ -42,6 +50,20 @@ class OrdExtractor:
         if self.filename is None:
             self.filename = self.data.name
 
+            self.filename = strip_filename(
+                self.filename,
+                replacements=[
+                    ("/", "-fs-"),
+                    (":", ""),
+                    (" ", "_"),
+                    (".", "-"),
+                ],
+            ).lower()
+
+            if self.filename == "":
+                LOG.debug(f"No file name for dataset so using {self.data.dataset_id=}")
+                self.filename = self.data.dataset_id
+
         self.names_list = self.full_df = None
         if self.contains_substring is not None:
             to_skip = self.contains_substring.lower() not in self.filename.lower()
@@ -55,8 +77,6 @@ class OrdExtractor:
                     f"Skipping {self.ord_file_path}: {self.filename} as filename {reason}"
                 )
                 return
-
-        LOG.info(f"building for {self.ord_file_path}: {self.filename}")
 
         self.names_list = []
         self.full_df = self.build_full_df()
@@ -153,6 +173,10 @@ class OrdExtractor:
 
             # if reaction has been mapped, get reactant and product from the mapped reaction
             # Actually, we should only extract data from reactions that have been mapped
+            if len(self.data.reactions[i].identifiers) == 0:
+                LOG.debug("skipping, reactions have no identifiers")
+                continue
+
             is_mapped = self.data.reactions[i].identifiers[0].is_mapped
             if is_mapped:
                 mapped_rxn_extended_smiles = self.data.reactions[i].identifiers[0].value

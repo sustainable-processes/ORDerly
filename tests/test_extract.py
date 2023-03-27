@@ -40,5 +40,5 @@ def test_extract(
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
         inverse_substring=inverse_substring,
-        overwrite=True,
+        overwrite=False,
     )
