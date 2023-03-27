@@ -134,6 +134,7 @@ def extract(
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
     name_contains_substring: typing.Optional[str] = None,
+    inverse_substring: bool = False,
     overwrite: bool = True,
 ):
     LOG.debug(f"Attempting extraction for {file}")
@@ -143,6 +144,7 @@ def extract(
         manual_replacements_dict=manual_replacements_dict,
         solvents_set=solvents_set,
         contains_substring=name_contains_substring,
+        inverse_contains_substring=inverse_substring,
     )
     if instance.full_df is None:
         LOG.debug(f"Skipping extraction for {file}")
@@ -213,6 +215,13 @@ def extract(
     help="checks a substring exists in the ord data file name, for example 'uspto' grabs only uspto data",
 )
 @click.option(
+    "--inverse_substring",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in"
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=True,
@@ -229,6 +238,7 @@ def main_click(
     merged_molecules_file: str,
     use_multiprocessing: bool,
     name_contains_substring: str,
+    inverse_substring: bool,
     overwrite: bool,
 ):
     """
@@ -278,6 +288,7 @@ def main_click(
         merged_molecules_file=merged_molecules_file,
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
+        inverse_substring=inverse_substring,
         overwrite=overwrite,
     )
 
@@ -292,6 +303,7 @@ def main(
     merged_molecules_file: str,
     use_multiprocessing: bool,
     name_contains_substring: str,
+    inverse_substring: bool,
     overwrite: bool,
 ):
     """
@@ -356,6 +368,7 @@ def main(
         "pickled_data_folder": pickled_data_folder,
         "molecule_names_folder": molecule_names_folder,
         "name_contains_substring": name_contains_substring,
+        "inverse_substring": inverse_substring,
         "overwrite": overwrite,
     }
 

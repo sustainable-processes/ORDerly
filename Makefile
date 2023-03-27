@@ -1,7 +1,6 @@
 current_dir = $(shell pwd)
 uid = $(shell id -u)
 gid = $(shell id -g)
-user = $(shell whoami)
 
 get_ord_safe:
 	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
@@ -28,7 +27,7 @@ sudo_build_download_ord:
 
 sudo_run_download_ord:
 	docker run -v $(current_dir)/data:/data ord_download
-	sudo chown -R $(user):$(user) $(current_dir)
+	sudo chown -R $(uid):$(uid) $(current_dir)
 
 build_orderly:
 	docker image build --tag orderly .

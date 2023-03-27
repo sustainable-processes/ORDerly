@@ -32,6 +32,7 @@ class OrdExtractor:
     solvents_set: typing.Set[str]
     filename: typing.Optional[str] = None
     contains_substring: typing.Optional[str] = None  # None or uspto
+    inverse_contains_substring: bool = False
 
     def __post_init__(self):
         LOG.debug(f"Extracting data from {self.ord_file_path}")
@@ -43,9 +44,17 @@ class OrdExtractor:
 
         self.names_list = self.full_df = None
         if self.contains_substring is not None:
-            if self.contains_substring.lower() not in self.filename.lower():
-                LOG.debug(f"Skipping {self.ord_file_path}: {self.filename} as ")
+            to_skip = self.contains_substring.lower() not in self.filename.lower()
+            reason = "contains"
+            if self.inverse_contains_substring:
+                to_skip = not to_skip
+                reason = "does not contain"
+            reason += f" {self.contains_substring.lower()}"
+            if to_skip:
+                LOG.debug(f"Skipping {self.ord_file_path}: {self.filename} as filename {reason}")
                 return
+
+        LOG.info(f"building for {self.ord_file_path}: {self.filename}")
 
         self.names_list = []
         self.full_df = self.build_full_df()
