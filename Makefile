@@ -2,6 +2,8 @@ current_dir = $(shell pwd)
 uid = $(shell id -u)
 gid = $(shell id -g)
 
+download_path=ord/
+
 get_ord_safe:
 	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
 	unzip -o /app/repo.zip -d /app
@@ -53,3 +55,27 @@ black:
 
 get_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
+
+debug_build:
+	docker image build --tag orderly_download_mounted .
+
+debug_run:
+	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly_download_mounted
+
+debug_download:
+	docker image build --target debug_orderly_download_safe --tag debug_orderly_download_safe .
+	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) debug_orderly_download_safe
+	docker rm -f debug_orderly_download_safe
+
+debug_get_ord:
+	mkdir -p /tmp_data/${download_path}
+	touch /tmp_data/${download_path}tst_permissions_file.txt
+	sleep 5
+	rm /tmp_data/${download_path}tst_permissions_file.txt
+	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
+	unzip -o /app/repo.zip -d /app
+	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
+	rm /app/repo.zip
+
+debug_echo:
+	echo ${download_path}
