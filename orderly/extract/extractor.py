@@ -174,7 +174,7 @@ class OrdExtractor:
 
             yields = []
             mapped_yields = []
-            
+
             # Add procedure_details
             procedure_details = [rxn.notes.procedure_details]
             procedure_details_all += [procedure_details]
