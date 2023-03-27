@@ -51,7 +51,9 @@ class OrdExtractor:
                 reason = "does not contain"
             reason += f" {self.contains_substring.lower()}"
             if to_skip:
-                LOG.debug(f"Skipping {self.ord_file_path}: {self.filename} as filename {reason}")
+                LOG.debug(
+                    f"Skipping {self.ord_file_path}: {self.filename} as filename {reason}"
+                )
                 return
 
         LOG.info(f"building for {self.ord_file_path}: {self.filename}")

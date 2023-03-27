@@ -15,7 +15,11 @@ def test_hello_world():
     ),
 )
 def test_extract(
-    tmp_path, merge_conditions, use_multiprocessing, name_contains_substring,inverse_substring
+    tmp_path,
+    merge_conditions,
+    use_multiprocessing,
+    name_contains_substring,
+    inverse_substring,
 ):
     pickled_data_folder = tmp_path / "pkl_data"
     pickled_data_folder.mkdir()

@@ -219,7 +219,7 @@ def extract(
     type=bool,
     default=False,
     show_default=True,
-    help="Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in"
+    help="Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in",
 )
 @click.option(
     "--overwrite",
