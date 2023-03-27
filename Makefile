@@ -27,7 +27,7 @@ sudo_build_download_ord:
 
 sudo_run_download_ord:
 	docker run -v $(current_dir)/data:/data ord_download
-	sudo chown -R $(uid):$(uid) $(current_dir)
+	sudo chown -R $(uid):$(gid) $(current_dir)
 
 build_orderly:
 	docker image build --tag orderly .
