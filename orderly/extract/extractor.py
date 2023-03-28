@@ -188,12 +188,18 @@ class OrdExtractor:
             is_mapped = self.data.reactions[i].identifiers[0].is_mapped
             if is_mapped:
                 mapped_rxn_extended_smiles = self.data.reactions[i].identifiers[0].value
-                mapped_rxn = mapped_rxn_extended_smiles.split(" ")[0] # this is to get rid of the extended smiles info
+                mapped_rxn = mapped_rxn_extended_smiles.split(" ")[
+                    0
+                ]  # this is to get rid of the extended smiles info
 
                 reactant, reagent, mapped_product = mapped_rxn.split(">")
 
-                reactants += [r for r in reactant.split(".")] #we're trusting the labelling of reagents and reactants here
-                reagents += [r for r in reagent.split(".")] # Maybe in the future we'd add atom mapping to determine which is which
+                reactants += [
+                    r for r in reactant.split(".")
+                ]  # we're trusting the labelling of reagents and reactants here
+                reagents += [
+                    r for r in reagent.split(".")
+                ]  # Maybe in the future we'd add atom mapping to determine which is which
 
                 for p in mapped_product.split("."):
                     if "[" in p and "]" in p and ":" in p:
@@ -374,7 +380,9 @@ class OrdExtractor:
             # Since we're technically not sure whether something is a reactant (contributes atoms) or a reagent/solvent/catalyst (does not contribute atoms), it's probably more cautious to remove molecules that appear in both lists from the reagents/solvents/catalysts list rather than the reactants list
             reagents = [reagent for reagent in reagents if reagent not in reactants]
             solvents = [solvent for solvent in solvents if solvent not in reactants]
-            catalysts = [catalyst for catalyst in catalysts if catalyst not in reactants]
+            catalysts = [
+                catalyst for catalyst in catalysts if catalyst not in reactants
+            ]
 
             # products logic
             # handle the products
