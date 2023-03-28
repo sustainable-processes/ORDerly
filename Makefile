@@ -7,14 +7,27 @@ download_path=ord/
 black:
 	poetry run python -m black .
 
+pytest:
+	poetry run python -m pytest -v
+
 get_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
 
+build_orderly_extras:
+	docker image build --target orderly_test --tag orderly_test .
+	docker image build --target orderly_black --tag orderly_black .
+
 run_orderly:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
+
+run_orderly_black:
+	docker run orderly_black
+
+run_orderly_pytest:
+	docker run orderly_test
 
 run_orderly_sudo:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base
@@ -52,3 +65,9 @@ get_paper:
 
 prune_docker:
 	docker system prune -a --volumes
+
+build_rxnmapper:
+	docker image build --target rxnmapper_base --tag rxnmapper_base .
+
+run_rxnmapper:
+	docker run -v $(current_dir)/data:/tmp_data -it rxnmapper_base
