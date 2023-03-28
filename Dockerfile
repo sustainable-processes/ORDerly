@@ -39,18 +39,3 @@ WORKDIR /app
 ADD Makefile /app
 
 CMD ["make", "_root_get_ord"]
-
-FROM continuumio/miniconda3 as rxnmapper_base
-
-RUN conda create -n rxnmapper python=3.6 -y
-
-SHELL ["conda", "run", "-n", "rxnmapper", "/bin/bash", "-c"]
-
-RUN pip install rxnmapper
-RUN pip install rdkit
-
-RUN python -c "import rxnmapper # verify install"
-
-FROM rxnmapper_base
-
-CMD ["bash"]

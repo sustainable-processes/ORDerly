@@ -52,12 +52,3 @@ get_paper:
 
 prune_docker:
 	docker system prune -a --volumes
-
-build_rxnmapper:
-	docker image build --target rxnmapper --tag rxnmapper .
-
-run_rxnmapper:
-	docker run -v $(current_dir)/data/:/home/worker/repo/data/ -u $(uid):$(gid) -it rxnmapper
-
-run_rxnmapper_sudo:
-	docker run -v $(current_dir)/data/:/home/worker/repo/data/ -it rxnmapper
