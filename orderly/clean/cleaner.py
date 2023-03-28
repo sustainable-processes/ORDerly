@@ -465,6 +465,7 @@ def main(
 
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
+    2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
     start_time = datetime.datetime.now()
 
