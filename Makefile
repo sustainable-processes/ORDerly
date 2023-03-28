@@ -1,55 +1,73 @@
 current_dir = $(shell pwd)
 uid = $(shell id -u)
 gid = $(shell id -g)
+download_path=ord/
 
-get_ord_safe:
-	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
-	unzip -o /app/repo.zip -d /app
-	mkdir -p /app/data/ord
-	cp -a /app/ord-data-main/data/. /app/data/ord
-	rm /app/repo.zip
 
-get_ord:
-	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
-	unzip -o /app/repo.zip -d /data
-	rm /app/repo.zip
+black:
+	poetry run python -m black .
 
-build_download_ord:
-	docker image build --target orderly_download_safe --tag ord_download_safe .
+pytest:
+	poetry run python -m pytest -v
 
-run_download_ord:
-	docker run -u $(uid):$(gid) -it --name tmp_download_ord_safe ord_download_safe
-	docker cp tmp_download_ord_safe:/app/data .
-	docker rm -f tmp_download_ord_safe
-
-sudo_build_download_ord:
-	docker image build --target orderly_download --tag ord_download .
-
-sudo_run_download_ord:
-	docker run -v $(current_dir)/data:/data ord_download
-	sudo chown -R $(uid):$(gid) $(current_dir)
+get_test_data:
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
 
 build_orderly:
-	docker image build --tag orderly .
+	docker image build --target orderly_base --tag orderly_base .
+
+build_orderly_extras:
+	docker image build --target orderly_test --tag orderly_test .
+	docker image build --target orderly_black --tag orderly_black .
 
 run_orderly:
-	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) -it orderly
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
+
+run_orderly_black:
+	docker run orderly_black
+
+run_orderly_pytest:
+	docker run orderly_test
+
+run_orderly_sudo:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base
+
+linux_download_ord:
+	docker image build --target orderly_download_linux --tag orderly_download_linux .
+	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) orderly_download_linux
+
+_linux_get_ord:
+	mkdir -p /tmp_data/${download_path}
+	touch /tmp_data/${download_path}/tst_permissions_file.txt
+	rm /tmp_data/${download_path}/tst_permissions_file.txt
+	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
+	unzip -o /app/repo.zip -d /app
+	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
+
+root_download_ord:
+	docker image build --target orderly_download_root --tag orderly_download_root .
+	docker run -v $(current_dir)/data:/tmp_data orderly_download_root
+	
+_root_get_ord:
+	mkdir -p /tmp_data/${download_path}
+	touch /tmp_data/${download_path}/tst_permissions_file.txt
+	rm /tmp_data/${download_path}/tst_permissions_file.txt
+	curl -L -o /app/repo.zip https://github.com/open-reaction-database/ord-data/archive/refs/heads/main.zip
+	unzip -o /app/repo.zip -d /app
+	cp -a /app/ord-data-main/data/. /tmp_data/${download_path}
+
+sudo_chown:
+	sudo chown -R $(uid):$(gid) $(current_dir)
 
 get_paper:
 	docker run --rm --volume $(current_dir)/paper:/data --user $(uid):$(gid) --env JOURNAL=joss openjournals/inara
 	rm $(current_dir)/paper/paper.jats
 
-prune:
+prune_docker:
 	docker system prune -a --volumes
 
-clear:
-	sudo rm -rf ./data/
+build_rxnmapper:
+	docker image build --target rxnmapper_base --tag rxnmapper_base .
 
-extract:
-	poetry run python -m orderly.extract
-
-black:
-	poetry run python -m black .
-
-get_test_data:
-	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
+run_rxnmapper:
+	docker run -v $(current_dir)/data:/tmp_data -it rxnmapper_base
