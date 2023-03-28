@@ -175,11 +175,11 @@ def extract(
     LOG.debug(f"Saved df at {df_path}")
 
     # list of the names used for molecules, as opposed to SMILES strings
-    # save the names_list to pickle file
+    # save the non_smiles_names_list to pickle file
     with open(
         output_path / molecule_names_folder / f"molecules_{filename}.pkl", "wb"
     ) as f:
-        pickle.dump(instance.names_list, f)
+        pickle.dump(instance.non_smiles_names_list, f)
     LOG.debug(f"Saves molecule names for {filename} at {molecule_names_path}")
 
 
