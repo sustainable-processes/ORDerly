@@ -49,3 +49,55 @@ poetry install
 poetry run python -m orderly.extract [--help]
 
 poetry run python -m orderly.clean [--help]
+
+
+# ORDerly
+
+A wrapper for downloading ORDschema data, extracting and cleaning the data
+
+The scripts herein will extract and clean USPTO data from ORD with various manual steps relying on chemical domain knowledge. This results in an open-source dataset containing a mapped reaction, reactants, products, solvents, reagents, catalysts, and yields in a pandas DataFrame structure that should also be easily usable by people with little knowledge of chemistry.
+
+## Install
+
+### 1. Download the ORD data
+
+We want to download the ORD data locally, this can be done through any of the following methods:
+
+1. Follow the instructions at: https://github.com/open-reaction-database/ord-data, we specifically care about the folders in ```ord-data/data/`
+2. Docker install with linux (run in terminal):
+    ```
+    make linux_download_ord
+    ``` 
+3. Docker install with mac (run in terminal):
+    ```
+    make root_download_ord
+    make sudo_chown
+    ```
+
+### 3. Install dependencies
+
+To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
+
+1. For poetry (run in terminal):
+    ```bash
+    poetry install
+    ```
+2. For docker (run in terminal):
+    ```bash
+    build_orderly
+    run_orderly
+    ```
+    You can validate the install works by running
+    ```bash
+    build_orderly_extras
+    run_orderly_pytest
+    ```
+
+
+### 2. Run extraction
+
+We can run extraction using: ```poetry run python -m orderly.extract```. Using ```poetry run python -m orderly.extract --help``` will explain the arguments. Certain args must be set such as data paths.
+
+### 3. Run cleaning
+
+We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```poetry run python -m orderly.clean --help``` will explain the arguments. Certain args must be set such as data paths.
