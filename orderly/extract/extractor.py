@@ -226,25 +226,28 @@ class OrdExtractor:
             if x is not None
         ]
         return smiles_list
-    
-    def merge_marked_mapped_products(self, mapped_p_clean, marked_p_clean, products, mapped_yields, yields):
+
+    def merge_marked_mapped_products(
+        self, mapped_p_clean, marked_p_clean, products, mapped_yields, yields
+    ):
         # merge marked and mapped products with a yield
         for mapped_p in mapped_p_clean:
-                added = False
-                for ii, marked_p in enumerate(marked_p_clean):
-                    if mapped_p == marked_p and mapped_p not in products:
-                        products += [mapped_p]
-                        mapped_yields += [yields[ii]] # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
-                        added = True
-                        break
-
-                if not added and mapped_p not in products:
+            added = False
+            for ii, marked_p in enumerate(marked_p_clean):
+                if mapped_p == marked_p and mapped_p not in products:
                     products += [mapped_p]
-                    mapped_yields += [np.nan]
+                    mapped_yields += [
+                        yields[ii]
+                    ]  # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
+                    added = True
+                    break
+
+            if not added and mapped_p not in products:
+                products += [mapped_p]
+                mapped_yields += [np.nan]
         return products, mapped_yields
-    
+
     def merge_to_agents(self, catalysts, solvents, reagents, metals):
-        
         agents = (
             catalysts + solvents + reagents
         )  # merge the solvents, reagents, and catalysts into one list
@@ -268,16 +271,9 @@ class OrdExtractor:
         # Instead, let's move all agents that contain a metal centre to the front of the list
 
         agents = [
-            agent
-            for agent in agents
-            if any(metal in agent for metal in metals)
-        ] + [
-            agent
-            for agent in agents
-            if not any(metal in agent for metal in metals)
-        ]
+            agent for agent in agents if any(metal in agent for metal in metals)
+        ] + [agent for agent in agents if not any(metal in agent for metal in metals)]
         return agents, solvents
-        
 
     def build_rxn_lists(
         self, metals: typing.Optional[typing.List[str]] = None
@@ -356,7 +352,7 @@ class OrdExtractor:
             reagents, solvents, catalysts = self.rxn_input_extractor(
                 rxn, reagents, solvents, catalysts
             )
-            
+
             # extract temperature
             temperatures = self.temperature_extractor(rxn, temperatures)
 
@@ -398,12 +394,11 @@ class OrdExtractor:
             mapped_p_clean = [self.clean_mapped_smiles(p) for p in mapped_products]
             marked_p_clean = [self.clean_smiles(p) for p in marked_products]
             # What if there's a marked product that only has the correct name, but not the smiles?
-            
+
             # merge marked and mapped products with a yield
             products, mapped_yields = self.merge_marked_mapped_products(
                 mapped_p_clean, marked_p_clean, products, mapped_yields, yields
             )
-            
 
             if set(reactants) != set(
                 products
@@ -417,7 +412,9 @@ class OrdExtractor:
 
                 # Finally we also need to add the agents
                 if self.merge_cat_solv_reag == True:
-                    agents, solvents = self.merge_to_agents(catalysts, solvents, reagents, metals)
+                    agents, solvents = self.merge_to_agents(
+                        catalysts, solvents, reagents, metals
+                    )
                     agents_all += [agents]
                     solvents_all += [solvents]
                 else:
