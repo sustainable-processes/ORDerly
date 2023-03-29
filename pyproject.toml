@@ -1,8 +1,15 @@
 [tool.poetry]
-name = "orderly"
-version = "0.0.3"
-description = ""
-authors = ["joearrowsmith <joearrowsmith98@gmail.com>"]
+name = "ORDerly"
+version = "0.0.4"
+description = "Cleaning and extraction of USPTO data from ORD"
+authors = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>", "Alexander Pomberger <ap2153@cam.ac.uk>", "Alexei A. Lapkin <aal35@cam.ac.uk>"]
+maintainers = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>"]
+# New attributes
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/dswigh/USPTO_cleaning"
+repository = "https://github.com/dswigh/USPTO_cleaning"
+keywords = ["ord-schema", "RDKit", "ord-data"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

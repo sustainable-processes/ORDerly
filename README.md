@@ -116,6 +116,4 @@ We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```po
 
 sudo apt-get update
 sudo apt-get install libpq-dev gcc -y
-python -m pip install rdkit ord-schema
-python -m pip install tqdm click joblib
-pip install -i https://test.pypi.org/simple/ orderly
+python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ orderly
