@@ -85,7 +85,7 @@ To install the dependencies this can be done via ```poetry``` or you can run the
 
 1. For poetry (run in terminal):
     You might need some environment dependencies
-        For ubuntu: 
+        Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
         ```
         sudo apt-get update
         sudo apt-get install libpq-dev gcc -y
@@ -113,7 +113,3 @@ We can run extraction using: ```poetry run python -m orderly.extract```. Using `
 ### 3. Run cleaning
 
 We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```poetry run python -m orderly.clean --help``` will explain the arguments. Certain args must be set such as data paths.
-
-sudo apt-get update
-sudo apt-get install libpq-dev gcc -y
-python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ orderly
