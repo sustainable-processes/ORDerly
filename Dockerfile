@@ -4,7 +4,6 @@ RUN apt-get update
 RUN apt-get install -y libpq-dev gcc make
 
 RUN adduser --disabled-password worker
-USER worker
 
 ENV PATH="/home/worker/.local/bin:${PATH}"
 
@@ -18,6 +17,9 @@ RUN python -m poetry install
 ADD Makefile /home/worker/repo/
 ADD orderly/ /home/worker/repo/orderly/
 ADD tests/ /home/worker/repo/tests/
+
+RUN chown -R worker:worker /home/worker/
+USER worker
 
 ENV PYTHONUNBUFFERED=1
 
@@ -59,3 +61,16 @@ RUN pip install rdkit-pypi
 
 RUN echo 'conda activate rxnmapper' >> /root/.bashrc
 ENTRYPOINT [ "/bin/bash", "-l"]
+
+FROM orderly_base as rxnmapper_test
+
+USER root
+RUN apt-get install -y curl
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/worker/.cargo/bin:${PATH}"
+
+USER worker
+RUN poetry add setuptools-rust
+RUN poetry add rxnmapper
+
+CMD ["bash"]

@@ -16,6 +16,12 @@ get_test_data:
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
 
+build_orderly_rxn_test:
+	docker image build --target rxnmapper_test --tag rxnmapper_test .
+
+run_orderly_rxn_test:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it rxnmapper_test
+
 build_orderly_extras:
 	docker image build --target orderly_test --tag orderly_test .
 	docker image build --target orderly_black --tag orderly_black .
