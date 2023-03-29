@@ -30,7 +30,8 @@ For alternate usage, see the documentation in the corresponsing file
 
 For ubuntu: 
 ```
-sudo apt-get install libpq-dev
+sudo apt-get update
+sudo apt-get install libpq-dev gcc -y
 ```
 
 
@@ -74,14 +75,25 @@ We want to download the ORD data locally, this can be done through any of the fo
     make sudo_chown
     ```
 
+### 2. Install OS depenencies
+ 
+
+
 ### 3. Install dependencies
 
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
 1. For poetry (run in terminal):
-    ```bash
-    poetry install
-    ```
+    You might need some environment dependencies
+        Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
+        ```
+        sudo apt-get update
+        sudo apt-get install libpq-dev gcc -y
+        ```
+    Python dependencies:
+        ```bash
+        poetry install
+        ```
 2. For docker (run in terminal):
     ```bash
     build_orderly

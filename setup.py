@@ -5,7 +5,7 @@ with open("README", 'r') as f:
 
 setup(
     name="orderly",
-    version="0.1.1",
+    version="0.0.4",
     description="A wrapper for downloading ORDschema data, extracting and cleaning the data",
     license="MIT",
     long_description=long_description,
