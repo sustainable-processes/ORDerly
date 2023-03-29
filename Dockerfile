@@ -1,3 +1,29 @@
+FROM python:3.10-slim-buster as orderly_pip
+
+RUN apt-get update
+RUN apt-get install -y libpq-dev gcc make
+
+RUN adduser --disabled-password worker
+
+ENV PATH="/home/worker/.local/bin:${PATH}"
+
+WORKDIR /home/worker/repo/
+ADD pyproject.toml poetry.lock README.md /home/worker/repo/
+RUN chown -R worker:worker /home/worker
+
+USER worker
+RUN python -m pip install -U pip
+RUN python -m venv env
+RUN . /home/worker/repo/env/bin/activate && python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ orderly
+
+ADD Makefile /home/worker/repo/
+ADD tests/ /home/worker/repo/tests/
+
+ENV PYTHONUNBUFFERED=1
+
+RUN echo 'source env/bin/activate' >> /home/worker/.bashrc
+ENTRYPOINT [ "/bin/bash", "-l"]
+
 FROM python:3.10-slim-buster as orderly_base
 
 RUN apt-get update
@@ -10,20 +36,21 @@ ENV PATH="/home/worker/.local/bin:${PATH}"
 WORKDIR /home/worker/repo/
 ADD pyproject.toml poetry.lock README.md /home/worker/repo/
 
+USER worker
 RUN python -m pip install -U pip
 RUN python -m pip install poetry
 RUN python -m poetry install
 
-ADD setup.py /home/worker/
 ADD Makefile /home/worker/repo/
 ADD orderly/ /home/worker/repo/orderly/
 ADD tests/ /home/worker/repo/tests/
 
-RUN chown -R worker:worker /home/worker/
-USER worker
+USER root
+RUN chown -R worker:worker /home/worker/repo
 
 ENV PYTHONUNBUFFERED=1
 
+USER worker
 CMD ["bash"]
 
 FROM orderly_base as orderly_base_sudo
