@@ -4,6 +4,9 @@ gid = $(shell id -g)
 download_path=ord/
 
 
+test_pip:
+	pip install --index-url https://test.pypi.org/simple/ orderly
+
 black:
 	poetry run python -m black .
 
@@ -15,6 +18,7 @@ get_test_data:
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
+	docker image build --target orderly_base_sudo --tag orderly_base_sudo .
 
 build_orderly_rxn_test:
 	docker image build --target rxnmapper_test --tag rxnmapper_test .
@@ -36,7 +40,7 @@ run_orderly_pytest:
 	docker run orderly_test
 
 run_orderly_sudo:
-	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base_sudo
 
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
@@ -77,3 +81,7 @@ build_rxnmapper:
 
 run_rxnmapper:
 	docker run -v $(current_dir)/data:/tmp_data -it rxnmapper_base
+
+run_python_310:
+	docker run -it python:3.10-slim-buster /bin/bash
+

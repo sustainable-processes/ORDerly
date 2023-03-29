@@ -14,6 +14,7 @@ RUN python -m pip install -U pip
 RUN python -m pip install poetry
 RUN python -m poetry install
 
+ADD setup.py /home/worker/
 ADD Makefile /home/worker/repo/
 ADD orderly/ /home/worker/repo/orderly/
 ADD tests/ /home/worker/repo/tests/
@@ -24,6 +25,10 @@ USER worker
 ENV PYTHONUNBUFFERED=1
 
 CMD ["bash"]
+
+FROM orderly_base as orderly_base_sudo
+
+USER root
 
 FROM orderly_base as orderly_test
 
