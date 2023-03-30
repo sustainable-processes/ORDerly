@@ -63,7 +63,7 @@ class OrdExtractor:
             ).lower()
 
             if self.filename == "":
-                LOG.debug(f"No file name for dataset so using {self.data.dataset_id=}")
+                LOG.debug(f"No file name for dataset so using dataset_id={self.data.dataset_id}")
                 self.filename = self.data.dataset_id
 
         self.non_smiles_names_list = self.full_df = None
