@@ -1,0 +1,133 @@
+@article{Kearnes:2021,
+	title = {The {Open} {Reaction} {Database}},
+	volume = {143},
+	issn = {0002-7863},
+	url = {https://doi.org/10.1021/jacs.1c09820},
+	doi = {10.1021/jacs.1c09820},
+	abstract = {Chemical reaction data in journal articles, patents, and even electronic laboratory notebooks are currently stored in various formats, often unstructured, which presents a significant barrier to downstream applications, including the training of machine-learning models. We present the Open Reaction Database (ORD), an open-access schema and infrastructure for structuring and sharing organic reaction data, including a centralized data repository. The ORD schema supports conventional and emerging technologies, from benchtop reactions to automated high-throughput experiments and flow chemistry. The data, schema, supporting code, and web-based user interfaces are all publicly available on GitHub. Our vision is that a consistent data representation and infrastructure to support data sharing will enable downstream applications that will greatly improve the state of the art with respect to computer-aided synthesis planning, reaction prediction, and other predictive chemistry tasks.},
+	number = {45},
+	urldate = {2021-11-29},
+	journal = {Journal of the American Chemical Society},
+	author = {Kearnes, Steven M. and Maser, Michael R. and Wleklinski, Michael and Kast, Anton and Doyle, Abigail G. and Dreher, Spencer D. and Hawkins, Joel M. and Jensen, Klavs F. and Coley, Connor W.},
+	month = nov,
+	year = {2021},
+	pages = {18820--18826},
+}
+
+@article{Baldi:2022,
+	title = {Call for a {Public} {Open} {Database} of {All} {Chemical} {Reactions}},
+	volume = {62},
+	issn = {1549-9596},
+	url = {https://doi.org/10.1021/acs.jcim.1c01140},
+	doi = {10.1021/acs.jcim.1c01140},
+	abstract = {Today there exists no public, freely downloadable, comprehensive database of all known chemical reactions and associated information. Such a database not only would serve chemical sciences and technologies around the world but also would enable the power of modern AI and machine learning methods to be unleashed on a host of fundamental problems. In time, this could lead to important scientific discoveries and economic developments for the benefit of humanity. While ideally such a repository ought to be created and maintained by an international consortium, in the near future, it may be easier to begin the process through governmental agencies such as the National Science Foundation or the National Institutes of Health. Working together, we could use a multipronged approach that could combine negotiations with commercial stakeholders, crowd-sourcing efforts, automated extraction methods, and legislative actions.},
+	number = {9},
+	urldate = {2023-03-11},
+	journal = {Journal of Chemical Information and Modeling},
+	author = {Baldi, Pierre},
+	month = may,
+	year = {2022},
+	note = {Publisher: American Chemical Society},
+	pages = {2011--2014},
+}
+
+@misc{molecularai_reaction_utils:2022,
+  author = {Genheden, Samuel},
+  title = {rxnutils},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/MolecularAI/reaction_utils}
+}
+
+@misc{RXN_reaction_preprocessing:2020,
+  author = {Alain Vaucher and Hélder Lopes},
+  title = {RXN reaction preprocessing},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/rxn4chemistry/rxn-reaction-preprocessing}
+}
+
+@misc{Predicting_Organic:2017,
+  doi = {10.48550/ARXIV.1709.04555},
+  
+  url = {https://arxiv.org/abs/1709.04555},
+  
+  author = {Jin, Wengong and Coley, Connor W. and Barzilay, Regina and Jaakkola, Tommi},
+  
+  keywords = {Machine Learning (cs.LG), Artificial Intelligence (cs.AI), Machine Learning (stat.ML), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {Predicting Organic Reaction Outcomes with Weisfeiler-Lehman Network},
+  
+  publisher = {arXiv},
+  
+  year = {2017},
+  
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+@article{schwaller_mapping:2021,
+	title = {Mapping the space of chemical reactions using attention-based neural networks},
+	copyright = {2021 The Author(s), under exclusive licence to Springer Nature Limited},
+	issn = {2522-5839},
+	url = {https://www.nature.com/articles/s42256-020-00284-w},
+	doi = {10.1038/s42256-020-00284-w},
+	abstract = {Organic reactions are usually assigned to classes containing reactions with similar reagents and mechanisms. Reaction classes facilitate the communication of complex concepts and efficient navigation through chemical reaction space. However, the classification process is a tedious task. It requires identification of the corresponding reaction class template via annotation of the number of molecules in the reactions, the reaction centre and the distinction between reactants and reagents. Here, we show that transformer-based models can infer reaction classes from non-annotated, simple text-based representations of chemical reactions. Our best model reaches a classification accuracy of 98.2\%. We also show that the learned representations can be used as reaction fingerprints that capture fine-grained differences between reaction classes better than traditional reaction fingerprints. The insights into chemical reaction space enabled by our learned fingerprints are illustrated by an interactive reaction atlas providing visual clustering and similarity searching.},
+	language = {en},
+	urldate = {2021-02-08},
+	journal = {Nature Machine Intelligence},
+	author = {Schwaller, Philippe and Probst, Daniel and Vaucher, Alain C. and Nair, Vishnu H. and Kreutter, David and Laino, Teodoro and Reymond, Jean-Louis},
+	month = jan,
+	year = {2021},
+	note = {Publisher: Nature Publishing Group},
+	pages = {1--9},
+}
+
+@article{schneider_development:2015,
+	title = {Development of a {Novel} {Fingerprint} for {Chemical} {Reactions} and {Its} {Application} to {Large}-{Scale} {Reaction} {Classification} and {Similarity}},
+	volume = {55},
+	issn = {1549-9596},
+	url = {https://doi.org/10.1021/ci5006614},
+	doi = {10.1021/ci5006614},
+	abstract = {Fingerprint methods applied to molecules have proven to be useful for similarity determination and as inputs to machine-learning models. Here, we present the development of a new fingerprint for chemical reactions and validate its usefulness in building machine-learning models and in similarity assessment. Our final fingerprint is constructed as the difference of the atom-pair fingerprints of products and reactants and includes agents via calculated physicochemical properties. We validated the fingerprints on a large data set of reactions text-mined from granted United States patents from the last 40 years that have been classified using a substructure-based expert system. We applied machine learning to build a 50-class predictive model for reaction-type classification that correctly predicts 97\% of the reactions in an external test set. Impressive accuracies were also observed when applying the classifier to reactions from an in-house electronic laboratory notebook. The performance of the novel fingerprint for assessing reaction similarity was evaluated by a cluster analysis that recovered 48 out of 50 of the reaction classes with a median F-score of 0.63 for the clusters. The data sets used for training and primary validation as well as all python scripts required to reproduce the analysis are provided in the Supporting Information.},
+	number = {1},
+	urldate = {2020-12-13},
+	journal = {Journal of Chemical Information and Modeling},
+	author = {Schneider, Nadine and Lowe, Daniel M. and Sayle, Roger A. and Landrum, Gregory A.},
+	month = jan,
+	year = {2015},
+	note = {Publisher: American Chemical Society},
+	pages = {39--53},
+}
+
+@misc{Lowe:2017,
+	title = {Chemical reactions from {US} patents (1976-{Sep2016})},
+	url = {https://figshare.com/articles/Chemical_reactions_from_US_patents_1976-Sep2016_/5104873},
+	abstract = {Reactions extracted by text-mining from United States patents published between 1976 and September 2016. The reactions are available as CML or reaction SMILES. Note that the reactions SMILES are derived from the CML. The files can be unzipped using a program like 7-Zip.The reactions were extracted using an enhanced version of the reaction extraction code described in https://www.repository.cam.ac.uk/handle/1810/244727with LeadMine (https://www.nextmovesoftware.com/leadmine.html) used for chemical entity recognition.General tips:Duplicate reactions are frequent due to the same or highly similar text occurring in multiple patents, this is especially true when combining the applications and grant datasets, many reactions from applications will later appear in patent grants.Paragraph numbers are only present for 2005+ patent grants and patent applications.Multiple reactions can be extracted from the same paragraph.Atom maps in the reactions SMILES are derived using Epam's 
+Indigo toolkit. While typically correct, the atom-maps are wrong in many
+cases and hence should not be entirely relied on.The reactions have been filtered to remove common cases of incorrectly extracted reactions:All product atoms must be accounted for by the atom-mappingThe product(s) must have {\textgreater}8 heavy atomsThe product must not be charged if it is a single componentThe number of products must be {\textless}5 and number of reactants+agents {\textless}16CML:A schema for the CML is present in cml\_xsd.zipReaction SMILESFor convenience the reaction SMILES includes tab delimited columns for:PatentNumber, ParagraphNum, Year, TextMinedYield, CalculatedYieldAll of this information is also present in the CML (year is inferred from the folders)},
+	urldate = {2020-05-21},
+	author = {Lowe, Daniel},
+	month = jun,
+	year = {2017},
+	doi = {10.6084/m9.figshare.5104873.v1},
+	keywords = {Chemical reactions, organic synthesis, patents, reaction yield, text-mining results},
+}
+
+
+@article{wigh_review:2022,
+	title = {A review of molecular representation in the age of machine learning},
+	volume = {12},
+	issn = {1759-0884},
+	url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/wcms.1603},
+	doi = {10.1002/wcms.1603},
+	abstract = {Research in chemistry increasingly requires interdisciplinary work prompted by, among other things, advances in computing, machine learning, and artificial intelligence. Everyone working with molecules, whether chemist or not, needs an understanding of the representation of molecules in a machine-readable format, as this is central to computational chemistry. Four classes of representations are introduced: string, connection table, feature-based, and computer-learned representations. Three of the most significant representations are simplified molecular-input line-entry system (SMILES), International Chemical Identifier (InChI), and the MDL molfile, of which SMILES was the first to successfully be used in conjunction with a variational autoencoder (VAE) to yield a continuous representation of molecules. This is noteworthy because a continuous representation allows for efficient navigation of the immensely large chemical space of possible molecules. Since 2018, when the first model of this type was published, considerable effort has been put into developing novel and improved methodologies. Most, if not all, researchers in the community make their work easily accessible on GitHub, though discussion of computation time and domain of applicability is often overlooked. Herein, we present questions for consideration in future work which we believe will make chemical VAEs even more accessible. This article is categorized under: Data Science {\textgreater} Chemoinformatics},
+	language = {en},
+	number = {5},
+	urldate = {2022-10-05},
+	journal = {WIREs Computational Molecular Science},
+	author = {Wigh, Daniel S. and Goodman, Jonathan M. and Lapkin, Alexei A.},
+	year = {2022},
+	keywords = {chemoinformatics, fingerprints, machine learning, molecular representation, variational autoencoder},
+	pages = {e1603},
+}
