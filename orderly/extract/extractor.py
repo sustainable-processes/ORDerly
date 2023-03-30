@@ -63,7 +63,9 @@ class OrdExtractor:
             ).lower()
 
             if self.filename == "":
-                LOG.debug(f"No file name for dataset so using {self.data.dataset_id=}")
+                LOG.debug(
+                    f"No file name for dataset so using dataset_id={self.data.dataset_id}"
+                )
                 self.filename = self.data.dataset_id
 
         self.non_smiles_names_list = self.full_df = None
@@ -93,11 +95,15 @@ class OrdExtractor:
         for ii in identifiers:  # if there's no smiles, return the name
             if ii.type == 6:
                 name = ii.value
-                self.non_smiles_names_list += [name]
+                self.non_smiles_names_list.append(name)
                 return name
         return None
 
-    def clean_mapped_smiles(self, smiles):
+    @staticmethod
+    def remove_mapping_info_and_canonicalise_smiles(
+        smiles: str,
+    ) -> typing.Optional[str]:
+        # This function can handle smiles both with and without mapping info
         _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
         # converting to mol and back canonicalises the smiles string
@@ -105,22 +111,37 @@ class OrdExtractor:
             m = rdkit_Chem.MolFromSmiles(smiles)
             for atom in m.GetAtoms():
                 atom.SetAtomMapNum(0)
-            cleaned_smiles = rdkit_Chem.MolToSmiles(m)
-            return cleaned_smiles
+            return rdkit_Chem.MolToSmiles(m)
         except AttributeError:
-            self.non_smiles_names_list += [smiles]
-            return smiles
+            return None
 
-    def clean_smiles(self, smiles):
+    @staticmethod
+    def canonicalise_smiles(smiles: str) -> typing.Optional[str]:
         _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
         # converting to mol and back canonicalises the smiles string
         try:
-            cleaned_smiles = rdkit_Chem.CanonSmiles(smiles)
-            return cleaned_smiles
-        except:
-            self.non_smiles_names_list += [smiles]
-            return smiles
+            return rdkit_Chem.CanonSmiles(smiles)
+        except AttributeError:
+            return None
+        except Exception as e:
+            # raise e
+            return None
+
+    def clean_smiles(self, molecule_identifier: str, is_mapped: bool = False) -> str:
+        # attempts to remove mapping info and canonicalise a smiles string and if it fails, returns the name whilst adding to a list of non smiles names
+        # molecule_identifier: string, that is a smiles or an english name of the molecule
+        if is_mapped:
+            canonicalised_smiles = self.remove_mapping_info_and_canonicalise_smiles(
+                molecule_identifier
+            )
+        else:
+            canonicalised_smiles = self.canonicalise_smiles(molecule_identifier)
+
+        if canonicalised_smiles is None:
+            self.non_smiles_names_list.append(molecule_identifier)
+            return molecule_identifier
+        return canonicalised_smiles
 
     def extract_info_from_mapped_rxn(self, rxn, reactants):
         _ = rdkit_BlockLogs()
@@ -137,10 +158,10 @@ class OrdExtractor:
 
         # We need molecules wihtout maping info, so we can compare them to the products
         reactant_from_rxn_without_mapping = [
-            self.clean_mapped_smiles(smi) for smi in reactant_from_rxn
+            self.clean_smiles(smi, is_mapped=True) for smi in reactant_from_rxn
         ]
         product_from_rxn_without_mapping = [
-            self.clean_mapped_smiles(smi) for smi in mapped_rxn
+            self.clean_smiles(smi, is_mapped=True) for smi in mapped_rxn
         ]
 
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
@@ -153,9 +174,9 @@ class OrdExtractor:
                     any([atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()])
                     and r_clean not in product_from_rxn_without_mapping
                 ):
-                    reactants += [r_clean]
+                    reactants.append(r_clean)
                 else:
-                    reagents += [r_clean]
+                    reagents.append(r_clean)
         return reactants, reagents, mapped_products, mapped_rxn
 
     def rxn_input_extractor(
@@ -222,69 +243,71 @@ class OrdExtractor:
                         y1 = measurement.percentage.value
                     elif measurement.details == "CALCULATEDPERCENTYIELD":
                         y2 = measurement.percentage.value
-                marked_products += [product_smiles]
+                marked_products.append(product_smiles)
                 if not np.isnan(y1):
-                    yields += [y1]
+                    yields.append(y1)
                 elif not np.isnan(y2):
-                    yields += [y2]
+                    yields.append(y2)
                 else:
-                    yields += [np.nan]
+                    yields.append(np.nan)
             except IndexError:
                 continue
 
         return marked_products, yields
 
-    def temperature_extractor(self, rxn, temperatures):
+    @staticmethod
+    def temperature_extractor(rxn, temperatures):
         try:
             # first look for the temperature as a number
             temp_unit = rxn.conditions.temperature.setpoint.units
 
             if temp_unit == 1:  # celcius
-                temperatures += [rxn.conditions.temperature.setpoint.units]
+                temperatures.append(rxn.conditions.temperature.setpoint.units)
 
             elif temp_unit == 2:  # fahrenheit
                 f = rxn.conditions.temperature.setpoint.units
                 c = (f - 32) * 5 / 9
-                temperatures += [c]
+                temperatures.append(c)
 
             elif temp_unit == 3:  # kelvin
                 k = rxn.conditions.temperature.setpoint.units
                 c = k - 273.15
-                temperatures += [c]
+                temperatures.append(c)
             elif temp_unit == 0:
                 if temp_unit == 0:  # unspecified
                     # instead of using the setpoint, use the control type
                     # temperatures are in celcius
                     temp_control_type = rxn.conditions.temperature.control.type
                     if temp_control_type == 2:  # AMBIENT
-                        temperatures += [25]
+                        temperatures.append(25)
                     elif temp_control_type == 6:  # ICE_BATH
-                        temperatures += [0]
+                        temperatures.append(0)
                     elif temp_control_type == 9:  # DRY_ICE_BATH
-                        temperatures += [-78.5]
+                        temperatures.append(-78.5)
                     elif temp_control_type == 11:  # LIQUID_NITROGEN
-                        temperatures += [-196]
+                        temperatures.append(-196)
         except IndexError:
             pass
 
         return temperatures
 
-    def rxn_time_extractor(self, rxn, rxn_times):
+    @staticmethod
+    def rxn_time_extractor(rxn, rxn_times):
         try:
             if rxn.outcomes[0].reaction_time.units == 1:  # hour
-                rxn_times += [rxn.outcomes[0].reaction_time.value]
+                rxn_times.append(rxn.outcomes[0].reaction_time.value)
             elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
                 s = rxn.outcomes[0].reaction_time.value
                 h = s / 3600
-                rxn_times += [h]
+                rxn_times.append(h)
             elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
                 m = rxn.outcomes[0].reaction_time.value
                 h = m / 60
-                rxn_times += [h]
+                rxn_times.append(h)
             elif rxn.outcomes[0].reaction_time.units == 4:  # day
                 d = rxn.outcomes[0].reaction_time.value
                 h = d * 24
-                rxn_times += [h]
+                rxn_times.append(h)
         except IndexError:
             pass
         return rxn_times
@@ -310,16 +333,16 @@ class OrdExtractor:
             added = False
             for ii, marked_p in enumerate(marked_p_clean):
                 if mapped_p == marked_p and mapped_p not in products:
-                    products += [mapped_p]
-                    mapped_yields += [
+                    products.append(mapped_p)
+                    mapped_yields.append(
                         yields[ii]
-                    ]  # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
+                    )  # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
                     added = True
                     break
 
             if not added and mapped_p not in products:
-                products += [mapped_p]
-                mapped_yields += [np.nan]
+                products.append(mapped_p)
+                mapped_yields.append(np.nan)
         return products, mapped_yields
 
     def merge_to_agents(self, catalysts, solvents, reagents, metals):
@@ -382,8 +405,7 @@ class OrdExtractor:
 
         procedure_details_all = []
 
-        for i in range(len(self.data.reactions)):
-            rxn = self.data.reactions[i]
+        for rxn in self.data.reactions:
             # handle rxn inputs: reactants, reagents etc
             reactants = []
             reagents = []
@@ -401,14 +423,7 @@ class OrdExtractor:
 
             # Add procedure_details
             procedure_details = [rxn.notes.procedure_details]
-            procedure_details_all += [procedure_details]
-
-            # if len(rxn.identifiers) == 0:
-            #     LOG.debug("skipping, reactions have no identifiers")
-            #     continue
-
-            # try extract a (mapped) reaction:
-            is_mapped = self.data.reactions[i].identifiers[0].is_mapped
+            procedure_details_all.append(procedure_details)
 
             try:  # to extract info from the mapped reaction
                 (
@@ -417,11 +432,11 @@ class OrdExtractor:
                     mapped_products,
                     mapped_rxn,
                 ) = self.extract_info_from_mapped_rxn(rxn, reactants)
-
             except ValueError:
                 # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
                 mapped_rxn = []
 
+            is_mapped = rxn.identifiers[0].is_mapped
             (
                 reactants,
                 reagents,
@@ -458,7 +473,7 @@ class OrdExtractor:
             solvents = [x for x in solvents if not (x.isdigit())]
             catalysts = [x for x in catalysts if not (x.isdigit())]
 
-            reactants = [self.clean_mapped_smiles(smi) for smi in reactants]
+            reactants = [self.clean_smiles(smi, is_mapped=True) for smi in reactants]
             reagents = [self.clean_smiles(smi) for smi in reagents]
             solvents = [self.clean_smiles(smi) for smi in solvents]
             catalysts = [self.clean_smiles(smi) for smi in catalysts]
@@ -482,7 +497,9 @@ class OrdExtractor:
             # add the yields, else simply add smiles and np.nan
 
             # canon and remove mapped info from products
-            mapped_p_clean = [self.clean_mapped_smiles(p) for p in mapped_products]
+            mapped_p_clean = [
+                self.clean_smiles(p, is_mapped=True) for p in mapped_products
+            ]
             marked_p_clean = [self.clean_smiles(p) for p in marked_products]
             # What if there's a marked product that only has the correct name, but not the smiles?
 
@@ -498,24 +515,24 @@ class OrdExtractor:
             if set(reactants) != set(
                 products
             ):  # If the reactants and products are the same, then we don't want to add this reaction to our dataset
-                mapped_rxn_all += [mapped_rxn]
-                reactants_all += [reactants]
-                products_all += [products]
-                yields_all += [yields]
-                temperature_all = [temperatures]
-                rxn_times_all += [rxn_times]
+                mapped_rxn_all.append(mapped_rxn)
+                reactants_all.append(reactants)
+                products_all.append(products)
+                yields_all.append(yields)
+                temperature_all.append(temperatures)
+                rxn_times_all.append(rxn_times)
 
                 # Finally we also need to add the agents
                 if self.merge_cat_solv_reag == True:
                     agents, solvents = self.merge_to_agents(
                         catalysts, solvents, reagents, metals
                     )
-                    agents_all += [agents]
-                    solvents_all += [solvents]
+                    agents_all.append(agents)
+                    solvents_all.append(solvents)
                 else:
-                    solvents_all += [list(set(solvents))]
-                    reagents_all += [list(set(reagents))]
-                    catalysts_all += [list(set(catalysts))]
+                    solvents_all.append(list(set(solvents)))
+                    reagents_all.append(list(set(reagents)))
+                    catalysts_all.append(list(set(catalysts)))
 
         return (
             mapped_rxn_all,
@@ -540,7 +557,7 @@ class OrdExtractor:
         """
         column_headers = []
         for i in range(len(df.columns)):
-            column_headers += [base_string + str(i)]
+            column_headers.append(base_string + str(i))
         return column_headers
 
     def build_full_df(self) -> pd.DataFrame:

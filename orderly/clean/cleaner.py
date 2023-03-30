@@ -116,7 +116,7 @@ class Cleaner:
         columns_to_remove = []  # columns to remove
         for i in range(count):
             if i >= number_of_columns_to_keep:
-                columns_to_remove += [component_name + "_" + str(i)]
+                columns_to_remove.append(component_name + "_" + str(i))
 
         for col in columns_to_remove:
             # Create a boolean mask for the rows with missing values in col
@@ -267,7 +267,7 @@ class Cleaner:
         for col in list(df.columns):
             if any([j in col for j in ["reagent", "solvent", "catalyst", "agent"]]):
                 # see if the column name contains any from the list of reag, solv, cat, agent
-                columns += [col]
+                columns.append(col)
 
         if (
             self.min_frequency_of_occurance_primary
@@ -278,7 +278,7 @@ class Cleaner:
         # cols = []
         # for col in list(df.columns):
         #     if 'reagent' in col or 'solvent' in col or 'catalyst' in col or 'agent' in col:
-        #         cols += [col]
+        #         cols.append(col)
         # It may be faster to only loop over columns containing cat, solv, reag, or agent, however, if time isn't an issue we might as well loop over the whole df.
 
         for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
@@ -363,7 +363,7 @@ def main_click(
 
         Example:
 
-    python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
+    python orderly.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
 
 
         Args:
@@ -435,7 +435,7 @@ def main(
 
         Example:
 
-    python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
+    python orderly.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
 
 
         Args:
