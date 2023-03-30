@@ -1,4 +1,4 @@
-# USPTO_cleaning
+# orderly
 Cleaning and extraction of USPTO data from ORD
 
 The scripts herein will extract and clean USPTO data from ORD with various manual steps relying on chemical domain knowledge. This results in an open-source dataset containing a mapped reaction, reactants, products, solvents, reagents, catalysts, and yields in a pandas DataFrame structure that should also be easily usable by people with little knowledge of chemistry.
@@ -20,7 +20,7 @@ python USPTO_extraction.py True
 4. Run the following command in the root director (This took 8 min on a mac studio):
 
 ```
-python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100
+python orderly.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance=100
 ```
 
 For alternate usage, see the documentation in the corresponsing file

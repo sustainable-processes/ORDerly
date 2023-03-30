@@ -5,4 +5,4 @@ import orderly.data
 
 import logging
 
-logging.getLogger("uspto_cleaning").addHandler(logging.NullHandler())
+logging.getLogger("orderly").addHandler(logging.NullHandler())
