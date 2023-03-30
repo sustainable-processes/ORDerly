@@ -122,7 +122,52 @@ class OrdExtractor:
             self.non_smiles_names_list += [smiles]
             return smiles
 
-    def rxn_input_extractor(self, rxn, reagents, solvents, catalysts):
+    def extract_info_from_mapped_rxn(self, rxn, reactants):
+        _ = rdkit_BlockLogs()
+        mapped_rxn_extended_smiles = rxn.identifiers[0].value
+        mapped_rxn = mapped_rxn_extended_smiles.split(" ")[
+            0
+        ]  # this is to get rid of the extended smiles info
+
+        reactant_from_rxn, reagent, mapped_product = mapped_rxn.split(">")
+
+        reactant_from_rxn = [r for r in reactant_from_rxn.split(".")]
+        reagents = [r for r in reagent.split(".")]
+        mapped_products = [p for p in mapped_product.split(".")]
+
+        # We need molecules wihtout maping info, so we can compare them to the products
+        reactant_from_rxn_without_mapping = [
+            self.clean_mapped_smiles(smi) for smi in reactant_from_rxn
+        ]
+        product_from_rxn_without_mapping = [
+            self.clean_mapped_smiles(smi) for smi in mapped_rxn
+        ]
+
+        # Only the mapped reactants that also don't appear as products should be trusted as reactants
+        # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
+        for r_map, r_clean in zip(reactant_from_rxn, reactant_from_rxn_without_mapping):
+            # check reactant is mapped and also that it's not in the products
+            mol = rdkit_Chem.MolFromSmiles(r_map)
+            if mol != None:
+                if (
+                    any([atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()])
+                    and r_clean not in product_from_rxn_without_mapping
+                ):
+                    reactants += [r_clean]
+                else:
+                    reagents += [r_clean]
+        return reactants, reagents, mapped_products, mapped_rxn
+
+    def rxn_input_extractor(
+        self,
+        rxn,
+        reactants,
+        reagents,
+        solvents,
+        catalysts,
+        products,
+        is_mapped_rxn=False,
+    ):
         # loop through the keys in the 'dict' style data struct
         for key in rxn.inputs:
             try:
@@ -139,7 +184,10 @@ class OrdExtractor:
                         # I just need to remember to remove reagents that already appear as reactants
                         #   when I do cleaning
 
-                        reagents += [r for r in smiles.split(".")]
+                        if is_mapped_rxn:
+                            reagents += [r for r in smiles.split(".")]
+                        else:
+                            reactants += [r for r in smiles.split(".")]
                     elif rxn_role == 2:  # reagent
                         reagents += [r for r in smiles.split(".")]
                     elif rxn_role == 3:  # solvent
@@ -152,12 +200,39 @@ class OrdExtractor:
                     elif rxn_role in [5, 6, 7]:
                         # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
                         continue
-                    # elif rxn_role ==8: #product
-                    #     #products += [smiles]
-                    # there are no products recorded in rxn_role == 8, they're all stored in "outcomes"
+                    elif rxn_role == 8:  # product
+                        products += [r for r in smiles.split(".")]
+                    # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
             except IndexError:
                 pass
-        return reagents, solvents, catalysts
+        return reactants, reagents, solvents, catalysts, products
+
+    def extract_marked_p_and_yields(self, rxn, marked_products, yields):
+        # products & yield
+        products_obj = rxn.outcomes[0].products
+        for marked_product in products_obj:
+            y1 = np.nan
+            y2 = np.nan
+            try:
+                identifiers = marked_product.identifiers
+                product_smiles = self.find_smiles(identifiers)
+                measurements = marked_product.measurements
+                for measurement in measurements:
+                    if measurement.details == "PERCENTYIELD":
+                        y1 = measurement.percentage.value
+                    elif measurement.details == "CALCULATEDPERCENTYIELD":
+                        y2 = measurement.percentage.value
+                marked_products += [product_smiles]
+                if not np.isnan(y1):
+                    yields += [y1]
+                elif not np.isnan(y2):
+                    yields += [y2]
+                else:
+                    yields += [np.nan]
+            except IndexError:
+                continue
+
+        return marked_products, yields
 
     def temperature_extractor(self, rxn, temperatures):
         try:
@@ -328,29 +403,45 @@ class OrdExtractor:
             procedure_details = [rxn.notes.procedure_details]
             procedure_details_all += [procedure_details]
 
-            if len(rxn.identifiers) == 0:
-                LOG.debug("skipping, reactions have no identifiers")
-                continue
+            # if len(rxn.identifiers) == 0:
+            #     LOG.debug("skipping, reactions have no identifiers")
+            #     continue
 
-            # It may be interesting to know whether the reaction is mapped, however, we don't care about the mapping
-            # You can use the following code to determine whether the reaction is mapped
-            # is_mapped = self.data.reactions[i].identifiers[0].is_mapped
+            # try extract a (mapped) reaction:
+            is_mapped = self.data.reactions[i].identifiers[0].is_mapped
 
-            mapped_rxn_extended_smiles = self.data.reactions[i].identifiers[0].value
-            mapped_rxn = mapped_rxn_extended_smiles.split(" ")[
-                0
-            ]  # this is to get rid of the extended smiles info
+            try:  # to extract info from the mapped reaction
+                (
+                    reactants,
+                    reagents,
+                    mapped_products,
+                    mapped_rxn,
+                ) = self.extract_info_from_mapped_rxn(rxn, reactants)
 
-            reactant, reagent, mapped_product = mapped_rxn.split(">")
+            except ValueError:
+                # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
+                mapped_rxn = []
 
-            # We're trusting the labelling of reagents and reactants here
-            # Maybe in the future we'd add atom mapping to determine which is which
-            reactants += [r for r in reactant.split(".")]
-            reagents += [r for r in reagent.split(".")]
-            mapped_products += [r for r in mapped_product.split(".")]
+            (
+                reactants,
+                reagents,
+                solvents,
+                catalysts,
+                mapped_products,
+            ) = self.rxn_input_extractor(
+                rxn,
+                reactants,
+                reagents,
+                solvents,
+                catalysts,
+                mapped_products,
+                is_mapped,
+            )
 
-            reagents, solvents, catalysts = self.rxn_input_extractor(
-                rxn, reagents, solvents, catalysts
+            # marked products and yields extraction
+
+            marked_products, yields = self.extract_marked_p_and_yields(
+                rxn, marked_products, yields
             )
 
             # extract temperature
@@ -395,10 +486,14 @@ class OrdExtractor:
             marked_p_clean = [self.clean_smiles(p) for p in marked_products]
             # What if there's a marked product that only has the correct name, but not the smiles?
 
-            # merge marked and mapped products with a yield
-            products, mapped_yields = self.merge_marked_mapped_products(
-                mapped_p_clean, marked_p_clean, products, mapped_yields, yields
-            )
+            if is_mapped:
+                # merge marked and mapped products with yield info
+                # This is complicated because we trust the mapped reaction more, however, the yields are associated with the marked/labelled products
+                products, yields = self.merge_marked_mapped_products(
+                    mapped_p_clean, marked_p_clean, products, mapped_yields, yields
+                )
+            else:
+                products, yields = marked_p_clean, yields
 
             if set(reactants) != set(
                 products
@@ -406,7 +501,7 @@ class OrdExtractor:
                 mapped_rxn_all += [mapped_rxn]
                 reactants_all += [reactants]
                 products_all += [products]
-                yields_all += [mapped_yields]
+                yields_all += [yields]
                 temperature_all = [temperatures]
                 rxn_times_all += [rxn_times]
 
