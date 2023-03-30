@@ -1,16 +1,42 @@
+FROM python:3.10-slim-buster as orderly_pip
+
+RUN apt-get update
+RUN apt-get install -y libpq-dev gcc make
+
+RUN adduser --disabled-password worker
+
+ENV PATH="/home/worker/.local/bin:${PATH}"
+
+WORKDIR /home/worker/repo/
+ADD pyproject.toml poetry.lock README.md /home/worker/repo/
+RUN chown -R worker:worker /home/worker
+
+USER worker
+RUN python -m pip install -U pip
+RUN python -m venv env
+RUN . /home/worker/repo/env/bin/activate && python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ orderly
+
+ADD Makefile /home/worker/repo/
+ADD tests/ /home/worker/repo/tests/
+
+ENV PYTHONUNBUFFERED=1
+
+RUN echo 'source env/bin/activate' >> /home/worker/.bashrc
+ENTRYPOINT [ "/bin/bash", "-l"]
+
 FROM python:3.10-slim-buster as orderly_base
 
 RUN apt-get update
 RUN apt-get install -y libpq-dev gcc make
 
 RUN adduser --disabled-password worker
-USER worker
 
 ENV PATH="/home/worker/.local/bin:${PATH}"
 
 WORKDIR /home/worker/repo/
 ADD pyproject.toml poetry.lock README.md /home/worker/repo/
 
+USER worker
 RUN python -m pip install -U pip
 RUN python -m pip install poetry
 RUN python -m poetry install
@@ -19,9 +45,17 @@ ADD Makefile /home/worker/repo/
 ADD orderly/ /home/worker/repo/orderly/
 ADD tests/ /home/worker/repo/tests/
 
+USER root
+RUN chown -R worker:worker /home/worker/repo
+
 ENV PYTHONUNBUFFERED=1
 
+USER worker
 CMD ["bash"]
+
+FROM orderly_base as orderly_base_sudo
+
+USER root
 
 FROM orderly_base as orderly_test
 
@@ -59,3 +93,16 @@ RUN pip install rdkit-pypi
 
 RUN echo 'conda activate rxnmapper' >> /root/.bashrc
 ENTRYPOINT [ "/bin/bash", "-l"]
+
+FROM orderly_base as rxnmapper_test
+
+USER root
+RUN apt-get install -y curl
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/worker/.cargo/bin:${PATH}"
+
+USER worker
+RUN poetry add setuptools-rust
+RUN poetry add rxnmapper
+
+CMD ["bash"]

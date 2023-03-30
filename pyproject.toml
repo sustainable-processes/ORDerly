@@ -1,30 +1,28 @@
 [tool.poetry]
 name = "ORDerly"
-version = "0.1.0"
+version = "0.0.4"
 description = "Cleaning and extraction of USPTO data from ORD"
-authors = ["Daniel S. Wigh", "Joe Arrowsmith", "Alexander Pomberger", "Alexei A. Lapkin"]
+authors = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>", "Alexander Pomberger <ap2153@cam.ac.uk>", "Alexei A. Lapkin <aal35@cam.ac.uk>"]
+maintainers = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>"]
 # New attributes
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/dswigh/USPTO_cleaning"
 repository = "https://github.com/dswigh/USPTO_cleaning"
+keywords = ["ord-schema", "RDKit", "ord-data"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 rdkit = "^2022.9.5"
-tqdm = "^4.65.0"
+ord-schema = "^0.3.44"
 click = "^8.1.3"
+tqdm = "^4.65.0"
 joblib = "^1.2.0"
-ord-schema = "^0.3.43"
-pytest = "^7.2.2"
 fastparquet = "^2023.2.0"
 
 [tool.poetry.dev-dependencies]
-black = "^23.1.0"
 pytest = "^7.2.2"
-ipykernel = "^6.21.3"
-jupyter = "^1.0.0"
-ipywidgets = "^8.0.4"
+black = "^23.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
