@@ -7,8 +7,8 @@ maintainers = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmit
 # New attributes
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/dswigh/USPTO_cleaning"
-repository = "https://github.com/dswigh/USPTO_cleaning"
+homepage = "https://github.com/dswigh/orderly"
+repository = "https://github.com/dswigh/orderly"
 keywords = ["ord-schema", "RDKit", "ord-data"]
 
 [tool.poetry.dependencies]
