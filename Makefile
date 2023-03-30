@@ -34,7 +34,7 @@ run_orderly_from_pip:
 
 run_orderly_black:
 	docker image build --target orderly_black --tag orderly_black .
-	docker run orderly_black
+	docker run -v $(current_dir):/home/worker/repo/ -u $(uid):$(gid) orderly_black
 
 run_orderly_pytest:
 	docker image build --target orderly_test --tag orderly_test .
@@ -85,4 +85,3 @@ run_rxnmapper:
 
 run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
-
