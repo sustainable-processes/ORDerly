@@ -26,10 +26,6 @@ build_orderly_rxn_test:
 run_orderly_rxn_test:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it rxnmapper_test
 
-build_orderly_extras:
-	docker image build --target orderly_test --tag orderly_test .
-	docker image build --target orderly_black --tag orderly_black .
-
 run_orderly:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
 
@@ -37,9 +33,11 @@ run_orderly_from_pip:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_pip
 
 run_orderly_black:
+	docker image build --target orderly_black --tag orderly_black .
 	docker run orderly_black
 
 run_orderly_pytest:
+	docker image build --target orderly_test --tag orderly_test .
 	docker run orderly_test
 
 run_orderly_sudo:
