@@ -97,7 +97,9 @@ class OrdExtractor:
                 return name
         return None
 
-    def clean_mapped_smiles(self, smiles):
+    @classmethod
+    def remove_mapping_info_and_canonicalise_smiles(smiles: str) -> typing.Optional[str]:
+        # This function can handle smiles both with and without mapping info
         _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
         # converting to mol and back canonicalises the smiles string
@@ -105,22 +107,19 @@ class OrdExtractor:
             m = rdkit_Chem.MolFromSmiles(smiles)
             for atom in m.GetAtoms():
                 atom.SetAtomMapNum(0)
-            cleaned_smiles = rdkit_Chem.MolToSmiles(m)
-            return cleaned_smiles
+            return rdkit_Chem.MolToSmiles(m)
         except AttributeError:
-            self.non_smiles_names_list += [smiles]
-            return smiles
+            return None
 
-    def clean_smiles(self, smiles):
-        _ = rdkit_BlockLogs()
-        # remove mapping info and canonicalsie the smiles at the same time
-        # converting to mol and back canonicalises the smiles string
-        try:
-            cleaned_smiles = rdkit_Chem.CanonSmiles(smiles)
-            return cleaned_smiles
-        except:
-            self.non_smiles_names_list += [smiles]
-            return smiles
+    def clean_smiles(self, molecule_identifier: str) -> str:
+        # attempts to remove mapping info and canonicalise a smiles string and if it fails, returns the name whilst adding to a list of non smiles names
+        # molecule_identifier: string, that is a smiles or an english name of the molecule
+        canonicalised_smiles = OrdExtractor.remove_mapping_info_and_canonicalise(molecule_identifier)
+
+        if canonicalised_smiles is None:
+            self.non_smiles_names_list.append(molecule_identifier)
+            return molecule_identifier
+        return canonicalised_smiles
 
     def extract_info_from_mapped_rxn(self, rxn, reactants):
         _ = rdkit_BlockLogs()
@@ -137,10 +136,10 @@ class OrdExtractor:
 
         # We need molecules wihtout maping info, so we can compare them to the products
         reactant_from_rxn_without_mapping = [
-            self.clean_mapped_smiles(smi) for smi in reactant_from_rxn
+            self.clean_smiles(smi) for smi in reactant_from_rxn
         ]
         product_from_rxn_without_mapping = [
-            self.clean_mapped_smiles(smi) for smi in mapped_rxn
+            self.clean_smiles(smi) for smi in mapped_rxn
         ]
 
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
@@ -234,7 +233,8 @@ class OrdExtractor:
 
         return marked_products, yields
 
-    def temperature_extractor(self, rxn, temperatures):
+    @classmethod
+    def temperature_extractor(rxn, temperatures):
         try:
             # first look for the temperature as a number
             temp_unit = rxn.conditions.temperature.setpoint.units
@@ -269,7 +269,8 @@ class OrdExtractor:
 
         return temperatures
 
-    def rxn_time_extractor(self, rxn, rxn_times):
+    @classmethod
+    def rxn_time_extractor(rxn, rxn_times):
         try:
             if rxn.outcomes[0].reaction_time.units == 1:  # hour
                 rxn_times += [rxn.outcomes[0].reaction_time.value]
@@ -403,13 +404,6 @@ class OrdExtractor:
             procedure_details = [rxn.notes.procedure_details]
             procedure_details_all += [procedure_details]
 
-            # if len(rxn.identifiers) == 0:
-            #     LOG.debug("skipping, reactions have no identifiers")
-            #     continue
-
-            # try extract a (mapped) reaction:
-            is_mapped = self.data.reactions[i].identifiers[0].is_mapped
-
             try:  # to extract info from the mapped reaction
                 (
                     reactants,
@@ -417,11 +411,11 @@ class OrdExtractor:
                     mapped_products,
                     mapped_rxn,
                 ) = self.extract_info_from_mapped_rxn(rxn, reactants)
-
             except ValueError:
                 # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
                 mapped_rxn = []
 
+            is_mapped = rxn.identifiers[0].is_mapped
             (
                 reactants,
                 reagents,
@@ -458,7 +452,7 @@ class OrdExtractor:
             solvents = [x for x in solvents if not (x.isdigit())]
             catalysts = [x for x in catalysts if not (x.isdigit())]
 
-            reactants = [self.clean_mapped_smiles(smi) for smi in reactants]
+            reactants = [self.clean_smiles(smi) for smi in reactants]
             reagents = [self.clean_smiles(smi) for smi in reagents]
             solvents = [self.clean_smiles(smi) for smi in solvents]
             catalysts = [self.clean_smiles(smi) for smi in catalysts]
@@ -482,7 +476,7 @@ class OrdExtractor:
             # add the yields, else simply add smiles and np.nan
 
             # canon and remove mapped info from products
-            mapped_p_clean = [self.clean_mapped_smiles(p) for p in mapped_products]
+            mapped_p_clean = [self.clean_smiles(p) for p in mapped_products]
             marked_p_clean = [self.clean_smiles(p) for p in marked_products]
             # What if there's a marked product that only has the correct name, but not the smiles?
 
