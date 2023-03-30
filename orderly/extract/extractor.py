@@ -63,7 +63,9 @@ class OrdExtractor:
             ).lower()
 
             if self.filename == "":
-                LOG.debug(f"No file name for dataset so using dataset_id={self.data.dataset_id}")
+                LOG.debug(
+                    f"No file name for dataset so using dataset_id={self.data.dataset_id}"
+                )
                 self.filename = self.data.dataset_id
 
         self.non_smiles_names_list = self.full_df = None
@@ -98,7 +100,9 @@ class OrdExtractor:
         return None
 
     @staticmethod
-    def remove_mapping_info_and_canonicalise_smiles(smiles: str) -> typing.Optional[str]:
+    def remove_mapping_info_and_canonicalise_smiles(
+        smiles: str,
+    ) -> typing.Optional[str]:
         # This function can handle smiles both with and without mapping info
         _ = rdkit_BlockLogs()
         # remove mapping info and canonicalsie the smiles at the same time
@@ -124,11 +128,13 @@ class OrdExtractor:
             # raise e
             return None
 
-    def clean_smiles(self, molecule_identifier: str, is_mapped: bool=False) -> str:
+    def clean_smiles(self, molecule_identifier: str, is_mapped: bool = False) -> str:
         # attempts to remove mapping info and canonicalise a smiles string and if it fails, returns the name whilst adding to a list of non smiles names
         # molecule_identifier: string, that is a smiles or an english name of the molecule
         if is_mapped:
-            canonicalised_smiles = self.remove_mapping_info_and_canonicalise_smiles(molecule_identifier)
+            canonicalised_smiles = self.remove_mapping_info_and_canonicalise_smiles(
+                molecule_identifier
+            )
         else:
             canonicalised_smiles = self.canonicalise_smiles(molecule_identifier)
 
@@ -328,7 +334,9 @@ class OrdExtractor:
             for ii, marked_p in enumerate(marked_p_clean):
                 if mapped_p == marked_p and mapped_p not in products:
                     products.append(mapped_p)
-                    mapped_yields.append(yields[ii])  # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
+                    mapped_yields.append(
+                        yields[ii]
+                    )  # I have to do it like this, since I trust the mapped product more, but the yield is associated with the marked product
                     added = True
                     break
 
@@ -398,7 +406,6 @@ class OrdExtractor:
         procedure_details_all = []
 
         for rxn in self.data.reactions:
-
             # handle rxn inputs: reactants, reagents etc
             reactants = []
             reagents = []
@@ -490,7 +497,9 @@ class OrdExtractor:
             # add the yields, else simply add smiles and np.nan
 
             # canon and remove mapped info from products
-            mapped_p_clean = [self.clean_smiles(p, is_mapped=True) for p in mapped_products]
+            mapped_p_clean = [
+                self.clean_smiles(p, is_mapped=True) for p in mapped_products
+            ]
             marked_p_clean = [self.clean_smiles(p) for p in marked_products]
             # What if there's a marked product that only has the correct name, but not the smiles?
 
