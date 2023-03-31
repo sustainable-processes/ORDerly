@@ -38,7 +38,8 @@ class OrdExtractor:
     ord_file_path: pathlib.Path
     merge_cat_solv_reag: bool
     manual_replacements_dict: typing.Dict[str, str]
-    solvents_set: typing.Set[SOLVENT]
+    metals: typing.Optional[METALS]
+    solvents_set: typing.Optional[typing.Set[SOLVENT]]
     filename: typing.Optional[str] = None
     contains_substring: typing.Optional[str] = None  # None or uspto
     inverse_contains_substring: bool = False
@@ -83,6 +84,10 @@ class OrdExtractor:
                 )
                 return
 
+        if self.metals is None:
+            self.metals = orderly.extract.defaults.get_metals_list()
+        if self.solvents_set is None:
+            self.solvents_set = set()
         self.non_smiles_names_list = []
         self.full_df = self.build_full_df()
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
@@ -323,26 +328,21 @@ class OrdExtractor:
         try:
             if rxn.outcomes[0].reaction_time.units == 1:  # hour
                 return rxn.outcomes[0].reaction_time.value
-                # rxn_times.append(rxn.outcomes[0].reaction_time.value)
             elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
                 s = rxn.outcomes[0].reaction_time.value
                 h = s / 3600
                 return h
-                # rxn_times.append(h)
             elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
                 m = rxn.outcomes[0].reaction_time.value
                 h = m / 60
                 return h
-                # rxn_times.append(h)
             elif rxn.outcomes[0].reaction_time.units == 4:  # day
                 d = rxn.outcomes[0].reaction_time.value
                 h = d * 24
                 return h
-                # rxn_times.append(h)
         except IndexError:
             pass
         return None # no time found
-        # return rxn_times
 
     @staticmethod
     def apply_replacements_dict(smiles_list: list, manual_replacements_dict: dict):
@@ -360,9 +360,11 @@ class OrdExtractor:
 
     @staticmethod
     def merge_marked_mapped_products(
-        mapped_p_clean: PRODUCTS, marked_p_clean: PRODUCTS, products: PRODUCTS, mapped_yields: YIELDS, yields: YIELDS
+        mapped_p_clean: PRODUCTS, marked_p_clean: PRODUCTS, yields: YIELDS
     ) -> typing.Tuple[PRODUCTS, YIELDS]:
         # merge marked and mapped products with a yield
+        products = []
+        mapped_yields = []
         for mapped_p in mapped_p_clean:
             added = False
             for ii, marked_p in enumerate(marked_p_clean):
@@ -414,20 +416,18 @@ class OrdExtractor:
         agents = agents_with_metal + agents_wo_metal
         return agents, solvents
     
-    def handle_reaction_object(self, rxn):
+    @staticmethod
+    def handle_reaction_object(rxn, manual_replacements_dict: dict):
         # handle rxn inputs: reactants, reagents etc
+        
+        # initilise empty
         reactants = []
         reagents = []
         solvents = []
         catalysts = []
         marked_products = []
         mapped_products = []
-        products = []
-
-
-        # mapped_yields = []
-
-        rxn_non_smiles_names_list = [] # initilise empty
+        rxn_non_smiles_names_list = []
 
         try:  # to extract info from the mapped reaction
             (
@@ -436,7 +436,7 @@ class OrdExtractor:
                 mapped_products,
                 mapped_rxn,
                 rxn_non_smiles_names_list,
-            ) = self.extract_info_from_rxn_str(rxn, reactants)
+            ) = OrdExtractor.extract_info_from_rxn_str(rxn, reactants)
         except ValueError:
             # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
             mapped_rxn = []
@@ -449,7 +449,7 @@ class OrdExtractor:
             catalysts,
             mapped_products,
             non_smiles_names_list_additions
-        ) = self.rxn_input_extractor(
+        ) = OrdExtractor.rxn_input_extractor(
             rxn,
             reactants,
             reagents,
@@ -462,16 +462,16 @@ class OrdExtractor:
 
         # marked products and yields extraction
 
-        marked_products, yields, non_smiles_names_list_additions = self.extract_marked_p_and_yields(
+        marked_products, yields, non_smiles_names_list_additions = OrdExtractor.extract_marked_p_and_yields(
             rxn, marked_products
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         # extract temperature
-        temperature = self.temperature_extractor(rxn)
+        temperature = OrdExtractor.temperature_extractor(rxn)
 
         # extract rxn_time
-        rxn_time = self.rxn_time_extractor(rxn)
+        rxn_time = OrdExtractor.rxn_time_extractor(rxn)
 
         # clean the smiles
 
@@ -519,9 +519,9 @@ class OrdExtractor:
         # catalysts = [self.clean_smiles(smi) for smi in catalysts]
 
         # Apply the manual_replacements_dict to the reagents, solvents, and catalysts
-        reagents = self.apply_replacements_dict(reagents)
-        solvents = self.apply_replacements_dict(solvents)
-        catalysts = self.apply_replacements_dict(catalysts)
+        reagents = OrdExtractor.apply_replacements_dict(reagents, manual_replacements_dict=manual_replacements_dict)
+        solvents = OrdExtractor.apply_replacements_dict(solvents, manual_replacements_dict=manual_replacements_dict)
+        catalysts = OrdExtractor.apply_replacements_dict(catalysts, manual_replacements_dict=manual_replacements_dict)
 
         # if reagent appears in reactant list, remove it
         # Since we're technically not sure whether something is a reactant (contributes atoms) or a reagent/solvent/catalyst (does not contribute atoms), it's probably more cautious to remove molecules that appear in both lists from the reagents/solvents/catalysts list rather than the reactants list
@@ -537,17 +537,24 @@ class OrdExtractor:
         # add the yields, else simply add smiles and np.nan
 
         # canon and remove mapped info from products
-        mapped_p_clean = [
-            self.clean_smiles(p, is_mapped=True) for p in mapped_products
-        ]
-        marked_p_clean = [self.clean_smiles(p) for p in marked_products]
+
+        mapped_p_clean, non_smiles_names_list_additions = canonicalise_and_get_non_smile_names(mole_id_list=mapped_products, is_mapped=True)
+        rxn_non_smiles_names_list += non_smiles_names_list_additions
+
+        marked_p_clean, non_smiles_names_list_additions = canonicalise_and_get_non_smile_names(mole_id_list=marked_products, is_mapped=False)
+        rxn_non_smiles_names_list += non_smiles_names_list_additions
+
+        # mapped_p_clean = [
+        #     self.clean_smiles(p, is_mapped=True) for p in mapped_products
+        # ]
+        # marked_p_clean = [self.clean_smiles(p) for p in marked_products]
         # What if there's a marked product that only has the correct name, but not the smiles?
 
         if is_mapped:
             # merge marked and mapped products with yield info
             # This is complicated because we trust the mapped reaction more, however, the yields are associated with the marked/labelled products
-            products, yields = self.merge_marked_mapped_products(
-                mapped_p_clean, marked_p_clean, products, mapped_yields, yields
+            products, yields = OrdExtractor.merge_marked_mapped_products(
+                mapped_p_clean, marked_p_clean, yields
             )
         else:
             products, yields = marked_p_clean, yields
@@ -555,7 +562,7 @@ class OrdExtractor:
         return reactants, reagents, solvents, catalysts, products, yields, temperature, rxn_time, mapped_rxn, rxn_non_smiles_names_list
 
     def build_rxn_lists(
-        self, metals: typing.Optional[typing.List[METAL]] = None, solvents_set: typing.Set[SOLVENT] = None
+        self
     ) -> typing.Tuple[
         typing.List,
         typing.List,
@@ -569,10 +576,6 @@ class OrdExtractor:
         typing.List,
         typing.List,
     ]:
-        if metals is None:
-            metals = orderly.extract.defaults.get_metals_list()
-        if solvents_set is None:
-            solvents_set = set()
 
         mapped_rxn_all = []
         reactants_all = []
@@ -584,12 +587,12 @@ class OrdExtractor:
         catalysts_all = []
 
         temperature_all = []
-        rxn_times_all = []
+        rxn_time_all = []
 
         procedure_details_all = []
 
         for rxn in self.data.reactions:
-            reactants, reagents, solvents, catalysts, products, yields, temperatures, rxn_times, mapped_rxn = self.handle_reaction_object(rxn)
+            reactants, reagents, solvents, catalysts, products, yields, temperature, rxn_time, mapped_rxn = OrdExtractor.handle_reaction_object(rxn, manual_replacements_dict=self.manual_replacements_dict)
             
             # Add procedure_details
             procedure_details = [rxn.notes.procedure_details]
@@ -602,13 +605,13 @@ class OrdExtractor:
                 reactants_all.append(reactants)
                 products_all.append(products)
                 yields_all.append(yields)
-                temperature_all.append(temperatures)
-                rxn_times_all.append(rxn_times)
+                temperature_all.append(temperature)
+                rxn_time_all.append(rxn_time)
 
                 # Finally we also need to add the agents
                 if self.merge_cat_solv_reag == True:
-                    agents, solvents = self.merge_to_agents(
-                        catalysts, solvents, reagents, metals, solvents_set
+                    agents, solvents = OrdExtractor.merge_to_agents(
+                        catalysts, solvents, reagents, self.metals, self.solvents_set
                     )
                     agents_all.append(agents)
                     solvents_all.append(solvents)
@@ -625,7 +628,7 @@ class OrdExtractor:
             solvents_all,
             catalysts_all,
             temperature_all,
-            rxn_times_all,
+            rxn_time_all,
             products_all,
             yields_all,
             procedure_details_all,
