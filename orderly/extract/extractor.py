@@ -8,7 +8,7 @@ import pandas as pd
 
 from ord_schema import message_helpers as ord_message_helpers
 from ord_schema.proto import dataset_pb2 as ord_dataset_pb2
-import ord_schema.proto.reaction_pb2 as ord_reaction_pb2
+from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
@@ -48,9 +48,8 @@ class OrdExtractor:
 
     def __post_init__(self):
         LOG.debug(f"Extracting data from {self.ord_file_path}")
-        self.data = ord_message_helpers.load_message(
-            str(self.ord_file_path), ord_dataset_pb2.Dataset
-        )
+        self.data = OrdExtractor.load_data(self.ord_file_path)
+
         if self.filename is None:
             self.filename = self.data.name
 
@@ -93,6 +92,14 @@ class OrdExtractor:
         self.non_smiles_names_list = []
         self.full_df = self.build_full_df()
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
+
+    @staticmethod
+    def load_data(
+        ord_file_path: typing.Union[str, pathlib.Path]
+    ) -> ord_dataset_pb2.Dataset:
+        if isinstance(ord_file_path, pathlib.Path):
+            ord_file_path = str(ord_file_path)
+        return ord_message_helpers.load_message(ord_file_path, ord_dataset_pb2.Dataset)
 
     @staticmethod
     def find_smiles(
@@ -276,7 +283,9 @@ class OrdExtractor:
         return marked_products, yields, non_smiles_names_list
 
     @staticmethod
-    def temperature_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[TEMPERATURE]:
+    def temperature_extractor(
+        rxn: ord_reaction_pb2.Reaction,
+    ) -> typing.Optional[TEMPERATURE]:
         """
         Gets the temperature of a reaction in degrees celcius
         """
@@ -420,7 +429,9 @@ class OrdExtractor:
         return agents, solvents
 
     @staticmethod
-    def handle_reaction_object(rxn: ord_reaction_pb2.Reaction, manual_replacements_dict: dict):
+    def handle_reaction_object(
+        rxn: ord_reaction_pb2.Reaction, manual_replacements_dict: dict
+    ):
         # handle rxn inputs: reactants, reagents etc
 
         # initilise empty
@@ -658,15 +669,12 @@ class OrdExtractor:
                 temperature,
                 rxn_time,
                 mapped_rxn,
+                procedure_details,
                 rxn_non_smiles_names_list_additions,
             ) = OrdExtractor.handle_reaction_object(
                 rxn, manual_replacements_dict=self.manual_replacements_dict
             )
             rxn_non_smiles_names_list += rxn_non_smiles_names_list_additions
-
-            # Add procedure_details
-            procedure_details = [rxn.notes.procedure_details]
-            procedure_details_all.append(procedure_details)
 
             if set(reactants) != set(
                 products
@@ -677,6 +685,7 @@ class OrdExtractor:
                 yields_all.append(yields)
                 temperature_all.append(temperature)
                 rxn_time_all.append(rxn_time)
+                procedure_details_all.append(procedure_details)
 
                 # Finally we also need to add the agents
                 if self.merge_cat_solv_reag == True:
@@ -685,7 +694,10 @@ class OrdExtractor:
                     )
                     agents_all.append(agents)
                     solvents_all.append(solvents)
+                    reagents_all.append(None)
+                    catalysts_all.append(None)
                 else:
+                    agents_all.append(None)
                     solvents_all.append(list(set(solvents)))
                     reagents_all.append(list(set(reagents)))
                     catalysts_all.append(list(set(catalysts)))

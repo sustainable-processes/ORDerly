@@ -19,6 +19,8 @@ import orderly.extract.canonicalise
 import orderly.extract.defaults
 import orderly.data
 
+from orderly.types import *
+
 LOG = logging.getLogger(__name__)
 
 
@@ -120,6 +122,22 @@ def build_replacements(
 
     LOG.debug("Got molecule replacements")
     return molecule_replacements
+
+
+def get_manual_replacements_dict(
+    molecule_replacements: typing.Optional[
+        typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]
+    ] = None,
+    molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
+    solvents_path: typing.Optional[pathlib.Path] = None,
+):
+    manual_replacements_dict = build_replacements(
+        molecule_replacements=molecule_replacements,
+        molecule_str_force_nones=molecule_str_force_nones,
+    )
+    solvents_dict = orderly.data.get_solvents_dict(path=solvents_path)
+    manual_replacements_dict.update(solvents_dict)
+    return manual_replacements_dict
 
 
 def extract(
