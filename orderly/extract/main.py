@@ -213,6 +213,9 @@ def extract(
     "--pickled_data_folder", type=str, default="pickled_data", show_default=True
 )
 @click.option(
+    "--solvents_path", type=str, default="default", show_default=True
+)
+@click.option(
     "--molecule_names_folder", type=str, default="molecule_names", show_default=True
 )
 @click.option(
@@ -249,6 +252,7 @@ def main_click(
     merge_conditions: bool,
     output_path: str,
     pickled_data_folder: str,
+    solvents_path: str,
     molecule_names_folder: str,
     merged_molecules_file: str,
     use_multiprocessing: bool,
@@ -293,12 +297,16 @@ def main_click(
     2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
     """
 
+    if solvents_path == "default":
+        solvents_path = None
+
     main(
         data_path=data_path,
         ord_file_ending=ord_file_ending,
         merge_conditions=merge_conditions,
         output_path=output_path,
         pickled_data_folder=pickled_data_folder,
+        solvents_path=solvents_path,
         molecule_names_folder=molecule_names_folder,
         merged_molecules_file=merged_molecules_file,
         use_multiprocessing=use_multiprocessing,
@@ -314,6 +322,7 @@ def main(
     merge_conditions: bool,
     output_path: str,
     pickled_data_folder: str,
+    solvents_path: typing.Optional[str],
     molecule_names_folder: str,
     merged_molecules_file: str,
     use_multiprocessing: bool,

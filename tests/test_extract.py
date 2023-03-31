@@ -93,6 +93,7 @@ def test_extraction_pipeline(
         merge_conditions=merge_conditions,
         output_path=tmp_path,
         pickled_data_folder=pickled_data_folder,
+        solvents_path=None,
         molecule_names_folder=molecule_names_folder,
         merged_molecules_file="all_molecule_names.pkl",
         use_multiprocessing=use_multiprocessing,
