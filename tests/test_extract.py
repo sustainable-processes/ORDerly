@@ -6,6 +6,57 @@ def test_hello_world():
 
 
 @pytest.mark.parametrize(
+    "rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_mapped_rxn,expected_names_list,",
+    (
+        # daniel enter here[rxn here,dict here,expected react here , etc,,,,],
+    ),
+)
+def extract_rxn_extract(
+    rxn_idx,
+    manual_replacements_dict,
+    expected_reactants,
+    expected_reagents,
+    expected_solvents,
+    expected_catalysts,
+    expected_products,
+    expected_yields,
+    expected_temperature,
+    expected_rxn_time,
+    expected_mapped_rxn,
+    expected_names_list,
+):
+    import orderly.extract.extractor
+
+    # load from rxn_idx
+    rxn = rxn_idx  # TODO
+
+    (
+        reactants,
+        reagents,
+        solvents,
+        catalysts,
+        products,
+        yields,
+        temperature,
+        rxn_time,
+        mapped_rxn,
+        names_list,
+    ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
+        rxn, manual_replacements_dict
+    )
+    assert reactants == expected_reactants
+    assert reagents == expected_reagents
+    assert solvents == expected_solvents
+    assert catalysts == expected_catalysts
+    assert products == expected_products
+    assert yields == expected_yields
+    assert temperature == expected_temperature
+    assert rxn_time == expected_rxn_time
+    assert mapped_rxn == expected_mapped_rxn
+    assert names_list == expected_names_list
+
+
+@pytest.mark.parametrize(
     "merge_conditions,use_multiprocessing,name_contains_substring,inverse_substring",
     (
         [False, True, "uspto", True],
@@ -14,7 +65,7 @@ def test_hello_world():
         [True, True, None, True],
     ),
 )
-def test_extract(
+def test_extraction_pipeline(
     tmp_path,
     merge_conditions,
     use_multiprocessing,

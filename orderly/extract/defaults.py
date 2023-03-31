@@ -211,5 +211,6 @@ def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
         "solution"  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
     ]
 
+
 def get_solvents_set() -> typing.Set[SOLVENT]:
     return orderly.data.get_solvents_set()

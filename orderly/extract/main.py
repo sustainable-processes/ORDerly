@@ -77,7 +77,9 @@ def build_solvents_set_and_dict(
 ) -> typing.Tuple[typing.Set, typing.Dict]:
     solvents = orderly.data.get_solvents(path=solvents_path)
 
-    solvents["canonical_smiles"] = solvents["smiles"].apply(orderly.extract.canonicalise.get_canonicalised_smiles)
+    solvents["canonical_smiles"] = solvents["smiles"].apply(
+        orderly.extract.canonicalise.get_canonicalised_smiles
+    )
 
     solvents_set = set(solvents["canonical_smiles"])
 
@@ -352,7 +354,12 @@ def main(
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
     manual_replacements_dict = build_replacements()
-    solvents_set, solvents_dict = build_solvents_set_and_dict() # TODO SOLVENTS Set path should be possible to pass
+    (
+        solvents_set,
+        solvents_dict,
+    ) = (
+        build_solvents_set_and_dict()
+    )  # TODO SOLVENTS Set path should be possible to pass
     manual_replacements_dict.update(solvents_dict)
 
     kwargs = {
