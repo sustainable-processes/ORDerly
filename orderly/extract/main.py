@@ -15,6 +15,7 @@ from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
 import orderly.extract.extractor
+import orderly.extract.canonicalise
 import orderly.extract.defaults
 import orderly.data
 
@@ -71,18 +72,12 @@ def merge_pickled_mol_names(
     LOG.info(f"Pickled list of unique molecule names at {output_file_path=}")
 
 
-def canonicalize_smiles(smiles):
-    _ = rdkit_BlockLogs()  # removes excessive warnings
-    mol = rdkit_Chem.MolFromSmiles(smiles)
-    return rdkit_Chem.MolToSmiles(mol)
-
-
 def build_solvents_set_and_dict(
     solvents_path: typing.Optional[pathlib.Path] = None,
 ) -> typing.Tuple[typing.Set, typing.Dict]:
     solvents = orderly.data.get_solvents(path=solvents_path)
 
-    solvents["canonical_smiles"] = solvents["smiles"].apply(canonicalize_smiles)
+    solvents["canonical_smiles"] = solvents["smiles"].apply(orderly.extract.canonicalise.get_canonicalised_smiles)
 
     solvents_set = set(solvents["canonical_smiles"])
 
@@ -357,7 +352,7 @@ def main(
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
     manual_replacements_dict = build_replacements()
-    solvents_set, solvents_dict = build_solvents_set_and_dict()
+    solvents_set, solvents_dict = build_solvents_set_and_dict() # TODO SOLVENTS Set path should be possible to pass
     manual_replacements_dict.update(solvents_dict)
 
     kwargs = {

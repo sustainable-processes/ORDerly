@@ -35,11 +35,13 @@ ENV PATH="/home/worker/.local/bin:${PATH}"
 
 WORKDIR /home/worker/repo/
 ADD pyproject.toml poetry.lock README.md /home/worker/repo/
+RUN chown -R worker:worker /home/worker/repo
 
 USER worker
 RUN python -m pip install -U pip
 RUN python -m pip install poetry
 RUN python -m poetry install
+RUN python -m poetry add psutil
 
 ADD Makefile /home/worker/repo/
 ADD orderly/ /home/worker/repo/orderly/
