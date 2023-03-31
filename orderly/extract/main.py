@@ -212,9 +212,7 @@ def extract(
 @click.option(
     "--pickled_data_folder", type=str, default="pickled_data", show_default=True
 )
-@click.option(
-    "--solvents_path", type=str, default="default", show_default=True
-)
+@click.option("--solvents_path", type=str, default="default", show_default=True)
 @click.option(
     "--molecule_names_folder", type=str, default="molecule_names", show_default=True
 )
