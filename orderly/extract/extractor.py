@@ -285,7 +285,7 @@ class OrdExtractor:
     @staticmethod
     def temperature_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Optional[TEMPERATURE]:
+    ) -> typing.Optional[TEMPERATURE_CELCIUS]:
         """
         Gets the temperature of a reaction in degrees celcius
         """
@@ -295,19 +295,16 @@ class OrdExtractor:
 
             if temp_unit == 1:  # celcius
                 return rxn.conditions.temperature.setpoint.units
-                # temperatures.append(rxn.conditions.temperature.setpoint.units)
 
             elif temp_unit == 2:  # fahrenheit
                 f = rxn.conditions.temperature.setpoint.units
                 c = (f - 32) * 5 / 9
                 return c
-                # temperatures.append(c)
 
             elif temp_unit == 3:  # kelvin
                 k = rxn.conditions.temperature.setpoint.units
                 c = k - 273.15
                 return c
-                # temperatures.append(c)
             elif temp_unit == 0:
                 if temp_unit == 0:  # unspecified
                     # instead of using the setpoint, use the control type
@@ -315,16 +312,12 @@ class OrdExtractor:
                     temp_control_type = rxn.conditions.temperature.control.type
                     if temp_control_type == 2:  # AMBIENT
                         return 25
-                        # temperatures.append(25)
                     elif temp_control_type == 6:  # ICE_BATH
                         return 0
-                        # temperatures.append(0)
                     elif temp_control_type == 9:  # DRY_ICE_BATH
                         return -78.5
-                        # temperatures.append(-78.5)
                     elif temp_control_type == 11:  # LIQUID_NITROGEN
                         return -196
-                        # temperatures.append(-196)
         except IndexError:
             pass
         return None  # No temperature found
