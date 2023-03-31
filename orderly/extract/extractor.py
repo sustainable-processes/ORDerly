@@ -424,7 +424,19 @@ class OrdExtractor:
     @staticmethod
     def handle_reaction_object(
         rxn: ord_reaction_pb2.Reaction, manual_replacements_dict: dict
-    ):
+    ) -> typing.Tuple[
+        REACTANTS,
+        REAGENTS,
+        SOLVENTS,
+        CATALYSTS,
+        PRODUCTS,
+        YIELDS,
+        TEMPERATURE_CELCIUS,
+        RXN_TIME,
+        MAPPED_RXN,
+        str,
+        typing.List[MOLECULE_IDENTIFIER],
+    ]:
         # handle rxn inputs: reactants, reagents etc
 
         # initilise empty
@@ -608,6 +620,8 @@ class OrdExtractor:
         else:
             products, yields = marked_p_clean, yields
 
+        procedure_details = rxn.notes.procedure_details
+
         return (
             reactants,
             reagents,
@@ -618,23 +632,24 @@ class OrdExtractor:
             temperature,
             rxn_time,
             mapped_rxn,
+            procedure_details,
             rxn_non_smiles_names_list,
         )
 
     def build_rxn_lists(
         self,
     ) -> typing.Tuple[
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
-        typing.List,
+        typing.List[MAPPED_RXN],
+        typing.List[REACTANTS],
+        typing.List[AGENTS],
+        typing.List[REAGENTS],
+        typing.List[SOLVENTS],
+        typing.List[CATALYSTS],
+        typing.List[TEMPERATURE_CELCIUS],
+        typing.List[RXN_TIME],
+        typing.List[PRODUCTS],
+        typing.List[YIELDS],
+        typing.List[str],
     ]:
         mapped_rxn_all = []
         reactants_all = []

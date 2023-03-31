@@ -6,12 +6,13 @@ def test_hello_world():
 
 
 @pytest.mark.parametrize(
-    "rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_mapped_rxn,expected_names_list,",
+    "file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_mapped_rxn,expected_names_list,",
     (
         # daniel enter here[rxn here,dict here,expected react here , etc,,,,],
     ),
 )
 def extract_rxn_extract(
+    file_idx,
     rxn_idx,
     manual_replacements_dict,
     expected_reactants,
@@ -26,9 +27,15 @@ def extract_rxn_extract(
     expected_names_list,
 ):
     import orderly.extract.extractor
+    import orderly.data
+    import orderly.extract.main
 
-    # load from rxn_idx
-    rxn = rxn_idx  # TODO
+    files = orderly.extract.main.get_file_names(
+        directory=orderly.data.get_path_of_test_ords(), file_ending=".pb.gz"
+    )
+
+    dataset = orderly.extract.extractor.OrdExtractor.load_data(files[file_idx])
+    rxn = dataset.reactions[rxn_idx]
 
     (
         reactants,

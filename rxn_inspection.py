@@ -17,4 +17,3 @@ import ord_schema.proto.reaction_pb2 as ord_reaction_pb2
 # import orderly.extract.extractor
 
 orderly.extract.extractor.OrdExtractor.load_data(files[0])
-
