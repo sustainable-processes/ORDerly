@@ -1,7 +1,10 @@
 import orderly.clean.cleaner
 import orderly.extract
+import orderly.extract.main
+import orderly.extract.extractor
 import orderly.data
-import orderly.types
+
+from orderly.types import * # TODO CHANGE TYPES TO USE THE FORMAT orderly.TYPE
 
 
 import logging

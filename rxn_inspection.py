@@ -1,6 +1,5 @@
 # %%
-import orderly.data
-import orderly.extract.main
+import orderly
 
 orderly.data.get_path_of_test_ords()
 
@@ -14,3 +13,6 @@ import ord_schema.proto.reaction_pb2 as ord_reaction_pb2
 
 
 data = ord_message_helpers.load_message(str(files[0]), ord_dataset_pb2.Dataset)
+
+orderly.extract.
+

@@ -371,14 +371,17 @@ def main(
 
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
-    manual_replacements_dict = build_replacements()
-    (
-        solvents_set,
-        solvents_dict,
-    ) = (
-        build_solvents_set_and_dict()
-    )  # TODO SOLVENTS Set path should be possible to pass
-    manual_replacements_dict.update(solvents_dict)
+    # manual_replacements_dict = build_replacements()
+    # (
+    #     solvents_set,
+    #     solvents_dict,
+    # ) = (
+    #     build_solvents_set_and_dict()
+    # )  # TODO SOLVENTS Set path should be possible to pass
+    # manual_replacements_dict.update(solvents_dict)
+
+    solvents_set = orderly.data.get_solvents_set(path=solvents_path)
+    manual_replacements_dict = get_manual_replacements_dict(solvents_path=solvents_path)
 
     kwargs = {
         "output_path": output_path,
