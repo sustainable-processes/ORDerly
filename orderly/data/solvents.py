@@ -14,7 +14,6 @@ def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
     if path is None:
         data = pkgutil.get_data("orderly.data", "solvents.csv")
         return pd.read_csv(io.BytesIO(data))
-
     return pd.read_csv(path)
 
 
@@ -30,6 +29,10 @@ def get_solvents_dict(
     path: typing.Optional[pathlib.Path] = None,
 ) -> typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]:
     solvents = orderly.data.get_solvents(path=path)
+    solvents["canonical_smiles"] = solvents["smiles"].apply(
+        orderly.extract.canonicalise.get_canonicalised_smiles
+    )
+    # breakpoint()
 
     # Combine the lists into a sequence of key-value pairs
     key_value_pairs = zip(
