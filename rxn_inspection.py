@@ -12,7 +12,9 @@ from ord_schema.proto import dataset_pb2 as ord_dataset_pb2
 import ord_schema.proto.reaction_pb2 as ord_reaction_pb2
 
 
-data = ord_message_helpers.load_message(str(files[0]), ord_dataset_pb2.Dataset)
+# data = ord_message_helpers.load_message(str(files[0]), ord_dataset_pb2.Dataset)
 
-orderly.extract.
+# import orderly.extract.extractor
+
+orderly.extract.extractor.OrdExtractor.load_data(files[0])
 
