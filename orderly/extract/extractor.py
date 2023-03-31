@@ -451,9 +451,10 @@ class OrdExtractor:
 
         # marked products and yields extraction
 
-        marked_products, yields = self.extract_marked_p_and_yields(
+        marked_products, yields, non_smiles_names_list_additions = self.extract_marked_p_and_yields(
             rxn, marked_products, yields
         )
+        non_smiles_names_list += non_smiles_names_list_additions
 
         # extract temperature
         temperatures = self.temperature_extractor(rxn, temperatures)
@@ -512,7 +513,7 @@ class OrdExtractor:
         return reactants, reagents, solvents, catalysts, products, yields, temperatures, rxn_times, mapped_rxn
 
     def build_rxn_lists(
-        self, metals: typing.Optional[typing.List[str]] = None
+        self, metals: typing.Optional[typing.List[METAL]] = None, solvents_set: typing.Set[SOLVENT] = None
     ) -> typing.Tuple[
         typing.List,
         typing.List,
@@ -528,6 +529,8 @@ class OrdExtractor:
     ]:
         if metals is None:
             metals = orderly.extract.defaults.get_metals_list()
+        if solvents_set is None:
+            solvents_set = set()
 
         mapped_rxn_all = []
         reactants_all = []
@@ -563,7 +566,7 @@ class OrdExtractor:
                 # Finally we also need to add the agents
                 if self.merge_cat_solv_reag == True:
                     agents, solvents = self.merge_to_agents(
-                        catalysts, solvents, reagents, metals
+                        catalysts, solvents, reagents, metals, solvents_set
                     )
                     agents_all.append(agents)
                     solvents_all.append(solvents)

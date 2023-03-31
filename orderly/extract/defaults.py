@@ -1,7 +1,8 @@
 import typing
+from orderly.types import *
 
 
-def get_metals_list() -> typing.List[str]:
+def get_metals_list() -> METALS:
     # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
     # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
     # Instead, let's move all agents that contain a metal centre to the front of the list
@@ -102,7 +103,7 @@ def get_metals_list() -> typing.List[str]:
     ]
 
 
-def get_molecule_replacements() -> typing.Dict[str, str]:
+def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements = {}
 
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
@@ -205,7 +206,7 @@ def get_molecule_replacements() -> typing.Dict[str, str]:
     return molecule_replacements
 
 
-def get_molecule_str_force_nones() -> typing.List[str]:
+def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
     return [
         "solution"  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
     ]
