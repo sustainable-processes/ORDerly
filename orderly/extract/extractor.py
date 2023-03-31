@@ -8,6 +8,7 @@ import pandas as pd
 
 from ord_schema import message_helpers as ord_message_helpers
 from ord_schema.proto import dataset_pb2 as ord_dataset_pb2
+import ord_schema.proto.reaction_pb2 as ord_reaction_pb2
 
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
@@ -121,7 +122,7 @@ class OrdExtractor:
 
     @staticmethod
     def extract_info_from_rxn_str(
-        rxn, reactants: REACTANTS
+        rxn: ord_reaction_pb2.Reaction,
     ) -> typing.Tuple[
         REACTANTS, REAGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]
     ]:
@@ -159,6 +160,7 @@ class OrdExtractor:
                 non_smiles_names_list.append(smi)
             product_from_rxn_without_mapping.append(canon_smi)
 
+        reactants = []
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
         # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
         for r_map, r_clean in zip(reactant_from_rxn, reactant_from_rxn_without_mapping):
@@ -177,7 +179,7 @@ class OrdExtractor:
 
     @staticmethod
     def rxn_input_extractor(
-        rxn,
+        rxn: ord_reaction_pb2.Reaction,
         reactants: REACTANTS,
         reagents: REAGENTS,
         solvents: SOLVENTS,
@@ -239,7 +241,7 @@ class OrdExtractor:
 
     @staticmethod
     def extract_marked_p_and_yields(
-        rxn, marked_products: PRODUCTS
+        rxn: ord_reaction_pb2.Reaction, marked_products: PRODUCTS
     ) -> typing.Tuple[PRODUCTS, YIELDS, typing.List[MOLECULE_IDENTIFIER]]:
         # products & yield
         yields = []
@@ -274,7 +276,7 @@ class OrdExtractor:
         return marked_products, yields, non_smiles_names_list
 
     @staticmethod
-    def temperature_extractor(rxn) -> typing.Optional[TEMPERATURE]:
+    def temperature_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[TEMPERATURE]:
         """
         Gets the temperature of a reaction in degrees celcius
         """
@@ -319,7 +321,7 @@ class OrdExtractor:
         return None  # No temperature found
 
     @staticmethod
-    def rxn_time_extractor(rxn) -> typing.Optional[float]:
+    def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[float]:
         try:
             if rxn.outcomes[0].reaction_time.units == 1:  # hour
                 return rxn.outcomes[0].reaction_time.value
@@ -418,7 +420,7 @@ class OrdExtractor:
         return agents, solvents
 
     @staticmethod
-    def handle_reaction_object(rxn, manual_replacements_dict: dict):
+    def handle_reaction_object(rxn: ord_reaction_pb2.Reaction, manual_replacements_dict: dict):
         # handle rxn inputs: reactants, reagents etc
 
         # initilise empty
@@ -437,7 +439,7 @@ class OrdExtractor:
                 mapped_products,
                 mapped_rxn,
                 rxn_non_smiles_names_list,
-            ) = OrdExtractor.extract_info_from_rxn_str(rxn, reactants)
+            ) = OrdExtractor.extract_info_from_rxn_str(rxn)
         except ValueError:
             # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
             mapped_rxn = []

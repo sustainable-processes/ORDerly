@@ -1,7 +1,12 @@
 import typing
 
+import ord_schema.proto.reaction_pb2
+
 SMILES = str
 MOLECULE_IDENTIFIER = str
+
+MAPPED_RXN = str
+
 CANON_REAGENT = SMILES
 REAGENT = typing.Union[CANON_REAGENT, MOLECULE_IDENTIFIER]
 REAGENTS = typing.List[REAGENT]
