@@ -158,7 +158,7 @@ class OrdExtractor:
             reactant_from_rxn_without_mapping.append(canon_smi)
 
         product_from_rxn_without_mapping = []
-        for smi in mapped_rxn:
+        for smi in mapped_products:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped=True
             )
@@ -497,8 +497,7 @@ class OrdExtractor:
         ) = OrdExtractor.extract_marked_p_and_yields(rxn, marked_products)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
+
 
         # extract temperature
         temperature = OrdExtractor.temperature_extractor(rxn)
@@ -542,8 +541,6 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
 
         (
             reagents,
@@ -569,8 +566,7 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
+
 
         # reactants = [self.clean_smiles(smi, is_mapped=True) for smi in reactants]
         # reagents = [self.clean_smiles(smi) for smi in reagents]
@@ -611,8 +607,6 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
 
         (
             marked_p_clean,
@@ -622,8 +616,6 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
 
         # mapped_p_clean = [
         #     self.clean_smiles(p, is_mapped=True) for p in mapped_products
@@ -642,10 +634,6 @@ class OrdExtractor:
 
         procedure_details = rxn.notes.procedure_details
 
-        if len(rxn_non_smiles_names_list) > 5:
-            raise ValueError(3)
-
-        raise ValueError(3)
 
         return (
             reactants,
