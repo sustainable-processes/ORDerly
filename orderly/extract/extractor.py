@@ -244,7 +244,14 @@ class OrdExtractor:
                     # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
             except IndexError:
                 pass
-        return reactants, reagents, solvents, catalysts, products, non_smiles_names_list
+        return (
+            list(set(reactants)),
+            list(set(reagents)),
+            list(set(solvents)),
+            list(set(catalysts)),
+            list(set(products)),
+            non_smiles_names_list,
+        )
 
     @staticmethod
     def extract_marked_p_and_yields(
@@ -263,6 +270,8 @@ class OrdExtractor:
                     product_smiles,
                     non_smiles_names_list_additions,
                 ) = OrdExtractor.find_smiles(identifiers)
+
+                print(non_smiles_names_list_additions)
                 non_smiles_names_list += non_smiles_names_list_additions
                 measurements = marked_product.measurements
                 for measurement in measurements:
@@ -488,6 +497,9 @@ class OrdExtractor:
         ) = OrdExtractor.extract_marked_p_and_yields(rxn, marked_products)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
+
         # extract temperature
         temperature = OrdExtractor.temperature_extractor(rxn)
 
@@ -502,24 +514,14 @@ class OrdExtractor:
         solvents = [x for x in solvents if not (x.isdigit())]
         catalysts = [x for x in catalysts if not (x.isdigit())]
 
-        non_smiles_names_list_additions = []
-        for idx, mole_id in enumerate(reactants):
-            smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                mole_id, is_mapped=True
-            )
-            if smi is None:
-                non_smiles_names_list_additions.append(mole_id)
-                reactants[idx] = mole_id
-            else:
-                reactants[idx] = smi
-
-        def canonicalise_and_get_non_smile_names(
+        def canonicalise_and_get_non_smiles_names(
             mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS,
             is_mapped: bool = False,
         ) -> typing.Tuple[
             REACTANTS | REAGENTS | SOLVENTS | CATALYSTS,
             typing.List[MOLECULE_IDENTIFIER],
         ]:
+            assert isinstance(mole_id_list, list)
             non_smiles_names_list_additions = []
             for idx, mole_id in enumerate(mole_id_list):
                 smi = orderly.extract.canonicalise.get_canonicalised_smiles(
@@ -535,28 +537,40 @@ class OrdExtractor:
         (
             reactants,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(mole_id_list=reactants, is_mapped=True)
+        ) = canonicalise_and_get_non_smiles_names(
+            mole_id_list=reactants, is_mapped=True
+        )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
+
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
 
         (
             reagents,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(mole_id_list=reagents, is_mapped=False)
+        ) = canonicalise_and_get_non_smiles_names(
+            mole_id_list=reagents, is_mapped=False
+        )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         (
             solvents,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(mole_id_list=solvents, is_mapped=False)
+        ) = canonicalise_and_get_non_smiles_names(
+            mole_id_list=solvents, is_mapped=False
+        )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         (
             catalysts,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(
+        ) = canonicalise_and_get_non_smiles_names(
             mole_id_list=catalysts, is_mapped=False
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
+
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
 
         # reactants = [self.clean_smiles(smi, is_mapped=True) for smi in reactants]
         # reagents = [self.clean_smiles(smi) for smi in reagents]
@@ -592,18 +606,24 @@ class OrdExtractor:
         (
             mapped_p_clean,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(
+        ) = canonicalise_and_get_non_smiles_names(
             mole_id_list=mapped_products, is_mapped=True
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
+
         (
             marked_p_clean,
             non_smiles_names_list_additions,
-        ) = canonicalise_and_get_non_smile_names(
+        ) = canonicalise_and_get_non_smiles_names(
             mole_id_list=marked_products, is_mapped=False
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
+
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
 
         # mapped_p_clean = [
         #     self.clean_smiles(p, is_mapped=True) for p in mapped_products
@@ -621,6 +641,11 @@ class OrdExtractor:
             products, yields = marked_p_clean, yields
 
         procedure_details = rxn.notes.procedure_details
+
+        if len(rxn_non_smiles_names_list) > 5:
+            raise ValueError(3)
+
+        raise ValueError(3)
 
         return (
             reactants,
