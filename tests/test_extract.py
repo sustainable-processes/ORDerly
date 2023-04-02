@@ -6,7 +6,7 @@ def test_hello_world():
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_mapped_rxn,expected_names_list,",
+    "file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list,",
     (
         # daniel enter here[rxn here,dict here,expected react here , etc,,,,],
     ),
@@ -23,7 +23,7 @@ def extract_rxn_extract(
     expected_yields,
     expected_temperature,
     expected_rxn_time,
-    expected_mapped_rxn,
+    expected_rxn_str,
     expected_names_list,
 ):
     import orderly.extract.extractor
@@ -46,7 +46,7 @@ def extract_rxn_extract(
         yields,
         temperature,
         rxn_time,
-        mapped_rxn,
+        rxn_str,
         names_list,
     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
         rxn, manual_replacements_dict
@@ -59,7 +59,7 @@ def extract_rxn_extract(
     assert yields == expected_yields
     assert temperature == expected_temperature
     assert rxn_time == expected_rxn_time
-    assert mapped_rxn == expected_mapped_rxn
+    assert rxn_str == expected_rxn_str
     assert names_list == expected_names_list
 
 
