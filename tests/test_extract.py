@@ -10,26 +10,30 @@ def get_rxn_func() -> typing.Callable:
     from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
     def get_rxn(
-        file_idx: int,
+        file_name: str,
         rxn_idx: int,
     ) -> ord_reaction_pb2.Reaction:
         import orderly.extract.extractor
         import orderly.data
         import orderly.extract.main
 
-        files = orderly.extract.main.get_file_names(
-            directory=orderly.data.get_path_of_test_ords(), file_ending=".pb.gz"
+        file = orderly.extract.main.get_file_names(
+            directory=orderly.data.get_path_of_test_ords(), file_ending=f"{file_name}.pb.gz"
         )
+        assert len(file) == 1
+        file = file[0]
 
-        dataset = orderly.extract.extractor.OrdExtractor.load_data(files[file_idx])
+        dataset = orderly.extract.extractor.OrdExtractor.load_data(file)
         rxn = dataset.reactions[rxn_idx]
         return rxn
 
     return get_rxn
 
 
+
+
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
+    "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
     (
         # [0,0, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
         # [0,1, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
@@ -37,7 +41,7 @@ def get_rxn_func() -> typing.Callable:
 )
 def rxn_input_extractor(
     # def test_rxn_input_extractor(
-    file_idx,
+    file_name,
     rxn_idx,
     expected_labelled_reactants,
     expected_labelled_reagents,
@@ -46,7 +50,7 @@ def rxn_input_extractor(
     expected_labelled_products_from_input,
     expected_non_smiles_names_list_additions,
 ):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -68,20 +72,20 @@ def rxn_input_extractor(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions",
+    "file_name,rxn_idx,expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions",
     (
         # [0,0, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
         # [0,1, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
     ),
 )
 def rxn_outcomes_extractor(
-    file_idx,
+    file_name,
     rxn_idx,
     expected_yields,
     expected_labelled_products,
     expected_non_smiles_names_list_additions,
 ):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -97,19 +101,19 @@ def rxn_outcomes_extractor(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_rxn_str,expected_is_mapped",
+    "file_name,rxn_idx,expected_rxn_str,expected_is_mapped",
     (
         # [0,0, expected_rxn_str,expected_is_mapped],
         # [0,1, expected_rxn_str,expected_is_mapped],
     ),
 )
 def rxn_string_and_is_mapped(
-    file_idx,
+    file_name,
     rxn_idx,
     expected_rxn_str,
     expected_is_mapped,
 ):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -123,18 +127,18 @@ def rxn_string_and_is_mapped(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_rxn_info",
+    "file_name,rxn_idx,expected_rxn_info",
     (
         # [0,0, expected_rxn_info],
         # [0,1, expected_rxn_info],
     ),
 )
 def extract_info_from_rxn(
-    file_idx,
+    file_name,
     rxn_idx,
     expected_rxn_info,
 ):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -144,14 +148,14 @@ def extract_info_from_rxn(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_temperature",
+    "file_name,rxn_idx,expected_temperature",
     (
         # [0,0, expected_temperature],
         # [0,1, expected_temperature],
     ),
 )
-def temperature_extractor(file_idx, rxn_idx, expected_temperature):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+def temperature_extractor(file_name, rxn_idx, expected_temperature):
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -161,18 +165,18 @@ def temperature_extractor(file_idx, rxn_idx, expected_temperature):
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_rxn_time",
+    "file_name,rxn_idx,expected_rxn_time",
     (
         # [0,0, expected_rxn_time],
         # [0,1, expected_rxn_time],
     ),
 )
 def time_extractor(
-    file_idx,
+    file_name,
     rxn_idx,
     expected_rxn_time,
 ):
-    rxn = get_rxn_func()(file_idx=file_idx, rxn_idx=rxn_idx)
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
@@ -182,10 +186,9 @@ def time_extractor(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,expected_rxn_time",
+    "rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,metals,solvents_set,expected_agents,expected_solvents",
     (
-        # [0, 0, expected_rxn_time],
-        # [0, 1, expected_rxn_time],
+        # [rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,metals,solvents_set,expected_agents,expected_solvents],
     ),
 )
 def merge_to_agents(
@@ -199,6 +202,11 @@ def merge_to_agents(
     expected_solvents,
 ):
     import orderly.extract.extractor
+
+    if metals is None:
+        metals = orderly.extract.defaults.get_metals_list()        
+    if solvents_set is None:
+        solvents_set = orderly.extract.defaults.get_solvents_set()
 
     agents, solvents = orderly.extract.extractor.OrdExtractor.merge_to_agents(
         rxn_str_agents,
@@ -237,14 +245,14 @@ def match_yield_with_product(
 
 
 @pytest.mark.parametrize(
-    "file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list",
+    "file_name,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list",
     (
-        # [file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list],
-        # [file_idx,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list],
+        # [file_name,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list],
+        # [file_name,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list],
     ),
 )
 def extract_rxn_extract(
-    file_idx,
+    file_name,
     rxn_idx,
     manual_replacements_dict,
     expected_reactants,
@@ -258,16 +266,10 @@ def extract_rxn_extract(
     expected_rxn_str,
     expected_names_list,
 ):
+    
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+
     import orderly.extract.extractor
-    import orderly.data
-    import orderly.extract.main
-
-    files = orderly.extract.main.get_file_names(
-        directory=orderly.data.get_path_of_test_ords(), file_ending=".pb.gz"
-    )
-
-    dataset = orderly.extract.extractor.OrdExtractor.load_data(files[file_idx])
-    rxn = dataset.reactions[rxn_idx]
 
     (
         reactants,
@@ -346,4 +348,3 @@ def test_extraction_pipeline(
 
         break
 
-    raise ValueError(0)
