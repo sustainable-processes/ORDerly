@@ -64,7 +64,7 @@ def extract_rxn_extract(
 
 
 @pytest.mark.parametrize(
-    "merge_conditions,use_multiprocessing,name_contains_substring,inverse_substring",
+    "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
         [False, True, "uspto", True],
         [False, True, "uspto", False],
@@ -74,7 +74,7 @@ def extract_rxn_extract(
 )
 def test_extraction_pipeline(
     tmp_path,
-    merge_conditions,
+    trust_labelling,
     use_multiprocessing,
     name_contains_substring,
     inverse_substring,
@@ -90,7 +90,7 @@ def test_extraction_pipeline(
     orderly.extract.main.main(
         data_path=str(orderly.data.get_path_of_test_ords()),
         ord_file_ending=".pb.gz",
-        merge_conditions=merge_conditions,
+        trust_labelling=trust_labelling,
         output_path=tmp_path,
         pickled_data_folder=pickled_data_folder,
         solvents_path=None,

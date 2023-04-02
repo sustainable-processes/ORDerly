@@ -38,7 +38,7 @@ class OrdExtractor:
     """
 
     ord_file_path: pathlib.Path
-    merge_cat_solv_reag: bool
+    trust_labelling: bool
     manual_replacements_dict: typing.Dict[str, str]
     metals: typing.Optional[METALS] = None
     solvents_set: typing.Optional[typing.Set[SOLVENT]] = None
@@ -97,6 +97,9 @@ class OrdExtractor:
     def load_data(
         ord_file_path: typing.Union[str, pathlib.Path]
     ) -> ord_dataset_pb2.Dataset:
+        """
+        Simply loads the ORD data.
+        """
         if isinstance(ord_file_path, pathlib.Path):
             ord_file_path = str(ord_file_path)
         return ord_message_helpers.load_message(ord_file_path, ord_dataset_pb2.Dataset)
@@ -107,6 +110,9 @@ class OrdExtractor:
     ) -> typing.Tuple[
         typing.Optional[SMILES | MOLECULE_IDENTIFIER], typing.List[MOLECULE_IDENTIFIER]
     ]:
+        """
+        Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
+        """
         non_smiles_names_list = (
             []
         )  # we dont require information on state of this object so can create a new one
@@ -133,8 +139,16 @@ class OrdExtractor:
     ) -> typing.Tuple[
         REACTANTS, REAGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]
     ]:
+        """
+        Input a reaction smiles string, and return the reactants, reagents, products, and the reaction smiles string
+        """
         _ = rdkit_BlockLogs()
-        mapped_rxn_extended_smiles = rxn.identifiers[0].value
+        for rxn_ident in rxn.identifiers:
+            if rxn_ident.type == 6: # REACTION_CXSMILES
+                mapped_rxn_extended_smiles = rxn_ident.value
+                is_mapped = rxn_ident.is_mapped
+        if mapped_rxn_extended_smiles is None:
+            return None, None, None, None, None
         mapped_rxn = mapped_rxn_extended_smiles.split(" ")[
             0
         ]  # this is to get rid of the extended smiles info
@@ -150,7 +164,7 @@ class OrdExtractor:
         reactant_from_rxn_without_mapping = []
         for smi in reactant_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                smi, is_mapped=True
+                smi, is_mapped
             )
             if canon_smi is None:
                 canon_smi = smi
@@ -160,7 +174,7 @@ class OrdExtractor:
         product_from_rxn_without_mapping = []
         for smi in mapped_products:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                smi, is_mapped=True
+                smi, is_mapped
             )
             if canon_smi is None:
                 canon_smi = smi
@@ -182,7 +196,8 @@ class OrdExtractor:
                     reactants.append(r_clean)
                 else:
                     reagents.append(r_clean)
-        return reactants, reagents, mapped_products, mapped_rxn, non_smiles_names_list
+        products = [p for p in product_from_rxn_without_mapping if p not in reactants]
+        return reactants, reagents, products, mapped_rxn, non_smiles_names_list
 
     @staticmethod
     def rxn_input_extractor(
@@ -201,7 +216,10 @@ class OrdExtractor:
         PRODUCTS,
         typing.List[MOLECULE_IDENTIFIER],
     ]:
-        # loop through the keys in the 'dict' style data struct
+        """
+        Extract reaction information from ORD input object (ord_reaction_pb2.Reaction.inputs)
+        """
+        # loop through the keys (components) in the 'dict' style data struct. One key may contain multiple components/molecules.
         non_smiles_names_list = (
             []
         )  # we dont require information on state of this object so can create a new one
@@ -271,7 +289,6 @@ class OrdExtractor:
                     non_smiles_names_list_additions,
                 ) = OrdExtractor.find_smiles(identifiers)
 
-                print(non_smiles_names_list_additions)
                 non_smiles_names_list += non_smiles_names_list_additions
                 measurements = marked_product.measurements
                 for measurement in measurements:
@@ -709,7 +726,7 @@ class OrdExtractor:
                 procedure_details_all.append(procedure_details)
 
                 # Finally we also need to add the agents
-                if self.merge_cat_solv_reag == True:
+                if self.trust_labelling == True:
                     agents, solvents = OrdExtractor.merge_to_agents(
                         catalysts, solvents, reagents, self.metals, self.solvents_set
                     )

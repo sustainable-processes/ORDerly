@@ -29,7 +29,7 @@ def get_file_names(
     file_ending: str = ".pb.gz",
 ) -> typing.List[pathlib.Path]:
     """
-    Goes into the ord data directory and for each folder extracts all sub data files with the file ending
+    Goes into the ord data directory and for each folder extracts the file path of all sub data files with the file ending
     """
 
     files = []
@@ -48,6 +48,9 @@ def merge_pickled_mol_names(
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
 ):
+    """
+    Merges all the pickle files containing molecule non-smiles identifiers (typically english names) into one file.
+    """
     if output_file_path.suffix != ".pkl":
         raise ValueError(
             f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}"
@@ -77,6 +80,9 @@ def merge_pickled_mol_names(
 def build_solvents_set_and_dict(
     solvents_path: typing.Optional[pathlib.Path] = None,
 ) -> typing.Tuple[typing.Set, typing.Dict]:
+    """
+    Builds a set of canonical smiles strings for all solvents (used to identify which agents are solvents) and a dictionary of solvent names to canonical smiles strings (for name resolution)
+    """
     solvents = orderly.data.get_solvents(path=solvents_path)
 
     solvents["canonical_smiles"] = solvents["smiles"].apply(
@@ -101,6 +107,9 @@ def build_replacements(
     molecule_replacements: typing.Optional[typing.Dict[str, str]] = None,
     molecule_str_force_nones: typing.Optional[typing.List[str]] = None,
 ) -> typing.Dict[str, typing.Optional[str]]:
+    """
+    Builds dictionary mapping english name molecule identifiers to canonical smiles. Dict is based on manually curated list.
+    """
     _ = rdkit_BlockLogs()  # removes excessive warnings
 
     if molecule_replacements is None:
@@ -131,6 +140,9 @@ def get_manual_replacements_dict(
     molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
     solvents_path: typing.Optional[pathlib.Path] = None,
 ):
+    """
+    Combines manually curated dictioary of molecule names to canonical smiles strings with the dictionary of solvent names to canonical smiles strings.
+    """
     manual_replacements_dict = build_replacements(
         molecule_replacements=molecule_replacements,
         molecule_str_force_nones=molecule_str_force_nones,
@@ -143,7 +155,7 @@ def get_manual_replacements_dict(
 def extract(
     output_path: pathlib.Path,
     file,
-    merge_conditions,
+    trust_labelling,
     manual_replacements_dict,
     solvents_set,
     pickled_data_folder: str = "pickled_data",
@@ -152,10 +164,13 @@ def extract(
     inverse_substring: bool = False,
     overwrite: bool = True,
 ):
+    """
+    Extract information from an ORD file.
+    """
     LOG.debug(f"Attempting extraction for {file}")
     instance = orderly.extract.extractor.OrdExtractor(
         ord_file_path=file,
-        merge_cat_solv_reag=merge_conditions,
+        trust_labelling=trust_labelling,
         manual_replacements_dict=manual_replacements_dict,
         solvents_set=solvents_set,
         contains_substring=name_contains_substring,
@@ -207,7 +222,7 @@ def extract(
     help="The file ending for the ord data",
     show_default=True,
 )
-@click.option("--merge_conditions", type=bool, default=True, show_default=True)
+@click.option("--trust_labelling", type=bool, default=False, show_default=False)
 @click.option("--output_path", type=str, default="data/USPTO/", show_default=True)
 @click.option(
     "--pickled_data_folder", type=str, default="pickled_data", show_default=True
@@ -247,7 +262,7 @@ def extract(
 def main_click(
     data_path: str,
     ord_file_ending: str,
-    merge_conditions: bool,
+    trust_labelling: bool,
     output_path: str,
     pickled_data_folder: str,
     solvents_path: str,
@@ -262,12 +277,12 @@ def main_click(
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
 
-    python USPTO_extraction.py --merge_conditions=True
+    python USPTO_extraction.py --trust_labelling=False
         Args:
 
-    1) merge_conditions: Bool
-            - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
-            - If False, maintain the labelling and ordering of the original data.
+    1) trust_labelling: Bool
+            - If True, maintain the labelling and ordering of the original data.
+            - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
 
     Functionality:
 
@@ -280,10 +295,11 @@ def main_click(
         - Temperature: All temperatures were converted to Celcius. If only the control type was specified, the following mapping was used: 'AMBIENT' -> 25, 'ICE_BATH' -> 0, 'DRY_ICE' -> -78.5, 'LIQUID_NITROGEN' -> -196.
         - Time: All times were converted to hours.
         - Yield (for each product): The PERCENTAGEYIELD was preferred, but if this was not available, the CALCULATEDPERCENTYIELD was used instead. If neither was available, the value was set to np.nan.
+        - Procedure_details: Plain text string describing the procedure in English.
     3) Canonicalisation and light cleaning
         - All SMILES strings were canonicalised using RDKit.
         - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
-        - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
+        - The final light cleaning step depends on the value of trust_labelling (see above, in the Args section).
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
@@ -301,7 +317,7 @@ def main_click(
     main(
         data_path=data_path,
         ord_file_ending=ord_file_ending,
-        merge_conditions=merge_conditions,
+        trust_labelling=trust_labelling,
         output_path=output_path,
         pickled_data_folder=pickled_data_folder,
         solvents_path=solvents_path,
@@ -317,7 +333,7 @@ def main_click(
 def main(
     data_path: str,
     ord_file_ending: str,
-    merge_conditions: bool,
+    trust_labelling: bool,
     output_path: str,
     pickled_data_folder: str,
     solvents_path: typing.Optional[str],
@@ -332,12 +348,12 @@ def main(
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
 
-    python USPTO_extraction.py --merge_conditions=True
+    python USPTO_extraction.py --trust_labelling=False
         Args:
 
-    1) merge_conditions: Bool
-            - If True: Merge the catalysts, reagents and solvents for a reaction into one list, extract any molecules that occur in solvents.csv and label these as solvents, while labelling all the other conditon molecules as agents. Each list was sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list. Each item in the solvents and agents lists become entries in their own columns in the dataframe.
-            - If False, maintain the labelling and ordering of the original data.
+    1) trust_labelling: Bool
+            - If True, maintain the labelling and ordering of the original data.
+            - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
 
     Functionality:
 
@@ -350,10 +366,11 @@ def main(
         - Temperature: All temperatures were converted to Celcius. If only the control type was specified, the following mapping was used: 'AMBIENT' -> 25, 'ICE_BATH' -> 0, 'DRY_ICE' -> -78.5, 'LIQUID_NITROGEN' -> -196.
         - Time: All times were converted to hours.
         - Yield (for each product): The PERCENTAGEYIELD was preferred, but if this was not available, the CALCULATEDPERCENTYIELD was used instead. If neither was available, the value was set to np.nan.
+        - Procedure_details: Plain text string describing the procedure in English.
     3) Canonicalisation and light cleaning
         - All SMILES strings were canonicalised using RDKit.
         - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
-        - The final light cleaning step depends on the value of merge_conditions (see above, in the Args section).
+        - The final light cleaning step depends on the value of trust_labelling (see above, in the Args section).
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
@@ -392,7 +409,7 @@ def main(
 
     kwargs = {
         "output_path": output_path,
-        "merge_conditions": merge_conditions,
+        "trust_labelling": trust_labelling,
         "manual_replacements_dict": manual_replacements_dict,
         "solvents_set": solvents_set,
         "pickled_data_folder": pickled_data_folder,
