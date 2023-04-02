@@ -337,7 +337,6 @@ def test_extraction_pipeline(
     import pandas as pd
 
     for extraction in pickled_data_folder.glob("*"):
-
         df = pd.read_pickle(extraction)
 
         print(df)
