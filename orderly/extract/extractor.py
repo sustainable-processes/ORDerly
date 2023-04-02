@@ -142,7 +142,7 @@ class OrdExtractor:
             if rxn_ident.type == 6:  # REACTION_CXSMILES
                 rxn_str_extended_smiles = rxn_ident.value
                 is_mapped = rxn_ident.is_mapped
-                
+
         if rxn_str_extended_smiles is None:
             return None, None
         rxn_str = rxn_str_extended_smiles.split(" ")[
@@ -153,9 +153,11 @@ class OrdExtractor:
     @staticmethod
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Optional[typing.Tuple[
-        REACTANTS, REAGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]
-    ]]:
+    ) -> typing.Optional[
+        typing.Tuple[
+            REACTANTS, REAGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]
+        ]
+    ]:
         """
         Input a reaction smiles string, and return the reactants, reagents, products, and the reaction smiles string
         """
@@ -496,7 +498,6 @@ class OrdExtractor:
         labelled_products = []
         rxn_non_smiles_names_list = []
 
-        is_mapped = rxn.identifiers[0].is_mapped
         (
             labelled_reactants,
             labelled_reagents,
