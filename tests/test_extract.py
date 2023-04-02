@@ -36,7 +36,7 @@ def get_rxn_func() -> typing.Callable:
     ),
 )
 def rxn_input_extractor(
-# def test_rxn_input_extractor(
+    # def test_rxn_input_extractor(
     file_idx,
     rxn_idx,
     expected_labelled_reactants,
@@ -333,3 +333,18 @@ def test_extraction_pipeline(
         inverse_substring=inverse_substring,
         overwrite=False,
     )
+
+    import pandas as pd
+
+    for extraction in pickled_data_folder.glob("*"):
+
+        df = pd.read_pickle(extraction)
+
+        print(df)
+
+        # TODO tests types
+        # TODO consider None vs nan
+
+        break
+
+    raise ValueError(0)

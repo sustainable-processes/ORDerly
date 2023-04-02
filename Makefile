@@ -11,7 +11,7 @@ pytest:
 	poetry run python -m pytest -v
 
 get_test_data:
-	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data  --name_contains_substring="" --overwrite=False
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .

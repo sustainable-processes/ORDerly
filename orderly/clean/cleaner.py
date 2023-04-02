@@ -475,12 +475,11 @@ def main(
 
     molecules_to_remove = pd.read_pickle(molecules_to_remove_path)
 
-    assert (
-        num_agent == 0 or num_cat == 0 and num_reag == 0
+    assert num_agent == 0 or (
+        num_cat == 0 and num_reag == 0
     ), "Invalid input: If trust_labelling=True in USPTO_extraction, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-    assert (
-        min_frequency_of_occurance_primary > map_rare_to_other_threshold
-        and min_frequency_of_occurance_secondary > map_rare_to_other_threshold
+    assert (min_frequency_of_occurance_primary > map_rare_to_other_threshold) and (
+        min_frequency_of_occurance_secondary > map_rare_to_other_threshold
     ), "min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary must be greater than save_with_label_called_other. Anything between save_with_label_called_other and min_frequency_of_occurance_primary/secondary will be set to 'other' if include_other_category=True."
 
     instance = Cleaner(

@@ -314,6 +314,9 @@ def main_click(
     if solvents_path == "default":
         solvents_path = None
 
+    if name_contains_substring == "":
+        name_contains_substring = None
+
     main(
         data_path=data_path,
         ord_file_ending=ord_file_ending,
@@ -340,7 +343,7 @@ def main(
     molecule_names_folder: str,
     merged_molecules_file: str,
     use_multiprocessing: bool,
-    name_contains_substring: str,
+    name_contains_substring: typing.Optional[str],
     inverse_substring: bool,
     overwrite: bool,
 ):
