@@ -18,7 +18,8 @@ def get_rxn_func() -> typing.Callable:
         import orderly.extract.main
 
         file = orderly.extract.main.get_file_names(
-            directory=orderly.data.get_path_of_test_ords(), file_ending=f"{file_name}.pb.gz"
+            directory=orderly.data.get_path_of_test_ords(),
+            file_ending=f"{file_name}.pb.gz",
         )
         assert len(file) == 1
         file = file[0]
@@ -28,8 +29,6 @@ def get_rxn_func() -> typing.Callable:
         return rxn
 
     return get_rxn
-
-
 
 
 @pytest.mark.parametrize(
@@ -204,7 +203,7 @@ def merge_to_agents(
     import orderly.extract.extractor
 
     if metals is None:
-        metals = orderly.extract.defaults.get_metals_list()        
+        metals = orderly.extract.defaults.get_metals_list()
     if solvents_set is None:
         solvents_set = orderly.extract.defaults.get_solvents_set()
 
@@ -266,7 +265,6 @@ def extract_rxn_extract(
     expected_rxn_str,
     expected_names_list,
 ):
-    
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
@@ -347,4 +345,3 @@ def test_extraction_pipeline(
         # TODO consider None vs nan
 
         break
-

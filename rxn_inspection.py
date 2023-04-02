@@ -4,7 +4,8 @@ import orderly
 orderly.data.get_path_of_test_ords()
 
 files = orderly.extract.main.get_file_names(
-    directory=orderly.data.get_path_of_test_ords(), file_ending="00005539a1e04c809a9a78647bea649c.pb.gz"
+    directory=orderly.data.get_path_of_test_ords(),
+    file_ending="00005539a1e04c809a9a78647bea649c.pb.gz",
 )
 
 from ord_schema import message_helpers as ord_message_helpers

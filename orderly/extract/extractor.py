@@ -47,8 +47,7 @@ class OrdExtractor:
     inverse_contains_substring: bool = False
 
     def __post_init__(self):
-        """ loads in the data from the file and runs the extraction code to build the dataframe
-        """
+        """loads in the data from the file and runs the extraction code to build the dataframe"""
 
         LOG.debug(f"Extracting data from {self.ord_file_path}")
         self.data = OrdExtractor.load_data(self.ord_file_path)
