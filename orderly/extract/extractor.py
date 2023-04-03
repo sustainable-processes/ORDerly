@@ -289,8 +289,7 @@ class OrdExtractor:
         products_obj = rxn.outcomes[0].products
         for product in products_obj:
             try:
-                y1 = np.nan
-                y2 = np.nan
+                y = np.nan
                 identifiers = product.identifiers
                 (
                     product_smiles,
@@ -300,17 +299,10 @@ class OrdExtractor:
                 non_smiles_names_list += non_smiles_names_list_additions
                 measurements = product.measurements
                 for measurement in measurements:
-                    if measurement.details == "PERCENTYIELD":
-                        y1 = measurement.percentage.value
-                    elif measurement.details == "CALCULATEDPERCENTYIELD":
-                        y2 = measurement.percentage.value
+                    if measurement.type == 3:  # YIELD
+                        y = float(measurement.percentage.value)
                 products.append(product_smiles)
-                if not np.isnan(y1):
-                    yields.append(y1)
-                elif not np.isnan(y2):
-                    yields.append(y2)
-                else:
-                    yields.append(np.nan)
+                yields.append(round(y, 2))
             except IndexError:
                 continue
 
@@ -328,30 +320,29 @@ class OrdExtractor:
             temp_unit = rxn.conditions.temperature.setpoint.units
 
             if temp_unit == 1:  # celcius
-                return rxn.conditions.temperature.setpoint.units
+                return rxn.conditions.temperature.setpoint.value
 
             elif temp_unit == 2:  # fahrenheit
-                f = rxn.conditions.temperature.setpoint.units
+                f = rxn.conditions.temperature.setpoint.value
                 c = (f - 32) * 5 / 9
                 return c
 
             elif temp_unit == 3:  # kelvin
-                k = rxn.conditions.temperature.setpoint.units
+                k = rxn.conditions.temperature.setpoint.value
                 c = k - 273.15
                 return c
-            elif temp_unit == 0:
-                if temp_unit == 0:  # unspecified
-                    # instead of using the setpoint, use the control type
-                    # temperatures are in celcius
-                    temp_control_type = rxn.conditions.temperature.control.type
-                    if temp_control_type == 2:  # AMBIENT
-                        return 25
-                    elif temp_control_type == 6:  # ICE_BATH
-                        return 0
-                    elif temp_control_type == 9:  # DRY_ICE_BATH
-                        return -78.5
-                    elif temp_control_type == 11:  # LIQUID_NITROGEN
-                        return -196
+            elif temp_unit == 0:  # unspecified
+                # instead of using the setpoint, use the control type
+                # temperatures are in celcius
+                temp_control_type = rxn.conditions.temperature.control.type
+                if temp_control_type == 2:  # AMBIENT
+                    return 25
+                elif temp_control_type == 6:  # ICE_BATH
+                    return 0
+                elif temp_control_type == 9:  # DRY_ICE_BATH
+                    return -78.5
+                elif temp_control_type == 11:  # LIQUID_NITROGEN
+                    return -196
         except IndexError:
             pass
         return None  # No temperature found
@@ -396,21 +387,27 @@ class OrdExtractor:
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
         yields: YIELDS,
+        use_labelling_if_extract_fails: bool = True,
     ) -> typing.Tuple[PRODUCTS, YIELDS]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
         """
-        reordered_yields = []
-        for rxn_str_prod in rxn_str_products:
-            added = False
-            for ii, lab_prod in enumerate(labelled_products):
-                if rxn_str_prod == lab_prod:
-                    reordered_yields.append(yields[ii])
-                    added = True
-                    break
-            if not added:
-                reordered_yields.append(np.nan)
-        return rxn_str_products, reordered_yields
+        if len(rxn_str_products) != 0:
+            reordered_yields = []
+            for rxn_str_prod in rxn_str_products:
+                added = False
+                for ii, lab_prod in enumerate(labelled_products):
+                    if rxn_str_prod == lab_prod:
+                        reordered_yields.append(yields[ii])
+                        added = True
+                        break
+                if not added:
+                    reordered_yields.append(np.nan)
+            return rxn_str_products, reordered_yields
+        elif use_labelling_if_extract_fails:
+            return labelled_products, yields
+        else:
+            return [], []
 
     @staticmethod
     def merge_to_agents(
@@ -511,8 +508,8 @@ class OrdExtractor:
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         (
-            yields,
             labelled_products,
+            yields,
             non_smiles_names_list_additions,
         ) = OrdExtractor.rxn_outcomes_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions

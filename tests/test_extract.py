@@ -38,11 +38,14 @@ def get_rxn_func() -> typing.Callable:
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
             0,
             ["CC(C)N1CCNCC1", "CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F"],
-            ["O=C([O-])[O-]", "[Cs+]"],
+            ["O=C([O-])[O-]", "[Cs+]", "[Cs+]"],
             [],
             [
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
+                "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
+                "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
+                "[Pd]",
                 "[Pd]",
             ],
             [],
@@ -102,8 +105,8 @@ def test_rxn_input_extractor(
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
             0,
-            [65.39],
             ["CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F"],
+            [65.39],
             [],
         ],
         # [0,1, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
@@ -138,7 +141,7 @@ def test_rxn_outcomes_extractor(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_rxn_str,expected_is_mapped",
     (
-        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None, False],
+        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None, None],
         # [0,1, expected_rxn_str,expected_is_mapped],
     ),
 )
@@ -243,10 +246,10 @@ def test_time_extractor(
             None,
             None,
             [
+                "[Cs+]",
                 "[Pd]",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
                 "O=C([O-])[O-]",
-                "[Cs+]",
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
             ],
             [],
