@@ -160,7 +160,7 @@ def test_rxn_input_extractor(
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
             0,
-            ['[O-]B1OB2OB([O-])OB(O1)O2', '[Na+]', '[Na+]'],
+            ["[O-]B1OB2OB([O-])OB(O1)O2", "[Na+]", "[Na+]"],
             [None, None, None],
             [],
         ],
@@ -495,8 +495,11 @@ def test_match_yield_with_product(
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
             0,
             {},
-            ['SCc1ccccc1','O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1[N+](=O)[O-]',],
-            ['[Na+]','[H-]'],
+            [
+                "SCc1ccccc1",
+                "O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1[N+](=O)[O-]",
+            ],
+            ["[Na+]", "[H-]"],
             [],
             ["C1CCOC1"],
             [],
@@ -508,11 +511,14 @@ def test_match_yield_with_product(
             "1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.",
             [],
         ],
-        [
-            
-            
-            
-        ]
+        # [
+        #     "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
+        #     {},
+        #     ['[O-]B([O-])[O-].[O-]B([O-])[O-]'],
+        #     ['[Na+]'],
+        #     [],
+        #     [],
+        # ]
     ),
 )
 def test_handle_reaction_object(
