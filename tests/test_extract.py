@@ -2,6 +2,9 @@ import typing
 import pytest
 
 
+REPETITIONS = 20
+
+
 def test_hello_world():
     assert True
 
@@ -97,7 +100,9 @@ def get_rxn_func() -> typing.Callable:
         # [0,1, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_input_extractor(
+    execution_number,
     file_name,
     rxn_idx,
     expected_labelled_reactants,
@@ -166,7 +171,9 @@ def test_rxn_input_extractor(
         ],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_outcomes_extractor(
+    execution_number,
     file_name,
     rxn_idx,
     expected_labelled_products,
@@ -210,7 +217,9 @@ def test_rxn_outcomes_extractor(
         ],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_string_and_is_mapped(
+    execution_number,
     file_name,
     rxn_idx,
     expected_rxn_str,
@@ -286,7 +295,9 @@ def test_rxn_string_and_is_mapped(
         ],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_extract_info_from_rxn(
+    execution_number,
     file_name,
     rxn_idx,
     expected_rxn_str_reactants,
@@ -325,7 +336,10 @@ def test_extract_info_from_rxn(
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 1100.0],
     ),
 )
-def test_temperature_extractor(file_name, rxn_idx, expected_temperature):
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
+def test_temperature_extractor(
+    execution_number, file_name, rxn_idx, expected_temperature
+):
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
@@ -345,7 +359,9 @@ def test_temperature_extractor(file_name, rxn_idx, expected_temperature):
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 0.17],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_time_extractor(
+    execution_number,
     file_name,
     rxn_idx,
     expected_rxn_time,
@@ -388,7 +404,9 @@ def test_time_extractor(
         [["O"], [], ["O"], [], None, None, [], ["O"]],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_merge_to_agents(
+    execution_number,
     rxn_str_agents,
     labelled_catalysts,
     labelled_solvents,
@@ -446,7 +464,9 @@ def test_merge_to_agents(
         ],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_match_yield_with_product(
+    execution_number,
     rxn_str_products,
     labelled_products,
     input_yields,
@@ -521,7 +541,9 @@ def test_match_yield_with_product(
         # ]
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_handle_reaction_object(
+    execution_number,
     file_name,
     rxn_idx,
     manual_replacements_dict,
@@ -607,7 +629,9 @@ def test_handle_reaction_object(
         [True, True, None, True],
     ),
 )
+@pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def extraction_pipeline(
+    execution_number,
     tmp_path,
     trust_labelling,
     use_multiprocessing,
