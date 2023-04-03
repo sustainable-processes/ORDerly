@@ -125,9 +125,9 @@ def test_rxn_input_extractor(
         non_smiles_names_list_additions,
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
-    assert (
-        sorted(expected_labelled_reactants) == sorted(labelled_reactants)  # TODO unsure why we have random ordering on ubuntu
-    ), f"failure for {sorted(expected_labelled_reactants)=}, got {sorted(labelled_reactants)}"
+    assert sorted(expected_labelled_reactants) == sorted(
+        labelled_reactants
+    ), f"failure for {sorted(expected_labelled_reactants)=}, got {sorted(labelled_reactants)}"  # TODO unsure why we have random ordering on ubuntu
     assert (
         expected_labelled_reagents == labelled_reagents
     ), f"failure for {expected_labelled_reagents=}, got {labelled_reagents}"
@@ -588,8 +588,8 @@ def test_handle_reaction_object(
     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
         rxn, manual_replacements_dict, solvents_set, metals
     )
-    assert (
-        sorted(reactants) == sorted(expected_reactants)
+    assert sorted(reactants) == sorted(
+        expected_reactants
     ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"
     assert agents == expected_agents, f"failure for {expected_agents=} got {agents}"
     assert (
