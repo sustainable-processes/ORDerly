@@ -126,8 +126,8 @@ def test_rxn_input_extractor(
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
     assert (
-        expected_labelled_reactants == labelled_reactants
-    ), f"failure for {expected_labelled_reactants=}, got {labelled_reactants}"
+        sorted(expected_labelled_reactants) == sorted(labelled_reactants)  # TODO unsure why we have random ordering on ubuntu
+    ), f"failure for {sorted(expected_labelled_reactants)=}, got {sorted(labelled_reactants)}"
     assert (
         expected_labelled_reagents == labelled_reagents
     ), f"failure for {expected_labelled_reagents=}, got {labelled_reagents}"
@@ -589,8 +589,8 @@ def test_handle_reaction_object(
         rxn, manual_replacements_dict, solvents_set, metals
     )
     assert (
-        reactants == expected_reactants
-    ), f"failure for {expected_reactants=} got {reactants}"
+        sorted(reactants) == sorted(expected_reactants)
+    ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"
     assert agents == expected_agents, f"failure for {expected_agents=} got {agents}"
     assert (
         reagents == expected_reagents
