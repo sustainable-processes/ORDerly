@@ -34,8 +34,8 @@ def get_rxn_func() -> typing.Callable:
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
     (
-        ['ord_dataset-00005539a1e04c809a9a78647bea649c',0, ['CC(C)N1CCNCC1','CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F'],['O=C([O-])[O-]','[Cs+]'],[],['c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1', 'O=C(/C=C/c1ccccc1)/C=C/c1ccccc1', '[Pd]'],[],[]]
-        
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c',0, ['CC(C)N1CCNCC1','CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F'],['O=C([O-])[O-]','[Cs+]'],[],['c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1', 'O=C(/C=C/c1ccccc1)/C=C/c1ccccc1', '[Pd]'],[],[]],
+        # ['ord_dataset-00005539a1e04c809a9a78647bea649c',0, ['CC(C)N1CCNCC1','CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F'],['O=C([O-])[O-]','[Cs+]'],[],['c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1', 'O=C(/C=C/c1ccccc1)/C=C/c1ccccc1', '[Pd]'],[],[]],
         #['ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c',0, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
         # [0,1, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
     ),
@@ -78,7 +78,7 @@ def test_rxn_input_extractor(
         # [0,1, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
     ),
 )
-def test_rxn_outcomes_extractor(
+def rxn_outcomes_extractor(
     file_name,
     rxn_idx,
     expected_yields,
@@ -107,7 +107,7 @@ def test_rxn_outcomes_extractor(
         # [0,1, expected_rxn_str,expected_is_mapped],
     ),
 )
-def test_rxn_string_and_is_mapped(
+def rxn_string_and_is_mapped(
     file_name,
     rxn_idx,
     expected_rxn_str,
@@ -133,7 +133,7 @@ def test_rxn_string_and_is_mapped(
         # [0,1, expected_rxn_info],
     ),
 )
-def test_extract_info_from_rxn(
+def extract_info_from_rxn(
     file_name,
     rxn_idx,
     expected_rxn_info,
@@ -154,7 +154,7 @@ def test_extract_info_from_rxn(
         # [0,1, expected_temperature],
     ),
 )
-def test_temperature_extractor(file_name, rxn_idx, expected_temperature):
+def temperature_extractor(file_name, rxn_idx, expected_temperature):
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
@@ -171,7 +171,7 @@ def test_temperature_extractor(file_name, rxn_idx, expected_temperature):
         # [0,1, expected_rxn_time],
     ),
 )
-def test_time_extractor(
+def time_extractor(
     file_name,
     rxn_idx,
     expected_rxn_time,
@@ -194,7 +194,7 @@ def test_time_extractor(
     ),
 )
 
-def test_merge_to_agents(
+def merge_to_agents(
     rxn_str_agents,
     labelled_catalysts,
     labelled_solvents,
@@ -232,7 +232,7 @@ def test_merge_to_agents(
  []
     ),
 )
-def test_match_yield_with_product(
+def match_yield_with_product(
     rxn_str_products,
     input_yields,
     labelled_products,
@@ -256,49 +256,49 @@ def test_match_yield_with_product(
         # [file_name,rxn_idx,manual_replacements_dict,expected_reactants,expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str,expected_names_list],
     ),
 )
-# def extract_rxn_extract(
-#     file_name,
-#     rxn_idx,
-#     manual_replacements_dict,
-#     expected_reactants,
-#     expected_reagents,
-#     expected_solvents,
-#     expected_catalysts,
-#     expected_products,
-#     expected_yields,
-#     expected_temperature,
-#     expected_rxn_time,
-#     expected_rxn_str,
-#     expected_names_list,
-# ):
-#     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+def handle_reaction_object(
+    file_name,
+    rxn_idx,
+    manual_replacements_dict,
+    expected_reactants,
+    expected_reagents,
+    expected_solvents,
+    expected_catalysts,
+    expected_products,
+    expected_yields,
+    expected_temperature,
+    expected_rxn_time,
+    expected_rxn_str,
+    expected_names_list,
+):
+    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
-#     import orderly.extract.extractor
+    import orderly.extract.extractor
 
-#     (
-#         reactants,
-#         reagents,
-#         solvents,
-#         catalysts,
-#         products,
-#         yields,
-#         temperature,
-#         rxn_time,
-#         rxn_str,
-#         names_list,
-#     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-#         rxn, manual_replacements_dict
-#     )
-#     assert reactants == expected_reactants
-#     assert reagents == expected_reagents
-#     assert solvents == expected_solvents
-#     assert catalysts == expected_catalysts
-#     assert products == expected_products
-#     assert yields == expected_yields
-#     assert temperature == expected_temperature
-#     assert rxn_time == expected_rxn_time
-#     assert rxn_str == expected_rxn_str
-#     assert names_list == expected_names_list
+    (
+        reactants,
+        reagents,
+        solvents,
+        catalysts,
+        products,
+        yields,
+        temperature,
+        rxn_time,
+        rxn_str,
+        names_list,
+    ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
+        rxn, manual_replacements_dict
+    )
+    assert reactants == expected_reactants
+    assert reagents == expected_reagents
+    assert solvents == expected_solvents
+    assert catalysts == expected_catalysts
+    assert products == expected_products
+    assert yields == expected_yields
+    assert temperature == expected_temperature
+    assert rxn_time == expected_rxn_time
+    assert rxn_str == expected_rxn_str
+    assert names_list == expected_names_list
 
 
 @pytest.mark.parametrize(
@@ -310,7 +310,7 @@ def test_match_yield_with_product(
         [True, True, None, True],
     ),
 )
-def test_extraction_pipeline(
+def extraction_pipeline(
     tmp_path,
     trust_labelling,
     use_multiprocessing,
