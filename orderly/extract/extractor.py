@@ -161,7 +161,7 @@ class OrdExtractor:
         ]
     ]:
         """
-        Input a reaction smiles string, and return the reactants, reagents, products, and the reaction smiles string
+        Input a reaction object, and return the reactants, reagents, products, and the reaction smiles string
         """
         _ = rdkit_BlockLogs()
         rxn_str, is_mapped = OrdExtractor.get_rxn_string_and_is_mapped(rxn)
