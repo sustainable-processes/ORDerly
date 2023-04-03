@@ -34,7 +34,7 @@ def get_rxn_func() -> typing.Callable:
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
     (
-        # [0,0, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz',0, ['CC(C)N1CCNCC1','CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F'],['O=C([O-])[O-]','[Cs+]'],[],['c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1', 'O=C(/C=C/c1ccccc1)/C=C/c1ccccc1', '[Pd]'],[],[]]
         # [0,1, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
     ),
 )
@@ -73,7 +73,7 @@ def rxn_input_extractor(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions",
     (
-        # [0,0, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz',0, [65.39],['CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F'],[]],
         # [0,1, expected_yields,expected_labelled_products,expected_non_smiles_names_list_additions],
     ),
 )
@@ -102,7 +102,7 @@ def rxn_outcomes_extractor(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_rxn_str,expected_is_mapped",
     (
-        # [0,0, expected_rxn_str,expected_is_mapped],
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz',0, None,False],
         # [0,1, expected_rxn_str,expected_is_mapped],
     ),
 )
@@ -128,7 +128,7 @@ def rxn_string_and_is_mapped(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_rxn_info",
     (
-        # [0,0, expected_rxn_info],
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz',0, expected_rxn_info],
         # [0,1, expected_rxn_info],
     ),
 )
@@ -149,7 +149,7 @@ def extract_info_from_rxn(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_temperature",
     (
-        # [0,0, expected_temperature],
+        ['ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz',0, 110],
         # [0,1, expected_temperature],
     ),
 )
