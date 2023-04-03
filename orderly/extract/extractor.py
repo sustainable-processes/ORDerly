@@ -156,22 +156,20 @@ class OrdExtractor:
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
     ) -> typing.Optional[
-        typing.Tuple[
-            REACTANTS, REAGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]
-        ]
+        typing.Tuple[REACTANTS, AGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]]
     ]:
         """
-        Input a reaction object, and return the reactants, reagents, products, and the reaction smiles string
+        Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
         _ = rdkit_BlockLogs()
         rxn_str, is_mapped = OrdExtractor.get_rxn_string_and_is_mapped(rxn)
         if rxn_str is None:
             return None
 
-        reactant_from_rxn, reagent, product_from_rxn = rxn_str.split(">")
+        reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
 
         reactant_from_rxn = reactant_from_rxn.split(".")
-        reagents = reagent.split(".")
+        agents = agent.split(".")
         product_from_rxn = product_from_rxn.split(".")
 
         non_smiles_names_list = []
@@ -196,6 +194,16 @@ class OrdExtractor:
                 non_smiles_names_list.append(smi)
             product_from_rxn_without_mapping.append(canon_smi)
 
+        cleaned_agents = []
+        for smi in agents:
+            canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
+                smi, is_mapped
+            )
+            if canon_smi is None:
+                canon_smi = smi
+                non_smiles_names_list.append(smi)
+            cleaned_agents.append(canon_smi)
+
         reactants = []
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
         # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
@@ -210,9 +218,9 @@ class OrdExtractor:
                 ):
                     reactants.append(r_clean)
                 else:
-                    reagents.append(r_clean)
+                    cleaned_agents.append(r_clean)
         products = [p for p in product_from_rxn_without_mapping if p not in reactants]
-        return reactants, reagents, products, rxn_str, non_smiles_names_list
+        return reactants, cleaned_agents, products, rxn_str, non_smiles_names_list
 
     @staticmethod
     def rxn_input_extractor(
@@ -289,7 +297,7 @@ class OrdExtractor:
         products_obj = rxn.outcomes[0].products
         for product in products_obj:
             try:
-                y = np.nan
+                y = None
                 identifiers = product.identifiers
                 (
                     product_smiles,
@@ -301,8 +309,18 @@ class OrdExtractor:
                 for measurement in measurements:
                     if measurement.type == 3:  # YIELD
                         y = float(measurement.percentage.value)
-                products.append(product_smiles)
-                yields.append(round(y, 2))
+                        y = round(y, 2)
+                # people sometimes report a product such as '[Na+].[Na+].[O-]B1OB2OB([O-])OB(O1)O2' and then only report one yield, this is a problem...
+                # We'll resolve this by moving the longest smiles string to the front of the list, then appending the yield to the front of the list, and padding with None to ensure that the lists are the same length
+
+                # split the product string by dot and sort by descending length
+                product_list = sorted(product_smiles.split("."), key=len, reverse=True)
+
+                # create a list of the same length as product_list with y as the first value and None as the other values
+                y_list = [y] + [None] * (len(product_list) - 1)
+
+                products += product_list
+                yields += y_list
             except IndexError:
                 continue
 
@@ -320,29 +338,29 @@ class OrdExtractor:
             temp_unit = rxn.conditions.temperature.setpoint.units
 
             if temp_unit == 1:  # celcius
-                return rxn.conditions.temperature.setpoint.value
+                return float(rxn.conditions.temperature.setpoint.value)
 
             elif temp_unit == 2:  # fahrenheit
                 f = rxn.conditions.temperature.setpoint.value
                 c = (f - 32) * 5 / 9
-                return c
+                return float(c)
 
             elif temp_unit == 3:  # kelvin
                 k = rxn.conditions.temperature.setpoint.value
                 c = k - 273.15
-                return c
+                return float(c)
             elif temp_unit == 0:  # unspecified
                 # instead of using the setpoint, use the control type
                 # temperatures are in celcius
                 temp_control_type = rxn.conditions.temperature.control.type
                 if temp_control_type == 2:  # AMBIENT
-                    return 25
+                    return 25.0
                 elif temp_control_type == 6:  # ICE_BATH
-                    return 0
+                    return 0.0
                 elif temp_control_type == 9:  # DRY_ICE_BATH
                     return -78.5
                 elif temp_control_type == 11:  # LIQUID_NITROGEN
-                    return -196
+                    return -196.0
         except IndexError:
             pass
         return None  # No temperature found
@@ -351,19 +369,19 @@ class OrdExtractor:
     def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[float]:
         try:
             if rxn.outcomes[0].reaction_time.units == 1:  # hour
-                return rxn.outcomes[0].reaction_time.value
+                return round(float(rxn.outcomes[0].reaction_time.value), 2)
             elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
                 s = rxn.outcomes[0].reaction_time.value
                 h = s / 3600
-                return h
+                return round(float(h), 2)
             elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
                 m = rxn.outcomes[0].reaction_time.value
                 h = m / 60
-                return h
+                return round(float(h), 2)
             elif rxn.outcomes[0].reaction_time.units == 4:  # day
                 d = rxn.outcomes[0].reaction_time.value
                 h = d * 24
-                return h
+                return round(float(h), 2)
         except IndexError:
             pass
         return None  # no time found
@@ -392,7 +410,7 @@ class OrdExtractor:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
         """
-        if len(rxn_str_products) != 0:
+        if len(rxn_str_products) != 0 and yields is not None:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
                 added = False
@@ -421,16 +439,17 @@ class OrdExtractor:
         """
         Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put metals (likely to be catalysts) first.
         """
+        print(catalysts)
         # merge the solvents, reagents, and catalysts into one list
         agents = []
         if rxn_string_agents is not None:
-            agents += rxn_string_agents
+            agents += [a for a in rxn_string_agents if not None]
         if catalysts is not None:
-            agents += catalysts
+            agents += [a for a in catalysts if not None]
         if solvents is not None:
-            agents += solvents
+            agents += [a for a in solvents if not None]
         if reagents is not None:
-            agents += reagents
+            agents += [a for a in reagents if not None]
 
         agents_set = set(agents)  # this includes the solvnts
 
@@ -586,6 +605,7 @@ class OrdExtractor:
 
         # remove molecules that are integers
         reactants = [x for x in reactants if not is_digit(x)]
+        agents = [x for x in agents if not is_digit(x)]
         reagents = [x for x in reagents if not is_digit(x)]
         solvents = [x for x in solvents if not is_digit(x)]
         catalysts = [x for x in catalysts if not is_digit(x)]
