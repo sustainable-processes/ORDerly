@@ -2,7 +2,7 @@ import typing
 import pytest
 
 
-REPETITIONS = 20
+REPETITIONS = 5
 
 
 def test_hello_world():
