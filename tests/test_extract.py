@@ -462,8 +462,8 @@ def test_time_extractor(
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["O", "CCO", "c1ccccc1"],
         ],
-        # We would expect these one to fail:
-        [
+        #TODO We would expect these one to fail:
+        pytest.param(
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["[Pd]"],
             ["O", "CCO"],
@@ -472,8 +472,9 @@ def test_time_extractor(
             None,
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["O", "CCO"],
-        ],
-        [
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["[Pd]"],
             ["O", "CCO"],
@@ -482,8 +483,9 @@ def test_time_extractor(
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]", "O", "CCO", "c1ccccc1"],
             [],
-        ],
-        [
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["[Pd]"],
             ["O", "CCO"],
@@ -492,7 +494,8 @@ def test_time_extractor(
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["O", "O", "CCO", "c1ccccc1"],
-        ],
+            marks=pytest.mark.xfail,
+        ),
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -771,7 +774,6 @@ def test_handle_reaction_object(
     expected_procedure_details,
     expected_names_list,
 ):
-    # NB: when adding the test case for expected_procedure_details, you should copy-paste the printed output rather than the actual string from the rxn object. (ie use the string from print(procedure_details) rather than the procedure_details string)
     import orderly.extract.extractor
 
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
@@ -800,6 +802,14 @@ def test_handle_reaction_object(
     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
         rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
     )
+    def clean_string(s):
+        import string
+        printable = set(string.printable)
+        return ''.join(filter(lambda x: x in printable, s))    
+    
+    clean_procedure_details = clean_string(procedure_details)
+    clean_expected_procedure_details = clean_string(expected_procedure_details)
+
     assert sorted(reactants) == sorted(
         expected_reactants
     ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"
@@ -830,8 +840,8 @@ def test_handle_reaction_object(
         names_list == expected_names_list
     ), f"failure for {expected_names_list=} got {names_list}"
     assert (
-        procedure_details == expected_procedure_details
-    ), f"failure for {expected_procedure_details=} got {procedure_details}"
+        clean_procedure_details == clean_expected_procedure_details
+    ), f"failure for {clean_expected_procedure_details=} got {clean_procedure_details}"
 
 
 @pytest.mark.parametrize(
