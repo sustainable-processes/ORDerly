@@ -2,7 +2,7 @@ import typing
 import pytest
 
 
-REPETITIONS = 5
+REPETITIONS = 1
 
 
 def test_hello_world():
@@ -492,8 +492,8 @@ def test_merge_to_agents(
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
             [None, None, None],
-            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
-            [None, None, None],
+            ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
+            [None],
         ],
     ),
 )

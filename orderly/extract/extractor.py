@@ -420,7 +420,7 @@ class OrdExtractor:
                         added = True
                         break
                 if not added:
-                    reordered_yields.append(np.nan)
+                    reordered_yields.append(None)
             return rxn_str_products, reordered_yields
         elif use_labelling_if_extract_fails:
             return labelled_products, yields
