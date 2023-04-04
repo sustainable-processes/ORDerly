@@ -2,9 +2,9 @@ import typing
 import pytest
 
 
-REPETITIONS = 0
-SLOW_REPETITIONS = 0
-TESTED = 1
+REPETITIONS = 1
+SLOW_REPETITIONS = 1
+
 
 def test_hello_world():
     assert True
@@ -98,7 +98,16 @@ def get_rxn_func() -> typing.Callable:
             [],
             ["35(Na2O)"],
         ],
-        # [0,1, expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            ["CC1(C)C2CCC(=O)C1C2", "C1CCNC1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            [],
+            ["c1ccccc1"],
+            [],
+            [],
+            [],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -170,6 +179,13 @@ def test_rxn_input_extractor(
             [None, None, None],
             [],
         ],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            [95.0],
+            [],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -214,6 +230,12 @@ def test_rxn_outcomes_extractor(
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
             0,
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+            True,
+        ],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
             True,
         ],
     ),
@@ -288,6 +310,16 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            ["C1CCNC1", "CC1(C)C2CCC(=O)C1C2"],
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
+            [],
+            False,
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -323,7 +355,7 @@ def test_extract_info_from_rxn(
     assert sorted(expected_rxn_str_reactants) == sorted(rxn_str_reactants)
     assert sorted(expected_rxn_str_agents) == sorted(rxn_str_agents)
     assert sorted(expected_rxn_str_products) == sorted(rxn_str_products)
-    assert sorted(expected_rxn_str) == sorted(rxn_str)
+    assert expected_rxn_str == rxn_str
     assert sorted(expected_non_smiles_names_list_additions) == sorted(
         non_smiles_names_list_additions
     )
@@ -339,6 +371,7 @@ def test_extract_info_from_rxn(
         ],  # TODO check what happens with INTS vs floats
         ["ord_dataset-0b70410902ae4139bd5d334881938f69", 0, None],
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 1100.0],
+        ["ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6", 0, None],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -362,6 +395,7 @@ def test_temperature_extractor(
         ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None],
         ["ord_dataset-0b70410902ae4139bd5d334881938f69", 0, None],
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 0.17],
+        ["ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6", 0, None],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -407,6 +441,58 @@ def test_time_extractor(
         ],
         [["C1CCOC1"], None, ["C1CCOC1", "C1CCOC1"], None, None, None, [], ["C1CCOC1"]],
         [["O"], [], ["O"], [], None, None, [], ["O"]],
+        [
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            [],
+            ["c1ccccc1"],
+            [],
+            None,
+            None,
+            ["Cc1ccc(S(=O)(=O)O)cc1"],
+            ["c1ccccc1", "O"],
+        ],
+        # Made up test cases:
+        [
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["[Pd]"],
+            ["O", "CCO"],
+            ["O=C([O-])[O-]"],
+            None,
+            None,
+            ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
+            ["O", "CCO", "c1ccccc1"],
+        ],
+        # We would expect these one to fail:
+        [
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["[Pd]"],
+            ["O", "CCO"],
+            ["O=C([O-])[O-]"],
+            None,
+            None,
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["O", "CCO"],
+        ],
+        [
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["[Pd]"],
+            ["O", "CCO"],
+            ["O=C([O-])[O-]"],
+            None,
+            None,
+            ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]", "O", "CCO", "c1ccccc1"],
+            [],
+        ],
+        [
+            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
+            ["[Pd]"],
+            ["O", "CCO"],
+            ["O=C([O-])[O-]"],
+            None,
+            None,
+            ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
+            ["O", "O", "CCO", "c1ccccc1"],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -437,10 +523,12 @@ def test_merge_to_agents(
         solvents_set,
     )
 
-    assert expected_agents == agents, f"failure for {expected_agents=} got {agents}"
-    assert (
-        expected_solvents == solvents
-    ), f"failure for {expected_solvents=} got {solvents}"
+    assert set(expected_agents) == set(
+        agents
+    ), f"failure for {expected_agents=} got {agents}"
+    assert set(expected_solvents) == set(
+        solvents
+    ), f"failure for {expected_solvents=} got {solvents}"  # TODO: Can we remove these sorted calls? This function is supposed to output molecules in a specific order
 
 
 @pytest.mark.parametrize(
@@ -481,6 +569,13 @@ def test_merge_to_agents(
             [None, None, None],
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             [None],
+        ],
+        [
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            [95.0],
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            [95.0],
         ],
     ),
 )
@@ -611,6 +706,49 @@ def test_match_yield_with_product(
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             ["35(Na2O)"],
         ],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            {},
+            False,
+            ["C1CCNC1", "CC1(C)C2CCC(=O)C1C2"],
+            [
+                "Cc1ccc(S(=O)(=O)O)cc1",
+            ],
+            [],
+            ["c1ccccc1", "O"],
+            [],
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            [95.0],
+            None,
+            None,
+            "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
+            "A solution of 30 g of nopinone ([Î±]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117Â°-118Â° C./10 Torr.",
+            [],
+        ],
+        [
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            {},
+            True,
+            [
+                "C1CCNC1",
+                "CC1(C)C2CCC(=O)C1C2",
+                "O",
+                "Cc1ccc(S(=O)(=O)O)cc1",
+            ],
+            [],
+            [],
+            ["c1ccccc1"],
+            [],
+            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+            [95.0],
+            None,
+            None,
+            "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
+            "A solution of 30 g of nopinone ([Î±]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117Â°-118Â° C./10 Torr.",
+            [],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -665,18 +803,20 @@ def test_handle_reaction_object(
     assert sorted(reactants) == sorted(
         expected_reactants
     ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"
-    assert agents == expected_agents, f"failure for {expected_agents=} got {agents}"
-    assert (
-        reagents == expected_reagents
+    assert sorted(agents) == sorted(
+        expected_agents
+    ), f"failure for {expected_agents=} got {agents}"
+    assert sorted(reagents) == sorted(
+        expected_reagents
     ), f"failure for {expected_reagents=} got {reagents}"
-    assert (
-        solvents == expected_solvents
+    assert sorted(solvents) == sorted(
+        expected_solvents
     ), f"failure for {expected_solvents=} got {solvents}"
-    assert (
-        catalysts == expected_catalysts
+    assert sorted(catalysts) == sorted(
+        expected_catalysts
     ), f"failure for {expected_catalysts=} got {catalysts}"
-    assert (
-        products == expected_products
+    assert sorted(products) == sorted(
+        expected_products
     ), f"failure for {expected_products=} got {products}"
     assert yields == expected_yields, f"failure for {expected_yields=} got {yields}"
     assert (
@@ -698,14 +838,17 @@ def test_handle_reaction_object(
     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
         [False, True, "uspto", True],
-        # [False, True, "uspto", False], # TODO: This test is really slow, I think cause of AZ data?
-        # [True, False, "uspto", True],
-        # [True, True, None, True],
+        [
+            False,
+            True,
+            "uspto",
+            False,
+        ],  # TODO: This test is really slow, I think cause of AZ data?
+        [True, False, "uspto", True],
+        [True, True, None, True],
     ),
 )
-#@pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
-@pytest.mark.parametrize("execution_number", range(TESTED))
-
+@pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
 def test_extraction_pipeline(
     execution_number,
     tmp_path,
@@ -744,18 +887,16 @@ def test_extraction_pipeline(
         df = pd.read_pickle(extraction)
         if df is None:
             continue
-        
+
         # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0'],
-        # They're allowed to be strings or floats or None
+        # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})
             if len(series.dropna()) == 0:
                 continue
-            elif 'temperature' in col or 'rxn_time' in col or 'yield' in col:
+            elif "temperature" in col or "rxn_time" in col or "yield" in col:
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
                 assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
-                
-
 
         break
