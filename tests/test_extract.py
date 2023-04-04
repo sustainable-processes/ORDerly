@@ -336,7 +336,7 @@ def test_extract_info_from_rxn(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_temperature",
     (
-        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, 110],
+        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, 110.0], # TODO check what happens with INTS vs floats
         ["ord_dataset-0b70410902ae4139bd5d334881938f69", 0, None],
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 1100.0],
     ),
@@ -462,6 +462,21 @@ def test_merge_to_agents(
         ],
         [
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            [None, None, None],
+            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            [None, None, None],
+        ],
+        pytest.param(
+            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            [None],
+            ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
+            [None],
+            marks=pytest.mark.xfail(reason="IndexError: list index out of range")
+        ),
+        [
+            ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
             [None, None, None],
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
