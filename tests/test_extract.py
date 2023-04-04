@@ -570,7 +570,19 @@ def test_match_yield_with_product(
         #     ['[O-]B([O-])[O-].[O-]B([O-])[O-]'],
         #     ['[Na+]'],
         #     [],
-        #     [],
+        #     ['O'],
+        #         [],
+        #         ["[O-]B1OB2OB([O-])OB(O1)O2"],
+        #         [None],
+        #         [1100.0],
+        #         [0.17],
+        #         "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+        #         "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150\302\260 C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100\302\260 C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
+        #         ["35(Na2O)"]
+                
+                
+                
+                
         # ]
     ),
 )
