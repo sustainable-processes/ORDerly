@@ -5,7 +5,7 @@ import orderly.extract.extractor
 from orderly.extract.extractor import OrdExtractor
 import orderly.data
 
-from orderly.types import *  # TODO CHANGE TYPES TO USE THE FORMAT orderly.TYPE
+from orderly.types import *
 
 
 import logging

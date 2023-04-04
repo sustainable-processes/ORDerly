@@ -263,7 +263,7 @@ def test_rxn_string_and_is_mapped(
     ), f"failure for {expected_is_mapped=} got {is_mapped}"
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize( #TODO add the modifer func
     "file_name,rxn_idx,expected_rxn_str_reactants,expected_rxn_str_agents,expected_rxn_str_products,expected_rxn_str,expected_non_smiles_names_list_additions,expected_none",
     (
         [
@@ -320,6 +320,8 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        # Add reaction with only 1 >
+        # Add reaction which is None
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -333,8 +335,17 @@ def test_extract_info_from_rxn(
     expected_rxn_str,
     expected_non_smiles_names_list_additions,
     expected_none,
+    rnx_modifier_func,
 ):
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    
+    
+    def make_rxn_none(rxn):
+        rxn.inputs[0] = None
+        return rxn
+    
+    if rnx_modifier_func is not None:
+        rxn = rnx_modifier_func(rxn)
 
     import orderly.extract.extractor
 
@@ -352,13 +363,11 @@ def test_extract_info_from_rxn(
         non_smiles_names_list_additions,
     ) = rxn_info
 
-    assert sorted(expected_rxn_str_reactants) == sorted(rxn_str_reactants)
-    assert sorted(expected_rxn_str_agents) == sorted(rxn_str_agents)
-    assert sorted(expected_rxn_str_products) == sorted(rxn_str_products)
+    assert expected_rxn_str_reactants == rxn_str_reactants
+    assert expected_rxn_str_agents == rxn_str_agents
+    assert expected_rxn_str_products == rxn_str_products
     assert expected_rxn_str == rxn_str
-    assert sorted(expected_non_smiles_names_list_additions) == sorted(
-        non_smiles_names_list_additions
-    )
+    assert expected_non_smiles_names_list_additions == non_smiles_names_list_additions
 
 
 @pytest.mark.parametrize(
@@ -368,7 +377,7 @@ def test_extract_info_from_rxn(
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
             0,
             110.0,
-        ],  # TODO check what happens with INTS vs floats
+        ],
         ["ord_dataset-0b70410902ae4139bd5d334881938f69", 0, None],
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 1100.0],
         ["ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6", 0, None],
@@ -387,6 +396,8 @@ def test_temperature_extractor(
     assert (
         expected_temperature == temperature
     ), f"failure for {expected_temperature=} got {temperature}"
+    if temperature is not None:
+        assert isinstance(temperature, float), f"expected a float but got {temperature=}"
 
 
 @pytest.mark.parametrize(
@@ -414,6 +425,9 @@ def test_time_extractor(
     assert (
         expected_rxn_time == rxn_time
     ), f"failure for {expected_rxn_time=} got {rxn_time}"
+    
+    if rxn_time is not None:
+        assert isinstance(rxn_time, float), f"expected a float but got {rxn_time=}"
 
 
 @pytest.mark.parametrize(
@@ -462,7 +476,6 @@ def test_time_extractor(
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["O", "CCO", "c1ccccc1"],
         ],
-        #TODO We would expect these one to fail:
         pytest.param(
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["[Pd]"],
@@ -526,12 +539,8 @@ def test_merge_to_agents(
         solvents_set,
     )
 
-    assert set(expected_agents) == set(
-        agents
-    ), f"failure for {expected_agents=} got {agents}"
-    assert set(expected_solvents) == set(
-        solvents
-    ), f"failure for {expected_solvents=} got {solvents}"  # TODO: Can we remove these sorted calls? This function is supposed to output molecules in a specific order
+    assert expected_agents == agents, f"failure for {expected_agents=} got {agents}"
+    assert expected_solvents == solvents, f"failure for {expected_solvents=} got {solvents}"
 
 
 @pytest.mark.parametrize(
@@ -781,7 +790,6 @@ def test_handle_reaction_object(
         manual_replacements_dict = orderly.extract.main.get_manual_replacements_dict(
             solvents_path=None
         )
-        # TODO: Update solvents_path to be not None
 
     metals = orderly.extract.defaults.get_metals_list()
     solvents_set = orderly.extract.defaults.get_solvents_set()
@@ -810,24 +818,12 @@ def test_handle_reaction_object(
     clean_procedure_details = clean_string(procedure_details)
     clean_expected_procedure_details = clean_string(expected_procedure_details)
 
-    assert sorted(reactants) == sorted(
-        expected_reactants
-    ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"
-    assert sorted(agents) == sorted(
-        expected_agents
-    ), f"failure for {expected_agents=} got {agents}"
-    assert sorted(reagents) == sorted(
-        expected_reagents
-    ), f"failure for {expected_reagents=} got {reagents}"
-    assert sorted(solvents) == sorted(
-        expected_solvents
-    ), f"failure for {expected_solvents=} got {solvents}"
-    assert sorted(catalysts) == sorted(
-        expected_catalysts
-    ), f"failure for {expected_catalysts=} got {catalysts}"
-    assert sorted(products) == sorted(
-        expected_products
-    ), f"failure for {expected_products=} got {products}"
+    assert reactants == expected_reactants, f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"# TODO unsure why we have random ordering on ubuntu
+    assert agents ==expected_agents, f"failure for {expected_agents=} got {agents}"
+    assert reagents == expected_reagents, f"failure for {expected_reagents=} got {reagents}"
+    assert solvents == expected_solvents, f"failure for {expected_solvents=} got {solvents}"
+    assert catalysts == expected_catalysts, f"failure for {expected_catalysts=} got {catalysts}"
+    assert products ==expected_products, f"failure for {expected_products=} got {products}"
     assert yields == expected_yields, f"failure for {expected_yields=} got {yields}"
     assert (
         temperature == expected_temperature
@@ -853,7 +849,7 @@ def test_handle_reaction_object(
             True,
             "uspto",
             False,
-        ],  # TODO: This test is really slow, I think cause of AZ data?
+        ],
         [True, False, "uspto", True],
         [True, True, None, True],
     ),

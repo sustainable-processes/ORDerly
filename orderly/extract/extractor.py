@@ -2,6 +2,7 @@ import logging
 import typing
 import pathlib
 import dataclasses
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -540,7 +541,28 @@ class OrdExtractor:
         ) = OrdExtractor.rxn_outcomes_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        # TODO: labelled_products_from_input should either be empty or equal to labelled_products, if not, we should raise a warning
+        if (labelled_products_from_input != []) and (
+            labelled_products_from_input != labelled_products
+        ):
+            if len(labelled_products_from_input) != len(labelled_products):
+                warnings.warn(
+                    "The number of products in rxn.inputs and rxn.outcomes do not match"
+                )
+            for idx, (mole_id_from_input, mole_id_from_outcomes) in enumerate(
+                zip(sorted(labelled_products_from_input), sorted(labelled_products))
+            ):
+                smi_from_input = orderly.extract.canonicalise.get_canonicalised_smiles(
+                    mole_id_from_input, is_mapped=is_mapped
+                )
+                smi_from_outcomes = (
+                    orderly.extract.canonicalise.get_canonicalised_smiles(
+                        mole_id_from_outcomes, is_mapped=is_mapped
+                    )
+                )
+                if smi_from_input != smi_from_outcomes:
+                    warnings.warn(
+                        f"The smiles do not match for {idx=}: {smi_from_input=}!={smi_from_outcomes=}"
+                    )
 
         # A reaction object has 3 data-sources: rxn_string, rxn_inputs, and rxn_outcomes; these sources should be in agreement, but it's still important to have a robust idea of how to resolve any disagreements
         rxn_str, is_mapped = OrdExtractor.get_rxn_string_and_is_mapped(rxn)

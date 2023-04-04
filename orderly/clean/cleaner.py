@@ -358,6 +358,7 @@ def main_click(
     map_rare_to_other_threshold: int,
     disable_tqdm: bool,
 ):
+    #TODO rewrite
     """
     After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
 
