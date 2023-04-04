@@ -758,6 +758,4 @@ def test_extraction_pipeline(
                 
 
 
-        # TODO should is_mapped be False or None if there is no reaction string?
-
         break
