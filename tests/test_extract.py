@@ -243,7 +243,16 @@ def test_rxn_string_and_is_mapped(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_rxn_str_reactants,expected_rxn_str_agents,expected_rxn_str_products,expected_rxn_str,expected_non_smiles_names_list_additions,expected_none",
     (
-        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None,None,None,None,None, True],
+        [
+            "ord_dataset-00005539a1e04c809a9a78647bea649c",
+            0,
+            None,
+            None,
+            None,
+            None,
+            None,
+            True,
+        ],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
             0,
@@ -336,7 +345,11 @@ def test_extract_info_from_rxn(
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_temperature",
     (
-        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, 110.0], # TODO check what happens with INTS vs floats
+        [
+            "ord_dataset-00005539a1e04c809a9a78647bea649c",
+            0,
+            110.0,
+        ],  # TODO check what happens with INTS vs floats
         ["ord_dataset-0b70410902ae4139bd5d334881938f69", 0, None],
         ["ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0, 1100.0],
     ),
@@ -473,7 +486,7 @@ def test_merge_to_agents(
             [None],
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
             [None],
-            marks=pytest.mark.xfail(reason="IndexError: list index out of range")
+            marks=pytest.mark.xfail(reason="IndexError: list index out of range"),
         ),
         [
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
