@@ -241,10 +241,9 @@ def test_rxn_string_and_is_mapped(
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,expected_rxn_str_reactants,expected_rxn_str_agents,expected_rxn_str_products,expected_rxn_str,expected_non_smiles_names_list_additions",
+    "file_name,rxn_idx,expected_rxn_str_reactants,expected_rxn_str_agents,expected_rxn_str_products,expected_rxn_str,expected_non_smiles_names_list_additions,expected_none",
     (
-        # ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None],
-        # TODO: allow the function to return None for this test case
+        ["ord_dataset-00005539a1e04c809a9a78647bea649c", 0, None,None,None,None,None, True],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
             0,
@@ -260,6 +259,7 @@ def test_rxn_string_and_is_mapped(
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             "[CH2:1]([SH:8])[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1.[H-].[Na+].[Cl:11][C:12]1[CH:30]=[C:29]([C:31]([F:34])([F:33])[F:32])[CH:28]=[CH:27][C:13]=1[O:14][C:15]1[CH:20]=[CH:19][C:18]([N+:21]([O-:23])=[O:22])=[C:17]([N+]([O-])=O)[CH:16]=1>O1CCCC1>[CH2:1]([S:8][C:17]1[CH:16]=[C:15]([O:14][C:13]2[CH:27]=[CH:28][C:29]([C:31]([F:34])([F:32])[F:33])=[CH:30][C:12]=2[Cl:11])[CH:20]=[CH:19][C:18]=1[N+:21]([O-:23])=[O:22])[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1",
             [],
+            False,
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -292,6 +292,7 @@ def test_rxn_string_and_is_mapped(
             ],
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
             [],
+            False,
         ],
     ),
 )
@@ -305,22 +306,26 @@ def test_extract_info_from_rxn(
     expected_rxn_str_products,
     expected_rxn_str,
     expected_non_smiles_names_list_additions,
+    expected_none,
 ):
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
 
     import orderly.extract.extractor
 
+    rxn_info = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn(rxn)
+    if expected_none:
+        assert rxn_info is None, f"expected a none but got {rxn_info=}"
+        return
+    else:
+        assert rxn_info is not None, f"did not expect a none but got one {rxn_info=}"
     (
         rxn_str_reactants,
         rxn_str_agents,
         rxn_str_products,
         rxn_str,
         non_smiles_names_list_additions,
-    ) = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn(rxn)
-    # if rxn_info = None:
-    #     assert expected_rxn_str == rxn_info, f"failure for {expected_rxn_str=} got {rxn_info}"
-    # else:
-    #     assert (expected_rxn_str_reactants == rxn_info)
+    ) = rxn_info
+
     assert expected_rxn_str_reactants == rxn_str_reactants
     assert expected_rxn_str_agents == rxn_str_agents
     assert expected_rxn_str_products == rxn_str_products
