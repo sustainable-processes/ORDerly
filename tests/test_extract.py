@@ -2,7 +2,8 @@ import typing
 import pytest
 
 
-REPETITIONS = 1
+REPETITIONS = 5
+SLOW_REPETITIONS = 1
 
 
 def test_hello_world():
@@ -323,7 +324,9 @@ def test_extract_info_from_rxn(
     assert sorted(expected_rxn_str_agents) == sorted(rxn_str_agents)
     assert sorted(expected_rxn_str_products) == sorted(rxn_str_products)
     assert sorted(expected_rxn_str) == sorted(rxn_str)
-    assert sorted(expected_non_smiles_names_list_additions) == sorted(non_smiles_names_list_additions)
+    assert sorted(expected_non_smiles_names_list_additions) == sorted(
+        non_smiles_names_list_additions
+    )
 
 
 @pytest.mark.parametrize(
@@ -551,28 +554,29 @@ def test_match_yield_with_product(
             [],
         ],
         [
-            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
+            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
+            0,
             {},
             False,
-            ['[O-]B([O-])[O-]'],
-            ['[Na+]'],
+            ["[O-]B([O-])[O-]"],
+            ["[Na+]"],
             [],
-            ['O'],
-                [],
-                ["[O-]B1OB2OB([O-])OB(O1)O2"],
-                [None],
-                1100.0,
-                0.17,
-                "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
-                'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
-                [],                
+            ["O"],
+            [],
+            ["[O-]B1OB2OB([O-])OB(O1)O2"],
+            [None],
+            1100.0,
+            0.17,
+            "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+            "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
+            [],
         ],
-        
         [
-            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
+            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
+            0,
             {},
             True,
-           [
+            [
                 "[Na+]",
                 "[Na+]",
                 "[Na+]",
@@ -591,20 +595,22 @@ def test_match_yield_with_product(
                 "[O-]B([O-])[O-]",
                 "35(Na2O)",
             ],
-           [],
             [],
-            ['O'],
-                [],
-                ["[O-]B1OB2OB([O-])OB(O1)O2", 
+            [],
+            ["O"],
+            [],
+            [
+                "[O-]B1OB2OB([O-])OB(O1)O2",
                 "[Na+]",
-                "[Na+]",],
-                [None, None, None],
-                1100.0,
-                0.17,
-                "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
-                'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
-                ["35(Na2O)"],           
-        ]
+                "[Na+]",
+            ],
+            [None, None, None],
+            1100.0,
+            0.17,
+            "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+            "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
+            ["35(Na2O)"],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -627,7 +633,7 @@ def test_handle_reaction_object(
     expected_procedure_details,
     expected_names_list,
 ):
-    #NB: when adding the test case for expected_procedure_details, you should copy-paste the printed output rather than the actual string from the rxn object. (ie use the string from print(procedure_details) rather than the procedure_details string)
+    # NB: when adding the test case for expected_procedure_details, you should copy-paste the printed output rather than the actual string from the rxn object. (ie use the string from print(procedure_details) rather than the procedure_details string)
     import orderly.extract.extractor
 
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
@@ -697,8 +703,8 @@ def test_handle_reaction_object(
         [True, True, None, True],
     ),
 )
-@pytest.mark.parametrize("execution_number", range(REPETITIONS))
-def extraction_pipeline(
+@pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
+def test_extraction_pipeline(
     execution_number,
     tmp_path,
     trust_labelling,

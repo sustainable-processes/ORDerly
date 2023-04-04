@@ -167,12 +167,10 @@ class OrdExtractor:
             return None
 
         reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
-        
 
         reactant_from_rxn = reactant_from_rxn.split(".")
         agents = agent.split(".")
         product_from_rxn = product_from_rxn.split(".")
-        
 
         non_smiles_names_list = []
         # We need molecules wihtout maping info, so we can compare them to the products
@@ -205,8 +203,6 @@ class OrdExtractor:
                 canon_smi = smi
                 non_smiles_names_list.append(smi)
             cleaned_agents.append(canon_smi)
-            
-
 
         reactants = []
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
@@ -225,8 +221,14 @@ class OrdExtractor:
                     cleaned_agents.append(r_clean)
         products = [p for p in product_from_rxn_without_mapping if p not in reactants]
         products = [p for p in products if p not in cleaned_agents]
-        
-        return list(set(reactants)), list(set(cleaned_agents)), list(set(products)), rxn_str, non_smiles_names_list
+
+        return (
+            list(set(reactants)),
+            list(set(cleaned_agents)),
+            list(set(products)),
+            rxn_str,
+            non_smiles_names_list,
+        )
 
     @staticmethod
     def rxn_input_extractor(
@@ -571,7 +573,7 @@ class OrdExtractor:
                 products, yields = OrdExtractor.match_yield_with_product(
                     rxn_str_products, labelled_products, yields
                 )
-                
+
             except (ValueError, TypeError) as e:
                 rxn_str_agents = []
                 # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
