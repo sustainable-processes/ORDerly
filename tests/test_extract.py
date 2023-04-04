@@ -275,29 +275,13 @@ def test_rxn_string_and_is_mapped(
             0,
             [
                 "[O-]B([O-])[O-]",
-                "[O-]B([O-])[O-]",
-                "[O-]B([O-])[O-]",
-                "[O-]B([O-])[O-]",
             ],
             [
                 "O",
                 "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
-                "[Na+]",
             ],
             [
                 "[O-]B1OB2OB([O-])OB(O1)O2",
-                "[Na+]",
-                "[Na+]",
             ],
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
             [],
@@ -335,11 +319,11 @@ def test_extract_info_from_rxn(
         non_smiles_names_list_additions,
     ) = rxn_info
 
-    assert expected_rxn_str_reactants == rxn_str_reactants
-    assert expected_rxn_str_agents == rxn_str_agents
-    assert expected_rxn_str_products == rxn_str_products
-    assert expected_rxn_str == rxn_str
-    assert expected_non_smiles_names_list_additions == non_smiles_names_list_additions
+    assert sorted(expected_rxn_str_reactants) == sorted(rxn_str_reactants)
+    assert sorted(expected_rxn_str_agents) == sorted(rxn_str_agents)
+    assert sorted(expected_rxn_str_products) == sorted(rxn_str_products)
+    assert sorted(expected_rxn_str) == sorted(rxn_str)
+    assert sorted(expected_non_smiles_names_list_additions) == sorted(non_smiles_names_list_additions)
 
 
 @pytest.mark.parametrize(
@@ -519,12 +503,13 @@ def test_match_yield_with_product(
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,manual_replacements_dict,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_names_list",
+    "file_name,rxn_idx,manual_replacements_dict,trust_labelling,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_names_list",
     (
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
             0,
             {},
+            False,
             ["CC(C)N1CCNCC1", "CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F"],
             [
                 "[Cs+]",
@@ -548,6 +533,7 @@ def test_match_yield_with_product(
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
             0,
             {},
+            False,
             [
                 "SCc1ccccc1",
                 "O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1[N+](=O)[O-]",
@@ -564,26 +550,61 @@ def test_match_yield_with_product(
             "1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.",
             [],
         ],
-        # [
-        #     "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
-        #     {},
-        #     ['[O-]B([O-])[O-].[O-]B([O-])[O-]'],
-        #     ['[Na+]'],
-        #     [],
-        #     ['O'],
-        #         [],
-        #         ["[O-]B1OB2OB([O-])OB(O1)O2"],
-        #         [None],
-        #         [1100.0],
-        #         [0.17],
-        #         "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
-        #         "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150\302\260 C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100\302\260 C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
-        #         ["35(Na2O)"]
-                
-                
-                
-                
-        # ]
+        [
+            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
+            {},
+            False,
+            ['[O-]B([O-])[O-]'],
+            ['[Na+]'],
+            [],
+            ['O'],
+                [],
+                ["[O-]B1OB2OB([O-])OB(O1)O2"],
+                [None],
+                1100.0,
+                0.17,
+                "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+                'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
+                [],                
+        ],
+        
+        [
+            "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c", 0,
+            {},
+            True,
+           [
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[Na+]",
+                "[O-]B([O-])[O-]",
+                "[O-]B([O-])[O-]",
+                "[O-]B([O-])[O-]",
+                "[O-]B([O-])[O-]",
+                "35(Na2O)",
+            ],
+           [],
+            [],
+            ['O'],
+                [],
+                ["[O-]B1OB2OB([O-])OB(O1)O2", 
+                "[Na+]",
+                "[Na+]",],
+                [None, None, None],
+                1100.0,
+                0.17,
+                "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
+                'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
+                ["35(Na2O)"],           
+        ]
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -592,6 +613,7 @@ def test_handle_reaction_object(
     file_name,
     rxn_idx,
     manual_replacements_dict,
+    trust_labelling,
     expected_reactants,
     expected_agents,
     expected_reagents,
@@ -605,6 +627,7 @@ def test_handle_reaction_object(
     expected_procedure_details,
     expected_names_list,
 ):
+    #NB: when adding the test case for expected_procedure_details, you should copy-paste the printed output rather than the actual string from the rxn object. (ie use the string from print(procedure_details) rather than the procedure_details string)
     import orderly.extract.extractor
 
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
@@ -631,7 +654,7 @@ def test_handle_reaction_object(
         procedure_details,
         names_list,
     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, metals
+        rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
     )
     assert sorted(reactants) == sorted(
         expected_reactants
@@ -714,7 +737,7 @@ def extraction_pipeline(
         print(df)
 
         # TODO tests types
-        # TODO consider None vs nan
+        # TODO consider None vs nan -> We should just use None every time, and find replace all none with nan, since only nan can be used with pandas vectorised operations
         # TODO should is_mapped be False or None if there is no reaction string?
 
         break

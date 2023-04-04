@@ -167,10 +167,12 @@ class OrdExtractor:
             return None
 
         reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
+        
 
         reactant_from_rxn = reactant_from_rxn.split(".")
         agents = agent.split(".")
         product_from_rxn = product_from_rxn.split(".")
+        
 
         non_smiles_names_list = []
         # We need molecules wihtout maping info, so we can compare them to the products
@@ -203,6 +205,8 @@ class OrdExtractor:
                 canon_smi = smi
                 non_smiles_names_list.append(smi)
             cleaned_agents.append(canon_smi)
+            
+
 
         reactants = []
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
@@ -220,7 +224,9 @@ class OrdExtractor:
                 else:
                     cleaned_agents.append(r_clean)
         products = [p for p in product_from_rxn_without_mapping if p not in reactants]
-        return reactants, cleaned_agents, products, rxn_str, non_smiles_names_list
+        products = [p for p in products if p not in cleaned_agents]
+        
+        return list(set(reactants)), list(set(cleaned_agents)), list(set(products)), rxn_str, non_smiles_names_list
 
     @staticmethod
     def rxn_input_extractor(
@@ -439,7 +445,6 @@ class OrdExtractor:
         """
         Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put metals (likely to be catalysts) first.
         """
-        print(catalysts)
         # merge the solvents, reagents, and catalysts into one list
         agents = []
         if rxn_string_agents is not None:
@@ -560,11 +565,13 @@ class OrdExtractor:
                     rxn_str,
                     rxn_non_smiles_names_list,
                 ) = rxn_info
-                reactants = rxn_str_reactants
+                reactants = list(set(rxn_str_reactants))
                 # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
+                rxn_str_products = list(set(rxn_str_products))
                 products, yields = OrdExtractor.match_yield_with_product(
                     rxn_str_products, labelled_products, yields
                 )
+                
             except (ValueError, TypeError) as e:
                 rxn_str_agents = []
                 # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
@@ -586,7 +593,6 @@ class OrdExtractor:
             )
             reagents = []
             catalysts = []
-
         # extract temperature
         temperature = OrdExtractor.temperature_extractor(rxn)
 
@@ -632,6 +638,7 @@ class OrdExtractor:
             return mole_id_list, non_smiles_names_list_additions
 
         # Reactants and products might be mapped, but agents are not
+        # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
         (
             reactants,
             non_smiles_names_list_additions,
@@ -680,7 +687,10 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        # Apply the manual_replacements_dict to the reagents, solvents, and catalysts
+        # Apply the manual_replacements_dict to the agents, reagents, solvents, and catalysts
+        agents = OrdExtractor.apply_replacements_dict(
+            agents, manual_replacements_dict=manual_replacements_dict
+        )
         reagents = OrdExtractor.apply_replacements_dict(
             reagents, manual_replacements_dict=manual_replacements_dict
         )
@@ -700,6 +710,7 @@ class OrdExtractor:
         catalysts = [c for c in catalysts if c not in reactants]
 
         procedure_details = rxn.notes.procedure_details
+        rxn_non_smiles_names_list = list(set(rxn_non_smiles_names_list))
 
         return (
             reactants,
