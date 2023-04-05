@@ -12,12 +12,12 @@ The scripts herein will extract and clean data from ORD with various manual step
 
 We want to download the ORD data locally, this can be done through any of the following methods:
 
-1. Follow the instructions at: https://github.com/open-reaction-database/ord-data, we specifically care about the folders in ```ord-data/data/```
-2. Docker install with linux (run in terminal):
+- Follow the instructions at: https://github.com/open-reaction-database/ord-data, we specifically care about the folders in ```ord-data/data/```
+- Docker install with linux (run in terminal):
     ```
     make linux_download_ord
     ``` 
-3. Docker install with mac (run in terminal):
+- Docker install with mac (run in terminal):
     ```
     make root_download_ord
     make sudo_chown
@@ -27,7 +27,7 @@ We want to download the ORD data locally, this can be done through any of the fo
  
 You might need some environment dependencies. If running locally these will need to be dealt with. However, if running using docker, the depenencies will be managed in the build script.
 
-1. Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
+- Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
 
 ```
 sudo apt-get update
@@ -38,12 +38,12 @@ sudo apt-get install libpq-dev gcc -y
 
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
-1. For poetry (run in terminal):
+- For poetry (run in terminal):
     Python dependencies:
         ```bash
         poetry install
         ```
-2. For docker (run in terminal):
+- For docker (run in terminal):
     ```bash
     build_orderly
     run_orderly
