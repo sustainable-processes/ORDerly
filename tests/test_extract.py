@@ -1,6 +1,6 @@
 import typing
 import pytest
-
+import pathlib
 
 REPETITIONS = 3
 SLOW_REPETITIONS = 1
@@ -26,7 +26,7 @@ def get_rxn_func() -> typing.Callable:
             file_ending=f"{file_name}.pb.gz",
         )
         assert len(file) == 1
-        file = file[0]
+        file = pathlib.Path(file[0])
 
         dataset = orderly.extract.extractor.OrdExtractor.load_data(file)
         rxn = dataset.reactions[rxn_idx]
@@ -910,7 +910,7 @@ def test_extraction_pipeline(
     import orderly.data
 
     orderly.extract.main.main(
-        data_path=str(orderly.data.get_path_of_test_ords()),
+        data_path=orderly.data.get_path_of_test_ords(),
         ord_file_ending=".pb.gz",
         trust_labelling=trust_labelling,
         output_path=tmp_path,
