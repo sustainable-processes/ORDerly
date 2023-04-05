@@ -32,7 +32,7 @@ def test_clean(
     import orderly.data
 
     orderly.clean.cleaner.main(
-        clean_data_path=tmp_path / "cleaned_USPTO.parquet",
+        clean_data_path=tmp_path / "orderly_ord.parquet",
         pickles_path=orderly.data.get_path_of_test_extracted_ords() / "pickled_data",
         molecules_to_remove_path=orderly.data.get_path_of_test_extracted_ords()
         / "all_molecule_names.pkl",

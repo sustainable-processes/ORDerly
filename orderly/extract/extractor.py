@@ -31,7 +31,7 @@ def strip_filename(
 
 @dataclasses.dataclass(kw_only=True)
 class OrdExtractor:
-    """Read in an ord file, check if it contains USPTO data, and then:
+    """Read in an ord file, check if it contains data, and then:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
     2) Canonicalise all the molecules
     3) Write to a pickle file

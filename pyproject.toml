@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ORDerly"
 version = "0.0.1"
-description = "Cleaning and extraction of USPTO data from ORD"
+description = "Cleaning and extraction of data from ORD"
 authors = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>", "Alexander Pomberger <ap2153@cam.ac.uk>", "Alexei A. Lapkin <aal35@cam.ac.uk>"]
 maintainers = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>"]
 # New attributes

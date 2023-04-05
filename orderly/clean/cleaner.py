@@ -28,7 +28,7 @@ class Cleaner:
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int)
 
-            The number of molecules of that type to keep. Keep in mind that if trust_labelling=False in USPTO_extraction, there will only be agents,
+            The number of molecules of that type to keep. Keep in mind that if trust_labelling=False in orderly.extract, there will only be agents,
             but no catalysts/reagents, and if trust_labelling=True, there will only be catalysts and reagents, but no agents. Agents should be seen
             as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is
             more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents.
@@ -37,7 +37,7 @@ class Cleaner:
             furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling,
             so it's probably best to merge these.
 
-        num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
+        num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
         num_solv (int): See help for num_reactant
         num_agent (int): See help for num_reactant
@@ -324,7 +324,7 @@ class Cleaner:
 @click.option(
     "--clean_data_path",
     type=str,
-    default="./cleaned_USPTO.parquet",
+    default="data/orderly/orderly_ord.parquet",
     show_default=True,
     help="The filepath where the cleaned data will be saved",
 )
@@ -350,7 +350,7 @@ class Cleaner:
     type=int,
     default=5,
     show_default=True,
-    help="The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.",
+    help="The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.",
 )
 @click.option(
     "--num_product",
@@ -522,7 +522,7 @@ def main(
 
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0
-    ), "Invalid input: If trust_labelling=True in USPTO_extraction, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+    ), "Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
     assert (min_frequency_of_occurance_primary > map_rare_to_other_threshold) and (
         min_frequency_of_occurance_secondary > map_rare_to_other_threshold
     ), "min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary must be greater than save_with_label_called_other. Anything between save_with_label_called_other and min_frequency_of_occurance_primary/secondary will be set to 'other' if include_other_category=True."

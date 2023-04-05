@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 
 
 def get_file_names(
-    directory=pathlib.Path("data/USPTO/ord-data/data/"),
+    directory: pathlib.Path,
     file_ending: str = ".pb.gz",
 ) -> typing.List[pathlib.Path]:
     """
@@ -43,8 +43,8 @@ def get_file_names(
 
 
 def merge_pickled_mol_names(
-    molecule_names_path: pathlib.Path = pathlib.Path("data/USPTO/molecule_names"),
-    output_file_path: pathlib.Path = pathlib.Path("data/USPTO/all_molecule_names.pkl"),
+    molecule_names_path: pathlib.Path = pathlib.Path("data/orderly/molecule_names"),
+    output_file_path: pathlib.Path = pathlib.Path("data/orderly/all_molecule_names.pkl"),
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
 ):
@@ -240,7 +240,7 @@ def extract(
 @click.option(
     "--output_path",
     type=str,
-    default="data/USPTO/",
+    default="data/orderly/",
     show_default=True,
     help="The path to the folder than will contain the pickled_data_folder and molecule_names_folder",
 )
@@ -315,7 +315,7 @@ def main_click(
     overwrite: bool,
 ):
     """
-    After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
+    After downloading the dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
 
 
