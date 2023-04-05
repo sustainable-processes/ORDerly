@@ -942,5 +942,3 @@ def test_extraction_pipeline(
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
                 assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
-
-        break
