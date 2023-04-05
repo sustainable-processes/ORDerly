@@ -95,16 +95,3 @@ RUN pip install rdkit-pypi
 
 RUN echo 'conda activate rxnmapper' >> /root/.bashrc
 ENTRYPOINT [ "/bin/bash", "-l"]
-
-FROM orderly_base as rxnmapper_test
-
-USER root
-RUN apt-get install -y curl
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/home/worker/.cargo/bin:${PATH}"
-
-USER worker
-RUN poetry add setuptools-rust
-RUN poetry add rxnmapper
-
-CMD ["bash"]
