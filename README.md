@@ -8,7 +8,7 @@ The scripts herein will extract and clean data from ORD with various manual step
 
 ### 1. Install
 
-#### 1. Download the ORD data
+#### I Download the ORD data
 
 We want to download the ORD data locally, this can be done through any of the following methods:
 
@@ -23,11 +23,11 @@ We want to download the ORD data locally, this can be done through any of the fo
     make sudo_chown
     ```
 
-#### 2. Install OS depenencies
+#### II Install OS depenencies
  
 
 
-#### 3. Install dependencies
+#### III Install dependencies
 
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
