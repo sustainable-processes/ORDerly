@@ -15,7 +15,16 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass(kw_only=True)
 class Cleaner:
-    """
+    """Loads in the extracted data and removes invalid/undesired reactions.
+
+    1) Merge the pickle files from orderly.extract into a df
+
+    2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
+    3) Remove reactions with inconsistent yields (consistent_yield)
+    4) Removal or remapping to 'other' of rare molecules
+    5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
+    6) Remove duplicate reactions
+    7) Pickle the final df
 
     Args:
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
@@ -30,12 +39,12 @@ class Cleaner:
             furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling,
             so it's probably best to merge these.
 
-        num_reactant (int): [description]
-        num_product (int): [description]
-        num_solv (int): [description]
-        num_agent (int): [description]
-        num_cat (int): [description]
-        num_reag (int): [description]
+        num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
+        num_product (int): See help for num_reactant
+        num_solv (int): See help for num_reactant
+        num_agent (int): See help for num_reactant
+        num_cat (int): See help for num_reactant
+        num_reag (int): See help for num_reactant
         min_frequency_of_occurance_primary (int): The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably
                                                     add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of
                                                     that type, ie solvent_0, agent_0, catalyst_0, reagent_0
@@ -315,29 +324,96 @@ class Cleaner:
 
 @click.command()
 @click.option(
-    "--clean_data_path", type=str, default="./cleaned_USPTO.parquet", show_default=True
-)
-@click.option("--pickles_path", type=str)
-@click.option("--molecules_to_remove_path", type=str)
-@click.option("--consistent_yield", type=bool, default=True, show_default=True)
-@click.option("--num_reactant", type=int, default=5, show_default=True)
-@click.option("--num_product", type=int, default=5, show_default=True)
-@click.option("--num_solv", type=int, default=2, show_default=True)
-@click.option("--num_agent", type=int, default=3, show_default=True)
-@click.option("--num_cat", type=int, default=0, show_default=True)
-@click.option("--num_reag", type=int, default=0, show_default=True)
-@click.option(
-    "--min_frequency_of_occurance_primary", type=int, default=15, show_default=True
+    "--clean_data_path",
+    type=str,
+    default="./cleaned_USPTO.parquet",
+    show_default=True,
+    help="The filepath where the cleaned data will be saved",
 )
 @click.option(
-    "--min_frequency_of_occurance_secondary", type=int, default=15, show_default=True
+    "--pickles_path",
+    type=str,
+    help="The filepath to the folder than contains the extracted pickles",
 )
-@click.option("--include_other_category", type=bool, default=True)
+@click.option(
+    "--molecules_to_remove_path",
+    type=str,
+    help="The path to the pickle file than contains the molecules_names",
+)
+@click.option(
+    "--consistent_yield",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
+)
+@click.option(
+    "--num_reactant",
+    type=int,
+    default=5,
+    show_default=True,
+    help="The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.",
+)
+@click.option(
+    "--num_product",
+    type=int,
+    default=5,
+    show_default=True,
+    help="See help for num_reactant",
+)
+@click.option(
+    "--num_solv",
+    type=int,
+    default=2,
+    show_default=True,
+    help="See help for num_reactant",
+)
+@click.option(
+    "--num_agent",
+    type=int,
+    default=3,
+    show_default=True,
+    help="See help for num_reactant",
+)
+@click.option(
+    "--num_cat",
+    type=int,
+    default=0,
+    show_default=True,
+    help="See help for num_reactant",
+)
+@click.option(
+    "--num_reag",
+    type=int,
+    default=0,
+    show_default=True,
+    help="See help for num_reactant",
+)
+@click.option(
+    "--min_frequency_of_occurance_primary",
+    type=int,
+    default=15,
+    show_default=True,
+    help="The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0",
+)
+@click.option(
+    "--min_frequency_of_occurance_secondary",
+    type=int,
+    default=15,
+    show_default=True,
+    help="See help for min_frequency_of_occurance_primary. Secondary: Any other columns than the first.",
+)
+@click.option(
+    "--include_other_category",
+    type=bool,
+    default=True,
+    help="Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'",
+)
 @click.option(
     "--map_rare_to_other_threshold",
     type=int,
     default=3,
-    help="save the reaction: label the rare molecule with 'other' rather than removing it",
+    help="Frequency cutoff (see help for include_other_category).",
     show_default=True,
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
@@ -358,28 +434,12 @@ def main_click(
     map_rare_to_other_threshold: int,
     disable_tqdm: bool,
 ):
-    # TODO rewrite
     """
-    After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
+    After running orderly.extract, this script will merge and apply further cleaning to the data.
 
-        Example:
+    Functionality:
 
-    python orderly.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
-
-
-        Args:
-
-    1) clean_data_file_name: (str) The filepath where the cleaned data will be saved
-    2) consistent_yield: (bool) Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
-    3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
-    9) min_frequency_of_occurance_primary: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0
-    10) min_frequency_of_occurance_secondary: (int) See above. Secondary: Any other columns than the first.
-    11) include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'
-    12) save_with_label_called_other (int): Frequency cutoff (see above).
-
-        Functionality:
-
-    1) Merge the pickle files from USPTO_extraction.py into a df
+    1) Merge the pickle files from orderly.extract into a df
 
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
@@ -388,12 +448,13 @@ def main_click(
     6) Remove duplicate reactions
     7) Pickle the final df
 
-        Output:
+    Output:
 
     1) A pickle file containing the cleaned data
 
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
+    2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
     main(
         clean_data_path=clean_data_path,
@@ -432,26 +493,11 @@ def main(
     disable_tqdm: bool,
 ):
     """
-    After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
+    After running orderly.extract, this script will merge and apply further cleaning to the data.
 
-        Example:
+    Functionality:
 
-    python orderly.py --clean_data_file_name=cleaned_USPTO --consistent_yield=True --num_reactant=5 --num_product=5 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --min_frequency_of_occurance_primary=15 --min_frequency_of_occurance_secondary=15 --include_other_category=True --save_with_label_called_other=10
-
-
-        Args:
-
-    1) clean_data_file_name: (str) The filepath where the cleaned data will be saved
-    2) consistent_yield: (bool) Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
-    3) - 8) num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int) The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in USPTO_extraction, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
-    9) min_frequency_of_occurance_primary: (int) The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0
-    10) min_frequency_of_occurance_secondary: (int) See above. Secondary: Any other columns than the first.
-    11) include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'
-    12) save_with_label_called_other (int): Frequency cutoff (see above).
-
-        Functionality:
-
-    1) Merge the pickle files from USPTO_extraction.py into a df
+    1) Merge the pickle files from orderly.extract into a df
 
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
@@ -460,7 +506,7 @@ def main(
     6) Remove duplicate reactions
     7) Pickle the final df
 
-        Output:
+    Output:
 
     1) A pickle file containing the cleaned data
 

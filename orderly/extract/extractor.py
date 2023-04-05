@@ -36,6 +36,16 @@ class OrdExtractor:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
     2) Canonicalise all the molecules
     3) Write to a pickle file
+
+    Args:
+            ord_file_path (pathlib.Path):
+            trust_labelling (bool):
+            manual_replacements_dict (typing.Dict[str, str]):
+            metals (METALS, optional) default=None
+            solvents_set (Set[SOLVENT]], optional) default=None
+            filename (str, optional) default=None:
+            contains_substring (str, optional) default=None:
+            inverse_contains_substring (bool) default=False:
     """
 
     ord_file_path: pathlib.Path
@@ -44,7 +54,7 @@ class OrdExtractor:
     metals: typing.Optional[METALS] = None
     solvents_set: typing.Optional[typing.Set[SOLVENT]] = None
     filename: typing.Optional[str] = None
-    contains_substring: typing.Optional[str] = None  # None or uspto
+    contains_substring: typing.Optional[str] = None  # typically: None or uspto
     inverse_contains_substring: bool = False
 
     def __post_init__(self):

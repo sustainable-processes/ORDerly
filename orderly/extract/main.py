@@ -214,36 +214,77 @@ def extract(
 
 
 @click.command()
-@click.option("--data_path", type=str, default="data/ord/", show_default=True)
+@click.option(
+    "--data_path",
+    type=str,
+    default="data/ord/",
+    show_default=True,
+    help="The path of the folder that contains the ORD data",
+)
 @click.option(
     "--ord_file_ending",
     type=str,
     default=".pb.gz",
-    help="The file ending for the ord data",
+    help="The file ending for the ord data, if empty will extract all files in the folder",
     show_default=True,
 )
-@click.option("--trust_labelling", type=bool, default=False, show_default=False)
-@click.option("--output_path", type=str, default="data/USPTO/", show_default=True)
 @click.option(
-    "--pickled_data_folder", type=str, default="pickled_data", show_default=True
+    "--trust_labelling",
+    type=bool,
+    default=False,
+    show_default=False,
+    help="""
+- If True, maintain the labelling and ordering of the original data.
+- If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.""",
 )
-@click.option("--solvents_path", type=str, default="default", show_default=True)
 @click.option(
-    "--molecule_names_folder", type=str, default="molecule_names", show_default=True
+    "--output_path",
+    type=str,
+    default="data/USPTO/",
+    show_default=True,
+    help="The path to the folder than will contain the pickled_data_folder and molecule_names_folder",
+)
+@click.option(
+    "--pickled_data_folder",
+    type=str,
+    default="pickled_data",
+    show_default=True,
+    help="The name of folder than contains the pickle data structures",
+)
+@click.option(
+    "--solvents_path",
+    type=str,
+    default="default",
+    show_default=True,
+    help="The path to the solvents csv, if None will use the default",
+)
+@click.option(
+    "--molecule_names_folder",
+    type=str,
+    default="molecule_names",
+    show_default=True,
+    help="The name of the folder that contains the molecule_name pickles per folder",
 )
 @click.option(
     "--merged_molecules_file",
     type=str,
     default="all_molecule_names.pkl",
     show_default=True,
+    help="The path to the merged_molecules pickle file",
 )
-@click.option("--use_multiprocessing", type=bool, default=True, show_default=True)
+@click.option(
+    "--use_multiprocessing",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Boolean to make the processing of each ORD file done with multiprocessing",
+)
 @click.option(
     "--name_contains_substring",
     type=str,
     default="uspto",
     show_default=True,
-    help="checks a substring exists in the ord data file name, for example 'uspto' grabs only uspto data",
+    help="A filter for the ORD file names, will only extract files that includes the str. If left empty will not search for anything. For example 'uspto' grabs only uspto data",
 )
 @click.option(
     "--inverse_substring",
@@ -277,12 +318,35 @@ def main_click(
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
 
-    python USPTO_extraction.py --trust_labelling=False
-        Args:
 
-    1) trust_labelling: Bool
-            - If True, maintain the labelling and ordering of the original data.
-            - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    Args:
+
+    1) data_path: str
+        - Path to the folder that contains the ORD data
+    2) ord_file_ending: str
+        - the file ending of the ord data typically ".pb.gz"
+    3) trust_labelling: Bool
+        - If True, maintain the labelling and ordering of the original data.
+        - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    4) output_path: str
+        - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
+    5) pickled_data_folder: str
+        - The name of folder than contains the pickle data structures
+    6) solvents_path: typing.Optional[str]
+        - The path to the solvents csv, if None will use the default
+    7) molecule_names_folder: str
+        - The name of the folder that contains the molecule_name pickles per folder
+    8) merged_molecules_file: str
+        - The path to the merged_molecules pickle file
+    9) use_multiprocessing: bool
+        - Boolean to make the processing of each ORD file done with multiprocessing
+    10) name_contains_substring: typing.Optional[str]
+        - A filter for the ORD file names, will only extract files that includes the str. If left empty will not search for anything. For example 'uspto' grabs only uspto data
+    11) inverse_substring: bool
+        - Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in
+    12) overwrite: bool
+        - If true, will overwrite existing files, else will through an error if a file exists.
+
 
     Functionality:
 
@@ -303,29 +367,31 @@ def main_click(
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl").
+    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
 
     Output:
 
     1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
-    2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
+    2) A list of all unique molecule names (in merged_molecules_file)
     """
 
     if solvents_path == "default":
         solvents_path = None
+    else:
+        solvents_path = pathlib.Path(solvents_path)
 
     if name_contains_substring == "":
         name_contains_substring = None
 
     main(
-        data_path=data_path,
+        data_path=pathlib.Path(data_path),
         ord_file_ending=ord_file_ending,
         trust_labelling=trust_labelling,
-        output_path=output_path,
+        output_path=pathlib.Path(output_path),
         pickled_data_folder=pickled_data_folder,
         solvents_path=solvents_path,
         molecule_names_folder=molecule_names_folder,
-        merged_molecules_file=merged_molecules_file,
+        merged_molecules_file=pathlib.Path(merged_molecules_file),
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
         inverse_substring=inverse_substring,
@@ -334,14 +400,14 @@ def main_click(
 
 
 def main(
-    data_path: str,
+    data_path: pathlib.Path,
     ord_file_ending: str,
     trust_labelling: bool,
-    output_path: str,
+    output_path: pathlib.Path,
     pickled_data_folder: str,
-    solvents_path: typing.Optional[str],
+    solvents_path: typing.Optional[pathlib.Path],
     molecule_names_folder: str,
-    merged_molecules_file: str,
+    merged_molecules_file: pathlib.Path,
     use_multiprocessing: bool,
     name_contains_substring: typing.Optional[str],
     inverse_substring: bool,
@@ -351,12 +417,35 @@ def main(
     After downloading the USPTO dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
 
-    python USPTO_extraction.py --trust_labelling=False
-        Args:
 
-    1) trust_labelling: Bool
-            - If True, maintain the labelling and ordering of the original data.
-            - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    Args:
+
+    1) data_path: pathlib.Path
+        - Path to the folder that contains the ORD data
+    2) ord_file_ending: str
+        - the file ending of the ord data typically ".pb.gz"
+    3) trust_labelling: Bool
+        - If True, maintain the labelling and ordering of the original data.
+        - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this data doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    4) output_path: pathlib.Path
+        - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
+    5) pickled_data_folder: str
+        - The name of folder than contains the pickle data structures
+    6) solvents_path: typing.Optional[pathlib.Path]
+        - The path to the solvents csv, if None will use the default
+    7) molecule_names_folder: str
+        - The name of the folder that contains the molecule_name pickles per folder
+    8) merged_molecules_file: pathlib.Path
+        - The path to the merged_molecules pickle file
+    9) use_multiprocessing: bool
+        - Boolean to make the processing of each ORD file done with multiprocessing
+    10) name_contains_substring: typing.Optional[str]
+        - A filter for the ORD file names, will only extract files that includes the str. If left empty will not search for anything. For example 'uspto' grabs only uspto data
+    11) inverse_substring: bool
+        - Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in
+    12) overwrite: bool
+        - If true, will overwrite existing files, else will through an error if a file exists.
+
 
     Functionality:
 
@@ -377,18 +466,16 @@ def main(
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
     5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl").
+    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
 
     Output:
 
     1) A pickle file with the cleaned data for each folder of uspto data. NB: Temp always in C, time always in hours
-    2) A list of all unique molecule names (in "data/USPTO/molecule_names/all_molecule_names.pkl")
+    2) A list of all unique molecule names (in merged_molecules_file)
     """
 
     LOG.info("starting extraction")
     start_time = datetime.datetime.now()
-    data_path = pathlib.Path(data_path)
-    output_path = pathlib.Path(output_path)
 
     pickled_data_path = output_path / pickled_data_folder
     molecule_name_path = output_path / molecule_names_folder
