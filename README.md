@@ -25,19 +25,20 @@ We want to download the ORD data locally, this can be done through any of the fo
 
 #### II Install OS depenencies
  
+You might need some environment dependencies. If running locally these will need to be dealt with. However, if running using docker, the depenencies will be managed in the build script.
 
+1. Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
+
+```
+sudo apt-get update
+sudo apt-get install libpq-dev gcc -y
+```
 
 #### III Install dependencies
 
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
 1. For poetry (run in terminal):
-    You might need some environment dependencies
-        Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
-        ```
-        sudo apt-get update
-        sudo apt-get install libpq-dev gcc -y
-        ```
     Python dependencies:
         ```bash
         poetry install
