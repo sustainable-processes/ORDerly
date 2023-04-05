@@ -12,7 +12,7 @@ The scripts herein will extract and clean data from ORD with various manual step
 
 We want to download the ORD data locally, this can be done through any of the following methods:
 
-1. Follow the instructions at: https://github.com/open-reaction-database/ord-data, we specifically care about the folders in ```ord-data/data/`
+1. Follow the instructions at: https://github.com/open-reaction-database/ord-data, we specifically care about the folders in ```ord-data/data/```
 2. Docker install with linux (run in terminal):
     ```
     make linux_download_ord
