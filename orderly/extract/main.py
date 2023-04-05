@@ -44,7 +44,9 @@ def get_file_names(
 
 def merge_pickled_mol_names(
     molecule_names_path: pathlib.Path = pathlib.Path("data/orderly/molecule_names"),
-    output_file_path: pathlib.Path = pathlib.Path("data/orderly/all_molecule_names.pkl"),
+    output_file_path: pathlib.Path = pathlib.Path(
+        "data/orderly/all_molecule_names.pkl"
+    ),
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
 ):
