@@ -16,9 +16,7 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass(kw_only=True)
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
-
     1) Merge the pickle files from orderly.extract into a df
-
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
     4) Removal or remapping to 'other' of rare molecules
