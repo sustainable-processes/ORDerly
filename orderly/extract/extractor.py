@@ -224,9 +224,9 @@ class OrdExtractor:
         products = [p for p in products if p not in cleaned_agents]
 
         return (
-            list(set(reactants)),
-            list(set(cleaned_agents)),
-            list(set(products)),
+            sorted(list(set(reactants))),
+            sorted(list(set(cleaned_agents))),
+            sorted(list(set(products))),
             rxn_str,
             non_smiles_names_list,
         )
@@ -451,13 +451,13 @@ class OrdExtractor:
         # merge the solvents, reagents, and catalysts into one list
         agents = []
         if rxn_string_agents is not None:
-            agents += [a for a in rxn_string_agents if not None]
+            agents += [a for a in rxn_string_agents if a is not None]
         if catalysts is not None:
-            agents += [a for a in catalysts if not None]
+            agents += [a for a in catalysts if a is not None]
         if solvents is not None:
-            agents += [a for a in solvents if not None]
+            agents += [a for a in solvents if a is not None]
         if reagents is not None:
-            agents += [a for a in reagents if not None]
+            agents += [a for a in reagents if a is not None]
 
         agents_set = set(agents)  # this includes the solvnts
 
@@ -598,8 +598,8 @@ class OrdExtractor:
 
             except (ValueError, TypeError) as e:
                 rxn_str_agents = []
-                # we don't have a mapped reaction, so we have to just trust the labelled reactants, agents, and products
-                # TODO: test what happens when value error is raised above
+                # ValueError is raised when rxn_info is None, or when it's invalid, e.g. if the rxn_string only has one >. Rxn strings should have 2, e.g. A>B>C
+                # TypeError is raised when rxn_str is neither None nor a string (this should be impossible though due to the schema!)
                 if use_labelling_if_extract_fails:
                     reactants = labelled_reactants
                     products = labelled_products
