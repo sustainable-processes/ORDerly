@@ -2,7 +2,7 @@ import typing
 import pytest
 
 
-REPETITIONS = 1
+REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
 
@@ -318,9 +318,9 @@ def test_rxn_string_and_is_mapped(
             0,
             None,
             [
-             "C1CCNC1",
-            "CC1(C)C2CCC(=O)C1C2", 
-             ],
+                "C1CCNC1",
+                "CC1(C)C2CCC(=O)C1C2",
+            ],
             ["Cc1ccc(S(=O)(=O)O)cc1", "O", "c1ccccc1"],
             ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
             "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
@@ -338,10 +338,12 @@ def test_rxn_string_and_is_mapped(
             "CC.C>CCC",
             [],
             False,
-            marks=pytest.mark.xfail(reason="ValueError: not enough values to unpack (expected 3, got 2)"),
+            marks=pytest.mark.xfail(
+                reason="ValueError: not enough values to unpack (expected 3, got 2)"
+            ),
         ),
         # There's no point in trying to test whether the the rxn.identifiers[0].value = None because the schema doesn't allow that overwrite to happen!
-)
+    ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_extract_info_from_rxn(
@@ -355,10 +357,9 @@ def test_extract_info_from_rxn(
     expected_rxn_str,
     expected_non_smiles_names_list_additions,
     expected_none,
-    
 ):
     rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
-    
+
     if rxn_overwrite is not None:
         rxn.identifiers[0].value = rxn_overwrite
 
@@ -412,7 +413,9 @@ def test_temperature_extractor(
         expected_temperature == temperature
     ), f"failure for {expected_temperature=} got {temperature}"
     if temperature is not None:
-        assert isinstance(temperature, float), f"expected a float but got {temperature=}"
+        assert isinstance(
+            temperature, float
+        ), f"expected a float but got {temperature=}"
 
 
 @pytest.mark.parametrize(
@@ -440,7 +443,7 @@ def test_time_extractor(
     assert (
         expected_rxn_time == rxn_time
     ), f"failure for {expected_rxn_time=} got {rxn_time}"
-    
+
     if rxn_time is not None:
         assert isinstance(rxn_time, float), f"expected a float but got {rxn_time=}"
 
@@ -478,7 +481,7 @@ def test_time_extractor(
             None,
             None,
             ["Cc1ccc(S(=O)(=O)O)cc1"],
-            ["O","c1ccccc1"],
+            ["O", "c1ccccc1"],
         ],
         # Made up test cases:
         [
@@ -489,7 +492,7 @@ def test_time_extractor(
             None,
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
-            ['CCO', 'O', 'c1ccccc1'],
+            ["CCO", "O", "c1ccccc1"],
         ],
         pytest.param(
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
@@ -555,7 +558,9 @@ def test_merge_to_agents(
     )
 
     assert expected_agents == agents, f"failure for {expected_agents=} got {agents}"
-    assert expected_solvents == solvents, f"failure for {expected_solvents=} got {solvents}"
+    assert (
+        expected_solvents == solvents
+    ), f"failure for {expected_solvents=} got {solvents}"
 
 
 @pytest.mark.parametrize(
@@ -672,7 +677,7 @@ def test_match_yield_with_product(
             None,
             None,
             "[CH2:1]([SH:8])[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1.[H-].[Na+].[Cl:11][C:12]1[CH:30]=[C:29]([C:31]([F:34])([F:33])[F:32])[CH:28]=[CH:27][C:13]=1[O:14][C:15]1[CH:20]=[CH:19][C:18]([N+:21]([O-:23])=[O:22])=[C:17]([N+]([O-])=O)[CH:16]=1>O1CCCC1>[CH2:1]([S:8][C:17]1[CH:16]=[C:15]([O:14][C:13]2[CH:27]=[CH:28][C:29]([C:31]([F:34])([F:32])[F:33])=[CH:30][C:12]=2[Cl:11])[CH:20]=[CH:19][C:18]=1[N+:21]([O-:23])=[O:22])[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1",
-            '1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.',
+            "1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.",
             [],
         ],
         [
@@ -690,7 +695,7 @@ def test_match_yield_with_product(
             1100.0,
             0.17,
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
-            'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
+            "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             [],
         ],
         [
@@ -730,7 +735,7 @@ def test_match_yield_with_product(
             1100.0,
             0.17,
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
-            'Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.',
+            "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             ["35(Na2O)"],
         ],
         [
@@ -738,19 +743,25 @@ def test_match_yield_with_product(
             0,
             {},
             False,
-            ["CC1(C)C2CCC(=O)C1C2", "C1CCNC1",],
+            [
+                "CC1(C)C2CCC(=O)C1C2",
+                "C1CCNC1",
+            ],
             [
                 "Cc1ccc(S(=O)(=O)O)cc1",
             ],
             [],
-            ["O","c1ccccc1", ],
+            [
+                "O",
+                "c1ccccc1",
+            ],
             [],
             ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
             [95.0],
             None,
             None,
             "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
-            'A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.',
+            "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             [],
         ],
         [
@@ -773,7 +784,7 @@ def test_match_yield_with_product(
             None,
             None,
             "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
-            'A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.',
+            "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             [],
         ],
     ),
@@ -825,20 +836,32 @@ def test_handle_reaction_object(
     ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
         rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
     )
+
     def clean_string(s):
         import string
+
         printable = set(string.printable)
-        return ''.join(filter(lambda x: x in printable, s))    
-    
+        return "".join(filter(lambda x: x in printable, s))
+
     clean_procedure_details = clean_string(procedure_details)
     clean_expected_procedure_details = clean_string(expected_procedure_details)
 
-    assert sorted(reactants) == sorted(expected_reactants), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"# TODO unsure why we have random ordering on ubuntu
-    assert agents ==expected_agents, f"failure for {expected_agents=} got {agents}"
-    assert reagents == expected_reagents, f"failure for {expected_reagents=} got {reagents}"
-    assert solvents == expected_solvents, f"failure for {expected_solvents=} got {solvents}"
-    assert catalysts == expected_catalysts, f"failure for {expected_catalysts=} got {catalysts}"
-    assert products ==expected_products, f"failure for {expected_products=} got {products}"
+    assert sorted(reactants) == sorted(
+        expected_reactants
+    ), f"failure for {sorted(expected_reactants)=} got {sorted(reactants)}"  # TODO unsure why we have random ordering on ubuntu
+    assert agents == expected_agents, f"failure for {expected_agents=} got {agents}"
+    assert (
+        reagents == expected_reagents
+    ), f"failure for {expected_reagents=} got {reagents}"
+    assert (
+        solvents == expected_solvents
+    ), f"failure for {expected_solvents=} got {solvents}"
+    assert (
+        catalysts == expected_catalysts
+    ), f"failure for {expected_catalysts=} got {catalysts}"
+    assert (
+        products == expected_products
+    ), f"failure for {expected_products=} got {products}"
     assert yields == expected_yields, f"failure for {expected_yields=} got {yields}"
     assert (
         temperature == expected_temperature
@@ -859,14 +882,14 @@ def test_handle_reaction_object(
     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
         [False, True, "uspto", True],
-        # [
-        #     False,
-        #     True,
-        #     "uspto",
-        #     False,
-        # ],
-        # [True, False, "uspto", True],
-        # [True, True, None, True],
+        [
+            False,
+            True,
+            "uspto",
+            False,
+        ],
+        [True, False, "uspto", True],
+        [True, True, None, True],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
