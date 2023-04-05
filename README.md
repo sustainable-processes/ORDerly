@@ -4,9 +4,11 @@ A wrapper for downloading ORD-schema data, extracting and cleaning the data
 
 The scripts herein will extract and clean data from ORD with various manual steps relying on chemical domain knowledge. This results in an open-source dataset containing a mapped reaction, reactants, products, solvents, reagents, catalysts, and yields in a pandas DataFrame structure that should also be easily usable by people with little knowledge of chemistry.
 
-## 1. Install
+# Usage
 
-### 1. Download the ORD data
+### 1. Install
+
+#### 1. Download the ORD data
 
 We want to download the ORD data locally, this can be done through any of the following methods:
 
@@ -21,11 +23,11 @@ We want to download the ORD data locally, this can be done through any of the fo
     make sudo_chown
     ```
 
-### 2. Install OS depenencies
+#### 2. Install OS depenencies
  
 
 
-### 3. Install dependencies
+#### 3. Install dependencies
 
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
@@ -52,11 +54,11 @@ To install the dependencies this can be done via ```poetry``` or you can run the
     ```
 
 
-## 2. Run extraction
+### 2. Run extraction
 
 We can run extraction using: ```poetry run python -m orderly.extract```. Using ```poetry run python -m orderly.extract --help``` will explain the arguments. Certain args must be set such as data paths.
 
-## 3. Run cleaning
+### 3. Run cleaning
 
 We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```poetry run python -m orderly.clean --help``` will explain the arguments. Certain args must be set such as data paths.
 
