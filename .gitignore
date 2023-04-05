@@ -1,6 +1,5 @@
 # misc
 .DS_Store
-schneider_fp/.DS_Store
 *.log
 
 # Byte-compiled / optimized / DLL files
@@ -137,8 +136,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
-# JOSS
+# If we generate a pdf from the markdown
 *.jats
 *.pdf
 

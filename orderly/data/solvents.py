@@ -32,7 +32,6 @@ def get_solvents_dict(
     solvents["canonical_smiles"] = solvents["smiles"].apply(
         orderly.extract.canonicalise.get_canonicalised_smiles
     )
-    # breakpoint()
 
     # Combine the lists into a sequence of key-value pairs
     key_value_pairs = zip(
