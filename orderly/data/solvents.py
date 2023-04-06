@@ -27,6 +27,9 @@ def get_solvents_set(path: typing.Optional[pathlib.Path] = None) -> typing.Set[S
 def get_solvents_dict(
     path: typing.Optional[pathlib.Path] = None,
 ) -> typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]:
+    """ 
+    Builds a dictionary of solvents from the solvents.csv file
+    """
     # TODO Check when dict is applied we use .lower()
     solvents = orderly.data.get_solvents(path=path)
     
