@@ -22,11 +22,6 @@ def remove_mapping_info_and_canonicalise_smiles(
             atom.SetAtomMapNum(0)
         return rdkit_Chem.MolToSmiles(m)
     except AttributeError:
-        if molecule_identifier[0] == "[":
-            if molecule_identifier[-1] == "]":
-                return remove_mapping_info_and_canonicalise_smiles(
-                    molecule_identifier[1:-1]
-                )
         return None
 
 
@@ -42,9 +37,6 @@ def canonicalise_smiles(
     try:
         return rdkit_Chem.CanonSmiles(molecule_identifier)
     except AttributeError:
-        if molecule_identifier[0] == "[":
-            if molecule_identifier[-1] == "]":
-                return canonicalise_smiles(molecule_identifier[1:-1])
         return None
     except Exception as e:
         # raise e
@@ -61,5 +53,13 @@ def get_canonicalised_smiles(
     # attempts to remove mapping info and canonicalise a smiles string and if it fails, returns the name whilst adding to a list of non smiles names
     # molecule_identifier: string, that is a smiles or an english name of the molecule
     if is_mapped:
-        return remove_mapping_info_and_canonicalise_smiles(molecule_identifier)
-    return canonicalise_smiles(molecule_identifier)
+        attempted_canon_smiles = remove_mapping_info_and_canonicalise_smiles(molecule_identifier)
+    else:
+        attempted_canon_smiles = canonicalise_smiles(molecule_identifier)
+    if attempted_canon_smiles is not None:
+        return attempted_canon_smiles
+    else:
+        if molecule_identifier[0] == "[":
+            if molecule_identifier[-1] == "]":
+                return canonicalise_smiles(molecule_identifier[1:-1])
+        return None
