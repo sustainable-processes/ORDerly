@@ -4,6 +4,7 @@ import pytest
 def test_hello_world():
     assert True
 
+
 # TODO: add test checking that min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary are respected
 @pytest.mark.parametrize(
     "consistent_yield,num_reactant,num_product,num_solv,num_agent,num_cat,num_reag,min_frequency_of_occurance_primary,min_frequency_of_occurance_secondary,include_other_category,map_rare_to_other_threshold",

@@ -10,7 +10,7 @@ def remove_mapping_info_and_canonicalise_smiles(
     molecule_identifier: MOLECULE_IDENTIFIER,
 ) -> typing.Optional[SMILES]:
     """
-    Strips away mapping info and returns canonicalised SMILES. 
+    Strips away mapping info and returns canonicalised SMILES.
     """
     # This function can handle smiles both with and without mapping info
     _ = rdkit_BlockLogs()
@@ -22,9 +22,11 @@ def remove_mapping_info_and_canonicalise_smiles(
             atom.SetAtomMapNum(0)
         return rdkit_Chem.MolToSmiles(m)
     except AttributeError:
-        if molecule_identifier[0] == '[':
-            if molecule_identifier[-1] == ']':
-                return remove_mapping_info_and_canonicalise_smiles(molecule_identifier[1:-1])
+        if molecule_identifier[0] == "[":
+            if molecule_identifier[-1] == "]":
+                return remove_mapping_info_and_canonicalise_smiles(
+                    molecule_identifier[1:-1]
+                )
         return None
 
 
@@ -40,8 +42,8 @@ def canonicalise_smiles(
     try:
         return rdkit_Chem.CanonSmiles(molecule_identifier)
     except AttributeError:
-        if molecule_identifier[0] == '[':
-            if molecule_identifier[-1] == ']':
+        if molecule_identifier[0] == "[":
+            if molecule_identifier[-1] == "]":
                 return canonicalise_smiles(molecule_identifier[1:-1])
         return None
     except Exception as e:

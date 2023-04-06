@@ -47,4 +47,4 @@ YIELDS = typing.List[YIELD]
 TEMPERATURE_CELCIUS = float
 TEMPERATURES_CELCIUS = typing.List[TEMPERATURE_CELCIUS]
 
-RXN_TIME = float # hours
+RXN_TIME = float  # hours

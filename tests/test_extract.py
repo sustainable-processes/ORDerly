@@ -876,17 +876,25 @@ def test_handle_reaction_object(
     assert (
         clean_procedure_details == clean_expected_procedure_details
     ), f"failure for {clean_expected_procedure_details=} got {clean_procedure_details}"
-    
+
+
 @pytest.mark.parametrize(
     "file_name,rxn_idx,expected_rxn_str,expected_is_mapped",
-    (['teststring', True, None],
-     ['teststring', False, None],
-     ['c1ccccc1', False, 'c1ccccc1'],
-     ['[CH2:1]([S:8][C:9]1[CH:14]=[C:13]([O:15][C:16]2[CH:21]=[CH:20][C:19]([C:22]([F:25])([F:24])[F:23])=[CH:18][C:17]=2[Cl:26])[CH:12]=[CH:11][C:10]=1[N+:27]([O-])=O)[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1', True, 'O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1'],
-     ['P([O-])(O)O', False, '[O-]P(O)O'],
-     ['[CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C]', False, 'CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C'],
-     
-     
+    (
+        ["teststring", True, None],
+        ["teststring", False, None],
+        ["c1ccccc1", False, "c1ccccc1"],
+        [
+            "[CH2:1]([S:8][C:9]1[CH:14]=[C:13]([O:15][C:16]2[CH:21]=[CH:20][C:19]([C:22]([F:25])([F:24])[F:23])=[CH:18][C:17]=2[Cl:26])[CH:12]=[CH:11][C:10]=1[N+:27]([O-])=O)[C:2]1[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=1",
+            True,
+            "O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1",
+        ],
+        ["P([O-])(O)O", False, "[O-]P(O)O"],
+        [
+            "[CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C]",
+            False,
+            "CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C",
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -900,12 +908,11 @@ def test_canonicalisation(
 
     import orderly.extract.extractor
 
-    (
-    canonical_smiles
-    ) = get_canonicalised_smiles(smiles, is_mapped)
+    (canonical_smiles) = get_canonicalised_smiles(smiles, is_mapped)
 
-    assert expected_canonical_smiles == canonical_smiles, f"failure for {expected_canonical_smiles=} got {canonical_smiles}"
-
+    assert (
+        expected_canonical_smiles == canonical_smiles
+    ), f"failure for {expected_canonical_smiles=} got {canonical_smiles}"
 
 
 @pytest.mark.parametrize(
