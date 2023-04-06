@@ -2,7 +2,7 @@ import typing
 import pytest
 import pathlib
 
-REPETITIONS = 1
+REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
 
@@ -912,76 +912,74 @@ def test_canonicalisation(
 ):
     from orderly.extract.canonicalise import get_canonicalised_smiles
 
-    import orderly.extract.extractor
-
-    (canonical_smiles) = get_canonicalised_smiles(smiles, is_mapped)
+    canonical_smiles = get_canonicalised_smiles(smiles, is_mapped)
 
     assert (
         expected_canonical_smiles == canonical_smiles
     ), f"failure for {expected_canonical_smiles=} got {canonical_smiles}"
 
 
-# @pytest.mark.parametrize(
-#     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
-#     (
-#         [False, True, "uspto", True],
-#         [
-#             False,
-#             True,
-#             "uspto",
-#             False,
-#         ],
-#         [True, False, "uspto", True],
-#         [True, True, None, True],
-#     ),
-# )
-# @pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
-# def test_extraction_pipeline(
-#     execution_number,
-#     tmp_path,
-#     trust_labelling,
-#     use_multiprocessing,
-#     name_contains_substring,
-#     inverse_substring,
-# ):
-#     pickled_data_folder = tmp_path / "pkl_data"
-#     pickled_data_folder.mkdir()
-#     molecule_names_folder = tmp_path / "molecule_names"
-#     molecule_names_folder.mkdir()
+@pytest.mark.parametrize(
+    "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
+    (
+        [False, True, "uspto", True],
+        [
+            False,
+            True,
+            "uspto",
+            False,
+        ],
+        [True, False, "uspto", True],
+        [True, True, None, True],
+    ),
+)
+@pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
+def test_extraction_pipeline(
+    execution_number,
+    tmp_path,
+    trust_labelling,
+    use_multiprocessing,
+    name_contains_substring,
+    inverse_substring,
+):
+    pickled_data_folder = tmp_path / "pkl_data"
+    pickled_data_folder.mkdir()
+    molecule_names_folder = tmp_path / "molecule_names"
+    molecule_names_folder.mkdir()
 
-#     import orderly.extract.main
-#     import orderly.data
+    import orderly.extract.main
+    import orderly.data
 
-#     orderly.extract.main.main(
-#         data_path=orderly.data.get_path_of_test_ords(),
-#         ord_file_ending=".pb.gz",
-#         trust_labelling=trust_labelling,
-#         output_path=tmp_path,
-#         pickled_data_folder=pickled_data_folder,
-#         solvents_path=None,
-#         molecule_names_folder=molecule_names_folder,
-#         merged_molecules_file="all_molecule_names.pkl",
-#         use_multiprocessing=use_multiprocessing,
-#         name_contains_substring=name_contains_substring,
-#         inverse_substring=inverse_substring,
-#         overwrite=False,
-#     )
+    orderly.extract.main.main(
+        data_path=orderly.data.get_path_of_test_ords(),
+        ord_file_ending=".pb.gz",
+        trust_labelling=trust_labelling,
+        output_path=tmp_path,
+        pickled_data_folder=pickled_data_folder,
+        solvents_path=None,
+        molecule_names_folder=molecule_names_folder,
+        merged_molecules_file="all_molecule_names.pkl",
+        use_multiprocessing=use_multiprocessing,
+        name_contains_substring=name_contains_substring,
+        inverse_substring=inverse_substring,
+        overwrite=False,
+    )
 
-#     import pandas as pd
-#     import numpy as np
+    import pandas as pd
+    import numpy as np
 
-#     for extraction in pickled_data_folder.glob("*"):
-#         df = pd.read_pickle(extraction)
-#         if df is None:
-#             continue
+    for extraction in pickled_data_folder.glob("*"):
+        df = pd.read_pickle(extraction)
+        if df is None:
+            continue
 
-#         # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0'],
-#         # They're allowed to be strings or floats (depending on the col) or None
-#         for col in df.columns:
-#             series = df[col].replace({None: np.nan})
-#             if len(series.dropna()) == 0:
-#                 continue
-#             elif "temperature" in col or "rxn_time" in col or "yield" in col:
-#                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
-#             else:
-#                 assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
+        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0'],
+        # They're allowed to be strings or floats (depending on the col) or None
+        for col in df.columns:
+            series = df[col].replace({None: np.nan})
+            if len(series.dropna()) == 0:
+                continue
+            elif "temperature" in col or "rxn_time" in col or "yield" in col:
+                assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
+            else:
+                assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
