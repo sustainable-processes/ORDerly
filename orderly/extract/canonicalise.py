@@ -53,7 +53,9 @@ def get_canonicalised_smiles(
     # attempts to remove mapping info and canonicalise a smiles string and if it fails, returns the name whilst adding to a list of non smiles names
     # molecule_identifier: string, that is a smiles or an english name of the molecule
     if is_mapped:
-        attempted_canon_smiles = remove_mapping_info_and_canonicalise_smiles(molecule_identifier)
+        attempted_canon_smiles = remove_mapping_info_and_canonicalise_smiles(
+            molecule_identifier
+        )
     else:
         attempted_canon_smiles = canonicalise_smiles(molecule_identifier)
     if attempted_canon_smiles is not None:

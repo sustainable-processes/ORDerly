@@ -789,6 +789,7 @@ def test_match_yield_with_product(
         ],
     ),
 )
+# TODO: add test to check whether manual_replacements_dict is used properly
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_handle_reaction_object(
     execution_number,
