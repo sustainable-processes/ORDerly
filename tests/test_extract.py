@@ -787,9 +787,24 @@ def test_match_yield_with_product(
             "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             [],
         ],
+        # # Test: one of the input reactants = 'liquid'; trust_labelling = True
+        # ['ord_dataset-0b70410902ae4139bd5d334881938f69',
+        #  3,
+        #  {},
+        #  True,
+        # ],
+        # # Test: one of the input reactants = 'liquid'; trust_labelling = False
+        # ['ord_dataset-0b70410902ae4139bd5d334881938f69',
+        #  3,
+        #  {},
+        #  False,
+        # ]
     ),
 )
 # TODO: add test to check whether manual_replacements_dict is used properly
+# Test 1 & 2: See above
+# Test 3: we've got brackets around the catalyst in the rxn string (simply overwrite the rxn string)
+# Test 4: We've got a reactant, solvent, and catalyst represented in rxn.input with a plain text english name that exists in our manual_replacements_dict
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_handle_reaction_object(
     execution_number,

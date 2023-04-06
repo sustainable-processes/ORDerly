@@ -136,6 +136,7 @@ def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
         "[Cl[Pd](Cl)([P](c1ccccc1)(c1ccccc1)c1ccccc1)[P](c1ccccc1)(c1ccccc1)c1ccccc1]"
     ] = "Cl[Pd](Cl)([PH](c1ccccc1)(c1ccccc1)c1ccccc1)[PH](c1ccccc1)(c1ccccc1)c1ccccc1"
     molecule_replacements["[Cl[Pd+2](Cl)(Cl)Cl.[Na+].[Na+]]"] = "Cl[Pd]Cl"
+    molecule_replacements["Cl[Pd+2](Cl)(Cl)Cl"] = "Cl[Pd]Cl"
     molecule_replacements["Karstedt catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
     molecule_replacements["Karstedt's catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
     molecule_replacements["[O=C([O-])[O-].[Ag+2]]"] = "O=C([O-])[O-].[Ag+]"
@@ -214,7 +215,8 @@ def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
 
 def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
     return [
-        "solution"  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+        "solution",  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+        "liquid",
     ]
 
 
