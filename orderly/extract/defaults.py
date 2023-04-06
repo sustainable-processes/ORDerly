@@ -107,6 +107,9 @@ def get_metals_list() -> METALS:
 
 
 def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
+    """
+    Returns a dictionary mapping common representations of molecules (particularly catalysts) to a canonical representation.
+    """
     molecule_replacements = {}
 
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
