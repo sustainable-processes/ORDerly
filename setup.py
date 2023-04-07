@@ -5,15 +5,15 @@ with open("README", "r") as f:
 
 setup(
     name="orderly",
-    version="0.0.4",
-    description="A wrapper for downloading ORDschema data, extracting and cleaning the data",
+    version="0.0.1",
+    description="A wrapper for downloading ORD-schema data, extracting and cleaning the data",
     license="MIT",
     long_description=long_description,
     author=[
-        "Daniel S. Wigh",
-        "Joe Arrowsmith",
-        "Alexander Pomberger",
-        "Alexei A. Lapkin",
+        "Daniel S. Wigh <dsw46@cam.ac.uk>",
+        "Joe Arrowsmith <joearrowsmith0@gmail.com>",
+        "Alexander Pomberger <ap2153@cam.ac.uk>",
+        "Alexei A. Lapkin <aal35@cam.ac.uk>",
     ],
     packages=["orderly"],
 )

@@ -1,7 +1,11 @@
 import typing
 
+import orderly.data
 
-def get_metals_list() -> typing.List[str]:
+from orderly.types import *
+
+
+def get_metals_list() -> METALS:
     # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
     # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
     # Instead, let's move all agents that contain a metal centre to the front of the list
@@ -102,7 +106,10 @@ def get_metals_list() -> typing.List[str]:
     ]
 
 
-def get_molecule_replacements() -> typing.Dict[str, str]:
+def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
+    """
+    Returns a dictionary mapping common representations of molecules (particularly catalysts) to a canonical representation.
+    """
     molecule_replacements = {}
 
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
@@ -129,6 +136,7 @@ def get_molecule_replacements() -> typing.Dict[str, str]:
         "[Cl[Pd](Cl)([P](c1ccccc1)(c1ccccc1)c1ccccc1)[P](c1ccccc1)(c1ccccc1)c1ccccc1]"
     ] = "Cl[Pd](Cl)([PH](c1ccccc1)(c1ccccc1)c1ccccc1)[PH](c1ccccc1)(c1ccccc1)c1ccccc1"
     molecule_replacements["[Cl[Pd+2](Cl)(Cl)Cl.[Na+].[Na+]]"] = "Cl[Pd]Cl"
+    molecule_replacements["Cl[Pd+2](Cl)(Cl)Cl"] = "Cl[Pd]Cl"
     molecule_replacements["Karstedt catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
     molecule_replacements["Karstedt's catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
     molecule_replacements["[O=C([O-])[O-].[Ag+2]]"] = "O=C([O-])[O-].[Ag+]"
@@ -194,6 +202,7 @@ def get_molecule_replacements() -> typing.Dict[str, str]:
     molecule_replacements["dimethyl acetal"] = "CN(C)C(OC)OC"
     molecule_replacements["cuprous chloride"] = "Cl[Cu]"
     molecule_replacements["N,N'-carbonyldiimidazole"] = "O=C(n1cncc1)n2ccnc2"
+    molecule_replacements["CrO3"] = "O=[Cr](=O)=O"
     # SiO2
     # Went down the list of molecule_names until frequency was 806
 
@@ -205,7 +214,12 @@ def get_molecule_replacements() -> typing.Dict[str, str]:
     return molecule_replacements
 
 
-def get_molecule_str_force_nones() -> typing.List[str]:
+def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
     return [
-        "solution"  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+        "solution",  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
+        "liquid",
     ]
+
+
+def get_solvents_set() -> typing.Set[SOLVENT]:
+    return orderly.data.get_solvents_set()

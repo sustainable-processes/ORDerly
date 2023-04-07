@@ -10,24 +10,22 @@ black:
 pytest:
 	poetry run python -m pytest -v
 
-get_test_data:
-	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data --overwrite=False
+gen_test_data:
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data  --name_contains_substring="" --overwrite=False
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
 	docker image build --target orderly_base_sudo --tag orderly_base_sudo .
 
+run_orderly:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
+
+run_orderly_sudo:
+	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base_sudo
+
 build_orderly_from_pip:
 	docker image build --target orderly_pip --tag orderly_pip .
 
-build_orderly_rxn_test:
-	docker image build --target rxnmapper_test --tag rxnmapper_test .
-
-run_orderly_rxn_test:
-	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it rxnmapper_test
-
-run_orderly:
-	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_base
 
 run_orderly_from_pip:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_pip
@@ -40,8 +38,6 @@ run_orderly_pytest:
 	docker image build --target orderly_test --tag orderly_test .
 	docker run orderly_test
 
-run_orderly_sudo:
-	docker run -v $(current_dir)/data:/home/worker/repo/data/ -it orderly_base_sudo
 
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
@@ -69,13 +65,6 @@ _root_get_ord:
 
 sudo_chown:
 	sudo chown -R $(uid):$(gid) $(current_dir)
-
-get_paper:
-	docker run --rm --volume $(current_dir)/paper:/data --user $(uid):$(gid) --env JOURNAL=joss openjournals/inara
-	rm $(current_dir)/paper/paper.jats
-
-prune_docker:
-	docker system prune -a --volumes
 
 build_rxnmapper:
 	docker image build --target rxnmapper_base --tag rxnmapper_base .

@@ -313,7 +313,7 @@ hexyl acetate,n-hexylacetate,,,142-92-7,C8H16O2,CCCCCCOC(C)=O
 hexylamine,hexylamine,,,111-26-2,C6H15N,CCCCCCN
 iodobenzene,iodobenzene,,,591-50-4,C6H5I,Ic1ccccc1
 iodoethane,iodoethane,,,75-03-6,C2H5I,CCI
-iodomethane,ch3i,,,74-88-4,CH3I,CI
+iodomethane,CH3I,,,74-88-4,CH3I,CI
 isoprene,isoprene,,,78-79-5,C5H8,CC(=C)C=C
 isopropylamine,isopropylamine,,,75-31-0,C3H9N,CC(C)N
 isoquinoline,isoquinoline,,,119-65-3,C9H7N,c1ccc2cnccc2c1
@@ -355,7 +355,7 @@ nonanol,1-nonanol,,,143-08-8,C9H20O,CCCCCCCCCO
 octane,octane,,,111-65-9,C8H18,CCCCCCCC
 octanoic acid,"1-bromo-1,2,2,2-tetrafluoroethane",,,124-07-2,C8H16O2,CCCCCCCC(O)=O
 octylamine,1-octanamine,,,111-86-4,C8H19N,CCCCCCCCN
-oxane,thp,,,142-68-7,C5H10O,C1CCOCC1
+oxane,thp,Tetrahydropyran,,142-68-7,C5H10O,C1CCOCC1
 oxirane,ethyleneoxide,,,75-21-8,C2H4O,C1CO1
 oxolan-2-one,gamma-butyrolactone,,,96-48-0,C4H6O2,O=C1CCCO1
 pentachloroethane,pentachloroethane,,,76-01-7,C2HCl5,ClC(Cl)C(Cl)(Cl)Cl
@@ -484,4 +484,4 @@ diisopropyl ether,diisopropylether,,,108-20-3,C6H14O,CC(C)OC(C)C
 ,,Ethyl tert-butyl ether,ETBE,637-92-3,C6H14O,O(C(C)(C)C)CC
 ,,Butyl ether,Dibutyl ether,6863-58-7,C8H18O,CCCCOCCCC
 ,,Tetrahydro furfuryl alcohol,THFA,97-99-4,C5H10O2,C1CC(OC1)CO
-,,Furfuryl alcool,,98-00-0,C5H6O2,c1cc(oc1)CO
+,,Furfuryl alcohol,,98-00-0,C5H6O2,c1cc(oc1)CO
