@@ -2,7 +2,7 @@ import typing
 import pytest
 import pathlib
 
-REPETITIONS = 1
+REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
 
