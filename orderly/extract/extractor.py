@@ -506,6 +506,7 @@ class OrdExtractor:
         metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
+        include_unadded_labelled_agents = True
     ) -> typing.Optional[
         typing.Tuple[
             REACTANTS,
@@ -522,6 +523,13 @@ class OrdExtractor:
             typing.List[MOLECULE_IDENTIFIER],
         ]
     ]:
+        """
+        An ORD rxn object has 3 sources of rxn data: the rxn string, rxn.inputs, and rxn.outcomes.
+        If trust_labelling is True, we trust the labelling of the rxn.inputs and rxn.outcomes, and don't use the rxn string.
+        If trust_labelling is False (default), we determine reactants, agents, solvents, and products, from the rxn string by looking at the mapping of the reaction (hence why we trust the rxn string more than the inputs/outcomes labelling, and this behaviour is set to default). However, the rxn.inputs and rxn.outcomes may contain info not contained in the rxn string:
+            - If use_labelling_if_extract_fails is True, we use the labelling of the rxn.inputs and rxn.outcomes instead of simply returning None
+            - If include_unadded_labelled_agents is True, we look through the rxn.inputs for any agents that were not added to the reactants, agents, solvents, or products, and add them to the agents list
+        """
         # handle rxn inputs: reactants, reagents etc
 
         # initilise empty
@@ -614,6 +622,17 @@ class OrdExtractor:
                     products = labelled_products
                 else:
                     return None
+                
+            if include_unadded_labelled_agents: # Add any agents that were not added to the reactants, agents, or solvents
+                # merge all the lists
+                all_labelled_molecules = labelled_reactants + labelled_products + labelled_solvents + labelled_reagents + labelled_catalysts
+                # remove duplicates
+                all_labelled_molecules = list(set(all_labelled_molecules))
+                # remove any molecules that are already in the reactants, agents, or solvents
+                molecules_unique_to_labelled_data = [x for x in all_labelled_molecules if x not in reactants + rxn_str_agents + solvents + products]
+                rxn_str_agents += molecules_unique_to_labelled_data
+                
+                
 
             # Merge conditions
             agents, solvents = OrdExtractor.merge_to_agents(

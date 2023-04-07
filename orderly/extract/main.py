@@ -316,7 +316,7 @@ def main_click(
     overwrite: bool,
 ):
     """
-    After downloading the dataset from ORD, this script will extract the data and write it to pickle files.
+    After downloading the dataset from ORD, this script will extract the data and write it to pickle files. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
         Example:
 
 

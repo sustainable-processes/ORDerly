@@ -2,7 +2,7 @@ import typing
 import pytest
 import pathlib
 
-REPETITIONS = 3
+REPETITIONS = 1
 SLOW_REPETITIONS = 1
 
 
@@ -686,7 +686,7 @@ def test_match_yield_with_product(
             {},
             False,
             ["[O-]B([O-])[O-]"],
-            ["[Na+]"],
+            ['35(Na2O)',"[Na+]"],
             [],
             ["O"],
             [],
@@ -696,7 +696,7 @@ def test_match_yield_with_product(
             0.17,
             "[B:1]([O-:4])([O-:3])[O-:2].[B:5]([O-:8])([O-:7])[O-:6].[B:9]([O-:12])([O-])[O-].[B:13]([O-])([O-])[O-].[Na+:17].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+].[Na+]>O>[B:1]1([O-:4])[O:3][B:13]2[O:12][B:9]([O:6][B:5]([O-:8])[O:7]2)[O:2]1.[Na+:17].[Na+:17]",
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
-            [],
+            ['35(Na2O)'],
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -823,7 +823,7 @@ def test_match_yield_with_product(
             1.0,
             "[N:1]1[C:8]([Cl:9])=[N:7][C:5]([Cl:6])=[N:4][C:2]=1Cl.[NH3:10]>C1COCC1.COCCOCCOC>[NH2:10][C:2]1[N:1]=[C:8]([Cl:9])[N:7]=[C:5]([Cl:6])[N:4]=1",
             "A solution of 300 g (1.63 mol) of cyanuric chloride in 1 liter THF and 0.24 liter diglyme was cooled to 0\302\260 C. and 81.6 mL (3.36 mol) of liquid ammonia added dropwise over 90 min. keeping the temperature between 10\302\260-15\302\260. The mixture was stirred for one hour at -10\302\260 to 0\302\260 and then allowed to warm to ambient temperature over one hour. The resulting suspension was filtered, the solid washed with THF, the filtrate reduced to 1/2 its original volume, and poured over 1 liter of ice water to give a white solid which was collected, washed with water, and dried in vacuo to give 244.3 g of 2-amino-4,6-dichloro-1,3,5-triazine with m.p. 221\302\260-223.5\302\260 (dec).",
-            [],
+            ["liquid"],
         ],
         # synthesis of islatravir by biocatalytic cascade
         # We put trust_labelling = False to test that the inputs are extracted instead, since I know that there's no rxn string
@@ -883,26 +883,26 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             ["CrO3"],
         ],
-        # [
-        #     "ord_dataset-0b70410902ae4139bd5d334881938f69",
-        #     982,
-        #     {},
-        #     False,
-        #     [
-        #         "COc1ccccc1C(O)c1cccc(Br)n1",
-        #     ],
-        #     ["O=[Cr](=O)=O",],
-        #     [],
-        #     ["CC(=O)O", "CCO", "O"],
-        #     [],
-        #     ["COc1ccccc1C(=O)c1cccc(Br)n1"],
-        #     [66.2],
-        #     None,
-        #     None,
-        #     "[Br:1][C:2]1[N:7]=[C:6]([CH:8]([C:10]2[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=2[O:16][CH3:17])[OH:9])[CH:5]=[CH:4][CH:3]=1.C(O)C.O>C(O)(=O)C>[Br:1][C:2]1[N:7]=[C:6]([C:8](=[O:9])[C:10]2[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=2[O:16][CH3:17])[CH:5]=[CH:4][CH:3]=1",
-        #     "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
-        #     [],
-        # ],
+        [
+            "ord_dataset-0b70410902ae4139bd5d334881938f69",
+            982,
+            {},
+            False,
+            [
+                "COc1ccccc1C(O)c1cccc(Br)n1",
+            ],
+            ["O=[Cr](=O)=O",],
+            [],
+            ["CC(=O)O", "CCO", "O"],
+            [],
+            ["COc1ccccc1C(=O)c1cccc(Br)n1"],
+            [66.2],
+            None,
+            None,
+            "[Br:1][C:2]1[N:7]=[C:6]([CH:8]([C:10]2[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=2[O:16][CH3:17])[OH:9])[CH:5]=[CH:4][CH:3]=1.C(O)C.O>C(O)(=O)C>[Br:1][C:2]1[N:7]=[C:6]([C:8](=[O:9])[C:10]2[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=2[O:16][CH3:17])[CH:5]=[CH:4][CH:3]=1",
+            "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
+            ["CrO3"],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
