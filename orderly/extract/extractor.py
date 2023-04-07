@@ -552,7 +552,7 @@ class OrdExtractor:
 
         if (labelled_products_from_input != []) and (
             labelled_products_from_input != labelled_products
-        ):
+        ): # we would expect the labelled products from input to be empty, but if it's not, we should check that it's the same as the labelled products
             if len(labelled_products_from_input) != len(labelled_products):
                 warnings.warn(
                     "The number of products in rxn.inputs and rxn.outcomes do not match"
@@ -720,7 +720,10 @@ class OrdExtractor:
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
-        # Apply the manual_replacements_dict to the agents, reagents, solvents, and catalysts
+        # Apply the manual_replacements_dict to the reactants, agents, reagents, solvents, and catalysts
+        reactants = OrdExtractor.apply_replacements_dict(
+            reactants, manual_replacements_dict=manual_replacements_dict
+        )
         agents = OrdExtractor.apply_replacements_dict(
             agents, manual_replacements_dict=manual_replacements_dict
         )
@@ -743,7 +746,7 @@ class OrdExtractor:
         catalysts = [c for c in catalysts if c not in reactants]
 
         procedure_details = rxn.notes.procedure_details
-        rxn_non_smiles_names_list = list(set(rxn_non_smiles_names_list))
+        rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
         return (
             reactants,

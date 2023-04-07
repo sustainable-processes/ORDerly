@@ -202,6 +202,7 @@ def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["dimethyl acetal"] = "CN(C)C(OC)OC"
     molecule_replacements["cuprous chloride"] = "Cl[Cu]"
     molecule_replacements["N,N'-carbonyldiimidazole"] = "O=C(n1cncc1)n2ccnc2"
+    molecule_replacements["CrO3"] = "O=[Cr](=O)=O"
     # SiO2
     # Went down the list of molecule_names until frequency was 806
 
