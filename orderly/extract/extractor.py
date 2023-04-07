@@ -552,7 +552,7 @@ class OrdExtractor:
 
         if (labelled_products_from_input != []) and (
             labelled_products_from_input != labelled_products
-        ): # we would expect the labelled products from input to be empty, but if it's not, we should check that it's the same as the labelled products
+        ):  # we would expect the labelled products from input to be empty, but if it's not, we should check that it's the same as the labelled products
             if len(labelled_products_from_input) != len(labelled_products):
                 warnings.warn(
                     "The number of products in rxn.inputs and rxn.outcomes do not match"
