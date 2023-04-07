@@ -506,7 +506,7 @@ class OrdExtractor:
         metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
-        include_unadded_labelled_agents = True
+        include_unadded_labelled_agents=True,
     ) -> typing.Optional[
         typing.Tuple[
             REACTANTS,
@@ -622,17 +622,27 @@ class OrdExtractor:
                     products = labelled_products
                 else:
                     return None
-                
-            if include_unadded_labelled_agents: # Add any agents that were not added to the reactants, agents, or solvents
+
+            if (
+                include_unadded_labelled_agents
+            ):  # Add any agents that were not added to the reactants, agents, or solvents
                 # merge all the lists
-                all_labelled_molecules = labelled_reactants + labelled_products + labelled_solvents + labelled_reagents + labelled_catalysts
+                all_labelled_molecules = (
+                    labelled_reactants
+                    + labelled_products
+                    + labelled_solvents
+                    + labelled_reagents
+                    + labelled_catalysts
+                )
                 # remove duplicates
                 all_labelled_molecules = list(set(all_labelled_molecules))
                 # remove any molecules that are already in the reactants, agents, or solvents
-                molecules_unique_to_labelled_data = [x for x in all_labelled_molecules if x not in reactants + rxn_str_agents + solvents + products]
+                molecules_unique_to_labelled_data = [
+                    x
+                    for x in all_labelled_molecules
+                    if x not in reactants + rxn_str_agents + solvents + products
+                ]
                 rxn_str_agents += molecules_unique_to_labelled_data
-                
-                
 
             # Merge conditions
             agents, solvents = OrdExtractor.merge_to_agents(
