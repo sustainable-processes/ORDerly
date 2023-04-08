@@ -330,11 +330,13 @@ class Cleaner:
 )
 @click.option(
     "--pickles_path",
+    default="data/orderly/pickled_data",
     type=str,
     help="The filepath to the folder than contains the extracted pickles",
 )
 @click.option(
     "--molecules_to_remove_path",
+    default="data/orderly/all_molecule_names.pkl",
     type=str,
     help="The path to the pickle file than contains the molecules_names",
 )
@@ -513,10 +515,6 @@ def main(
     2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
     start_time = datetime.datetime.now()
-
-    clean_data_path = pathlib.Path(clean_data_path)
-    pickles_path = pathlib.Path(pickles_path)
-    molecules_to_remove_path = pathlib.Path(molecules_to_remove_path)
 
     molecules_to_remove = pd.read_pickle(molecules_to_remove_path)
 
