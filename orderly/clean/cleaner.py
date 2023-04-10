@@ -457,9 +457,9 @@ def main_click(
     2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
     main(
-        clean_data_path=clean_data_path,
-        pickles_path=pickles_path,
-        molecules_to_remove_path=molecules_to_remove_path,
+        clean_data_path=pathlib.Path(clean_data_path),
+        pickles_path=pathlib.Path(pickles_path),
+        molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
@@ -514,6 +514,14 @@ def main(
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
+
+    if not isinstance(clean_data_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
+    if not isinstance(pickles_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(pickles_path)}")
+    if not isinstance(molecules_to_remove_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(molecules_to_remove_path)}")
+
     start_time = datetime.datetime.now()
 
     molecules_to_remove = pd.read_pickle(molecules_to_remove_path)

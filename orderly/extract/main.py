@@ -271,7 +271,7 @@ def extract(
     type=str,
     default="all_molecule_names.pkl",
     show_default=True,
-    help="The path to the merged_molecules pickle file",
+    help="The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)",
 )
 @click.option(
     "--use_multiprocessing",
@@ -338,7 +338,7 @@ def main_click(
     7) molecule_names_folder: str
         - The name of the folder that contains the molecule_name pickles per folder
     8) merged_molecules_file: str
-        - The path to the merged_molecules pickle file
+        - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
     10) name_contains_substring: typing.Optional[str]
@@ -391,7 +391,7 @@ def main_click(
         pickled_data_folder=pickled_data_folder,
         solvents_path=solvents_path,
         molecule_names_folder=molecule_names_folder,
-        merged_molecules_file=pathlib.Path(merged_molecules_file),
+        merged_molecules_file=merged_molecules_file,
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
         inverse_substring=inverse_substring,
@@ -407,7 +407,7 @@ def main(
     pickled_data_folder: str,
     solvents_path: typing.Optional[pathlib.Path],
     molecule_names_folder: str,
-    merged_molecules_file: pathlib.Path,
+    merged_molecules_file: str,
     use_multiprocessing: bool,
     name_contains_substring: typing.Optional[str],
     inverse_substring: bool,
@@ -436,7 +436,7 @@ def main(
     7) molecule_names_folder: str
         - The name of the folder that contains the molecule_name pickles per folder
     8) merged_molecules_file: str
-        - The path to the merged_molecules pickle file
+        - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
     10) name_contains_substring: typing.Optional[str]
@@ -472,6 +472,21 @@ def main(
     1) A pickle file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
     2) A list of all unique molecule names (in merged_molecules_file)
     """
+
+    if not isinstance(data_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(data_path)}")
+    if not isinstance(output_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(output_path)}")
+    if solvents_path is not None:
+        if not isinstance(solvents_path, pathlib.Path):
+            raise ValueError(f"Expect pathlib.Path: got {type(solvents_path)}")
+    if not isinstance(merged_molecules_file, str):
+        raise ValueError(
+            f"Expect str: got {type(merged_molecules_file)}. This is just the name of the file"
+        )
+    if name_contains_substring is not None:
+        if not isinstance(name_contains_substring, str):
+            raise ValueError(f"Expect str: got {type(name_contains_substring)}")
 
     LOG.info("starting extraction")
     start_time = datetime.datetime.now()
