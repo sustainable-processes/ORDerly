@@ -85,7 +85,7 @@ class Cleaner:
         with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
             for file in tqdm.tqdm(onlyfiles, disable=self.disable_tqdm):
                 if file[0] != ".":  # We don't want to try to unpickle .DS_Store
-                    filepath = self.pickles_path + '/' + file
+                    filepath = self.pickles_path / file
                     unpickled_df = pd.read_pickle(filepath)
                     full_df = pd.concat([full_df, unpickled_df], ignore_index=True)
 
