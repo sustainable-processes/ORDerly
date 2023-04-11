@@ -50,3 +50,7 @@ def test_clean(
         map_rare_to_other_threshold=map_rare_to_other_threshold,
         disable_tqdm=False,
     )
+
+    import pandas as pd
+
+    df = pd.read_parquet(tmp_path / "orderly_ord.parquet")
