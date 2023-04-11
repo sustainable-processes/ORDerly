@@ -531,7 +531,9 @@ def main(
                 for file in tqdm.tqdm(files):
                     extract(file=file, **kwargs)
     except KeyboardInterrupt:
-        LOG.info("KeyboardInterrupt: exiting the extraction but will quickly merge the files")
+        LOG.info(
+            "KeyboardInterrupt: exiting the extraction but will quickly merge the files"
+        )
         pass
 
     merge_pickled_mol_names(
