@@ -101,8 +101,7 @@ class OrdExtractor:
             self.metals = orderly.extract.defaults.get_metals_list()
         if self.solvents_set is None:
             self.solvents_set = orderly.extract.defaults.get_solvents_set()
-        self.non_smiles_names_list = []
-        self.full_df = self.build_full_df()
+        self.full_df, self.non_smiles_names_list = self.build_full_df()
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
     @staticmethod
@@ -795,17 +794,20 @@ class OrdExtractor:
     def build_rxn_lists(
         self,
     ) -> typing.Tuple[
-        typing.List[RXN_STR],
-        typing.List[REACTANTS],
-        typing.List[AGENTS],
-        typing.List[REAGENTS],
-        typing.List[SOLVENTS],
-        typing.List[CATALYSTS],
-        typing.List[TEMPERATURE_CELCIUS],
-        typing.List[RXN_TIME],
-        typing.List[PRODUCTS],
-        typing.List[YIELDS],
-        typing.List[str],
+        typing.Tuple[
+            typing.List[RXN_STR],
+            typing.List[REACTANTS],
+            typing.List[AGENTS],
+            typing.List[REAGENTS],
+            typing.List[SOLVENTS],
+            typing.List[CATALYSTS],
+            typing.List[TEMPERATURE_CELCIUS],
+            typing.List[RXN_TIME],
+            typing.List[PRODUCTS],
+            typing.List[YIELDS],
+            typing.List[str],
+        ],
+        typing.List[MOLECULE_IDENTIFIER],
     ]:
         rxn_str_all = []
         reactants_all = []
@@ -872,7 +874,7 @@ class OrdExtractor:
             products_all,
             yields_all,
             procedure_details_all,
-        )
+        ), rxn_non_smiles_names_list
 
     def create_column_headers(
         self, df: pd.DataFrame, base_string: str
@@ -886,7 +888,9 @@ class OrdExtractor:
             column_headers.append(base_string + str(i))
         return column_headers
 
-    def build_full_df(self) -> pd.DataFrame:
+    def build_full_df(
+        self,
+    ) -> typing.Tuple[pd.DataFrame, typing.List[MOLECULE_IDENTIFIER]]:
         headers = [
             "rxn_str_",
             "reactant_",
@@ -899,7 +903,7 @@ class OrdExtractor:
             "product_",
             "yield_",
         ]
-        data_lists = self.build_rxn_lists()
+        data_lists, rxn_non_smiles_names_list = self.build_rxn_lists()
         for i in range(len(headers)):
             new_df = pd.DataFrame(data_lists[i])
             df_headers = self.create_column_headers(new_df, headers[i])
@@ -908,4 +912,4 @@ class OrdExtractor:
                 full_df = new_df
             else:
                 full_df = pd.concat([full_df, new_df], axis=1)
-        return full_df
+        return full_df, rxn_non_smiles_names_list
