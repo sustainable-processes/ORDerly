@@ -39,10 +39,7 @@ sudo apt-get install libpq-dev gcc -y
 To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
 
 - For poetry (run in terminal):
-    Python dependencies:
-        ```bash
-        poetry install
-        ``` or ```poetry install```
+    Python dependencies: ```poetry install```
 - For docker (run in terminal):
     ```bash
     build_orderly
