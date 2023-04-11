@@ -1097,7 +1097,7 @@ def test_extraction_pipeline(
             if len(series.dropna()) == 0:
                 continue
             elif col == "grant_date":
-                continue # TODO check that it is an optional datetime
+                continue  # TODO check that it is an optional datetime
             elif "temperature" in col or "rxn_time" in col or "yield" in col:
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
