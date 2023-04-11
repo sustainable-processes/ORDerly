@@ -888,7 +888,9 @@ class OrdExtractor:
             column_headers.append(base_string + str(i))
         return column_headers
 
-    def build_full_df(self) -> typing.Tuple[pd.DataFrame, typing.List[MOLECULE_IDENTIFIER]]:
+    def build_full_df(
+        self,
+    ) -> typing.Tuple[pd.DataFrame, typing.List[MOLECULE_IDENTIFIER]]:
         headers = [
             "rxn_str_",
             "reactant_",
