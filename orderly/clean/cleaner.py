@@ -50,7 +50,7 @@ class Cleaner:
         include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary
                                        but above map_rare_to_other_threshold) by mapping these molecules to the string 'other'
         map_rare_to_other_threshold (bool): Frequency cutoff (see above).
-        molecules_to_remove (pd.DataFrame: Remove reactions that are represented by a name instead of a SMILES string
+        molecules_to_remove (list[str]: Remove reactions that are represented by a name instead of a SMILES string
         disable_tqdm (bool, optional): Controls the use of tqdm progress bar. Defaults to False.
     """
 
@@ -66,7 +66,7 @@ class Cleaner:
     min_frequency_of_occurance_secondary: int
     include_other_category: bool
     map_rare_to_other_threshold: bool
-    molecules_to_remove: pd.DataFrame
+    molecules_to_remove: typing.List[str]
     disable_tqdm: bool = False
 
     def __post_init__(self):
@@ -139,9 +139,13 @@ class Cleaner:
     def _remove_rare_molecules(
         self, df: pd.DataFrame, columns: typing.List[str]
     ) -> pd.DataFrame:
-        # Molecules that appear keep_as_is_cutoff times or more will be kept as is
-        # Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
-        # Molecules that appear less than convert_to_other_cutoff times will be removed
+        """
+        Molecules that appear keep_as_is_cutoff times or more will be kept as is
+        Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
+        Molecules that appear less than convert_to_other_cutoff times will be removed
+        """
+
+        LOG.info("Removing rare molecules")
 
         # Get the count of each value for all columns
         value_counts = df[columns[0]].value_counts()
@@ -160,6 +164,10 @@ class Cleaner:
         col: str,
         value_counts: int,
     ) -> pd.DataFrame:
+        
+        LOG.info("Running filtering and removal")
+        
+
         if "0" in col:
             upper_cutoff = self.min_frequency_of_occurance_primary
         else:
@@ -217,6 +225,8 @@ class Cleaner:
 
     def _get_dataframe(self) -> pd.DataFrame:
         # Merge all the pickled data into one big df
+
+        LOG.info("Getting dataframe")
 
         df = self._merge_pickles()
         LOG.info(f"All data length: {len(df)}")
@@ -526,7 +536,7 @@ def main(
 
     start_time = datetime.datetime.now()
 
-    molecules_to_remove = pd.read_pickle(molecules_to_remove_path)
+    molecules_to_remove = pd.read_pickle(molecules_to_remove_path) # reads in list of strs
 
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0
