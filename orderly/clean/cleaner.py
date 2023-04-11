@@ -316,7 +316,7 @@ class Cleaner:
         df = df.drop_duplicates()
         LOG.info(f"After removing duplicates: {len(df)}")
 
-        df.reset_index(inplace=True)
+        df.reset_index(inplace=True, drop=True)
         return df
 
 
