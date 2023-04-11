@@ -164,9 +164,7 @@ class Cleaner:
         col: str,
         value_counts: int,
     ) -> pd.DataFrame:
-        
         LOG.info("Running filtering and removal")
-        
 
         if "0" in col:
             upper_cutoff = self.min_frequency_of_occurance_primary
@@ -536,7 +534,9 @@ def main(
 
     start_time = datetime.datetime.now()
 
-    molecules_to_remove = pd.read_pickle(molecules_to_remove_path) # reads in list of strs
+    molecules_to_remove = pd.read_pickle(
+        molecules_to_remove_path
+    )  # reads in list of strs
 
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0
