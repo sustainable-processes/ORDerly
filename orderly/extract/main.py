@@ -514,21 +514,25 @@ def main(
         "overwrite": overwrite,
     }
 
-    if use_multiprocessing:
-        # somewhat dangerous imports so keeping localised
-        import multiprocessing
-        import joblib
+    try:
+        if use_multiprocessing:
+            # somewhat dangerous imports so keeping localised
+            import multiprocessing
+            import joblib
 
-        num_cores = multiprocessing.cpu_count()
-        with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
-            joblib.Parallel(n_jobs=num_cores)(
-                joblib.delayed(extract)(file=file, **kwargs)
-                for file in tqdm.tqdm(files)
-            )
-    else:
-        with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
-            for file in tqdm.tqdm(files):
-                extract(file=file, **kwargs)
+            num_cores = multiprocessing.cpu_count()
+            with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
+                joblib.Parallel(n_jobs=num_cores)(
+                    joblib.delayed(extract)(file=file, **kwargs)
+                    for file in tqdm.tqdm(files)
+                )
+        else:
+            with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
+                for file in tqdm.tqdm(files):
+                    extract(file=file, **kwargs)
+    except KeyboardInterrupt:
+        LOG.info("KeyboardInterrupt: exiting the extraction but will quickly merge the files")
+        pass
 
     merge_pickled_mol_names(
         molecule_names_path=molecule_name_path,
