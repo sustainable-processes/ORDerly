@@ -297,7 +297,7 @@ def extract(
 @click.option(
     "--overwrite",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="If true, will overwrite existing files, else will through an error if a file exists",
 )

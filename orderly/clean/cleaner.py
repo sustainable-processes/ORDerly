@@ -75,21 +75,22 @@ class Cleaner:
     def _merge_pickles(self) -> pd.DataFrame:
         # create one big df of all the pickled data
 
+        LOG.info("Getting merged dataframe from pickle files")
+
         onlyfiles = [
             f
             for f in os.listdir(self.pickles_path)
             if os.path.isfile(os.path.join(self.pickles_path, f))
         ]
-        full_df = pd.DataFrame()
 
+        dfs = []
         with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
             for file in tqdm.tqdm(onlyfiles, disable=self.disable_tqdm):
                 if file[0] != ".":  # We don't want to try to unpickle .DS_Store
                     filepath = self.pickles_path / file
                     unpickled_df = pd.read_pickle(filepath)
-                    full_df = pd.concat([full_df, unpickled_df], ignore_index=True)
-
-        return full_df
+                    dfs.append(unpickled_df)
+        return pd.concat(dfs, ignore_index=True)
 
     def _get_number_of_columns_to_keep(self) -> typing.Dict[str, int]:
         return {
@@ -216,6 +217,7 @@ class Cleaner:
 
     def _get_dataframe(self) -> pd.DataFrame:
         # Merge all the pickled data into one big df
+
         df = self._merge_pickles()
         LOG.info(f"All data length: {len(df)}")
 
