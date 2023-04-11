@@ -1090,12 +1090,14 @@ def test_extraction_pipeline(
         if df is None:
             continue
 
-        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0'],
+        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})
             if len(series.dropna()) == 0:
                 continue
+            elif col == "grant_date":
+                continue  # TODO check that it is an optional datetime
             elif "temperature" in col or "rxn_time" in col or "yield" in col:
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:

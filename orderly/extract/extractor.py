@@ -83,6 +83,12 @@ class OrdExtractor:
                 )
                 self.filename = self.data.dataset_id
 
+        grant_date = self.filename.split("uspto-grants-")
+        if len(grant_date) > 1:
+            grant_date = pd.to_datetime(grant_date[1], format="%Y_%M")
+        else:
+            grant_date = None
+
         self.non_smiles_names_list = self.full_df = None
         if self.contains_substring is not None:
             to_skip = self.contains_substring.lower() not in self.filename.lower()
@@ -102,6 +108,9 @@ class OrdExtractor:
         if self.solvents_set is None:
             self.solvents_set = orderly.extract.defaults.get_solvents_set()
         self.full_df, self.non_smiles_names_list = self.build_full_df()
+
+        self.full_df = self.full_df.assign(grant_date=grant_date)
+
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
     @staticmethod
