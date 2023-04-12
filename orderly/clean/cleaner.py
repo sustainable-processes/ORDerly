@@ -141,7 +141,7 @@ class Cleaner:
         """
         min_frequency_of_occurance_primary/secondary: an integer representing the cutoff
         Molecules with a frequency of occurance in a column above the threshold will be kept as is, below the threshold they will be replaced with 'other'
-        
+
         Molecules that appear min_frequency_of_occurance_primary/secondary times or more will be kept as is
         Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
         Molecules that appear less than convert_to_other_cutoff times will be removed
@@ -445,10 +445,8 @@ def main_click(
     num_agent: int,
     num_cat: int,
     num_reag: int,
-    min_frequency_of_occurance_primary: int,
-    min_frequency_of_occurance_secondary: int,
-    include_other_category: bool,
-    map_rare_to_other_threshold: int,
+    min_frequency_of_occurance: int,
+    map_rare_to_other: bool,
     disable_tqdm: bool,
 ):
     """
