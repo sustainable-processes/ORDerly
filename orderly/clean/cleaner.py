@@ -148,7 +148,8 @@ class Cleaner:
         LOG.info("Removing rare molecules")
 
         # Get the count of each value for all columns
-        value_counts = df[columns[0]].value_counts()
+        value_counts: pd.Series = df[columns[0]].value_counts()
+        assert isinstance(value_counts, pd.Series)
         for i in range(1, len(columns)):
             value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
 
@@ -162,7 +163,7 @@ class Cleaner:
         self,
         df: pd.DataFrame,
         col: str,
-        value_counts: int,
+        value_counts: pd.Series,
     ) -> pd.DataFrame:
         LOG.info("Running filtering and removal")
 
