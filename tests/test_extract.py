@@ -21,12 +21,12 @@ def get_rxn_func() -> typing.Callable:
         import orderly.data
         import orderly.extract.main
 
-        file = orderly.extract.main.get_file_names(
+        _file = orderly.extract.main.get_file_names(
             directory=orderly.data.get_path_of_test_ords(),
             file_ending=f"{file_name}.pb.gz",
         )
-        assert len(file) == 1
-        file = pathlib.Path(file[0])
+        assert len(_file) == 1
+        file = pathlib.Path(_file[0])
 
         dataset = orderly.extract.extractor.OrdExtractor.load_data(file)
         rxn = dataset.reactions[rxn_idx]
