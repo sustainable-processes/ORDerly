@@ -27,7 +27,6 @@ def test_molecule_names_not_empty():
 def check_frequency_of_occurance(
     df,
     min_frequency_of_occurrence,
-    map_rare_molecules_to_other,
 ):
     import pandas as pd
 
@@ -301,9 +300,9 @@ def test_frequency(cleaned_df_params):
         _,
         _,
         min_frequency_of_occurance,
-        map_rare_molecules_to_other,
+        _,
     ) = params
 
     check_frequency_of_occurance(
-        cleaned_df, min_frequency_of_occurance, map_rare_molecules_to_other
+        cleaned_df, min_frequency_of_occurance
     )
