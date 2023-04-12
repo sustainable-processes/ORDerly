@@ -49,7 +49,7 @@ class OrdExtractor:
 
     ord_file_path: pathlib.Path
     trust_labelling: bool
-    manual_replacements_dict: typing.Dict[str, str]
+    manual_replacements_dict: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]]
     metals: typing.Optional[METALS] = None
     solvents_set: typing.Optional[typing.Set[SOLVENT]] = None
     filename: typing.Optional[str] = None
@@ -518,12 +518,12 @@ class OrdExtractor:
     @staticmethod
     def handle_reaction_object(
         rxn: ord_reaction_pb2.Reaction,
-        manual_replacements_dict: dict,
+        manual_replacements_dict: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]],
         solvents_set: typing.Set[SOLVENT],
         metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
-        include_unadded_labelled_agents=True,
+        include_unadded_labelled_agents: bool =True,
     ) -> typing.Optional[
         typing.Tuple[
             REACTANTS,
@@ -684,7 +684,7 @@ class OrdExtractor:
 
         # clean the smiles
 
-        def is_digit(x):
+        def is_digit(x: typing.Optional[str]) -> typing.Optional[bool]:
             if x is None:
                 return None
             elif isinstance(x, str):

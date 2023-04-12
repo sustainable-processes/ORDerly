@@ -16,7 +16,7 @@ from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 import orderly.extract.extractor
 import orderly.extract.canonicalise
 import orderly.extract.defaults
-import orderly.data
+import orderly.data.solvents
 
 from orderly.types import *
 
@@ -48,7 +48,7 @@ def merge_pickled_mol_names(
     ),
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
-):
+) -> None:
     """
     Merges all the pickle files containing molecule non-smiles identifiers (typically english names) into one file.
     """
@@ -80,15 +80,17 @@ def merge_pickled_mol_names(
 
 def build_solvents_set_and_dict(
     solvents_path: typing.Optional[pathlib.Path] = None,
-) -> typing.Tuple[typing.Set, typing.Dict]:
+) -> typing.Tuple[typing.Set[CANON_SMILES], typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]]:
     """
     Builds a set of canonical smiles strings for all solvents (used to identify which agents are solvents) and a dictionary of solvent names to canonical smiles strings (for name resolution)
     """
-    solvents = orderly.data.get_solvents(path=solvents_path)
+    solvents = orderly.data.solvents.get_solvents(path=solvents_path)
 
     solvents["canonical_smiles"] = solvents["smiles"].apply(
         orderly.extract.canonicalise.get_canonicalised_smiles
     )
+
+    # TODO raise error if any of the canonical smiles have a none in
 
     solvents_set = set(solvents["canonical_smiles"])
 
@@ -152,7 +154,7 @@ def get_manual_replacements_dict(
         molecule_replacements=molecule_replacements,
         molecule_str_force_nones=molecule_str_force_nones,
     )
-    solvents_dict = orderly.data.get_solvents_dict(path=solvents_path)
+    solvents_dict = orderly.data.solvents.get_solvents_dict(path=solvents_path)
     manual_replacements_dict.update(solvents_dict)
     return manual_replacements_dict
 
@@ -168,7 +170,7 @@ def extract(
     name_contains_substring: typing.Optional[str] = None,
     inverse_substring: bool = False,
     overwrite: bool = True,
-):
+) -> None:
     """
     Extract information from an ORD file.
     """
