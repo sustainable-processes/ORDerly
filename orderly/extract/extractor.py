@@ -440,13 +440,13 @@ class OrdExtractor:
     def match_yield_with_product(
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
-        yields: YIELDS,
+        yields: typing.Optional[YIELDS],
         use_labelling_if_extract_fails: bool = True,
-    ) -> typing.Tuple[PRODUCTS, YIELDS]:
+    ) -> typing.Tuple[PRODUCTS, typing.Optional[YIELDS]]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
         """
-        if len(rxn_str_products) != 0 and yields is not None:
+        if (len(rxn_str_products) != 0) and (yields is not None):
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
                 added = False
@@ -465,10 +465,10 @@ class OrdExtractor:
 
     @staticmethod
     def merge_to_agents(
-        rxn_string_agents: AGENTS,
-        catalysts: CATALYSTS,
-        solvents: SOLVENTS,
-        reagents: REAGENTS,
+        rxn_string_agents: typing.Optional[AGENTS],
+        catalysts: typing.Optional[CATALYSTS],
+        solvents: typing.Optional[SOLVENTS],
+        reagents: typing.Optional[REAGENTS],
         metals: METALS,
         solvents_set: typing.Set[SOLVENT],
     ) -> typing.Tuple[AGENTS, SOLVENTS]:
@@ -634,9 +634,12 @@ class OrdExtractor:
                 reactants = list(set(rxn_str_reactants))
                 # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
                 rxn_str_products = list(set(rxn_str_products))
-                products, yields = OrdExtractor.match_yield_with_product(
+                products, _yields = OrdExtractor.match_yield_with_product(
                     rxn_str_products, labelled_products, yields
                 )
+                if _yields is None:
+                    _yields = []
+                yields = _yields
 
             except (ValueError, TypeError) as e:
                 rxn_str_agents = []
