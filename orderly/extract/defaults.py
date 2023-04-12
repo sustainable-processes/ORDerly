@@ -1,6 +1,6 @@
 import typing
 
-import orderly.data
+import orderly.data.solvents
 
 from orderly.types import *
 
@@ -222,4 +222,4 @@ def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
 
 
 def get_solvents_set() -> typing.Set[SOLVENT]:
-    return orderly.data.get_solvents_set()
+    return orderly.data.solvents.get_solvents_set()

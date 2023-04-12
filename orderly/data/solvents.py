@@ -25,7 +25,7 @@ def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
 
 
 def get_solvents_set(path: typing.Optional[pathlib.Path] = None) -> typing.Set[SOLVENT]:
-    solvents = orderly.data.get_solvents(path=path)
+    solvents = get_solvents(path=path)
     return set(solvents["canonical_smiles"])
 
 
@@ -36,14 +36,14 @@ def get_solvents_dict(
     Builds a dictionary of solvents from the solvents.csv file
     """
     # TODO Check when dict is applied we use .lower()
-    solvents = orderly.data.get_solvents(path=path)
+    solvents = get_solvents(path=path)
 
     def get_df(
         name: str,
         solvents_df: typing.Optional[pd.DataFrame] = None,
     ) -> pd.DataFrame:
         if solvents_df is None:
-            solvents_df = orderly.data.get_solvents()
+            solvents_df = get_solvents()
         else:
             solvents_df = solvents_df.copy()
         df = (
@@ -53,8 +53,7 @@ def get_solvents_dict(
         )
         df["identifer"] = df["identifer"].str.lower()
         return df
-
-    return (
+    output:typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES] = (
         pd.concat(
             [
                 get_df(name=i, solvents_df=solvents)
@@ -65,3 +64,4 @@ def get_solvents_dict(
         .set_index("identifer")
         .to_dict()["canonical_smiles"]
     )
+    return output

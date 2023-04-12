@@ -5,27 +5,27 @@ import os
 
 
 def run_docker_download(
-    output_control,
+    output_control: bool,
     build_image: str,
     run_image: str,
     extra_commands: typing.Optional[typing.List[str]] = None,
-):
+) -> None:
     with open("/tmp/output.log", "a") as output:
+        output_control_dict = {}
         if output_control:
-            output_control = {"stdout": output, "stderr": output}
-        else:
-            output_control = {}
-        output_control = {"shell": True, **output_control}
+            output_control_dict = {"stdout": output, "stderr": output}
 
-        subprocess.call(build_image, **output_control)
-        subprocess.call(run_image, **output_control)
+        output_control_dict = {"shell": True, **output_control_dict} # type: ignore
+
+        subprocess.call(build_image, **output_control_dict)# type: ignore
+        subprocess.call(run_image, **output_control_dict)# type: ignore
 
         if extra_commands is not None:
             for i in extra_commands:
-                subprocess.call(i, **output_control)
+                subprocess.call(i, **output_control_dict)# type: ignore
 
 
-def linux_download(output_control: bool = True):
+def linux_download(output_control: bool = True) -> None:
     run_docker_download(
         output_control=output_control,
         build_image="docker image build --target orderly_download_linux --tag orderly_download_linux .",
@@ -33,7 +33,7 @@ def linux_download(output_control: bool = True):
     )
 
 
-def mac_download(output_control: bool = True):
+def mac_download(output_control: bool = True) -> None:
     run_docker_download(
         output_control=output_control,
         build_image="docker image build --target orderly_download_linux --tag orderly_download_sudo .",
@@ -42,7 +42,7 @@ def mac_download(output_control: bool = True):
     )
 
 
-def download(output_control=True):
+def download(output_control:bool=True) -> None:
     if platform.system() == "Windows":
         raise NotImplementedError()
     elif platform.system() == "Linux":

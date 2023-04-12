@@ -20,7 +20,7 @@ def remove_mapping_info_and_canonicalise_smiles(
         m = rdkit_Chem.MolFromSmiles(molecule_identifier)
         for atom in m.GetAtoms():
             atom.SetAtomMapNum(0)
-        return rdkit_Chem.MolToSmiles(m)
+        return str(rdkit_Chem.MolToSmiles(m))
     except AttributeError:
         return None
 
@@ -35,7 +35,7 @@ def canonicalise_smiles(
     # remove mapping info and canonicalsie the molecule_identifier at the same time
     # converting to mol and back canonicalises the molecule_identifier string
     try:
-        return rdkit_Chem.CanonSmiles(molecule_identifier)
+        return str(rdkit_Chem.CanonSmiles(molecule_identifier))
     except AttributeError:
         return None
     except Exception as e:
