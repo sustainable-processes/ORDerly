@@ -21,12 +21,12 @@ def get_rxn_func() -> typing.Callable:
         import orderly.data
         import orderly.extract.main
 
-        file = orderly.extract.main.get_file_names(
+        _file = orderly.extract.main.get_file_names(
             directory=orderly.data.get_path_of_test_ords(),
             file_ending=f"{file_name}.pb.gz",
         )
-        assert len(file) == 1
-        file = pathlib.Path(file[0])
+        assert len(_file) == 1
+        file = pathlib.Path(_file[0])
 
         dataset = orderly.extract.extractor.OrdExtractor.load_data(file)
         rxn = dataset.reactions[rxn_idx]
@@ -252,10 +252,13 @@ def test_rxn_string_and_is_mapped(
 
     import orderly.extract.extractor
 
-    (
-        rxn_str,
-        is_mapped,
-    ) = orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    rxn_str_output = (
+        orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    )
+    if rxn_str_output is None:
+        rxn_str, is_mapped = None, None
+    else:
+        rxn_str, is_mapped = rxn_str_output
 
     assert expected_rxn_str == rxn_str, f"failure for {expected_rxn_str=} got {rxn_str}"
     assert (
