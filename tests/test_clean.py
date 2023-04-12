@@ -303,6 +303,4 @@ def test_frequency(cleaned_df_params):
         _,
     ) = params
 
-    check_frequency_of_occurance(
-        cleaned_df, min_frequency_of_occurance
-    )
+    check_frequency_of_occurance(cleaned_df, min_frequency_of_occurance)

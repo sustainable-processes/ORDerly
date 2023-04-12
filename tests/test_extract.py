@@ -12,7 +12,7 @@ def test_hello_world() -> None:
     assert True
 
 
-def get_rxn_func() -> typing.Callable[[str, int], ord_reaction_pb2]:
+def get_rxn_func() -> typing.Callable[[str, int], ord_reaction_pb2.Reaction]:
     from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
     def get_rxn(
@@ -358,9 +358,9 @@ def test_extract_info_from_rxn(
     rxn_overwrite: typing.Optional[bool],
     expected_rxn_str_reactants: typing.Optional[typing.List[str]],
     expected_rxn_str_agents: typing.Optional[typing.List[str]],
-    expected_rxn_str_products:typing.Optional[typing.List[str]],
-    expected_rxn_str:typing.Optional[str],
-    expected_non_smiles_names_list_additions:typing.Optional[typing.List[str]],
+    expected_rxn_str_products: typing.Optional[typing.List[str]],
+    expected_rxn_str: typing.Optional[str],
+    expected_non_smiles_names_list_additions: typing.Optional[typing.List[str]],
     expected_none: bool,
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
@@ -412,7 +412,10 @@ def test_extract_info_from_rxn(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_temperature_extractor(
-    execution_number: int, file_name: str, rxn_idx: int, expected_temperature: typing.Optional[float]
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_temperature: typing.Optional[float],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -496,7 +499,12 @@ def test_time_extractor(
         ],
         # Made up test cases:
         [
-            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O", None], # TODO we should consider removing this none
+            [
+                "c1ccccc1",
+                "Cc1ccc(S(=O)(=O)O)cc1",
+                "O",
+                None,
+            ],  # TODO we should consider removing this none
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
