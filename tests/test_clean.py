@@ -49,8 +49,8 @@ def check_frequency_of_occurance(
 
 
 def get_cleaned_df(
-    trust_labelling,
     output_path,
+    trust_labelling,
     consistent_yield,
     num_reactant,
     num_product,
