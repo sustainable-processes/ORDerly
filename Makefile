@@ -6,6 +6,9 @@ download_path=ord/
 mypy:
 	poetry run python -m mypy . --ignore-missing-imports
 
+strict_mypy:
+	poetry run python -m mypy . --ignore-missing-imports --strict
+
 black:
 	poetry run python -m black .
 
