@@ -3,6 +3,8 @@ uid = $(shell id -u)
 gid = $(shell id -g)
 download_path=ord/
 
+mypy:
+	poetry run python -m mypy . --ignore-missing-imports
 
 black:
 	poetry run python -m black .
