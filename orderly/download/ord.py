@@ -8,7 +8,7 @@ def run_docker_download(
     output_control,
     build_image: str,
     run_image: str,
-    extra_commands: typing.List[str] = None,
+    extra_commands: typing.Optional[typing.List[str]] = None,
 ):
     with open("/tmp/output.log", "a") as output:
         if output_control:
