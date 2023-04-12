@@ -13,7 +13,8 @@ pytest:
 	poetry run python -m pytest -v tests/test_clean.py
 
 gen_test_data:
-	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data  --name_contains_substring="" --overwrite=False
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False
+	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data_dont_trust_labelling  --trust_labelling=False --name_contains_substring="" --overwrite=False
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
