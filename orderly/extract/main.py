@@ -163,10 +163,10 @@ def get_manual_replacements_dict(
 
 def extract(
     output_path: pathlib.Path,
-    file,
-    trust_labelling,
-    manual_replacements_dict,
-    solvents_set,
+    file: pathlib.Path,
+    trust_labelling: bool,
+    manual_replacements_dict: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]],
+    solvents_set: typing.Set[CANON_SMILES],
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
     name_contains_substring: typing.Optional[str] = None,
@@ -322,7 +322,7 @@ def main_click(
     name_contains_substring: str,
     inverse_substring: bool,
     overwrite: bool,
-):
+) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to pickle files. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
         Example:
@@ -420,7 +420,7 @@ def main(
     name_contains_substring: typing.Optional[str],
     inverse_substring: bool,
     overwrite: bool,
-):
+) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
@@ -435,7 +435,7 @@ def main(
     3) trust_labelling: Bool
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
-    4) output_path: str
+    4) output_path: pathlib.Path
         - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
     5) pickled_data_folder: str
         - The name of folder than contains the pickle data structures
@@ -507,7 +507,7 @@ def main(
 
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
-    solvents_set = orderly.data.get_solvents_set(path=solvents_path)
+    solvents_set = orderly.data.solvents.get_solvents_set(path=solvents_path)
     manual_replacements_dict = get_manual_replacements_dict(solvents_path=solvents_path)
 
     kwargs = {
@@ -537,7 +537,8 @@ def main(
         else:
             with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
                 for file in tqdm.tqdm(files):
-                    extract(file=file, **kwargs)
+                    extract(file=file, **kwargs) # type: ignore
+                    # mypy fails with kwargs
     except KeyboardInterrupt:
         LOG.info(
             "KeyboardInterrupt: exiting the extraction but will quickly merge the files"
