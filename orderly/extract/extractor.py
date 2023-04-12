@@ -283,35 +283,32 @@ class OrdExtractor:
         products = []
 
         for key in rxn.inputs:
-            try:
-                components = rxn.inputs[key].components
-                for component in components:
-                    rxn_role = component.reaction_role  # rxn role
-                    identifiers = component.identifiers
-                    smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
-                        identifiers
-                    )
-                    non_smiles_names_list += non_smiles_names_list_additions
-                    if smiles is None:
-                        LOG.debug(f"No smiles or english name found for {identifiers=}")
-                        continue
-                    # raise AttributeError # TODO there is an issue here with catalyst being none
-                    if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
-                        reactants += [r for r in smiles.split(".")]
-                    elif rxn_role == 2:  # reagent
-                        reagents += [r for r in smiles.split(".")]
-                    elif rxn_role == 3:  # solvent
-                        solvents += [r for r in smiles.split(".")]
-                    elif rxn_role == 4:  # catalyst
-                        catalysts += [r for r in smiles.split(".")]
-                    elif rxn_role in [5, 6, 7]:
-                        # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
-                        continue
-                    elif rxn_role == 8:  # product
-                        # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
-                        products += [r for r in smiles.split(".")]
-            except IndexError:
-                pass
+            components = rxn.inputs[key].components
+            for component in components:
+                rxn_role = component.reaction_role  # rxn role
+                identifiers = component.identifiers
+                smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
+                    identifiers
+                )
+                non_smiles_names_list += non_smiles_names_list_additions
+                if smiles is None:
+                    LOG.debug(f"No smiles or english name found for {identifiers=}")
+                    continue
+                # raise AttributeError # TODO there is an issue here with catalyst being none
+                if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
+                    reactants += [r for r in smiles.split(".")]
+                elif rxn_role == 2:  # reagent
+                    reagents += [r for r in smiles.split(".")]
+                elif rxn_role == 3:  # solvent
+                    solvents += [r for r in smiles.split(".")]
+                elif rxn_role == 4:  # catalyst
+                    catalysts += [r for r in smiles.split(".")]
+                elif rxn_role in [5, 6, 7]:
+                    # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
+                    continue
+                elif rxn_role == 8:  # product
+                    # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
+                    products += [r for r in smiles.split(".")]
         return (
             reactants,
             reagents,
@@ -371,59 +368,55 @@ class OrdExtractor:
     ) -> typing.Optional[TEMPERATURE_CELCIUS]:
         """
         Gets the temperature of a reaction in degrees celcius
-        """
-        try:
-            # first look for the temperature as a number
-            temp_unit = rxn.conditions.temperature.setpoint.units
+    """
+        # first look for the temperature as a number
+        temp_unit = rxn.conditions.temperature.setpoint.units
 
-            if temp_unit == 1:  # celcius
-                return float(rxn.conditions.temperature.setpoint.value)
+        if temp_unit == 1:  # celcius
+            return float(rxn.conditions.temperature.setpoint.value)
 
-            elif temp_unit == 2:  # fahrenheit
-                f = rxn.conditions.temperature.setpoint.value
-                c = (f - 32) * 5 / 9
-                return float(c)
+        elif temp_unit == 2:  # fahrenheit
+            f = rxn.conditions.temperature.setpoint.value
+            c = (f - 32) * 5 / 9
+            return float(c)
 
-            elif temp_unit == 3:  # kelvin
-                k = rxn.conditions.temperature.setpoint.value
-                c = k - 273.15
-                return float(c)
-            elif temp_unit == 0:  # unspecified
-                # instead of using the setpoint, use the control type
-                # temperatures are in celcius
-                temp_control_type = rxn.conditions.temperature.control.type
-                if temp_control_type == 2:  # AMBIENT
-                    return 25.0
-                elif temp_control_type == 6:  # ICE_BATH
-                    return 0.0
-                elif temp_control_type == 9:  # DRY_ICE_BATH
-                    return -78.5
-                elif temp_control_type == 11:  # LIQUID_NITROGEN
-                    return -196.0
-        except IndexError:
-            pass
-        return None  # No temperature found
+        elif temp_unit == 3:  # kelvin
+            k = rxn.conditions.temperature.setpoint.value
+            c = k - 273.15
+            return float(c)
+        elif temp_unit == 0:  # unspecified
+            # instead of using the setpoint, use the control type
+            # temperatures are in celcius
+            temp_control_type = rxn.conditions.temperature.control.type
+            if temp_control_type == 2:  # AMBIENT
+                return 25.0
+            elif temp_control_type == 6:  # ICE_BATH
+                return 0.0
+            elif temp_control_type == 9:  # DRY_ICE_BATH
+                return -78.5
+            elif temp_control_type == 11:  # LIQUID_NITROGEN
+                return -196.0
+        else:
+            return None  # No temperature found
 
     @staticmethod
     def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[float]:
-        try:
-            if rxn.outcomes[0].reaction_time.units == 1:  # hour
-                return round(float(rxn.outcomes[0].reaction_time.value), 2)
-            elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
-                s = rxn.outcomes[0].reaction_time.value
-                h = s / 3600
-                return round(float(h), 2)
-            elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
-                m = rxn.outcomes[0].reaction_time.value
-                h = m / 60
-                return round(float(h), 2)
-            elif rxn.outcomes[0].reaction_time.units == 4:  # day
-                d = rxn.outcomes[0].reaction_time.value
-                h = d * 24
-                return round(float(h), 2)
-        except IndexError:
-            pass
-        return None  # no time found
+        if rxn.outcomes[0].reaction_time.units == 1:  # hour
+            return round(float(rxn.outcomes[0].reaction_time.value), 2)
+        elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
+            m = rxn.outcomes[0].reaction_time.value
+            h = m / 60
+            return round(float(h), 2)
+        elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
+            s = rxn.outcomes[0].reaction_time.value
+            h = s / 3600
+            return round(float(h), 2)
+        elif rxn.outcomes[0].reaction_time.units == 4:  # day
+            d = rxn.outcomes[0].reaction_time.value
+            h = d * 24
+            return round(float(h), 2)
+        else:
+            return None  # no time found
 
     @staticmethod
     def apply_replacements_dict(smiles_list: list, manual_replacements_dict: dict):
