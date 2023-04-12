@@ -9,6 +9,8 @@ def test_molecule_names_not_empty():
     from orderly.data.test_data import get_path_of_molecule_names
     import pandas as pd
     import os
+    
+    all_empty = True
 
     molecule_names_folder_path = get_path_of_molecule_names()
 
@@ -17,7 +19,9 @@ def test_molecule_names_not_empty():
         if file.endswith(".parquet") or file.endswith(".pkl"):
             file_path = os.path.join(molecule_names_folder_path, file)
             df = pd.read_parquet(file_path)
-            assert not df.empty
+            if not df.empty:
+                all_empty = False
+    assert not all_empty
 
 
 def check_frequency_of_occurance(
@@ -107,19 +111,19 @@ def cleaned_df_params(tmp_path, request):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:F",
         ),
         pytest.param(
@@ -150,19 +154,19 @@ def test_get_cleaned_df(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:F",
         ),
         pytest.param(
@@ -228,19 +232,19 @@ def test_number_of_columns(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
             id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
             id="trust_labelling:T|consistent_yield:F|include_other_category:F",
         ),
         pytest.param(

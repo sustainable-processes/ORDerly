@@ -119,14 +119,12 @@ class Cleaner:
         cols = list(df.columns)
         count = 0
         for col in cols:
-            if component_name in col:
+            if col.startswith(component_name):
                 count += 1
-
         columns_to_remove = []  # columns to remove
         for i in range(count):
             if i >= number_of_columns_to_keep:
                 columns_to_remove.append(component_name + "_" + str(i))
-
         for col in columns_to_remove:
             # Create a boolean mask for the rows with missing values in col
             mask = pd.isnull(df[col])
@@ -141,7 +139,10 @@ class Cleaner:
         self, df: pd.DataFrame, columns: typing.List[str]
     ) -> pd.DataFrame:
         """
-        Molecules that appear keep_as_is_cutoff times or more will be kept as is
+        min_frequency_of_occurance_primary/secondary: an integer representing the cutoff
+        Molecules with a frequency of occurance in a column above the threshold will be kept as is, below the threshold they will be replaced with 'other'
+        
+        Molecules that appear min_frequency_of_occurance_primary/secondary times or more will be kept as is
         Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
         Molecules that appear less than convert_to_other_cutoff times will be removed
         """
@@ -167,6 +168,11 @@ class Cleaner:
         value_counts: pd.Series,
     ) -> pd.DataFrame:
         LOG.info("Running filtering and removal")
+        """
+        
+        
+        
+        """
 
         if "0" in col:
             upper_cutoff = self.min_frequency_of_occurance_primary
