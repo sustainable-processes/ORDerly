@@ -49,6 +49,7 @@ def check_frequency_of_occurance(
 
 
 def get_cleaned_df(
+    trust_labelling,
     output_path,
     consistent_yield,
     num_reactant,
@@ -65,9 +66,13 @@ def get_cleaned_df(
     import orderly.clean.cleaner
     import orderly.data
 
-    pickles_path = orderly.data.get_path_of_test_extracted_ords() / "pickled_data"
+    pickles_path = (
+        orderly.data.get_path_of_test_extracted_ords(trust_labelling=trust_labelling)
+        / "pickled_data"
+    )
     molecules_to_remove_path = (
-        orderly.data.get_path_of_test_extracted_ords() / "all_molecule_names.pkl"
+        orderly.data.get_path_of_test_extracted_ords(trust_labelling=trust_labelling)
+        / "all_molecule_names.pkl"
     )
 
     orderly.clean.cleaner.main(
@@ -102,20 +107,36 @@ def cleaned_df_params(tmp_path, request):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:T",
+            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
-            id="consistent_yield:F|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:F|consistent_yield:T|include_other_category:T",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:F|consistent_yield:F|include_other_category:T",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:F|consistent_yield:T|include_other_category:F",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            id="trust_labelling:F|consistent_yield:F|include_other_category:F",
         ),
     ),
     indirect=True,
@@ -129,27 +150,27 @@ def test_get_cleaned_df(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:T",
+            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
-            id="consistent_yield:F|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
         ),
         pytest.param(
-            [False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
+            [True, False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
             marks=pytest.mark.xfail(
                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
             ),
-            id="consistent_yield:T|include_other_category:F|fives",
+            id="trust_labelling:T|consistent_yield:T|include_other_category:F|fives",
         ),
     ),
     indirect=True,
@@ -158,6 +179,7 @@ def test_number_of_columns(cleaned_df_params):
     cleaned_df, params = cleaned_df_params
 
     (
+        _,
         _,
         num_reactant,
         num_product,
@@ -206,27 +228,27 @@ def test_number_of_columns(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:T",
+            [True, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="consistent_yield:T|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
+            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
         ),
         pytest.param(
-            [False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
-            id="consistent_yield:F|include_other_category:F",
+            [True, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
+            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
         ),
         pytest.param(
-            [False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
+            [True, False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
             marks=pytest.mark.xfail(
                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
             ),
-            id="consistent_yield:T|include_other_category:F|fives",
+            id="trust_labelling:T|consistent_yield:T|include_other_category:F|fives",
         ),
     ),
     indirect=True,
@@ -235,6 +257,7 @@ def test_frequency(cleaned_df_params):
     cleaned_df, params = cleaned_df_params
 
     (
+        _,
         _,
         _,
         _,
