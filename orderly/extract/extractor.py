@@ -156,7 +156,7 @@ class OrdExtractor:
     @staticmethod
     def get_rxn_string_and_is_mapped(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Tuple[typing.Optional[str], typing.Optional[bool]]:
+    ) -> typing.Tuple[typing.Optional[RXN_STR], typing.Optional[bool]]:
         rxn_str_extended_smiles = None
         for rxn_ident in rxn.identifiers:
             if rxn_ident.type == 6:  # REACTION_CXSMILES
@@ -283,6 +283,10 @@ class OrdExtractor:
                         identifiers
                     )
                     non_smiles_names_list += non_smiles_names_list_additions
+                    if smiles is None:
+                        LOG.debug(f"No smiles or english name found for {identifiers=}")
+                        continue
+                    # raise AttributeError # TODO there is an issue here with catalyst being none
                     if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
                         reactants += [r for r in smiles.split(".")]
                     elif rxn_role == 2:  # reagent
