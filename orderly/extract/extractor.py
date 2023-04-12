@@ -232,7 +232,9 @@ class OrdExtractor:
         reactants = []
         # Only the mapped reactants that also don't appear as products should be trusted as reactants
         # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
-        for r_map, r_clean in zip(reactants_from_rxn, reactants_from_rxn_without_mapping):
+        for r_map, r_clean in zip(
+            reactants_from_rxn, reactants_from_rxn_without_mapping
+        ):
             # check reactant is mapped and also that it's not in the products
             mol = rdkit_Chem.MolFromSmiles(r_map)
             if mol != None:
@@ -501,7 +503,7 @@ class OrdExtractor:
 
         agents = sorted(list(_agents))
         solvents = sorted(list(_solvents))
-        del _agents, _solvents # for mypy
+        del _agents, _solvents  # for mypy
 
         # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
@@ -853,7 +855,6 @@ class OrdExtractor:
         assert self.metals is not None
 
         for rxn in self.data.reactions:
-
             extracted_reaction = OrdExtractor.handle_reaction_object(
                 rxn,
                 manual_replacements_dict=self.manual_replacements_dict,

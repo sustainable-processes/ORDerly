@@ -105,7 +105,9 @@ def build_solvents_set_and_dict(
 
 
 def build_replacements(
-    molecule_replacements: typing.Optional[typing.Dict[MOLECULE_IDENTIFIER, SMILES]] = None,
+    molecule_replacements: typing.Optional[
+        typing.Dict[MOLECULE_IDENTIFIER, SMILES]
+    ] = None,
     molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
 ) -> typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]]:
     """
@@ -127,7 +129,7 @@ def build_replacements(
             orderly.extract.defaults.get_molecule_str_force_nones()
         )
 
-    molecule_replacements_with_force_nones: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]] = molecule_replacements.copy() # type: ignore
+    molecule_replacements_with_force_nones: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]] = molecule_replacements.copy()  # type: ignore
 
     for molecule_str in molecule_str_force_nones:
         molecule_replacements_with_force_nones[molecule_str] = None
@@ -384,7 +386,6 @@ def main_click(
     _name_contains_substring: typing.Optional[str] = None
     if name_contains_substring != "":
         _name_contains_substring = name_contains_substring
-        
 
     main(
         data_path=pathlib.Path(data_path),

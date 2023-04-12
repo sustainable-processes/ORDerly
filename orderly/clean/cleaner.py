@@ -43,7 +43,7 @@ class Cleaner:
         num_agent (int): See help for num_reactant
         num_cat (int): See help for num_reactant
         num_reag (int): See help for num_reactant
-        min_frequency_of_occurance_primary (int): 
+        min_frequency_of_occurance_primary (int):
             The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably
             add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of
             that type, ie solvent_0, agent_0, catalyst_0, reagent_0

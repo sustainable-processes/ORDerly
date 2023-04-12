@@ -252,7 +252,9 @@ def test_rxn_string_and_is_mapped(
 
     import orderly.extract.extractor
 
-    rxn_str_output = orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    rxn_str_output = (
+        orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    )
     if rxn_str_output is None:
         rxn_str, is_mapped = None, None
     else:
