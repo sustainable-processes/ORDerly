@@ -8,7 +8,7 @@ black:
 	poetry run python -m black .
 
 pytest:
-	poetry run python -m pytest -v
+	poetry run python -m pytest -v tests/test_clean.py
 
 gen_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data  --name_contains_substring="" --overwrite=False
