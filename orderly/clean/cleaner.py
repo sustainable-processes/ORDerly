@@ -288,9 +288,8 @@ class Cleaner:
                 # see if the column name contains any from the list of reag, solv, cat, agent
                 columns.append(col)
 
-        if (
-            (self.min_frequency_of_occurance_primary != 0) 
-            or (self.min_frequency_of_occurance_secondary != 0)
+        if (self.min_frequency_of_occurance_primary != 0) or (
+            self.min_frequency_of_occurance_secondary != 0
         ):
             df = self._remove_rare_molecules(df, columns)
 
