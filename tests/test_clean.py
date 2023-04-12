@@ -9,7 +9,7 @@ def test_molecule_names_not_empty():
     from orderly.data.test_data import get_path_of_molecule_names
     import pandas as pd
     import os
-    
+
     all_empty = True
 
     molecule_names_folder_path = get_path_of_molecule_names()
@@ -30,9 +30,13 @@ def check_frequency_of_occurance(
     map_rare_molecules_to_other,
 ):
     import pandas as pd
-    
+
     # Define the list of columns to check
-    columns_to_check = [col for col in df.columns if col.startswith(('agent', 'solvent', 'reagent', 'catalyst'))]
+    columns_to_check = [
+        col
+        for col in df.columns
+        if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+    ]
 
     # Initialize a list to store the results
     results = []
@@ -41,13 +45,15 @@ def check_frequency_of_occurance(
     for col in columns_to_check:
         # Get the value counts for the column
         results += [df[col].value_counts()]
-        
+
     total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
-    total_value_counts = total_value_counts.drop('other')
+    total_value_counts = total_value_counts.drop("other")
     total_value_counts = total_value_counts.sort_values(ascending=True)
-    
-    assert total_value_counts.iloc[0] >= min_frequency_of_occurrence, f"{min_frequency_of_occurrence=} is not being respected"
-    
+
+    assert (
+        total_value_counts.iloc[0] >= min_frequency_of_occurrence
+    ), f"{min_frequency_of_occurrence=} is not being respected"
+
 
 def get_cleaned_df(
     output_path,
@@ -104,8 +110,8 @@ def cleaned_df_params(tmp_path, request):
     "cleaned_df_params",
     (
         pytest.param(
-        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
@@ -147,8 +153,8 @@ def test_get_cleaned_df(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
@@ -178,8 +184,7 @@ def test_get_cleaned_df(cleaned_df_params):
             [True, True, 5, 5, 2, 0, 2, 1, 15, True],
             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
         ),
-        
-        #XFAILS
+        # XFAILS
         pytest.param(
             [False, True, 5, 5, 5, 5, 5, 5, 5, True],
             marks=pytest.mark.xfail(
@@ -240,9 +245,9 @@ def test_number_of_columns(cleaned_df_params):
 @pytest.mark.parametrize(
     "cleaned_df_params",
     (
-       pytest.param(
-        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
@@ -272,8 +277,7 @@ def test_number_of_columns(cleaned_df_params):
             [True, True, 5, 5, 2, 0, 2, 1, 15, True],
             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
         ),
-        
-        #XFAILS
+        # XFAILS
         pytest.param(
             [False, True, 5, 5, 5, 5, 5, 5, 5, True],
             marks=pytest.mark.xfail(
@@ -299,5 +303,7 @@ def test_frequency(cleaned_df_params):
         min_frequency_of_occurance,
         map_rare_molecules_to_other,
     ) = params
-    
-    check_frequency_of_occurance(cleaned_df, min_frequency_of_occurance, map_rare_molecules_to_other)
+
+    check_frequency_of_occurance(
+        cleaned_df, min_frequency_of_occurance, map_rare_molecules_to_other
+    )

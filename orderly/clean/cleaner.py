@@ -141,7 +141,7 @@ class Cleaner:
         """
         min_frequency_of_occurance_primary/secondary: an integer representing the cutoff
         Molecules with a frequency of occurance in a column above the threshold will be kept as is, below the threshold they will be replaced with 'other'
-        
+
         Molecules that appear min_frequency_of_occurance_primary/secondary times or more will be kept as is
         Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
         Molecules that appear less than convert_to_other_cutoff times will be removed

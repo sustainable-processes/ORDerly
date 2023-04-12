@@ -80,7 +80,9 @@ def merge_pickled_mol_names(
 
 def build_solvents_set_and_dict(
     solvents_path: typing.Optional[pathlib.Path] = None,
-) -> typing.Tuple[typing.Set[CANON_SMILES], typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]]:
+) -> typing.Tuple[
+    typing.Set[CANON_SMILES], typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]
+]:
     """
     Builds a set of canonical smiles strings for all solvents (used to identify which agents are solvents) and a dictionary of solvent names to canonical smiles strings (for name resolution)
     """
