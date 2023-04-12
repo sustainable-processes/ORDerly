@@ -15,14 +15,14 @@ def run_docker_download(
         if output_control:
             output_control_dict = {"stdout": output, "stderr": output}
 
-        output_control_dict = {"shell": True, **output_control_dict} # type: ignore
+        output_control_dict = {"shell": True, **output_control_dict}  # type: ignore
 
-        subprocess.call(build_image, **output_control_dict)# type: ignore
-        subprocess.call(run_image, **output_control_dict)# type: ignore
+        subprocess.call(build_image, **output_control_dict)  # type: ignore
+        subprocess.call(run_image, **output_control_dict)  # type: ignore
 
         if extra_commands is not None:
             for i in extra_commands:
-                subprocess.call(i, **output_control_dict)# type: ignore
+                subprocess.call(i, **output_control_dict)  # type: ignore
 
 
 def linux_download(output_control: bool = True) -> None:
@@ -42,7 +42,7 @@ def mac_download(output_control: bool = True) -> None:
     )
 
 
-def download(output_control:bool=True) -> None:
+def download(output_control: bool = True) -> None:
     if platform.system() == "Windows":
         raise NotImplementedError()
     elif platform.system() == "Linux":

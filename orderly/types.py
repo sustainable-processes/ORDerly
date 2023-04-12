@@ -1,9 +1,9 @@
 import typing
 
 # we ignore types below so that we dont have to go through the hassle of the protobuf stubs being installed
-import google.protobuf.pyext._message # type: ignore
+import google.protobuf.pyext._message  # type: ignore
 
-IDENTIFIERS_MSG = google.protobuf.pyext._message.RepeatedCompositeContainer  
+IDENTIFIERS_MSG = google.protobuf.pyext._message.RepeatedCompositeContainer
 
 MOLECULE_IDENTIFIER = str
 SMILES = str

@@ -144,7 +144,7 @@ def get_manual_replacements_dict(
     ] = None,
     molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
     solvents_path: typing.Optional[pathlib.Path] = None,
-):
+) -> typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]]:
     """
     Combines manually curated dictioary of molecule names to canonical smiles strings with the dictionary of solvent names to canonical smiles strings.
     """

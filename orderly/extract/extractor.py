@@ -123,8 +123,6 @@ class OrdExtractor:
             ord_file_path = str(ord_file_path)
         return ord_message_helpers.load_message(ord_file_path, ord_dataset_pb2.Dataset)
 
-
-
     @staticmethod
     def find_smiles(
         identifiers: IDENTIFIERS_MSG,
@@ -370,7 +368,7 @@ class OrdExtractor:
     ) -> typing.Optional[TEMPERATURE_CELCIUS]:
         """
         Gets the temperature of a reaction in degrees celcius
-    """
+        """
         # first look for the temperature as a number
         temp_unit = rxn.conditions.temperature.setpoint.units
 
@@ -418,7 +416,12 @@ class OrdExtractor:
             return None  # no time found
 
     @staticmethod
-    def apply_replacements_dict(smiles_list: list, manual_replacements_dict: dict):
+    def apply_replacements_dict(
+        smiles_list: typing.List[MOLECULE_IDENTIFIER],
+        manual_replacements_dict: typing.Dict[
+            MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
+        ],
+    ) -> typing.List[SMILES]:
         smiles_list = [
             x
             for x in pd.Series(smiles_list, dtype=pd.StringDtype())

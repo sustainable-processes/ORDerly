@@ -53,7 +53,8 @@ def get_solvents_dict(
         )
         df["identifer"] = df["identifer"].str.lower()
         return df
-    output:typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES] = (
+
+    output: typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES] = (
         pd.concat(
             [
                 get_df(name=i, solvents_df=solvents)
