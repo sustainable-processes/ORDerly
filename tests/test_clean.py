@@ -25,32 +25,29 @@ def test_molecule_names_not_empty():
 
 
 def check_frequency_of_occurance(
-    series,
-    column_name,
+    df,
     min_frequency_of_occurrence,
-    include_other_category,
-    map_rare_to_other_threshold,
+    map_rare_molecules_to_other,
 ):
-    # series could be df['agent_0'], df['reagent_1'], df['solvent_0'], etc.
-    item_frequencies = series[series != "other"].value_counts()
+    import pandas as pd
+    
+    # Define the list of columns to check
+    columns_to_check = [col for col in df.columns if col.startswith(('agent', 'solvent', 'reagent', 'catalyst'))]
 
-    # Check that the item with the lowest frequency appears at least `min_frequency_of_occurrence` times
-    if len(item_frequencies) > 0:
-        least_common_frequency = item_frequencies.iloc[-1]
-        if include_other_category:
-            # If 'other' is included, then the least common item must appear at least `min_frequency_of_occurrence` times
-            assert (
-                least_common_frequency >= map_rare_to_other_threshold
-            ), f"Error in frequencies of {column_name}"
-        else:
-            # If 'other' is not included, then the least common item must appear at least `min_frequency_of_occurrence` times
-            assert (
-                least_common_frequency >= min_frequency_of_occurrence
-            ), f"Error in frequencies of {column_name}"
-    else:
-        # If there are no items other than 'other', the test passes
-        pass
+    # Initialize a list to store the results
+    results = []
 
+    # Loop through the columns
+    for col in columns_to_check:
+        # Get the value counts for the column
+        results += [df[col].value_counts()]
+        
+    total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
+    total_value_counts = total_value_counts.drop('other')
+    total_value_counts = total_value_counts.sort_values(ascending=True)
+    
+    assert total_value_counts.iloc[0] >= min_frequency_of_occurrence, f"{min_frequency_of_occurrence=} is not being respected"
+    
 
 def get_cleaned_df(
     output_path,
@@ -62,10 +59,8 @@ def get_cleaned_df(
     num_agent,
     num_cat,
     num_reag,
-    min_frequency_of_occurance_primary,
-    min_frequency_of_occurance_secondary,
-    include_other_category,
-    map_rare_to_other_threshold,
+    min_frequency_of_occurance,
+    map_rare_molecules_to_other,
 ):
     import orderly.clean.cleaner
     import orderly.data
@@ -90,10 +85,8 @@ def get_cleaned_df(
         num_agent=num_agent,
         num_cat=num_cat,
         num_reag=num_reag,
-        min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
-        min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
-        include_other_category=include_other_category,
-        map_rare_to_other_threshold=map_rare_to_other_threshold,
+        min_frequency_of_occurance=min_frequency_of_occurance,
+        map_rare_molecules_to_other=map_rare_molecules_to_other,
         disable_tqdm=False,
     )
 
@@ -111,36 +104,36 @@ def cleaned_df_params(tmp_path, request):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
+        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
         pytest.param(
-            [False, True, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="trust_labelling:F|consistent_yield:T|include_other_category:T",
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="trust_labelling:F|consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, True, 3],
-            id="trust_labelling:F|consistent_yield:T|include_other_category:F",
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
         ),
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, 15, False, 3],
-            id="trust_labelling:F|consistent_yield:F|include_other_category:F",
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
         ),
     ),
     indirect=True,
@@ -154,27 +147,45 @@ def test_get_cleaned_df(cleaned_df_params):
     "cleaned_df_params",
     (
         pytest.param(
-            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
+        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        
+        #XFAILS
+        pytest.param(
+            [False, True, 5, 5, 5, 5, 5, 5, 5, True],
             marks=pytest.mark.xfail(
                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
             ),
-            id="trust_labelling:T|consistent_yield:T|include_other_category:F|fives",
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
         ),
     ),
     indirect=True,
@@ -191,8 +202,6 @@ def test_number_of_columns(cleaned_df_params):
         num_agent,
         num_cat,
         num_reag,
-        _,
-        _,
         _,
         _,
     ) = params
@@ -231,28 +240,46 @@ def test_number_of_columns(cleaned_df_params):
 @pytest.mark.parametrize(
     "cleaned_df_params",
     (
-        pytest.param(
-            [True, True, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:T",
+       pytest.param(
+        [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+        id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:T",
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, True, 3],
-            id="trust_labelling:T|consistent_yield:T|include_other_category:F",
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, 15, False, 3],
-            id="trust_labelling:T|consistent_yield:F|include_other_category:F",
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
         pytest.param(
-            [True, False, 5, 5, 5, 5, 5, 5, 15, 15, True, 5],
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        
+        #XFAILS
+        pytest.param(
+            [False, True, 5, 5, 5, 5, 5, 5, 5, True],
             marks=pytest.mark.xfail(
                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
             ),
-            id="trust_labelling:T|consistent_yield:T|include_other_category:F|fives",
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
         ),
     ),
     indirect=True,
@@ -269,27 +296,8 @@ def test_frequency(cleaned_df_params):
         _,
         _,
         _,
-        min_frequency_of_occurance_primary,
-        min_frequency_of_occurance_secondary,
-        include_other_category,
-        map_rare_to_other_threshold,
+        min_frequency_of_occurance,
+        map_rare_molecules_to_other,
     ) = params
-
-    cols = cleaned_df.columns
-    for col in cols:
-        if col in ["agent_0", "solvent_0", "catalyst_0", "reagent_0"]:
-            check_frequency_of_occurance(
-                cleaned_df[col],
-                col,
-                min_frequency_of_occurance_primary,
-                include_other_category,
-                map_rare_to_other_threshold,
-            )
-        elif col in ["agent_1", "solvent_1", "catalyst_1", "reagent_1"]:
-            check_frequency_of_occurance(
-                cleaned_df[col],
-                col,
-                min_frequency_of_occurance_secondary,
-                include_other_category,
-                map_rare_to_other_threshold,
-            )
+    
+    check_frequency_of_occurance(cleaned_df, min_frequency_of_occurance, map_rare_molecules_to_other)
