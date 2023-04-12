@@ -42,9 +42,9 @@ AGENTS = typing.List[AGENT]
 CANON_AGENTS = typing.List[CANON_AGENT]
 
 YIELD = float
-YIELDS = typing.List[YIELD]
+YIELDS = typing.List[typing.Optional[YIELD]]
 
 TEMPERATURE_CELCIUS = float
-TEMPERATURES_CELCIUS = typing.List[TEMPERATURE_CELCIUS]
+TEMPERATURES_CELCIUS = typing.List[typing.Optional[TEMPERATURE_CELCIUS]]
 
 RXN_TIME = float  # hours

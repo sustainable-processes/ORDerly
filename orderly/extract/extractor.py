@@ -491,16 +491,17 @@ class OrdExtractor:
 
         # build two new lists, one with the solvents, and one with the reagents+catalysts
         # Create a new set of solvents from agents_set
-        solvents = agents_set.intersection(solvents_set)
+        _solvents = agents_set.intersection(solvents_set)
 
         # Remove the solvents from agents_set
-        agents = agents_set.difference(solvents)
+        _agents = agents_set.difference(solvents)
 
         # I think we should add some ordering to the agents
         # What if we first order them alphabetically, and afterwards by putting the metals first in the list
 
-        agents = sorted(list(agents))
-        solvents = sorted(list(solvents))
+        agents = sorted(list(_agents))
+        solvents = sorted(list(_solvents))
+        del _agents, _solvents # for mypy
 
         # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
@@ -535,9 +536,9 @@ class OrdExtractor:
             CATALYSTS,
             PRODUCTS,
             YIELDS,
-            TEMPERATURE_CELCIUS,
-            RXN_TIME,
-            RXN_STR,
+            typing.Optional[TEMPERATURE_CELCIUS],
+            typing.Optional[RXN_TIME],
+            typing.Optional[RXN_STR],
             str,
             typing.List[MOLECULE_IDENTIFIER],
         ]
@@ -552,12 +553,12 @@ class OrdExtractor:
         # handle rxn inputs: reactants, reagents etc
 
         # initilise empty
-        reactants = []
-        reagents = []
-        solvents = []
-        catalysts = []
-        rxn_str_products = []
-        labelled_products = []
+        reactants: REACTANTS = []
+        reagents: REAGENTS = []
+        solvents: SOLVENTS = []
+        catalysts: CATALYSTS = []
+        rxn_str_products: PRODUCTS = []
+        labelled_products: PRODUCTS = []
         rxn_non_smiles_names_list = []
 
         (
@@ -588,11 +589,11 @@ class OrdExtractor:
                 zip(sorted(labelled_products_from_input), sorted(labelled_products))
             ):
                 smi_from_input = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    mole_id_from_input, is_mapped=is_mapped
+                    mole_id_from_input, is_mapped=False
                 )
                 smi_from_outcomes = (
                     orderly.extract.canonicalise.get_canonicalised_smiles(
-                        mole_id_from_outcomes, is_mapped=is_mapped
+                        mole_id_from_outcomes, is_mapped=False
                     )
                 )
                 if smi_from_input != smi_from_outcomes:
@@ -603,8 +604,7 @@ class OrdExtractor:
         # A reaction object has 3 data-sources: rxn_string, rxn_inputs, and rxn_outcomes; these sources should be in agreement, but it's still important to have a robust idea of how to resolve any disagreements
         _rxn_str = OrdExtractor.get_rxn_string_and_is_mapped(rxn)
         if _rxn_str is None:
-            # TODO add logic here
-            rxn_str, is_mapped = None, None
+            rxn_str, is_mapped = None, False
         else:
             rxn_str, is_mapped = _rxn_str
 
@@ -612,7 +612,7 @@ class OrdExtractor:
             reactants = labelled_reactants
             products = labelled_products
             yields = yields
-            agents = []
+            agents: AGENTS = []
             solvents = labelled_solvents
             reagents = labelled_reagents
             catalysts = labelled_catalysts
