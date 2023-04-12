@@ -10,16 +10,18 @@ def get_path_of_test_ords():
     )
 
 
-def get_path_of_test_extracted_ords():
+def get_path_of_test_extracted_ords(trust_labelling: bool = False):
+    trust_labelling_str = "_trust_labelling" if trust_labelling else "_dont_trust_labelling"
     return (
         pathlib.Path(os.path.dirname(sys.modules["orderly.data"].__file__))
-        / "extracted_ord_test_data"
+        / f"extracted_ord_test_data{trust_labelling_str}"
     )
 
 
-def get_path_of_molecule_names():
+def get_path_of_molecule_names(trust_labelling: bool = False):
+    trust_labelling_str = "_trust_labelling" if trust_labelling else "_dont_trust_labelling"
     return (
         pathlib.Path(os.path.dirname(sys.modules["orderly.data"].__file__))
-        / "extracted_ord_test_data"
+        / f"extracted_ord_test_data{trust_labelling_str}"
         / "molecule_names"
     )
