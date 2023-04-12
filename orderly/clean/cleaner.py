@@ -289,8 +289,8 @@ class Cleaner:
                 columns.append(col)
 
         if (
-            self.min_frequency_of_occurance_primary
-            or self.min_frequency_of_occurance_secondary != 0
+            (self.min_frequency_of_occurance_primary != 0) 
+            or (self.min_frequency_of_occurance_secondary != 0)
         ):
             df = self._remove_rare_molecules(df, columns)
 
