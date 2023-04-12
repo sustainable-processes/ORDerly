@@ -820,14 +820,14 @@ class OrdExtractor:
         self,
     ) -> typing.Tuple[
         typing.Tuple[
-            typing.List[RXN_STR],
+            typing.List[typing.Optional[RXN_STR]],
             typing.List[REACTANTS],
             typing.List[AGENTS],
             typing.List[REAGENTS],
             typing.List[SOLVENTS],
             typing.List[CATALYSTS],
-            typing.List[TEMPERATURE_CELCIUS],
-            typing.List[RXN_TIME],
+            typing.List[typing.Optional[TEMPERATURE_CELCIUS]],
+            typing.List[typing.Optional[RXN_TIME]],
             typing.List[PRODUCTS],
             typing.List[YIELDS],
             typing.List[str],
@@ -847,9 +847,22 @@ class OrdExtractor:
         rxn_time_all = []
 
         procedure_details_all = []
-        rxn_non_smiles_names_list = []
+        rxn_non_smiles_names_list: typing.List[MOLECULE_IDENTIFIER] = []
+
+        assert self.solvents_set is not None
+        assert self.metals is not None
 
         for rxn in self.data.reactions:
+
+            extracted_reaction = OrdExtractor.handle_reaction_object(
+                rxn,
+                manual_replacements_dict=self.manual_replacements_dict,
+                solvents_set=self.solvents_set,
+                metals=self.metals,
+                trust_labelling=self.trust_labelling,
+            )
+            if extracted_reaction is None:
+                continue
             (
                 reactants,
                 agents,
@@ -863,13 +876,8 @@ class OrdExtractor:
                 rxn_str,
                 procedure_details,
                 rxn_non_smiles_names_list_additions,
-            ) = OrdExtractor.handle_reaction_object(
-                rxn,
-                manual_replacements_dict=self.manual_replacements_dict,
-                solvents_set=self.solvents_set,
-                metals=self.metals,
-                trust_labelling=self.trust_labelling,
-            )
+            ) = extracted_reaction
+
             rxn_non_smiles_names_list += rxn_non_smiles_names_list_additions
 
             if set(reactants) != set(
