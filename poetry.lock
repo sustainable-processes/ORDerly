@@ -1029,7 +1029,7 @@ traitlets = "*"
 name = "mypy"
 version = "1.2.0"
 description = "Optional static typing for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1076,7 +1076,7 @@ reports = ["lxml"]
 name = "mypy-extensions"
 version = "1.0.0"
 description = "Type system extensions for programs checked with the mypy type checker."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -1981,7 +1981,7 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2223,4 +2223,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "4844fd00ba15c1106c549b19b11dd6d683830a2c71fd44bd1daee05b487451bf"
+content-hash = "0c85a7cb12b7f75f24904c796865ba4cee0e70165e3f20ba67d76ac4327961cc"
