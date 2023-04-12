@@ -13,7 +13,8 @@ def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
     """reads the solvent csv data stored in the package"""
     if path is None:
         data = pkgutil.get_data("orderly.data", "solvents.csv")
-        solvents = pd.read_csv(io.BytesIO(data))
+        data = io.BytesIO(data)  # type: ignore
+        solvents = pd.read_csv(data)
     else:
         solvents = pd.read_csv(path)
 

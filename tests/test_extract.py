@@ -21,12 +21,12 @@ def get_rxn_func() -> typing.Callable:
         import orderly.data
         import orderly.extract.main
 
-        file = orderly.extract.main.get_file_names(
+        _file = orderly.extract.main.get_file_names(
             directory=orderly.data.get_path_of_test_ords(),
             file_ending=f"{file_name}.pb.gz",
         )
-        assert len(file) == 1
-        file = pathlib.Path(file[0])
+        assert len(_file) == 1
+        file = pathlib.Path(_file[0])
 
         dataset = orderly.extract.extractor.OrdExtractor.load_data(file)
         rxn = dataset.reactions[rxn_idx]
@@ -252,10 +252,13 @@ def test_rxn_string_and_is_mapped(
 
     import orderly.extract.extractor
 
-    (
-        rxn_str,
-        is_mapped,
-    ) = orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    rxn_str_output = (
+        orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    )
+    if rxn_str_output is None:
+        rxn_str, is_mapped = None, None
+    else:
+        rxn_str, is_mapped = rxn_str_output
 
     assert expected_rxn_str == rxn_str, f"failure for {expected_rxn_str=} got {rxn_str}"
     assert (
@@ -1090,12 +1093,14 @@ def test_extraction_pipeline(
         if df is None:
             continue
 
-        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0'],
+        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})
             if len(series.dropna()) == 0:
                 continue
+            elif col == "grant_date":
+                continue  # TODO check that it is an optional datetime
             elif "temperature" in col or "rxn_time" in col or "yield" in col:
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:

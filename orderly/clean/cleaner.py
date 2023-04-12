@@ -43,9 +43,10 @@ class Cleaner:
         num_agent (int): See help for num_reactant
         num_cat (int): See help for num_reactant
         num_reag (int): See help for num_reactant
-        min_frequency_of_occurance_primary (int): The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably
-                                                    add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of
-                                                    that type, ie solvent_0, agent_0, catalyst_0, reagent_0
+        min_frequency_of_occurance_primary (int):
+            The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably
+            add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of
+            that type, ie solvent_0, agent_0, catalyst_0, reagent_0
         min_frequency_of_occurance_secondary (int): See above. Secondary: Any other columns than the first.
         include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary
                                        but above map_rare_to_other_threshold) by mapping these molecules to the string 'other'
@@ -65,7 +66,7 @@ class Cleaner:
     min_frequency_of_occurance_primary: int
     min_frequency_of_occurance_secondary: int
     include_other_category: bool
-    map_rare_to_other_threshold: bool
+    map_rare_to_other_threshold: int
     molecules_to_remove: typing.List[str]
     disable_tqdm: bool = False
 
@@ -148,7 +149,8 @@ class Cleaner:
         LOG.info("Removing rare molecules")
 
         # Get the count of each value for all columns
-        value_counts = df[columns[0]].value_counts()
+        value_counts: pd.Series = df[columns[0]].value_counts()
+        assert isinstance(value_counts, pd.Series)
         for i in range(1, len(columns)):
             value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
 
@@ -162,7 +164,7 @@ class Cleaner:
         self,
         df: pd.DataFrame,
         col: str,
-        value_counts: int,
+        value_counts: pd.Series,
     ) -> pd.DataFrame:
         LOG.info("Running filtering and removal")
 

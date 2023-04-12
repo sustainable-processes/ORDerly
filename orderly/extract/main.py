@@ -73,8 +73,8 @@ def merge_pickled_mol_names(
     unique_molecule_names = list(set(full_lst))
 
     # pickle the list
-    with open(output_file_path, "wb") as f:
-        pickle.dump(unique_molecule_names, f)
+    with output_file_path.open("wb") as f:  # type: ignore
+        pickle.dump(unique_molecule_names, f)  # type: ignore
     LOG.info(f"Pickled list of unique molecule names at {output_file_path=}")
 
 
@@ -105,9 +105,11 @@ def build_solvents_set_and_dict(
 
 
 def build_replacements(
-    molecule_replacements: typing.Optional[typing.Dict[str, str]] = None,
-    molecule_str_force_nones: typing.Optional[typing.List[str]] = None,
-) -> typing.Dict[str, typing.Optional[str]]:
+    molecule_replacements: typing.Optional[
+        typing.Dict[MOLECULE_IDENTIFIER, SMILES]
+    ] = None,
+    molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
+) -> typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]]:
     """
     Builds dictionary mapping english name molecule identifiers to canonical smiles. Dict is based on manually curated list.
     """
@@ -127,11 +129,13 @@ def build_replacements(
             orderly.extract.defaults.get_molecule_str_force_nones()
         )
 
+    molecule_replacements_with_force_nones: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]] = molecule_replacements.copy()  # type: ignore
+
     for molecule_str in molecule_str_force_nones:
-        molecule_replacements[molecule_str] = None
+        molecule_replacements_with_force_nones[molecule_str] = None
 
     LOG.debug("Got molecule replacements")
-    return molecule_replacements
+    return molecule_replacements_with_force_nones
 
 
 def get_manual_replacements_dict(
@@ -375,13 +379,13 @@ def main_click(
     2) A list of all unique molecule names (in merged_molecules_file)
     """
 
-    if solvents_path == "default":
-        solvents_path = None
-    else:
-        solvents_path = pathlib.Path(solvents_path)
+    _solvents_path: typing.Optional[pathlib.Path] = None
+    if solvents_path != "default":
+        _solvents_path = pathlib.Path(solvents_path)
 
-    if name_contains_substring == "":
-        name_contains_substring = None
+    _name_contains_substring: typing.Optional[str] = None
+    if name_contains_substring != "":
+        _name_contains_substring = name_contains_substring
 
     main(
         data_path=pathlib.Path(data_path),
@@ -389,11 +393,11 @@ def main_click(
         trust_labelling=trust_labelling,
         output_path=pathlib.Path(output_path),
         pickled_data_folder=pickled_data_folder,
-        solvents_path=solvents_path,
+        solvents_path=_solvents_path,
         molecule_names_folder=molecule_names_folder,
         merged_molecules_file=merged_molecules_file,
         use_multiprocessing=use_multiprocessing,
-        name_contains_substring=name_contains_substring,
+        name_contains_substring=_name_contains_substring,
         inverse_substring=inverse_substring,
         overwrite=overwrite,
     )

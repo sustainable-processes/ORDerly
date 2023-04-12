@@ -3,6 +3,8 @@ uid = $(shell id -u)
 gid = $(shell id -g)
 download_path=ord/
 
+mypy:
+	poetry run python -m mypy . --ignore-missing-imports
 
 black:
 	poetry run python -m black .
@@ -38,6 +40,9 @@ run_orderly_pytest:
 	docker image build --target orderly_test --tag orderly_test .
 	docker run orderly_test
 
+run_orderly_mypy:
+	docker image build --target orderly_mypy --tag orderly_mypy .
+	docker run orderly_mypy
 
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
