@@ -3,6 +3,21 @@ import pytest
 def test_hello_world():
     assert True
     
+def test_molecule_names_not_empty():
+    from orderly.data.test_data import get_path_of_molecule_names
+    import pandas as pd
+    import os
+    
+    molecule_names_folder_path = get_path_of_molecule_names()
+    
+    files = os.listdir(molecule_names_folder_path)
+    for file in files:
+        if file.endswith('.parquet') or file.endswith('.pkl'):
+            file_path = os.path.join(molecule_names_folder_path, file)
+            df = pd.read_parquet(file_path)
+            assert not df.empty
+    
+    
 def check_frequency_of_occurance(series, column_name, min_frequency_of_occurrence, include_other_category, map_rare_to_other_threshold):
     # series could be df['agent_0'], df['reagent_1'], df['solvent_0'], etc.
     item_frequencies = series[series != 'other'].value_counts()
@@ -177,16 +192,8 @@ def test_frequency(cleaned_df_params):
             check_frequency_of_occurance(cleaned_df[col], col, min_frequency_of_occurance_primary, include_other_category, map_rare_to_other_threshold)
         elif col in ['agent_1', 'solvent_1', 'catalyst_1', 'reagent_1']:
             check_frequency_of_occurance(cleaned_df[col], col, min_frequency_of_occurance_secondary, include_other_category, map_rare_to_other_threshold)
+            
 
 
-
-
-    
-
-
-    
-    
-    
-    
 
 
