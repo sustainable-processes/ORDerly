@@ -13,7 +13,7 @@ black:
 	poetry run python -m black .
 
 pytest:
-	poetry run python -m pytest -v tests/test_clean.py
+	poetry run python -m pytest -v
 
 gen_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/ord_test_data --output_path=orderly/data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False
@@ -32,7 +32,6 @@ run_orderly_sudo:
 build_orderly_from_pip:
 	docker image build --target orderly_pip --tag orderly_pip .
 
-
 run_orderly_from_pip:
 	docker run -v $(current_dir)/data:/home/worker/repo/data/ -u $(uid):$(gid) -it orderly_pip
 
@@ -47,6 +46,10 @@ run_orderly_pytest:
 run_orderly_mypy:
 	docker image build --target orderly_mypy --tag orderly_mypy .
 	docker run orderly_mypy
+
+run_orderly_mypy_strict:
+	docker image build --target orderly_mypy_strict --tag orderly_mypy_strict .
+	docker run orderly_mypy_strict
 
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .

@@ -56,14 +56,14 @@ class OrdExtractor:
     contains_substring: typing.Optional[str] = None  # typically: None or uspto
     inverse_contains_substring: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """loads in the data from the file and runs the extraction code to build the dataframe"""
 
         LOG.debug(f"Extracting data from {self.ord_file_path}")
         self.data = OrdExtractor.load_data(self.ord_file_path)
 
         if self.filename is None:
-            self.filename = self.data.name
+            self.filename = str(self.data.name)
 
             self.filename = strip_filename(
                 self.filename,
@@ -81,13 +81,12 @@ class OrdExtractor:
                 LOG.debug(
                     f"No file name for dataset so using dataset_id={self.data.dataset_id}"
                 )
-                self.filename = self.data.dataset_id
+                self.filename = str(self.data.dataset_id)
 
-        grant_date = self.filename.split("uspto-grants-")
-        if len(grant_date) > 1:
-            grant_date = pd.to_datetime(grant_date[1], format="%Y_%M")
-        else:
-            grant_date = None
+        _grant_date = self.filename.split("uspto-grants-")
+        grant_date: typing.Optional[pd.Timestamp] = None
+        if len(_grant_date) > 1:
+            grant_date = pd.to_datetime(_grant_date[1], format="%Y_%M")
 
         self.non_smiles_names_list = self.full_df = None
         if self.contains_substring is not None:
@@ -124,15 +123,18 @@ class OrdExtractor:
             ord_file_path = str(ord_file_path)
         return ord_message_helpers.load_message(ord_file_path, ord_dataset_pb2.Dataset)
 
+
+
     @staticmethod
     def find_smiles(
-        identifiers,
+        identifiers: IDENTIFIERS_MSG,
     ) -> typing.Tuple[
         typing.Optional[SMILES | MOLECULE_IDENTIFIER], typing.List[MOLECULE_IDENTIFIER]
     ]:
         """
         Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
         """
+
         non_smiles_names_list = (
             []
         )  # we dont require information on state of this object so can create a new one
@@ -374,12 +376,10 @@ class OrdExtractor:
 
         if temp_unit == 1:  # celcius
             return float(rxn.conditions.temperature.setpoint.value)
-
         elif temp_unit == 2:  # fahrenheit
             f = rxn.conditions.temperature.setpoint.value
             c = (f - 32) * 5 / 9
             return float(c)
-
         elif temp_unit == 3:  # kelvin
             k = rxn.conditions.temperature.setpoint.value
             c = k - 273.15
@@ -396,8 +396,7 @@ class OrdExtractor:
                 return -78.5
             elif temp_control_type == 11:  # LIQUID_NITROGEN
                 return -196.0
-        else:
-            return None  # No temperature found
+        return None  # No temperature found
 
     @staticmethod
     def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[float]:

@@ -71,6 +71,10 @@ FROM orderly_base as orderly_mypy
 
 CMD ["make", "mypy"]
 
+FROM orderly_base as orderly_mypy_strict
+
+CMD ["make", "strict_mypy"]
+
 FROM ubuntu:20.04 as orderly_download
 RUN apt-get update && apt-get install -y make curl unzip
 
