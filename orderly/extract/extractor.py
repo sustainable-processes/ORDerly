@@ -494,7 +494,7 @@ class OrdExtractor:
         _solvents = agents_set.intersection(solvents_set)
 
         # Remove the solvents from agents_set
-        _agents = agents_set.difference(solvents)
+        _agents = agents_set.difference(_solvents)
 
         # I think we should add some ordering to the agents
         # What if we first order them alphabetically, and afterwards by putting the metals first in the list
