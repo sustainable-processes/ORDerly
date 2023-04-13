@@ -1,6 +1,8 @@
 import typing
 
-REPEATEDCOMPOSITECONTAINER = typing.TypeVar('REPEATEDCOMPOSITECONTAINER', bound=typing.Iterable[typing.Any])
+REPEATEDCOMPOSITECONTAINER = typing.TypeVar(
+    "REPEATEDCOMPOSITECONTAINER", bound=typing.Iterable[typing.Any]
+)
 
 MOLECULE_IDENTIFIER = str
 SMILES = str
