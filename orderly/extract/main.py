@@ -2,7 +2,6 @@ import logging
 from typing import List, Dict, Tuple, Set, Optional
 import datetime
 import pathlib
-import pickle
 import click
 
 import pandas as pd
@@ -40,20 +39,20 @@ def get_file_names(
     )  # sort just so that there is no randomness in order of processing
 
 
-def merge_pickled_mol_names(
+def merge_non_smile_names(
     molecule_names_path: pathlib.Path = pathlib.Path("data/orderly/molecule_names"),
     output_file_path: pathlib.Path = pathlib.Path(
-        "data/orderly/all_molecule_names.pkl"
+        "data/orderly/all_molecule_names.csv"
     ),
     overwrite: bool = True,
-    molecule_names_file_ending: str = ".pkl",
+    molecule_names_file_ending: str = ".csv",
 ) -> None:
     """
-    Merges all the pickle files containing molecule non-smiles identifiers (typically english names) into one file.
+    Merges all the files containing molecule non-smiles identifiers (typically english names) into one file.
     """
-    if output_file_path.suffix != ".pkl":
+    if output_file_path.suffix != ".csv":
         raise ValueError(
-            f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}"
+            f"The file extension for {output_file_path=} is expected to be .csv not {output_file_path.suffix}"
         )
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -67,14 +66,12 @@ def merge_pickled_mol_names(
 
     full_lst = []
     for f in molecule_names_path.glob(f"./*{molecule_names_file_ending}"):
-        full_lst += pd.read_pickle(f)
+        full_lst += pd.read_csv(f)
 
-    unique_molecule_names = list(set(full_lst))
+    unique_molecule_names = pd.Series(set(full_lst))
 
-    # pickle the list
-    with output_file_path.open("wb") as f:  # type: ignore
-        pickle.dump(unique_molecule_names, f)  # type: ignore
-    LOG.info(f"Pickled list of unique molecule names at {output_file_path=}")
+    unique_molecule_names.to_csv(output_file_path)
+    LOG.info(f"Saved the list of unique molecule names at {output_file_path=}")
 
 
 def build_solvents_set_and_dict(
@@ -160,7 +157,7 @@ def extract(
     trust_labelling: bool,
     manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     solvents_set: Set[CANON_SMILES],
-    pickled_data_folder: str = "pickled_data",
+    extracted_ord_data_folder: str = "extracted_ord_data",
     molecule_names_folder: str = "molecule_names",
     name_contains_substring: Optional[str] = None,
     inverse_substring: bool = False,
@@ -185,9 +182,9 @@ def extract(
     filename = instance.filename
     LOG.info(f"Completed extraction for {file}: {filename}")
 
-    df_path = output_path / pickled_data_folder / f"{filename}.pkl"
+    df_path = output_path / extracted_ord_data_folder / f"{filename}.parquet"
     molecule_names_path = (
-        output_path / molecule_names_folder / f"molecules_{filename}.pkl"
+        output_path / molecule_names_folder / f"molecules_{filename}.csv"
     )
     if not overwrite:
         if df_path.exists():
@@ -203,15 +200,13 @@ def extract(
             LOG.error(e)
             raise e
 
-    instance.full_df.to_pickle(df_path)
+    instance.full_df.to_parquet(df_path)
     LOG.debug(f"Saved df at {df_path}")
 
     # list of the names used for molecules, as opposed to SMILES strings
-    # save the non_smiles_names_list to pickle file
-    with open(
-        output_path / molecule_names_folder / f"molecules_{filename}.pkl", "wb"
-    ) as f:
-        pickle.dump(instance.non_smiles_names_list, f)
+    # save the non_smiles_names_list to csv file
+
+    pd.Series(instance.non_smiles_names_list).to_csv(molecule_names_path)
     LOG.debug(f"Saves molecule names for {filename} at {molecule_names_path}")
 
 
@@ -244,14 +239,14 @@ def extract(
     type=str,
     default="data/orderly/",
     show_default=True,
-    help="The path to the folder than will contain the pickled_data_folder and molecule_names_folder",
+    help="The path to the folder than will contain the extracted_ord_data_folder and molecule_names_folder",
 )
 @click.option(
-    "--pickled_data_folder",
+    "--extracted_ord_data_folder",
     type=str,
-    default="pickled_data",
+    default="extracted_ord_data",
     show_default=True,
-    help="The name of folder than contains the pickle data structures",
+    help="The name of folder than contains the extracted ord data in parquet",
 )
 @click.option(
     "--solvents_path",
@@ -265,14 +260,14 @@ def extract(
     type=str,
     default="molecule_names",
     show_default=True,
-    help="The name of the folder that contains the molecule_name pickles per folder",
+    help="The name of the folder that contains the molecule_name csvs per folder",
 )
 @click.option(
     "--merged_molecules_file",
     type=str,
-    default="all_molecule_names.pkl",
+    default="all_molecule_names.csv",
     show_default=True,
-    help="The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)",
+    help="The name and file tag of the merged_molecules csvs file (the merged_molecules_file is outputed to output_path / merged_molecules_file)",
 )
 @click.option(
     "--use_multiprocessing",
@@ -307,7 +302,7 @@ def main_click(
     ord_file_ending: str,
     trust_labelling: bool,
     output_path: str,
-    pickled_data_folder: str,
+    extracted_ord_data_folder: str,
     solvents_path: str,
     molecule_names_folder: str,
     merged_molecules_file: str,
@@ -317,7 +312,7 @@ def main_click(
     overwrite: bool,
 ) -> None:
     """
-    After downloading the dataset from ORD, this script will extract the data and write it to pickle files. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
+    After downloading the dataset from ORD, this script will extract the data and write it to parquet and csvs files. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
         Example:
 
 
@@ -331,15 +326,15 @@ def main_click(
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
     4) output_path: str
-        - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
-    5) pickled_data_folder: str
-        - The name of folder than contains the pickle data structures
+        - The path to the folder than will contain the extracted_ord_data_folder and molecule_names_folder
+    5) extracted_ord_data_folder: str
+        - The name of folder than contains the extracted ord data in parquets
     6) solvents_path: Optional[str]
         - The path to the solvents csv, if None will use the default
     7) molecule_names_folder: str
-        - The name of the folder that contains the molecule_name pickles per folder
+        - The name of the folder that contains the molecule_name csv per folder
     8) merged_molecules_file: str
-        - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
+        - The name and file tag of the merged_molecules csv file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
     10) name_contains_substring: Optional[str]
@@ -366,13 +361,13 @@ def main_click(
         - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
         - The final light cleaning step depends on the value of trust_labelling (see above, in the Args section).
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
-    4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
-    5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
+    4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a parquet file
+    5) Create a list of all molecule names and save as a csv file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
+    6) Merge all the csv lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.csv").
 
     Output:
 
-    1) A pickle file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
+    1) A parquet file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
     2) A list of all unique molecule names (in merged_molecules_file)
     """
 
@@ -389,7 +384,7 @@ def main_click(
         ord_file_ending=ord_file_ending,
         trust_labelling=trust_labelling,
         output_path=pathlib.Path(output_path),
-        pickled_data_folder=pickled_data_folder,
+        extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=_solvents_path,
         molecule_names_folder=molecule_names_folder,
         merged_molecules_file=merged_molecules_file,
@@ -405,7 +400,7 @@ def main(
     ord_file_ending: str,
     trust_labelling: bool,
     output_path: pathlib.Path,
-    pickled_data_folder: str,
+    extracted_ord_data_folder: str,
     solvents_path: Optional[pathlib.Path],
     molecule_names_folder: str,
     merged_molecules_file: str,
@@ -415,7 +410,7 @@ def main(
     overwrite: bool,
 ) -> None:
     """
-    After downloading the dataset from ORD, this script will extract the data and write it to pickle files.
+    After downloading the dataset from ORD, this script will extract the data and write it to parquet files.
         Example:
 
 
@@ -429,15 +424,15 @@ def main(
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
     4) output_path: pathlib.Path
-        - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
-    5) pickled_data_folder: str
-        - The name of folder than contains the pickle data structures
+        - The path to the folder than will contain the extracted_ord_data_folder and molecule_names_folder
+    5) extracted_ord_data_folder: str
+        - The name of folder than contains the extracted ord data structures as paruqet
     6) solvents_path: Optional[str]
         - The path to the solvents csv, if None will use the default
     7) molecule_names_folder: str
-        - The name of the folder that contains the molecule_name pickles per folder
+        - The name of the folder that contains the molecule_name csvs per folder
     8) merged_molecules_file: str
-        - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
+        - The name and file tag of the merged_molecules csv file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
     10) name_contains_substring: Optional[str]
@@ -464,13 +459,13 @@ def main(
         - A "replacements dictionary" was created to replace common names with their corresponding SMILES strings. This dictionary was created by iterating over the most common names in the dataset and replacing them with their corresponding SMILES strings. This was done semi-manually, with some dictionary entries coming from solvents.csv and others being added within the script (in the build_replacements function; mainly concerning catalysts).
         - The final light cleaning step depends on the value of trust_labelling (see above, in the Args section).
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
-    4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a pickle file
-    5) Create a list of all molecule names and save as a pickle file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the pickled lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
+    4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a parquet file
+    5) Create a list of all molecule names and save as a csv file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
+    6) Merge all the csvs lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.csv").
 
     Output:
 
-    1) A pickle file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
+    1) A parquet file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
     2) A list of all unique molecule names (in merged_molecules_file)
     """
 
@@ -492,10 +487,10 @@ def main(
     LOG.info("starting extraction")
     start_time = datetime.datetime.now()
 
-    pickled_data_path = output_path / pickled_data_folder
+    extracted_ord_data_path = output_path / extracted_ord_data_folder
     molecule_name_path = output_path / molecule_names_folder
 
-    pickled_data_path.mkdir(parents=True, exist_ok=True)
+    extracted_ord_data_path.mkdir(parents=True, exist_ok=True)
     molecule_name_path.mkdir(parents=True, exist_ok=True)
 
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
@@ -508,7 +503,7 @@ def main(
         "trust_labelling": trust_labelling,
         "manual_replacements_dict": manual_replacements_dict,
         "solvents_set": solvents_set,
-        "pickled_data_folder": pickled_data_folder,
+        "extracted_ord_data_folder": extracted_ord_data_folder,
         "molecule_names_folder": molecule_names_folder,
         "name_contains_substring": name_contains_substring,
         "inverse_substring": inverse_substring,
@@ -538,11 +533,11 @@ def main(
         )
         pass
 
-    merge_pickled_mol_names(
+    merge_non_smile_names(
         molecule_names_path=molecule_name_path,
         output_file_path=output_path / merged_molecules_file,
         overwrite=overwrite,
-        molecule_names_file_ending=".pkl",
+        molecule_names_file_ending=".csv",
     )
     end_time = datetime.datetime.now()
     LOG.info("Duration: {}".format(end_time - start_time))

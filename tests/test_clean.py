@@ -46,22 +46,22 @@ def get_cleaned_df(
     import orderly.clean.cleaner
     import orderly.data.test_data
 
-    pickles_path = (
+    extracted_ords_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
         )
-        / "pickled_data"
+        / "extracted_ord_data"
     )
     molecules_to_remove_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
         )
-        / "all_molecule_names.pkl"
+        / "all_molecule_names.csv"
     )
 
     orderly.clean.cleaner.main(
         clean_data_path=output_path / "orderly_ord.parquet",
-        pickles_path=pickles_path,
+        extracted_ords_path=extracted_ords_path,
         molecules_to_remove_path=molecules_to_remove_path,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
@@ -178,12 +178,9 @@ def test_molecule_names_not_empty() -> None:
 
     files = os.listdir(molecule_names_folder_path)
     for file in files:
-        if file.endswith(".pkl"):  # or file.endswith(".parquet")
+        if file.endswith(".csv"):
             file_path = os.path.join(molecule_names_folder_path, file)
-            # df = pd.read_parquet(file_path)
-            # if not df.empty:
-            #     all_empty = False
-            molecule_names_list = pd.read_pickle(file_path)
+            molecule_names_list = pd.read_csv(file_path)
             if len(molecule_names_list) > 0:
                 all_empty = False
     assert not all_empty
