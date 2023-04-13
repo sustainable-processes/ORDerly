@@ -31,6 +31,9 @@ jobs:
       #     restore-keys: |
       #       ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
 
+      - name: Add coverage
+        run: poetry add pytest-cov
+
       - name: Set Poetry config
         run: |
           poetry config virtualenvs.in-project true
@@ -42,4 +45,4 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: poetry run pytest -v
+        run: poetry run pytest -v --cov --cov-fail-under=90
