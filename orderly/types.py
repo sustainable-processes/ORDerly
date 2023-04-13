@@ -4,15 +4,19 @@ REPEATEDCOMPOSITECONTAINER = TypeVar(
     "REPEATEDCOMPOSITECONTAINER", bound=Iterable[Any]
 )  # protobuf uses a different type for the repeat composite container for each OS so we need a generic type that is not using the true type
 
-MOLECULE_IDENTIFIER = str # NewType('MOLECULE_IDENTIFIER', str)
+MOLECULE_IDENTIFIER = str  # NewType('MOLECULE_IDENTIFIER', str)
+INVALID_IDENTIFIER = str  # NewType('INVALID_IDENTIFIER', str)
+
 SMILES = str  # NewType('SMILES', str)
 CANON_SMILES = (
     str  # NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
 )
 
-MANUAL_REPLACEMENTS_DICT = Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
+MANUAL_REPLACEMENTS_DICT = Dict[
+    MOLECULE_IDENTIFIER | INVALID_IDENTIFIER, Optional[SMILES | CANON_SMILES]
+]
 
-RXN_STR = NewType('RXN_STR', str)
+RXN_STR = NewType("RXN_STR", str)
 
 REAGENT = Union[CANON_SMILES, SMILES, MOLECULE_IDENTIFIER]
 CANON_REAGENT = CANON_SMILES
@@ -49,10 +53,10 @@ CANON_AGENT = CANON_SMILES
 AGENTS = List[AGENT]
 CANON_AGENTS = List[CANON_AGENT]
 
-YIELD = NewType('YIELD', float)
+YIELD = NewType("YIELD", float)
 YIELDS = List[Optional[YIELD]]
 
-TEMPERATURE_CELCIUS = NewType('TEMPERATURE_CELCIUS', float)
+TEMPERATURE_CELCIUS = NewType("TEMPERATURE_CELCIUS", float)
 TEMPERATURES_CELCIUS = List[Optional[TEMPERATURE_CELCIUS]]
 
-RXN_TIME = NewType('RXN_TIME', float)  # hours
+RXN_TIME = NewType("RXN_TIME", float)  # hours

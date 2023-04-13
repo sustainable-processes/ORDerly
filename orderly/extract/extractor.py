@@ -156,7 +156,9 @@ class OrdExtractor:
     @staticmethod
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> Optional[Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]]:
+    ) -> Optional[
+        Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]
+    ]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
@@ -175,9 +177,9 @@ class OrdExtractor:
         del agent
         del product_from_rxn
 
-        non_smiles_names_list = []
+        non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
         # We need molecules wihtout maping info, so we can compare them to the products
-        reactants_from_rxn_without_mapping = []
+        reactants_from_rxn_without_mapping: CANON_REACTANTS = []
         for smi in reactants_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
@@ -188,7 +190,7 @@ class OrdExtractor:
             reactants_from_rxn_without_mapping.append(canon_smi)
         # assert len(reactants_from_rxn) == len(reactants_from_rxn_without_mapping)
 
-        products_from_rxn_without_mapping = []
+        products_from_rxn_without_mapping: CANON_PRODUCTS = []
         for smi in products_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
@@ -199,7 +201,7 @@ class OrdExtractor:
             products_from_rxn_without_mapping.append(canon_smi)
         # assert len(products_from_rxn) == len(products_from_rxn_without_mapping)
 
-        cleaned_agents = []
+        cleaned_agents: CANON_AGENTS = []
         for smi in agents:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
