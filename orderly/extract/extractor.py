@@ -490,7 +490,9 @@ class OrdExtractor:
         agents_with_transition_metal = []
         agents_wo_transition_metal = []
         for agent in agents:
-            agent_has_transition_metal = orderly.extract.defaults.has_transition_metal(agent)
+            agent_has_transition_metal = orderly.extract.defaults.has_transition_metal(
+                agent
+            )
             if agent_has_transition_metal:
                 agents_with_transition_metal.append(agent)
             else:
