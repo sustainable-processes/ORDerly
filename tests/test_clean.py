@@ -10,6 +10,163 @@ def test_hello_world() -> None:
     assert True
 
 
+@pytest.fixture
+def toy_dict() -> Dict[str, List[str]]:
+    toy_dict = {
+        "reactant_0": ["B", "A", "F", "A"],
+        "reactant_1": ["D", "A", "G", "B"],
+        "product_0": ["C", "A", "E", "A"],
+        "product_1": ["E", "G", "C", "H"],
+        "agent_0": ["D", "F", "D", "B"],
+        "agent_1": ["C", "E", "G", "A"],
+        "solvent_0": ["E", "B", "G", "C"],
+        "solvent_1": ["C", "D", "B", "G"],
+        "solvent_2": ["D", "B", "F", "G"],
+    }
+
+    return toy_dict
+
+
+def get_cleaned_df(
+    output_path: pathlib.Path,
+    trust_labelling: bool,
+    consistent_yield: bool,
+    num_reactant: int,
+    num_product: int,
+    num_solv: int,
+    num_agent: int,
+    num_cat: int,
+    num_reag: int,
+    min_frequency_of_occurrence: int,
+    map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
+) -> pd.DataFrame:
+    import orderly.clean.cleaner
+    import orderly.data.test_data
+
+    pickles_path = (
+        orderly.data.test_data.get_path_of_test_extracted_ords(
+            trust_labelling=trust_labelling
+        )
+        / "pickled_data"
+    )
+    molecules_to_remove_path = (
+        orderly.data.test_data.get_path_of_test_extracted_ords(
+            trust_labelling=trust_labelling
+        )
+        / "all_molecule_names.pkl"
+    )
+
+    orderly.clean.cleaner.main(
+        clean_data_path=output_path / "orderly_ord.parquet",
+        pickles_path=pickles_path,
+        molecules_to_remove_path=molecules_to_remove_path,
+        consistent_yield=consistent_yield,
+        num_reactant=num_reactant,
+        num_product=num_product,
+        num_solv=num_solv,
+        num_agent=num_agent,
+        num_cat=num_cat,
+        num_reag=num_reag,
+        min_frequency_of_occurrence=min_frequency_of_occurrence,
+        map_rare_molecules_to_other=map_rare_molecules_to_other,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
+        disable_tqdm=False,
+    )
+
+    import pandas as pd
+
+    return pd.read_parquet(output_path / "orderly_ord.parquet")
+
+
+@pytest.fixture
+def cleaned_df_params(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    assert len(request.param) == 10
+    updated_args = request.param + [
+        True,
+        True,
+        True,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        request.param,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_without_unresolved_names_and_duplicates(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    assert len(request.param) == 10
+    updated_args = request.param + [
+        False,
+        True,
+        False,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        request.param,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_without_min_freq(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    import copy
+
+    args = copy.copy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    updated_args = args + [
+        True,
+        True,
+        True,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        args,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    import copy
+
+    args = copy.copy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    updated_args = args + [
+        False,
+        True,
+        False,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        args,
+    )
+
+
 def test_molecule_names_not_empty() -> None:
     from orderly.data.test_data import get_path_of_molecule_names
     import pandas as pd
@@ -30,23 +187,6 @@ def test_molecule_names_not_empty() -> None:
             if len(molecule_names_list) > 0:
                 all_empty = False
     assert not all_empty
-
-
-@pytest.fixture
-def toy_dict() -> Dict[str, List[str]]:
-    toy_dict = {
-        "reactant_0": ["B", "A", "F", "A"],
-        "reactant_1": ["D", "A", "G", "B"],
-        "product_0": ["C", "A", "E", "A"],
-        "product_1": ["E", "G", "C", "H"],
-        "agent_0": ["D", "F", "D", "B"],
-        "agent_1": ["C", "E", "G", "A"],
-        "solvent_0": ["E", "B", "G", "C"],
-        "solvent_1": ["C", "D", "B", "G"],
-        "solvent_2": ["D", "B", "F", "G"],
-    }
-
-    return toy_dict
 
 
 @pytest.mark.parametrize(
@@ -246,146 +386,6 @@ def test_remove_rare_molecules(
     expected_df = pd.DataFrame(expected_dict)
 
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
-
-
-def get_cleaned_df(
-    output_path: pathlib.Path,
-    trust_labelling: bool,
-    consistent_yield: bool,
-    num_reactant: int,
-    num_product: int,
-    num_solv: int,
-    num_agent: int,
-    num_cat: int,
-    num_reag: int,
-    min_frequency_of_occurrence: int,
-    map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
-    replace_empty_with_none: bool,
-    drop_duplicates: bool,
-) -> pd.DataFrame:
-    import orderly.clean.cleaner
-    import orderly.data.test_data
-
-    pickles_path = (
-        orderly.data.test_data.get_path_of_test_extracted_ords(
-            trust_labelling=trust_labelling
-        )
-        / "pickled_data"
-    )
-    molecules_to_remove_path = (
-        orderly.data.test_data.get_path_of_test_extracted_ords(
-            trust_labelling=trust_labelling
-        )
-        / "all_molecule_names.pkl"
-    )
-
-    orderly.clean.cleaner.main(
-        clean_data_path=output_path / "orderly_ord.parquet",
-        pickles_path=pickles_path,
-        molecules_to_remove_path=molecules_to_remove_path,
-        consistent_yield=consistent_yield,
-        num_reactant=num_reactant,
-        num_product=num_product,
-        num_solv=num_solv,
-        num_agent=num_agent,
-        num_cat=num_cat,
-        num_reag=num_reag,
-        min_frequency_of_occurrence=min_frequency_of_occurrence,
-        map_rare_molecules_to_other=map_rare_molecules_to_other,
-        remove_with_unresolved_names=remove_with_unresolved_names,
-        replace_empty_with_none=replace_empty_with_none,
-        drop_duplicates=drop_duplicates,
-        disable_tqdm=False,
-    )
-
-    import pandas as pd
-
-    return pd.read_parquet(output_path / "orderly_ord.parquet")
-
-
-@pytest.fixture
-def cleaned_df_params(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    assert len(request.param) == 10
-    updated_args = request.param + [
-        True,
-        True,
-        True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path,
-            *updated_args,
-        ),
-        request.param,
-    )
-
-
-@pytest.fixture
-def cleaned_df_params_without_unresolved_names_and_duplicates(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    assert len(request.param) == 10
-    updated_args = request.param + [
-        False,
-        True,
-        False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path,
-            *updated_args,
-        ),
-        request.param,
-    )
-
-
-@pytest.fixture
-def cleaned_df_params_without_min_freq(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    import copy
-
-    args = copy.copy(request.param)
-    args[-2] = 0
-    assert len(request.param) == 10
-    updated_args = args + [
-        True,
-        True,
-        True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path,
-            *updated_args,
-        ),
-        args,
-    )
-
-
-@pytest.fixture
-def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    import copy
-
-    args = copy.copy(request.param)
-    args[-2] = 0
-    assert len(request.param) == 10
-    updated_args = args + [
-        False,
-        True,
-        False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path,
-            *updated_args,
-        ),
-        args,
-    )
 
 
 @pytest.mark.parametrize(
