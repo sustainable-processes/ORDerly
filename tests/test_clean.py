@@ -16,12 +16,17 @@ def test_molecule_names_not_empty():
 
     files = os.listdir(molecule_names_folder_path)
     for file in files:
-        if file.endswith(".parquet") or file.endswith(".pkl"):
+        if file.endswith(".pkl"): # or file.endswith(".parquet")
             file_path = os.path.join(molecule_names_folder_path, file)
-            df = pd.read_parquet(file_path)
-            if not df.empty:
+            # df = pd.read_parquet(file_path)
+            # if not df.empty:
+            #     all_empty = False
+            molecule_names_list = pd.read_pickle(file_path)
+            if len(molecule_names_list) > 0:
                 all_empty = False
     assert not all_empty
+    
+def test 
 
 
 def check_frequency_of_occurrence(
@@ -46,12 +51,13 @@ def check_frequency_of_occurrence(
         results += [df[col].value_counts()]
 
     total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
-    total_value_counts = total_value_counts.drop("other")
+    if "other" in total_value_counts.index:
+        total_value_counts = total_value_counts.drop("other")
     total_value_counts = total_value_counts.sort_values(ascending=True)
 
     assert (
         total_value_counts.iloc[0] >= min_frequency_of_occurrence
-    ), f"{min_frequency_of_occurrence=} is not being respected"
+    ), f"{min_frequency_of_occurrence=} is not being respected with {total_value_counts.iloc[0]} occurrences of {total_value_counts.index[0]}."
 
 
 def get_cleaned_df(
