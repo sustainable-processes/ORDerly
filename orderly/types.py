@@ -4,7 +4,7 @@ REPEATEDCOMPOSITECONTAINER = TypeVar(
     "REPEATEDCOMPOSITECONTAINER", bound=Iterable[Any]
 )  # protobuf uses a different type for the repeat composite container for each OS so we need a generic type that is not using the true type
 
-MOLECULE_IDENTIFIER = str  # NewType('MOLECULE_IDENTIFIER', str)
+MOLECULE_IDENTIFIER = str # NewType('MOLECULE_IDENTIFIER', str)
 SMILES = str  # NewType('SMILES', str)
 CANON_SMILES = (
     str  # NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
@@ -12,7 +12,7 @@ CANON_SMILES = (
 
 MANUAL_REPLACEMENTS_DICT = Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
 
-RXN_STR = str  # NewType('RXN_STR', str)
+RXN_STR = NewType('RXN_STR', str)
 
 REAGENT = Union[CANON_SMILES, SMILES, MOLECULE_IDENTIFIER]
 CANON_REAGENT = CANON_SMILES

@@ -161,12 +161,12 @@ class OrdExtractor:
         rxn_str = rxn_str_extended_smiles.split(" ")[
             0
         ]  # this is to get rid of the extended smiles info
-        return rxn_str, is_mapped
+        return RXN_STR(rxn_str), is_mapped
 
     @staticmethod
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> Optional[Tuple[REACTANTS, AGENTS, PRODUCTS, str, List[MOLECULE_IDENTIFIER]]]:
+    ) -> Optional[Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
