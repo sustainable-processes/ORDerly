@@ -141,7 +141,7 @@ def get_manual_replacements_dict(
     molecule_replacements: Optional[Dict[MOLECULE_IDENTIFIER, CANON_SMILES]] = None,
     molecule_str_force_nones: Optional[List[MOLECULE_IDENTIFIER]] = None,
     solvents_path: Optional[pathlib.Path] = None,
-) -> Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]:
+) -> MANUAL_REPLACEMENTS_DICT:
     """
     Combines manually curated dictioary of molecule names to canonical smiles strings with the dictionary of solvent names to canonical smiles strings.
     """

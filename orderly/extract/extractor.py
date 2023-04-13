@@ -32,21 +32,11 @@ class OrdExtractor:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
     2) Canonicalise all the molecules
     3) Write to a pickle file
-
-    Args:
-            ord_file_path (pathlib.Path):
-            trust_labelling (bool):
-            manual_replacements_dict (Dict[str, str]):
-            metals (METALS, optional) default=None
-            solvents_set (Set[SOLVENT]], optional) default=None
-            filename (str, optional) default=None:
-            contains_substring (str, optional) default=None:
-            inverse_contains_substring (bool) default=False:
     """
 
     ord_file_path: pathlib.Path
     trust_labelling: bool
-    manual_replacements_dict: Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
+    manual_replacements_dict: MANUAL_REPLACEMENTS_DICT
     metals: Optional[METALS] = None
     solvents_set: Optional[Set[SOLVENT]] = None
     filename: Optional[str] = None
@@ -411,9 +401,7 @@ class OrdExtractor:
     @staticmethod
     def apply_replacements_dict(
         smiles_list: List[MOLECULE_IDENTIFIER],
-        manual_replacements_dict: Dict[
-            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
-        ],
+        manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     ) -> List[SMILES]:
         smiles_list = [
             x
@@ -511,9 +499,7 @@ class OrdExtractor:
     @staticmethod
     def handle_reaction_object(
         rxn: ord_reaction_pb2.Reaction,
-        manual_replacements_dict: Dict[
-            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
-        ],
+        manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
         solvents_set: Set[SOLVENT],
         metals: METALS,
         trust_labelling: bool = False,
