@@ -654,23 +654,19 @@ def test_frequency_without_unresolved_names_and_duplicates(
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|15",
-            marks=pytest.mark.xfail,
-        ), # expect fail because dropping from map rare is false
+        ),
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 100, False]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|100",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from map rare is false
+        ),
         pytest.param(
             *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from map rare is false
+        ),
         pytest.param(
             *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from map rare is false
+        ),
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
@@ -678,8 +674,7 @@ def test_frequency_without_unresolved_names_and_duplicates(
         pytest.param(
             *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from map rare is false
+        ),
         pytest.param(
             *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
@@ -687,13 +682,11 @@ def test_frequency_without_unresolved_names_and_duplicates(
         pytest.param(
             *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from consistent yield
+        ),
         pytest.param(
             *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-            marks=pytest.mark.xfail,
-        ),  # expect fail because dropping from consistent yield
+        ),
     ),
     indirect=True,
 )
