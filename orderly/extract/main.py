@@ -185,7 +185,7 @@ def extract(
     filename = instance.filename
     LOG.info(f"Completed extraction for {file}: {filename}")
 
-    df_path = output_path / pickled_data_folder / f"{filename}.pkl"
+    df_path = output_path / pickled_data_folder / f"{filename}.parquet"
     molecule_names_path = (
         output_path / molecule_names_folder / f"molecules_{filename}.pkl"
     )
@@ -203,7 +203,7 @@ def extract(
             LOG.error(e)
             raise e
 
-    instance.full_df.to_pickle(df_path)
+    instance.full_df.to_parquet(df_path)
     LOG.debug(f"Saved df at {df_path}")
 
     # list of the names used for molecules, as opposed to SMILES strings

@@ -51,6 +51,10 @@ run_orderly_mypy_strict:
 	docker image build --target orderly_mypy_strict --tag orderly_mypy_strict .
 	docker run orderly_mypy_strict
 
+run_orderly_gen_test_data:
+	docker image build --target orderly_gen_test_data --tag orderly_gen_test_data .
+	docker run -v $(current_dir)/orderly/data/:/home/worker/repo/orderly/data/ -u $(uid):$(gid) orderly_gen_test_data
+
 linux_download_ord:
 	docker image build --target orderly_download_linux --tag orderly_download_linux .
 	docker run -v $(current_dir)/data:/tmp_data -u $(uid):$(gid) orderly_download_linux

@@ -1086,7 +1086,7 @@ def test_extraction_pipeline(
     name_contains_substring: Optional[str],
     inverse_substring: bool,
 ) -> None:
-    pickled_data_folder = "pkl_data"
+    pickled_data_folder = "extracted_ord_data"
     (tmp_path / pickled_data_folder).mkdir()
     molecule_names_folder = "molecule_names"
     (tmp_path / molecule_names_folder).mkdir()
@@ -1113,7 +1113,7 @@ def test_extraction_pipeline(
     import numpy as np
 
     for extraction in (tmp_path / pickled_data_folder).glob("*"):
-        df = pd.read_pickle(extraction)
+        df = pd.read_parquet(extraction)
         if df is None:
             continue
 

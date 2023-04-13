@@ -80,7 +80,7 @@ class Cleaner:
             for file in tqdm.tqdm(onlyfiles, disable=self.disable_tqdm):
                 if file[0] != ".":  # We don't want to try to unpickle .DS_Store
                     filepath = self.pickles_path / file
-                    unpickled_df = pd.read_pickle(filepath)
+                    unpickled_df = pd.read_parquet(filepath)
                     dfs.append(unpickled_df)
         return pd.concat(dfs, ignore_index=True)
 
