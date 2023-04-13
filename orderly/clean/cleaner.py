@@ -252,6 +252,15 @@ class Cleaner:
             df = df.drop_duplicates()
             LOG.info(f"After removing duplicates: {len(df)}")
 
+        if self.remove_with_unresolved_names:
+            # Remove reactions that are represented by a name instead of a SMILES string
+            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
+            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+                df = df[~df[col].isin(self.molecules_to_remove)]
+            LOG.info(
+                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
+            )
+        
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
@@ -278,14 +287,6 @@ class Cleaner:
                     self.min_frequency_of_occurrence,
                 )
 
-        if self.remove_with_unresolved_names:
-            # Remove reactions that are represented by a name instead of a SMILES string
-            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
-            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
-                df = df[~df[col].isin(self.molecules_to_remove)]
-            LOG.info(
-                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
-            )
 
         if self.replace_empty_with_none:
             # Replace any instances of an empty string with None
@@ -295,6 +296,11 @@ class Cleaner:
 
         # Replace np.nan with None
         df = df.applymap(lambda x: None if pd.isna(x) else x)
+
+        # drop duplicates deals with any final duplicates from mapping rares to other
+        if self.drop_duplicates:
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {len(df)}")
 
         df.reset_index(inplace=True, drop=True)
         return df

@@ -651,42 +651,49 @@ def test_frequency_without_unresolved_names_and_duplicates(
 @pytest.mark.parametrize(
     "cleaned_df_params,cleaned_df_params_without_min_freq",
     (
-        # pytest.param(
-        #     *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
-        #     id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|15",
-        # ), fails because dropping from map rare
-        # pytest.param(
-        #     *double_list([False, False, 5, 5, 2, 3, 0, 0, 100, False]),
-        #     id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|100",
-        # ),  fails because dropping from map rare
-        # pytest.param(
-        #     *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
-        #     id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-        # ),  fails because dropping from map rare
-        # pytest.param(
-        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
-        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-        # ),  fails because dropping from map rare
+        pytest.param(
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|15",
+            marks=pytest.mark.xfail,
+        ), # expect fail because dropping from map rare is false
+        pytest.param(
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 100, False]),
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|100",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from map rare is false
+        pytest.param(
+            *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from map rare is false
+        pytest.param(
+            *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from map rare is false
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
-        # pytest.param(
-        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
-        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-        # ),  fails because dropping from map rare
+        pytest.param(
+            *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from map rare is false
         pytest.param(
             *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
-        # pytest.param(
-        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
-        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-        # ),  fails because dropping from consistent yield
-        # pytest.param(
-        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
-        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-        # ),  fails because dropping from consistent yield
+        pytest.param(
+            *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from consistent yield
+        pytest.param(
+            *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+            marks=pytest.mark.xfail,
+        ),  # expect fail because dropping from consistent yield
     ),
     indirect=True,
 )
@@ -743,4 +750,5 @@ def test_frequency_with_unresolved_names_and_duplicates(
     ]
 
     if not cleaned_rare.empty:
+        # if there is stuff that is rare now, we want to make sure it wasnt rare previously
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
