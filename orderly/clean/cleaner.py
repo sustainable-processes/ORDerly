@@ -260,7 +260,7 @@ class Cleaner:
             LOG.info(
                 f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
             )
-        
+
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
@@ -286,7 +286,6 @@ class Cleaner:
                     value_counts,
                     self.min_frequency_of_occurrence,
                 )
-
 
         if self.replace_empty_with_none:
             # Replace any instances of an empty string with None

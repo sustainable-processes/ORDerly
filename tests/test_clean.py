@@ -668,12 +668,12 @@ def test_frequency_without_unresolved_names_and_duplicates(
             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
-            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-        ),
-        pytest.param(
             *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
         ),
         pytest.param(
             *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
@@ -694,6 +694,9 @@ def test_frequency_with_unresolved_names_and_duplicates(
     cleaned_df_params: Tuple[pd.DataFrame, List[Any]],
     cleaned_df_params_without_min_freq: Tuple[pd.DataFrame, List[Any]],
 ) -> None:
+    """
+    this test checks if enough data is being removed, it is possible too much data is removed but this is covered by other tests
+    """
     import copy
 
     cleaned_df, params = copy.copy(cleaned_df_params)
