@@ -55,4 +55,4 @@ YIELDS = List[Optional[YIELD]]
 TEMPERATURE_CELCIUS = float  # NewType('TEMPERATURE_CELCIUS', float)
 TEMPERATURES_CELCIUS = List[Optional[TEMPERATURE_CELCIUS]]
 
-RXN_TIME = float  # NewType('RXN_TIME', float)  # hours
+RXN_TIME = NewType('RXN_TIME', float)  # hours
