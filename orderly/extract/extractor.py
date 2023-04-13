@@ -127,7 +127,7 @@ class OrdExtractor:
 
     @staticmethod
     def find_smiles(
-        identifiers: IDENTIFIERS_MSG,
+        identifiers: REPEATEDCOMPOSITECONTAINER,
     ) -> typing.Tuple[
         typing.Optional[SMILES | MOLECULE_IDENTIFIER], typing.List[MOLECULE_IDENTIFIER]
     ]:
@@ -289,6 +289,7 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
+
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
                 )

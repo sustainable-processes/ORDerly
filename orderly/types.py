@@ -1,17 +1,14 @@
 import typing
 
-# we ignore types below so that we dont have to go through the hassle of the protobuf stubs being installed
-# import google.protobuf.pyext._message# type: ignore
+REPEATEDCOMPOSITECONTAINER = typing.TypeVar(
+    "REPEATEDCOMPOSITECONTAINER", bound=typing.Iterable[typing.Any]
+)  # protobuf uses a different type for the repeat composite container for each OS so we need a generic type that is not using the true type
 
-IDENTIFIERS_MSG = (
-    typing.Any
-)  # google.protobuf.pyext._message.RepeatedCompositeContainer
+MOLECULE_IDENTIFIER = str  # typing.NewType('MOLECULE_IDENTIFIER', str)
+SMILES = str  # typing.NewType('SMILES', str)
+CANON_SMILES = SMILES  # typing.NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
 
-MOLECULE_IDENTIFIER = str
-SMILES = str
-CANON_SMILES = str  # This is for SMILES canonicalised by RDKit
-
-RXN_STR = str
+RXN_STR = str  # typing.NewType('RXN_STR', str)
 
 REAGENT = typing.Union[CANON_SMILES, SMILES, MOLECULE_IDENTIFIER]
 CANON_REAGENT = CANON_SMILES
@@ -48,10 +45,10 @@ CANON_AGENT = CANON_SMILES
 AGENTS = typing.List[AGENT]
 CANON_AGENTS = typing.List[CANON_AGENT]
 
-YIELD = float
+YIELD = float  # typing.NewType('YIELD', float)
 YIELDS = typing.List[typing.Optional[YIELD]]
 
-TEMPERATURE_CELCIUS = float
+TEMPERATURE_CELCIUS = float  # typing.NewType('TEMPERATURE_CELCIUS', float)
 TEMPERATURES_CELCIUS = typing.List[typing.Optional[TEMPERATURE_CELCIUS]]
 
-RXN_TIME = float  # hours
+RXN_TIME = float  # typing.NewType('RXN_TIME', float)  # hours
