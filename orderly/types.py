@@ -2,7 +2,7 @@ import typing
 
 REPEATEDCOMPOSITECONTAINER = typing.TypeVar(
     "REPEATEDCOMPOSITECONTAINER", bound=typing.Iterable[typing.Any]
-)
+)  # protobuf uses a different type for the repeat composite container for each OS so we need a generic type that is not using the true type
 
 MOLECULE_IDENTIFIER = str
 SMILES = str
