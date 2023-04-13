@@ -73,7 +73,9 @@ def toy_dict() -> typing.Dict[str, typing.List[str]]:
     ),
 )
 def test_get_value_counts(
-    toy_dict: typing.Dict[str, typing.List[str]], columns_to_count_from: typing.List[str], expected_total_value_counts: typing.Dict[str, int]
+    toy_dict: typing.Dict[str, typing.List[str]],
+    columns_to_count_from: typing.List[str],
+    expected_total_value_counts: typing.Dict[str, int],
 ) -> None:
     import orderly.clean.cleaner
     import pandas as pd
@@ -282,14 +284,19 @@ def get_cleaned_df(
 
 
 @pytest.fixture
-def cleaned_df_params(tmp_path, request) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+def cleaned_df_params(
+    tmp_path, request
+) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
     assert len(request.param) == 10
     return get_cleaned_df(tmp_path, *request.param), request.param
 
 
 @pytest.fixture
-def cleaned_df_params_without_min_freq(tmp_path, request) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+def cleaned_df_params_without_min_freq(
+    tmp_path, request
+) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
     import copy
+
     args = copy.deepcopy(request.param)
     args[-2] = 0
     assert len(request.param) == 10
@@ -432,7 +439,7 @@ def test_number_of_columns(cleaned_df_params) -> None:
     assert num_solv_cols == num_solv
 
 
-def double_list(x:typing.List[typing.Any]) -> typing.List[typing.List[typing.Any]]:
+def double_list(x: typing.List[typing.Any]) -> typing.List[typing.List[typing.Any]]:
     return (x, x)
 
 
@@ -513,19 +520,25 @@ def test_frequency(cleaned_df_params, cleaned_df_params_without_min_freq):
             # Get the value counts for the column
             results += [df[col].value_counts()]
 
-        total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
+        total_value_counts = (
+            pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
+        )
         if "other" in total_value_counts.index:
             total_value_counts = total_value_counts.drop("other")
         total_value_counts = total_value_counts.sort_values(ascending=True)
         return total_value_counts
-    
+
     cleaned_value_counts = get_value_counts(df=cleaned_df.copy())
     uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
 
-    assert min_frequency_of_occurrence > 0 # sanity check the copying worked
+    assert min_frequency_of_occurrence > 0  # sanity check the copying worked
 
-    cleaned_rare = cleaned_value_counts[cleaned_value_counts < min_frequency_of_occurrence]
-    uncleaned_rare = uncleaned_value_counts[uncleaned_value_counts < min_frequency_of_occurrence]
+    cleaned_rare = cleaned_value_counts[
+        cleaned_value_counts < min_frequency_of_occurrence
+    ]
+    uncleaned_rare = uncleaned_value_counts[
+        uncleaned_value_counts < min_frequency_of_occurrence
+    ]
 
     print(cleaned_rare.empty)
     print(uncleaned_rare.index.intersection(cleaned_value_counts.index))
