@@ -1,11 +1,14 @@
+import typing
 import pytest
 
+import pandas as pd
 
-def test_hello_world():
+
+def test_hello_world() -> None:
     assert True
 
 
-def test_molecule_names_not_empty():
+def test_molecule_names_not_empty() -> None:
     from orderly.data.test_data import get_path_of_molecule_names
     import pandas as pd
     import os
@@ -28,7 +31,7 @@ def test_molecule_names_not_empty():
 
 
 @pytest.fixture
-def toy_dict():
+def toy_dict() -> typing.Dict[str, typing.List[str]]:
     toy_dict = {
         "reactant_0": ["B", "A", "F", "A"],
         "reactant_1": ["D", "A", "G", "B"],
@@ -70,7 +73,7 @@ def toy_dict():
     ),
 )
 def test_get_value_counts(
-    toy_dict, columns_to_count_from, expected_total_value_counts
+    toy_dict: typing.Dict[str, typing.List[str]], columns_to_count_from: typing.List[str], expected_total_value_counts: typing.Dict[str, int]
 ) -> None:
     import orderly.clean.cleaner
     import pandas as pd
@@ -232,37 +235,6 @@ def test_remove_rare_molecules(
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
 
 
-def check_frequency_of_occurrence(
-    df,
-    min_frequency_of_occurrence,
-):
-    import pandas as pd
-
-    # Define the list of columns to check
-    columns_to_check = [
-        col
-        for col in df.columns
-        if col.startswith(("agent", "solvent", "reagent", "catalyst"))
-    ]
-
-    # Initialize a list to store the results
-    results = []
-
-    # Loop through the columns
-    for col in columns_to_check:
-        # Get the value counts for the column
-        results += [df[col].value_counts()]
-
-    total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
-    if "other" in total_value_counts.index:
-        total_value_counts = total_value_counts.drop("other")
-    total_value_counts = total_value_counts.sort_values(ascending=True)
-
-    assert (
-        total_value_counts.iloc[0] >= min_frequency_of_occurrence
-    ), f"{min_frequency_of_occurrence=} is not being respected with {total_value_counts.iloc[0]} occurrences of {total_value_counts.index[0]}."
-
-
 def get_cleaned_df(
     output_path,
     trust_labelling,
@@ -310,8 +282,18 @@ def get_cleaned_df(
 
 
 @pytest.fixture
-def cleaned_df_params(tmp_path, request):
+def cleaned_df_params(tmp_path, request) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+    assert len(request.param) == 10
     return get_cleaned_df(tmp_path, *request.param), request.param
+
+
+@pytest.fixture
+def cleaned_df_params_without_min_freq(tmp_path, request) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+    import copy
+    args = copy.deepcopy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    return get_cleaned_df(tmp_path, *args), args
 
 
 @pytest.mark.parametrize(
@@ -352,7 +334,7 @@ def cleaned_df_params(tmp_path, request):
     ),
     indirect=True,
 )
-def test_get_cleaned_df(cleaned_df_params):
+def test_get_cleaned_df(cleaned_df_params) -> None:
     cleaned_df, params = cleaned_df_params
     assert not cleaned_df.empty
 
@@ -403,7 +385,7 @@ def test_get_cleaned_df(cleaned_df_params):
     ),
     indirect=True,
 )
-def test_number_of_columns(cleaned_df_params):
+def test_number_of_columns(cleaned_df_params) -> None:
     cleaned_df, params = cleaned_df_params
 
     (
@@ -450,66 +432,110 @@ def test_number_of_columns(cleaned_df_params):
     assert num_solv_cols == num_solv
 
 
+def double_list(x:typing.List[typing.Any]) -> typing.List[typing.List[typing.Any]]:
+    return (x, x)
+
+
 @pytest.mark.parametrize(
-    "cleaned_df_params",
+    "cleaned_df_params,cleaned_df_params_without_min_freq",
     (
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
-            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 100, False]),
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
-        pytest.param(
-            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
-            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-        ),
-        pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
-            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-        ),
-        pytest.param(
-            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
-            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-        ),
-        pytest.param(
-            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
-            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
-        ),
-        pytest.param(
-            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
-            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-        ),
-        pytest.param(
-            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
-            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-        ),
-        # XFAILS
-        pytest.param(
-            [False, True, 5, 5, 5, 5, 5, 5, 5, True],
-            marks=pytest.mark.xfail(
-                reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-            ),
-            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
-        ),
+        # pytest.param(
+        #     *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
+        #     id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+        # ),
+        # pytest.param(
+        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
+        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+        # ),
+        # pytest.param(
+        #     *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
+        #     id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
+        # ),
+        # pytest.param(
+        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
+        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        # ),
+        # pytest.param(
+        #     *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
+        #     id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        # ),
+        # pytest.param(
+        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
+        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        # ),
+        # pytest.param(
+        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
+        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        # ),
+        # # XFAILS
+        # pytest.param(
+        #     *double_list([False, True, 5, 5, 5, 5, 5, 5, 5, True]),
+        #     marks=pytest.mark.xfail(
+        #         reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+        #     ),
+        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
+        # ),
     ),
     indirect=True,
 )
-def test_frequency(cleaned_df_params):
+def test_frequency(cleaned_df_params, cleaned_df_params_without_min_freq):
     cleaned_df, params = cleaned_df_params
+    uncleaned_df, unclean_params = cleaned_df_params_without_min_freq
 
-    (
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        min_frequency_of_occurrence,
-        _,
-    ) = params
+    assert len(params) == len(unclean_params)
+    assert unclean_params[-2] == 0
+    assert len(params) == 10
+    min_frequency_of_occurrence = params[-2]
 
-    check_frequency_of_occurrence(cleaned_df, min_frequency_of_occurrence)
+    import pandas as pd
+
+    def get_value_counts(df):
+        # Define the list of columns to check
+        columns_to_check = [
+            col
+            for col in df.columns
+            if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+        ]
+
+        # Initialize a list to store the results
+        results = []
+
+        # Loop through the columns
+        for col in columns_to_check:
+            # Get the value counts for the column
+            results += [df[col].value_counts()]
+
+        total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
+        if "other" in total_value_counts.index:
+            total_value_counts = total_value_counts.drop("other")
+        total_value_counts = total_value_counts.sort_values(ascending=True)
+        return total_value_counts
+    
+    cleaned_value_counts = get_value_counts(df=cleaned_df.copy())
+    uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
+
+    assert min_frequency_of_occurrence > 0 # sanity check the copying worked
+
+    cleaned_rare = cleaned_value_counts[cleaned_value_counts < min_frequency_of_occurrence]
+    uncleaned_rare = uncleaned_value_counts[uncleaned_value_counts < min_frequency_of_occurrence]
+
+    print(cleaned_rare.empty)
+    print(uncleaned_rare.index.intersection(cleaned_value_counts.index))
+    print(uncleaned_rare.index.intersection(cleaned_value_counts.index).empty)
+
+    # if not cleaned_rare.empty:
+    #     assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
+
+    raise ValueError()
+
+    # assert (
+    #     total_value_counts.iloc[0] >= min_frequency_of_occurrence
+    # ), f"{min_frequency_of_occurrence=} is not being respected with {total_value_counts.iloc[0]} occurrences of {total_value_counts.index[0]}."
