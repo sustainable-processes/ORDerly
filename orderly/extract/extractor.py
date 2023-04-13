@@ -32,21 +32,11 @@ class OrdExtractor:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
     2) Canonicalise all the molecules
     3) Write to a pickle file
-
-    Args:
-            ord_file_path (pathlib.Path):
-            trust_labelling (bool):
-            manual_replacements_dict (Dict[str, str]):
-            metals (METALS, optional) default=None
-            solvents_set (Set[SOLVENT]], optional) default=None
-            filename (str, optional) default=None:
-            contains_substring (str, optional) default=None:
-            inverse_contains_substring (bool) default=False:
     """
 
     ord_file_path: pathlib.Path
     trust_labelling: bool
-    manual_replacements_dict: Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
+    manual_replacements_dict: MANUAL_REPLACEMENTS_DICT
     metals: Optional[METALS] = None
     solvents_set: Optional[Set[SOLVENT]] = None
     filename: Optional[str] = None
@@ -161,12 +151,14 @@ class OrdExtractor:
         rxn_str = rxn_str_extended_smiles.split(" ")[
             0
         ]  # this is to get rid of the extended smiles info
-        return rxn_str, is_mapped
+        return RXN_STR(rxn_str), is_mapped
 
     @staticmethod
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> Optional[Tuple[REACTANTS, AGENTS, PRODUCTS, str, List[MOLECULE_IDENTIFIER]]]:
+    ) -> Optional[
+        Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]
+    ]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
@@ -185,9 +177,9 @@ class OrdExtractor:
         del agent
         del product_from_rxn
 
-        non_smiles_names_list = []
+        non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
         # We need molecules wihtout maping info, so we can compare them to the products
-        reactants_from_rxn_without_mapping = []
+        reactants_from_rxn_without_mapping: CANON_REACTANTS = []
         for smi in reactants_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
@@ -198,7 +190,7 @@ class OrdExtractor:
             reactants_from_rxn_without_mapping.append(canon_smi)
         # assert len(reactants_from_rxn) == len(reactants_from_rxn_without_mapping)
 
-        products_from_rxn_without_mapping = []
+        products_from_rxn_without_mapping: CANON_PRODUCTS = []
         for smi in products_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
@@ -209,7 +201,7 @@ class OrdExtractor:
             products_from_rxn_without_mapping.append(canon_smi)
         # assert len(products_from_rxn) == len(products_from_rxn_without_mapping)
 
-        cleaned_agents = []
+        cleaned_agents: CANON_AGENTS = []
         for smi in agents:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
                 smi, is_mapped
@@ -318,7 +310,7 @@ class OrdExtractor:
         Extract reaction information from ORD output object (ord_reaction_pb2.Reaction.outcomes)
         """
         # products & yield
-        yields = []
+        yields: YIELDS = []
         products = []
         non_smiles_names_list = []
 
@@ -339,7 +331,8 @@ class OrdExtractor:
             for measurement in measurements:
                 if measurement.type == 3:  # YIELD
                     y = float(measurement.percentage.value)
-                    y = round(y, 2)
+                    y = YIELD(round(y, 2))
+                    continue
             # people sometimes report a product such as '[Na+].[Na+].[O-]B1OB2OB([O-])OB(O1)O2' and then only report one yield, this is a problem...
             # We'll resolve this by moving the longest smiles string to the front of the list, then appending the yield to the front of the list, and padding with None to ensure that the lists are the same length
 
@@ -350,7 +343,7 @@ class OrdExtractor:
             y_list = [y] + [None] * (len(product_list) - 1)
 
             products += product_list
-            yields += y_list
+            yields += y_list  # type: ignore
 
         return products, yields, non_smiles_names_list
 
@@ -365,54 +358,52 @@ class OrdExtractor:
         temp_unit = rxn.conditions.temperature.setpoint.units
 
         if temp_unit == 1:  # celcius
-            return float(rxn.conditions.temperature.setpoint.value)
+            return TEMPERATURE_CELCIUS(float(rxn.conditions.temperature.setpoint.value))
         elif temp_unit == 2:  # fahrenheit
             f = rxn.conditions.temperature.setpoint.value
             c = (f - 32) * 5 / 9
-            return float(c)
+            return TEMPERATURE_CELCIUS(float(c))
         elif temp_unit == 3:  # kelvin
             k = rxn.conditions.temperature.setpoint.value
             c = k - 273.15
-            return float(c)
+            return TEMPERATURE_CELCIUS(float(c))
         elif temp_unit == 0:  # unspecified
             # instead of using the setpoint, use the control type
             # temperatures are in celcius
             temp_control_type = rxn.conditions.temperature.control.type
             if temp_control_type == 2:  # AMBIENT
-                return 25.0
+                return TEMPERATURE_CELCIUS(25.0)
             elif temp_control_type == 6:  # ICE_BATH
-                return 0.0
+                return TEMPERATURE_CELCIUS(0.0)
             elif temp_control_type == 9:  # DRY_ICE_BATH
-                return -78.5
+                return TEMPERATURE_CELCIUS(-78.5)
             elif temp_control_type == 11:  # LIQUID_NITROGEN
-                return -196.0
+                return TEMPERATURE_CELCIUS(-196.0)
         return None  # No temperature found
 
     @staticmethod
-    def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> Optional[float]:
+    def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> Optional[RXN_TIME]:
         if rxn.outcomes[0].reaction_time.units == 1:  # hour
-            return round(float(rxn.outcomes[0].reaction_time.value), 2)
+            return RXN_TIME(round(float(rxn.outcomes[0].reaction_time.value), 2))
         elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
             m = rxn.outcomes[0].reaction_time.value
             h = m / 60
-            return round(float(h), 2)
+            return RXN_TIME(round(float(h), 2))
         elif rxn.outcomes[0].reaction_time.units == 3:  # seconds
             s = rxn.outcomes[0].reaction_time.value
             h = s / 3600
-            return round(float(h), 2)
+            return RXN_TIME(round(float(h), 2))
         elif rxn.outcomes[0].reaction_time.units == 4:  # day
             d = rxn.outcomes[0].reaction_time.value
             h = d * 24
-            return round(float(h), 2)
+            return RXN_TIME(round(float(h), 2))
         else:
             return None  # no time found
 
     @staticmethod
     def apply_replacements_dict(
         smiles_list: List[MOLECULE_IDENTIFIER],
-        manual_replacements_dict: Dict[
-            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
-        ],
+        manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     ) -> List[SMILES]:
         smiles_list = [
             x
@@ -510,9 +501,7 @@ class OrdExtractor:
     @staticmethod
     def handle_reaction_object(
         rxn: ord_reaction_pb2.Reaction,
-        manual_replacements_dict: Dict[
-            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
-        ],
+        manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
         solvents_set: Set[SOLVENT],
         metals: METALS,
         trust_labelling: bool = False,

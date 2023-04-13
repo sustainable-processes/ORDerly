@@ -4,6 +4,8 @@ import pathlib
 
 from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
+from orderly.types import YIELD, MANUAL_REPLACEMENTS_DICT
+
 REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
@@ -635,9 +637,9 @@ def test_match_yield_with_product(
     execution_number: int,
     rxn_str_products: List[str],
     labelled_products: List[str],
-    input_yields: Optional[List[Optional[float]]],
+    input_yields: Optional[List[Optional[YIELD]]],
     expected_products: List[str],
-    expected_yields: Optional[List[Optional[float]]],
+    expected_yields: Optional[List[Optional[YIELD]]],
 ) -> None:
     import orderly.extract.extractor
 
@@ -931,7 +933,7 @@ def test_handle_reaction_object(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    manual_replacements_dict: Optional[Dict[str, Optional[str]]],
+    manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     trust_labelling: bool,
     expected_reactants: List[str],
     expected_agents: List[str],

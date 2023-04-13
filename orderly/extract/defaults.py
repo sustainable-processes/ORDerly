@@ -142,7 +142,7 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     """
     Returns a dictionary mapping common representations of molecules (particularly catalysts) to a canonical representation.
     """
-    molecule_replacements = {}
+    molecule_replacements: Dict[str, str] = {}
 
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
     molecule_replacements[
@@ -246,7 +246,7 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     return molecule_replacements
 
 
-def get_molecule_str_force_nones() -> List[MOLECULE_IDENTIFIER]:
+def get_molecule_str_force_nones() -> List[INVALID_IDENTIFIER]:
     return [
         "solution",  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
         "liquid",
