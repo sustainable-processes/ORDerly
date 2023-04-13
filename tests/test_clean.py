@@ -314,202 +314,202 @@ def cleaned_df_params(tmp_path, request):
     return get_cleaned_df(tmp_path, *request.param), request.param
 
 
-# @pytest.mark.parametrize(
-#     "cleaned_df_params",
-#     (
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#     ),
-#     indirect=True,
-# )
-# def test_get_cleaned_df(cleaned_df_params):
-#     cleaned_df, params = cleaned_df_params
-#     assert not cleaned_df.empty
+@pytest.mark.parametrize(
+    "cleaned_df_params",
+    (
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+    ),
+    indirect=True,
+)
+def test_get_cleaned_df(cleaned_df_params):
+    cleaned_df, params = cleaned_df_params
+    assert not cleaned_df.empty
 
 
-# @pytest.mark.parametrize(
-#     "cleaned_df_params",
-#     (
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#         # XFAILS
-#         pytest.param(
-#             [False, True, 5, 5, 5, 5, 5, 5, 5, True],
-#             marks=pytest.mark.xfail(
-#                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-#             ),
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
-#         ),
-#     ),
-#     indirect=True,
-# )
-# def test_number_of_columns(cleaned_df_params):
-#     cleaned_df, params = cleaned_df_params
+@pytest.mark.parametrize(
+    "cleaned_df_params",
+    (
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        # XFAILS
+        pytest.param(
+            [False, True, 5, 5, 5, 5, 5, 5, 5, True],
+            marks=pytest.mark.xfail(
+                reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+            ),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
+        ),
+    ),
+    indirect=True,
+)
+def test_number_of_columns(cleaned_df_params):
+    cleaned_df, params = cleaned_df_params
 
-#     (
-#         _,
-#         _,
-#         num_reactant,
-#         num_product,
-#         num_solv,
-#         num_agent,
-#         num_cat,
-#         num_reag,
-#         _,
-#         _,
-#     ) = params
+    (
+        _,
+        _,
+        num_reactant,
+        num_product,
+        num_solv,
+        num_agent,
+        num_cat,
+        num_reag,
+        _,
+        _,
+    ) = params
 
-#     # check that the number of columns is correct
-#     num_reactant_cols = 0
-#     num_product_cols = 0
-#     num_agent_cols = 0
-#     num_cat_cols = 0
-#     num_reag_cols = 0
-#     num_solv_cols = 0
+    # check that the number of columns is correct
+    num_reactant_cols = 0
+    num_product_cols = 0
+    num_agent_cols = 0
+    num_cat_cols = 0
+    num_reag_cols = 0
+    num_solv_cols = 0
 
-#     cols = cleaned_df.columns
-#     for col in cols:
-#         if col.startswith("react"):
-#             num_reactant_cols += 1
-#         elif col.startswith("prod"):
-#             num_product_cols += 1
-#         elif col.startswith("agent"):
-#             num_agent_cols += 1
-#         elif col.startswith("cat"):
-#             num_cat_cols += 1
-#         elif col.startswith("reag"):
-#             num_reag_cols += 1
-#         elif col.startswith("solv"):
-#             num_solv_cols += 1
+    cols = cleaned_df.columns
+    for col in cols:
+        if col.startswith("react"):
+            num_reactant_cols += 1
+        elif col.startswith("prod"):
+            num_product_cols += 1
+        elif col.startswith("agent"):
+            num_agent_cols += 1
+        elif col.startswith("cat"):
+            num_cat_cols += 1
+        elif col.startswith("reag"):
+            num_reag_cols += 1
+        elif col.startswith("solv"):
+            num_solv_cols += 1
 
-#     assert num_reactant_cols == num_reactant
-#     assert num_product_cols == num_product
-#     assert num_agent_cols == num_agent
-#     assert num_cat_cols == num_cat
-#     assert num_reag_cols == num_reag
-#     assert num_solv_cols == num_solv
+    assert num_reactant_cols == num_reactant
+    assert num_product_cols == num_product
+    assert num_agent_cols == num_agent
+    assert num_cat_cols == num_cat
+    assert num_reag_cols == num_reag
+    assert num_solv_cols == num_solv
 
 
-# @pytest.mark.parametrize(
-#     "cleaned_df_params",
-#     (
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, False],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [False, False, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, False],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-#         ),
-#         pytest.param(
-#             [True, False, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [False, True, 5, 5, 2, 3, 0, 0, 15, True],
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#         pytest.param(
-#             [True, True, 5, 5, 2, 0, 2, 1, 15, True],
-#             id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-#         ),
-#         # XFAILS
-#         pytest.param(
-#             [False, True, 5, 5, 5, 5, 5, 5, 5, True],
-#             marks=pytest.mark.xfail(
-#                 reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-#             ),
-#             id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
-#         ),
-#     ),
-#     indirect=True,
-# )
-# def test_frequency(cleaned_df_params):
-#     cleaned_df, params = cleaned_df_params
+@pytest.mark.parametrize(
+    "cleaned_df_params",
+    (
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, False],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [False, True, 5, 5, 2, 3, 0, 0, 15, True],
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            [True, True, 5, 5, 2, 0, 2, 1, 15, True],
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        # XFAILS
+        pytest.param(
+            [False, True, 5, 5, 5, 5, 5, 5, 5, True],
+            marks=pytest.mark.xfail(
+                reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+            ),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
+        ),
+    ),
+    indirect=True,
+)
+def test_frequency(cleaned_df_params):
+    cleaned_df, params = cleaned_df_params
 
-#     (
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         _,
-#         min_frequency_of_occurrence,
-#         _,
-#     ) = params
+    (
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        min_frequency_of_occurrence,
+        _,
+    ) = params
 
-#     check_frequency_of_occurrence(cleaned_df, min_frequency_of_occurrence)
+    check_frequency_of_occurrence(cleaned_df, min_frequency_of_occurrence)

@@ -8,6 +8,10 @@ MOLECULE_IDENTIFIER = str  # typing.NewType('MOLECULE_IDENTIFIER', str)
 SMILES = str  # typing.NewType('SMILES', str)
 CANON_SMILES = SMILES  # typing.NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
 
+MANUAL_REPLACEMENTS_DICT = typing.Dict[
+    MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
+]
+
 RXN_STR = str  # typing.NewType('RXN_STR', str)
 
 REAGENT = typing.Union[CANON_SMILES, SMILES, MOLECULE_IDENTIFIER]

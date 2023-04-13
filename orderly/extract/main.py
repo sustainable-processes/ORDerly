@@ -165,9 +165,7 @@ def extract(
     output_path: pathlib.Path,
     file: pathlib.Path,
     trust_labelling: bool,
-    manual_replacements_dict: typing.Dict[
-        MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
-    ],
+    manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     solvents_set: typing.Set[CANON_SMILES],
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
