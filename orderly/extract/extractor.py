@@ -135,6 +135,16 @@ class OrdExtractor:
         Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
         """
 
+        print(type(identifiers))
+        import ord_schema
+
+        print(ord_schema.proto.reaction_pb2.ReactionIdentifier)
+
+        print(isinstance(identifiers, ord_schema.proto.reaction_pb2.ReactionIdentifier))
+        print(isinstance(identifiers, ord_schema.proto.reaction_pb2))
+
+        raise ValueError()
+
         non_smiles_names_list = (
             []
         )  # we dont require information on state of this object so can create a new one
@@ -289,6 +299,9 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
+                print(type(component))
+
+                print(identifiers)
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
                 )
