@@ -247,16 +247,12 @@ class Cleaner:
             df = df.drop("total_yield", axis=1)
             LOG.info(f"After removing reactions with inconsistent yields: {len(df)}")
 
+        # drop duplicates
+        if self.drop_duplicates:
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {len(df)}")
+
         # Remove reactions with rare molecules
-
-        # TODO: delete
-        # # Get a list of columns with either solvent, reagent, catalyst, or agent in the name
-        # columns_to_check_for_rare_molecules = [
-        #     col
-        #     for col in df.columns
-        #     if col.startswith(("agent", "solvent", "reagent", "catalyst"))
-        # ]
-
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
             columns_to_count_from = [
@@ -299,11 +295,6 @@ class Cleaner:
 
         # Replace np.nan with None
         df = df.applymap(lambda x: None if pd.isna(x) else x)
-
-        # drop duplicates
-        if self.drop_duplicates:
-            df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates: {len(df)}")
 
         df.reset_index(inplace=True, drop=True)
         return df
