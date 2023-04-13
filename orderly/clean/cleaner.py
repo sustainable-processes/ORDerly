@@ -124,7 +124,9 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _get_value_counts(df: pd.DataFrame, columns_to_count_from: typing.List[str]) -> pd.Series:
+    def _get_value_counts(
+        df: pd.DataFrame, columns_to_count_from: typing.List[str]
+    ) -> pd.Series:
         """
         Get cumulative value across all columns in columns_to_count_from
         """
@@ -144,7 +146,10 @@ class Cleaner:
 
     @staticmethod
     def _map_rare_molecules_to_other(
-        df: pd.DataFrame, columns_to_transform: typing.List[str], value_counts: pd.Series, min_frequency_of_occurrence: int
+        df: pd.DataFrame,
+        columns_to_transform: typing.List[str],
+        value_counts: pd.Series,
+        min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:
         """
         Maps rare values in specified columns to 'other'.
@@ -161,7 +166,10 @@ class Cleaner:
 
     @staticmethod
     def _remove_rare_molecules(
-        df: pd.DataFrame, columns_to_transform: typing.List[str], value_counts: pd.Series, min_frequency_of_occurrence: int
+        df: pd.DataFrame,
+        columns_to_transform: typing.List[str],
+        value_counts: pd.Series,
+        min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:
         """
         Removes rows with rare values in specified columns.

@@ -157,7 +157,7 @@ def test_map_rare_molecules_to_other(
 ) -> None:
     import pandas as pd
     import orderly.clean.cleaner
-    import copy 
+    import copy
 
     toy_dict = copy.copy(toy_dict)
 
@@ -231,7 +231,7 @@ def test_remove_rare_molecules(
 ) -> None:
     import pandas as pd
     import orderly.clean.cleaner
-    import copy 
+    import copy
 
     toy_dict = copy.copy(toy_dict)
 
@@ -264,11 +264,15 @@ def get_cleaned_df(
     import orderly.data.test_data
 
     pickles_path = (
-        orderly.data.test_data.get_path_of_test_extracted_ords(trust_labelling=trust_labelling)
+        orderly.data.test_data.get_path_of_test_extracted_ords(
+            trust_labelling=trust_labelling
+        )
         / "pickled_data"
     )
     molecules_to_remove_path = (
-        orderly.data.test_data.get_path_of_test_extracted_ords(trust_labelling=trust_labelling)
+        orderly.data.test_data.get_path_of_test_extracted_ords(
+            trust_labelling=trust_labelling
+        )
         / "all_molecule_names.pkl"
     )
 
@@ -351,8 +355,11 @@ def cleaned_df_params_without_min_freq(
     ),
     indirect=True,
 )
-def test_get_cleaned_df(cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]) -> None:
+def test_get_cleaned_df(
+    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]
+) -> None:
     import copy
+
     cleaned_df, _ = copy.copy(cleaned_df_params)
     assert not cleaned_df.empty
 
@@ -403,8 +410,11 @@ def test_get_cleaned_df(cleaned_df_params: typing.Tuple[pd.DataFrame, typing.Lis
     ),
     indirect=True,
 )
-def test_number_of_columns(cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]) -> None:
+def test_number_of_columns(
+    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]
+) -> None:
     import copy
+
     cleaned_df, params = copy.copy(cleaned_df_params)
 
     (
@@ -451,7 +461,9 @@ def test_number_of_columns(cleaned_df_params: typing.Tuple[pd.DataFrame, typing.
     assert num_solv_cols == num_solv
 
 
-def double_list(x: typing.List[typing.Any]) -> typing.Tuple[typing.List[typing.Any], typing.List[typing.Any]]:
+def double_list(
+    x: typing.List[typing.Any],
+) -> typing.Tuple[typing.List[typing.Any], typing.List[typing.Any]]:
     return (x, x)
 
 
@@ -505,8 +517,14 @@ def double_list(x: typing.List[typing.Any]) -> typing.Tuple[typing.List[typing.A
     ),
     indirect=True,
 )
-def test_frequency(cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]], cleaned_df_params_without_min_freq: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]) -> None:
+def test_frequency(
+    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]],
+    cleaned_df_params_without_min_freq: typing.Tuple[
+        pd.DataFrame, typing.List[typing.Any]
+    ],
+) -> None:
     import copy
+
     cleaned_df, params = copy.copy(cleaned_df_params)
     uncleaned_df, unclean_params = copy.copy(cleaned_df_params_without_min_freq)
 
