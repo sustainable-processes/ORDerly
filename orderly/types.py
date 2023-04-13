@@ -6,7 +6,9 @@ REPEATEDCOMPOSITECONTAINER = TypeVar(
 
 MOLECULE_IDENTIFIER = str  # NewType('MOLECULE_IDENTIFIER', str)
 SMILES = str  # NewType('SMILES', str)
-CANON_SMILES = SMILES  # NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
+CANON_SMILES = (
+    str  # NewType('CANON_SMILES', SMILES)  # This is for SMILES canonicalised by RDKit
+)
 
 MANUAL_REPLACEMENTS_DICT = Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
 

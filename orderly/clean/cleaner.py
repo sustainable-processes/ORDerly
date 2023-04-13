@@ -56,6 +56,9 @@ class Cleaner:
     min_frequency_of_occurrence: int
     map_rare_molecules_to_other: bool
     molecules_to_remove: List[str]
+    remove_with_unresolved_names: bool = True
+    replace_empty_with_none: bool = True
+    drop_duplicates: bool = True
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
@@ -246,12 +249,13 @@ class Cleaner:
 
         # Remove reactions with rare molecules
 
-        # Get a list of columns with either solvent, reagent, catalyst, or agent in the name
-        columns_to_check_for_rare_molecules = [
-            col
-            for col in df.columns
-            if col.startswith(("agent", "solvent", "reagent", "catalyst"))
-        ]
+        # TODO: delete
+        # # Get a list of columns with either solvent, reagent, catalyst, or agent in the name
+        # columns_to_check_for_rare_molecules = [
+        #     col
+        #     for col in df.columns
+        #     if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+        # ]
 
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
@@ -278,26 +282,28 @@ class Cleaner:
                     self.min_frequency_of_occurrence,
                 )
 
-        for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
-            df = df[~df[col].isin(self.molecules_to_remove)]
+        if self.remove_with_unresolved_names:
             # Remove reactions that are represented by a name instead of a SMILES string
             # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
+            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+                df = df[~df[col].isin(self.molecules_to_remove)]
+            LOG.info(
+                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
+            )
 
-        LOG.info(
-            f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
-        )
-
-        # Replace any instances of an empty string with None
-        df = df.applymap(
-            lambda x: None if (isinstance(x, str) and x.strip() == "") else x
-        )
+        if self.replace_empty_with_none:
+            # Replace any instances of an empty string with None
+            df = df.applymap(
+                lambda x: None if (isinstance(x, str) and x.strip() == "") else x
+            )
 
         # Replace np.nan with None
         df = df.applymap(lambda x: None if pd.isna(x) else x)
 
         # drop duplicates
-        df = df.drop_duplicates()
-        LOG.info(f"After removing duplicates: {len(df)}")
+        if self.drop_duplicates:
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {len(df)}")
 
         df.reset_index(inplace=True, drop=True)
         return df
@@ -385,6 +391,21 @@ class Cleaner:
     default=True,
     help="If True, molecules that appear less than map_rare_to_other_threshold times will be mapped to the 'other' category. If False, the reaction they appear in will be removed.",
 )
+@click.option(
+    "--remove_with_unresolved_names",
+    type=bool,
+    default=True,
+)
+@click.option(
+    "--replace_empty_with_none",
+    type=bool,
+    default=True,
+)
+@click.option(
+    "--drop_duplicates",
+    type=bool,
+    default=True,
+)
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 def main_click(
     clean_data_path: pathlib.Path,
@@ -399,6 +420,9 @@ def main_click(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
     disable_tqdm: bool,
 ) -> None:
     """
@@ -436,6 +460,9 @@ def main_click(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
 
@@ -453,6 +480,9 @@ def main(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
     disable_tqdm: bool,
 ) -> None:
     """
@@ -507,6 +537,9 @@ def main(
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
         molecules_to_remove=molecules_to_remove,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
     instance.cleaned_reactions.to_parquet(clean_data_path)

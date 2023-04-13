@@ -260,6 +260,9 @@ def get_cleaned_df(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
 ) -> pd.DataFrame:
     import orderly.clean.cleaner
     import orderly.data.test_data
@@ -290,6 +293,9 @@ def get_cleaned_df(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
         disable_tqdm=False,
     )
 
@@ -303,7 +309,37 @@ def cleaned_df_params(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
-    return get_cleaned_df(tmp_path, *request.param), request.param
+    updated_args = request.param + [
+        True,
+        True,
+        True,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        request.param,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_with_unresolved_names_and_duplicates(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    assert len(request.param) == 10
+    updated_args = request.param + [
+        True,
+        True,
+        True,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        request.param,
+    )
 
 
 @pytest.fixture
@@ -315,7 +351,41 @@ def cleaned_df_params_without_min_freq(
     args = copy.copy(request.param)
     args[-2] = 0
     assert len(request.param) == 10
-    return get_cleaned_df(tmp_path, *args), args
+    updated_args = args + [
+        False,
+        True,
+        False,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        args,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_without_min_freq_with_unresolved_names_and_duplicates(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    import copy
+
+    args = copy.copy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    updated_args = args + [
+        False,
+        True,
+        False,
+    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    return (
+        get_cleaned_df(
+            tmp_path,
+            *updated_args,
+        ),
+        args,
+    )
 
 
 @pytest.mark.parametrize(
@@ -465,7 +535,7 @@ def double_list(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params,cleaned_df_params_without_min_freq",
+    "cleaned_df_params_with_unresolved_names_and_duplicates,cleaned_df_params_without_min_freq_with_unresolved_names_and_duplicates",
     (
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
@@ -475,53 +545,61 @@ def double_list(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 100, False]),
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
-        # pytest.param(
-        #     *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
-        #     id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
-        # ),
-        # pytest.param(
-        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
-        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
-        # ),
-        # pytest.param(
-        #     *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
-        #     id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
-        # ),
-        # pytest.param(
-        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
-        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
-        # ),
-        # pytest.param(
-        #     *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
-        #     id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
-        # ),
-        # pytest.param(
-        #     *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
-        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
-        # ),
-        # pytest.param(
-        #     *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
-        #     id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
-        # ),
-        # # XFAILS
-        # pytest.param(
-        #     *double_list([False, True, 5, 5, 5, 5, 5, 5, 5, True]),
-        #     marks=pytest.mark.xfail(
-        #         reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-        #     ),
-        #     id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
-        # ),
+        pytest.param(
+            *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, False]),
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, False]),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, True]),
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, False]),
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:F",
+        ),
+        pytest.param(
+            *double_list([True, False, 5, 5, 2, 0, 2, 1, 15, True]),
+            id="trust_labelling:T|consistent_yield:F|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            *double_list([False, True, 5, 5, 2, 3, 0, 0, 15, True]),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        pytest.param(
+            *double_list([True, True, 5, 5, 2, 0, 2, 1, 15, True]),
+            id="trust_labelling:T|consistent_yield:T|map_rare_molecules_to_other:T",
+        ),
+        # XFAILS
+        pytest.param(
+            *double_list([False, True, 5, 5, 5, 5, 5, 5, 5, True]),
+            marks=pytest.mark.xfail(
+                reason="AssertionError: Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+            ),
+            id="trust_labelling:F|consistent_yield:T|map_rare_molecules_to_other:F|fives",
+        ),
     ),
     indirect=True,
 )
 def test_frequency(
-    cleaned_df_params: Tuple[pd.DataFrame, List[Any]],
-    cleaned_df_params_without_min_freq: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_with_unresolved_names_and_duplicates: Tuple[
+        pd.DataFrame, List[Any]
+    ],
+    cleaned_df_params_without_min_freq_with_unresolved_names_and_duplicates: Tuple[
+        pd.DataFrame, List[Any]
+    ],
 ) -> None:
     import copy
 
-    cleaned_df, params = copy.copy(cleaned_df_params)
-    uncleaned_df, unclean_params = copy.copy(cleaned_df_params_without_min_freq)
+    cleaned_df, params = copy.copy(
+        cleaned_df_params_with_unresolved_names_and_duplicates
+    )
+    uncleaned_df, unclean_params = copy.copy(
+        cleaned_df_params_without_min_freq_with_unresolved_names_and_duplicates
+    )
 
     assert len(params) == len(unclean_params)
     assert unclean_params[-2] == 0
@@ -566,15 +644,5 @@ def test_frequency(
         uncleaned_value_counts < min_frequency_of_occurrence
     ]
 
-    print(cleaned_rare.empty)
-    print(uncleaned_rare.index.intersection(cleaned_value_counts.index))
-    print(uncleaned_rare.index.intersection(cleaned_value_counts.index).empty)
-
-    # if not cleaned_rare.empty:
-    #     assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
-
-    raise ValueError()
-
-    # assert (
-    #     total_value_counts.iloc[0] >= min_frequency_of_occurrence
-    # ), f"{min_frequency_of_occurrence=} is not being respected with {total_value_counts.iloc[0]} occurrences of {total_value_counts.index[0]}."
+    if not cleaned_rare.empty:
+        assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
