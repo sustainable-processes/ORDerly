@@ -1,4 +1,4 @@
-import typing
+from typing import Optional
 
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
@@ -8,7 +8,7 @@ from orderly.types import *
 
 def remove_mapping_info_and_canonicalise_smiles(
     molecule_identifier: MOLECULE_IDENTIFIER,
-) -> typing.Optional[SMILES]:
+) -> Optional[SMILES]:
     """
     Strips away mapping info and returns canonicalised SMILES.
     """
@@ -27,7 +27,7 @@ def remove_mapping_info_and_canonicalise_smiles(
 
 def canonicalise_smiles(
     molecule_identifier: MOLECULE_IDENTIFIER,
-) -> typing.Optional[SMILES]:
+) -> Optional[SMILES]:
     """
     Returns canonicalised SMILES, ignoring mapping info (ie if mapping info is present, it will be retained)
     """
@@ -45,7 +45,7 @@ def canonicalise_smiles(
 
 def get_canonicalised_smiles(
     molecule_identifier: MOLECULE_IDENTIFIER, is_mapped: bool = False
-) -> typing.Optional[SMILES]:
+) -> Optional[SMILES]:
     """
     Returns canonicalised SMILES, stripping mapping info if is_mapped is True.
     Removing mapping info and then canonicalising is slower than just canonicalising, so we only attempt to remove mapping if mapping info is present.

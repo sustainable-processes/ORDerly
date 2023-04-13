@@ -1,6 +1,6 @@
 import logging
 import os
-import typing
+from typing import List, Dict
 import dataclasses
 import datetime
 import pathlib
@@ -55,7 +55,7 @@ class Cleaner:
     num_reag: int
     min_frequency_of_occurrence: int
     map_rare_molecules_to_other: bool
-    molecules_to_remove: typing.List[str]
+    molecules_to_remove: List[str]
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
@@ -81,7 +81,7 @@ class Cleaner:
                     dfs.append(unpickled_df)
         return pd.concat(dfs, ignore_index=True)
 
-    def _get_number_of_columns_to_keep(self) -> typing.Dict[str, int]:
+    def _get_number_of_columns_to_keep(self) -> Dict[str, int]:
         return {
             "reactant": self.num_reactant,
             "product": self.num_product,
@@ -125,7 +125,7 @@ class Cleaner:
 
     @staticmethod
     def _get_value_counts(
-        df: pd.DataFrame, columns_to_count_from: typing.List[str]
+        df: pd.DataFrame, columns_to_count_from: List[str]
     ) -> pd.Series:
         """
         Get cumulative value across all columns in columns_to_count_from
@@ -147,7 +147,7 @@ class Cleaner:
     @staticmethod
     def _map_rare_molecules_to_other(
         df: pd.DataFrame,
-        columns_to_transform: typing.List[str],
+        columns_to_transform: List[str],
         value_counts: pd.Series,
         min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:
@@ -167,7 +167,7 @@ class Cleaner:
     @staticmethod
     def _remove_rare_molecules(
         df: pd.DataFrame,
-        columns_to_transform: typing.List[str],
+        columns_to_transform: List[str],
         value_counts: pd.Series,
         min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:

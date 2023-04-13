@@ -1,4 +1,4 @@
-import typing
+from typing import List, Optional
 import platform
 import subprocess
 import os
@@ -8,7 +8,7 @@ def run_docker_download(
     output_control: bool,
     build_image: str,
     run_image: str,
-    extra_commands: typing.Optional[typing.List[str]] = None,
+    extra_commands: Optional[List[str]] = None,
 ) -> None:
     with open("/tmp/output.log", "a") as output:
         output_control_dict = {}

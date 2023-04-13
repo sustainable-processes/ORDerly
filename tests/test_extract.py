@@ -1,4 +1,4 @@
-import typing
+from typing import List, Dict, Callable, Set, Optional
 import pytest
 import pathlib
 
@@ -12,7 +12,7 @@ def test_hello_world() -> None:
     assert True
 
 
-def get_rxn_func() -> typing.Callable[[str, int], ord_reaction_pb2.Reaction]:
+def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
     from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
     def get_rxn(
@@ -117,12 +117,12 @@ def test_rxn_input_extractor(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    expected_labelled_reactants: typing.List[str],
-    expected_labelled_reagents: typing.List[str],
-    expected_labelled_solvents: typing.List[str],
-    expected_labelled_catalysts: typing.List[str],
-    expected_labelled_products_from_input: typing.List[str],
-    expected_non_smiles_names_list_additions: typing.List[str],
+    expected_labelled_reactants: List[str],
+    expected_labelled_reagents: List[str],
+    expected_labelled_solvents: List[str],
+    expected_labelled_catalysts: List[str],
+    expected_labelled_products_from_input: List[str],
+    expected_non_smiles_names_list_additions: List[str],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -195,9 +195,9 @@ def test_rxn_outcomes_extractor(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    expected_labelled_products: typing.List[str],
-    expected_yields: typing.List[typing.Optional[float]],
-    expected_non_smiles_names_list_additions: typing.List[str],
+    expected_labelled_products: List[str],
+    expected_yields: List[Optional[float]],
+    expected_non_smiles_names_list_additions: List[str],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -247,8 +247,8 @@ def test_rxn_string_and_is_mapped(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    expected_rxn_str: typing.Optional[str],
-    expected_is_mapped: typing.Optional[bool],
+    expected_rxn_str: Optional[str],
+    expected_is_mapped: Optional[bool],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -355,12 +355,12 @@ def test_extract_info_from_rxn(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    rxn_overwrite: typing.Optional[bool],
-    expected_rxn_str_reactants: typing.Optional[typing.List[str]],
-    expected_rxn_str_agents: typing.Optional[typing.List[str]],
-    expected_rxn_str_products: typing.Optional[typing.List[str]],
-    expected_rxn_str: typing.Optional[str],
-    expected_non_smiles_names_list_additions: typing.Optional[typing.List[str]],
+    rxn_overwrite: Optional[bool],
+    expected_rxn_str_reactants: Optional[List[str]],
+    expected_rxn_str_agents: Optional[List[str]],
+    expected_rxn_str_products: Optional[List[str]],
+    expected_rxn_str: Optional[str],
+    expected_non_smiles_names_list_additions: Optional[List[str]],
     expected_none: bool,
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
@@ -415,7 +415,7 @@ def test_temperature_extractor(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    expected_temperature: typing.Optional[float],
+    expected_temperature: Optional[float],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -446,7 +446,7 @@ def test_time_extractor(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    expected_rxn_time: typing.Optional[float],
+    expected_rxn_time: Optional[float],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
@@ -551,14 +551,14 @@ def test_time_extractor(
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_merge_to_agents(
     execution_number: int,
-    rxn_str_agents: typing.Optional[typing.List[str]],
-    labelled_catalysts: typing.Optional[typing.List[str]],
-    labelled_solvents: typing.Optional[typing.List[str]],
-    labelled_reagents: typing.Optional[typing.List[str]],
-    metals: typing.List[str],
-    solvents_set: typing.Set[str],
-    expected_agents: typing.Optional[typing.List[str]],
-    expected_solvents: typing.Optional[typing.List[str]],
+    rxn_str_agents: Optional[List[str]],
+    labelled_catalysts: Optional[List[str]],
+    labelled_solvents: Optional[List[str]],
+    labelled_reagents: Optional[List[str]],
+    metals: List[str],
+    solvents_set: Set[str],
+    expected_agents: Optional[List[str]],
+    expected_solvents: Optional[List[str]],
 ) -> None:
     import orderly.extract.extractor
 
@@ -633,11 +633,11 @@ def test_merge_to_agents(
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_match_yield_with_product(
     execution_number: int,
-    rxn_str_products: typing.List[str],
-    labelled_products: typing.List[str],
-    input_yields: typing.Optional[typing.List[typing.Optional[float]]],
-    expected_products: typing.List[str],
-    expected_yields: typing.Optional[typing.List[typing.Optional[float]]],
+    rxn_str_products: List[str],
+    labelled_products: List[str],
+    input_yields: Optional[List[Optional[float]]],
+    expected_products: List[str],
+    expected_yields: Optional[List[Optional[float]]],
 ) -> None:
     import orderly.extract.extractor
 
@@ -931,20 +931,20 @@ def test_handle_reaction_object(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
-    manual_replacements_dict: typing.Optional[typing.Dict[str, typing.Optional[str]]],
+    manual_replacements_dict: Optional[Dict[str, Optional[str]]],
     trust_labelling: bool,
-    expected_reactants: typing.List[str],
-    expected_agents: typing.List[str],
-    expected_reagents: typing.List[str],
-    expected_solvents: typing.List[str],
-    expected_catalysts: typing.List[str],
-    expected_products: typing.List[str],
-    expected_yields: typing.List[typing.Optional[float]],
-    expected_temperature: typing.Optional[float],
-    expected_rxn_time: typing.Optional[float],
-    expected_rxn_str: typing.Optional[str],
+    expected_reactants: List[str],
+    expected_agents: List[str],
+    expected_reagents: List[str],
+    expected_solvents: List[str],
+    expected_catalysts: List[str],
+    expected_products: List[str],
+    expected_yields: List[Optional[float]],
+    expected_temperature: Optional[float],
+    expected_rxn_time: Optional[float],
+    expected_rxn_str: Optional[str],
     expected_procedure_details: str,
-    expected_names_list: typing.List[str],
+    expected_names_list: List[str],
 ) -> None:
     import orderly.extract.extractor
 
@@ -1050,7 +1050,7 @@ def test_canonicalisation(
     execution_number: int,
     smiles: str,
     is_mapped: bool,
-    expected_canonical_smiles: typing.Optional[str],
+    expected_canonical_smiles: Optional[str],
 ) -> None:
     from orderly.extract.canonicalise import get_canonicalised_smiles
 
@@ -1081,7 +1081,7 @@ def test_extraction_pipeline(
     tmp_path: pathlib.Path,
     trust_labelling: bool,
     use_multiprocessing: bool,
-    name_contains_substring: typing.Optional[str],
+    name_contains_substring: Optional[str],
     inverse_substring: bool,
 ) -> None:
     pickled_data_folder = "pkl_data"

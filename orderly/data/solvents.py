@@ -1,4 +1,4 @@
-import typing
+from typing import Dict, Set, Optional
 import io
 import pathlib
 import pkgutil
@@ -9,7 +9,7 @@ import orderly.extract.canonicalise
 from orderly.types import *
 
 
-def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
+def get_solvents(path: Optional[pathlib.Path] = None) -> pd.DataFrame:
     """reads the solvent csv data stored in the package"""
     if path is None:
         data = pkgutil.get_data("orderly.data", "solvents.csv")
@@ -24,14 +24,14 @@ def get_solvents(path: typing.Optional[pathlib.Path] = None) -> pd.DataFrame:
     return solvents
 
 
-def get_solvents_set(path: typing.Optional[pathlib.Path] = None) -> typing.Set[SOLVENT]:
+def get_solvents_set(path: Optional[pathlib.Path] = None) -> Set[SOLVENT]:
     solvents = get_solvents(path=path)
     return set(solvents["canonical_smiles"])
 
 
 def get_solvents_dict(
-    path: typing.Optional[pathlib.Path] = None,
-) -> typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]:
+    path: Optional[pathlib.Path] = None,
+) -> Dict[MOLECULE_IDENTIFIER, CANON_SMILES]:
     """
     Builds a dictionary of solvents from the solvents.csv file
     """
@@ -40,7 +40,7 @@ def get_solvents_dict(
 
     def get_df(
         name: str,
-        solvents_df: typing.Optional[pd.DataFrame] = None,
+        solvents_df: Optional[pd.DataFrame] = None,
     ) -> pd.DataFrame:
         if solvents_df is None:
             solvents_df = get_solvents()
@@ -54,7 +54,7 @@ def get_solvents_dict(
         df["identifer"] = df["identifer"].str.lower()
         return df
 
-    output: typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES] = (
+    output: Dict[MOLECULE_IDENTIFIER, CANON_SMILES] = (
         pd.concat(
             [
                 get_df(name=i, solvents_df=solvents)

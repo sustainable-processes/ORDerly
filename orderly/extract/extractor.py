@@ -1,10 +1,9 @@
 import logging
-import typing
+from typing import List, Dict, Tuple, Set, Optional, Union
 import pathlib
 import dataclasses
 import warnings
 
-import numpy as np
 import pandas as pd
 
 from ord_schema import message_helpers as ord_message_helpers
@@ -21,9 +20,7 @@ from orderly.types import *
 LOG = logging.getLogger(__name__)
 
 
-def strip_filename(
-    filename: str, replacements: typing.List[typing.Tuple[str, str]]
-) -> str:
+def strip_filename(filename: str, replacements: List[Tuple[str, str]]) -> str:
     for _from, _to in replacements:
         filename = filename.replace(_from, _to)
     return filename
@@ -39,7 +36,7 @@ class OrdExtractor:
     Args:
             ord_file_path (pathlib.Path):
             trust_labelling (bool):
-            manual_replacements_dict (typing.Dict[str, str]):
+            manual_replacements_dict (Dict[str, str]):
             metals (METALS, optional) default=None
             solvents_set (Set[SOLVENT]], optional) default=None
             filename (str, optional) default=None:
@@ -49,13 +46,11 @@ class OrdExtractor:
 
     ord_file_path: pathlib.Path
     trust_labelling: bool
-    manual_replacements_dict: typing.Dict[
-        MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
-    ]
-    metals: typing.Optional[METALS] = None
-    solvents_set: typing.Optional[typing.Set[SOLVENT]] = None
-    filename: typing.Optional[str] = None
-    contains_substring: typing.Optional[str] = None  # typically: None or uspto
+    manual_replacements_dict: Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]
+    metals: Optional[METALS] = None
+    solvents_set: Optional[Set[SOLVENT]] = None
+    filename: Optional[str] = None
+    contains_substring: Optional[str] = None  # typically: None or uspto
     inverse_contains_substring: bool = False
 
     def __post_init__(self) -> None:
@@ -86,7 +81,7 @@ class OrdExtractor:
                 self.filename = str(self.data.dataset_id)
 
         _grant_date = self.filename.split("uspto-grants-")
-        grant_date: typing.Optional[pd.Timestamp] = None
+        grant_date: Optional[pd.Timestamp] = None
         if len(_grant_date) > 1:
             grant_date = pd.to_datetime(_grant_date[1], format="%Y_%M")
 
@@ -115,9 +110,7 @@ class OrdExtractor:
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
     @staticmethod
-    def load_data(
-        ord_file_path: typing.Union[str, pathlib.Path]
-    ) -> ord_dataset_pb2.Dataset:
+    def load_data(ord_file_path: Union[str, pathlib.Path]) -> ord_dataset_pb2.Dataset:
         """
         Simply loads the ORD data.
         """
@@ -128,9 +121,7 @@ class OrdExtractor:
     @staticmethod
     def find_smiles(
         identifiers: REPEATEDCOMPOSITECONTAINER,
-    ) -> typing.Tuple[
-        typing.Optional[SMILES | MOLECULE_IDENTIFIER], typing.List[MOLECULE_IDENTIFIER]
-    ]:
+    ) -> Tuple[Optional[SMILES | MOLECULE_IDENTIFIER], List[MOLECULE_IDENTIFIER]]:
         """
         Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
         """
@@ -158,7 +149,7 @@ class OrdExtractor:
     @staticmethod
     def get_rxn_string_and_is_mapped(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Optional[typing.Tuple[RXN_STR, bool]]:
+    ) -> Optional[Tuple[RXN_STR, bool]]:
         rxn_str_extended_smiles = None
         for rxn_ident in rxn.identifiers:
             if rxn_ident.type == 6:  # REACTION_CXSMILES
@@ -175,9 +166,7 @@ class OrdExtractor:
     @staticmethod
     def extract_info_from_rxn(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Optional[
-        typing.Tuple[REACTANTS, AGENTS, PRODUCTS, str, typing.List[MOLECULE_IDENTIFIER]]
-    ]:
+    ) -> Optional[Tuple[REACTANTS, AGENTS, PRODUCTS, str, List[MOLECULE_IDENTIFIER]]]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
@@ -262,13 +251,13 @@ class OrdExtractor:
     @staticmethod
     def rxn_input_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Tuple[
+    ) -> Tuple[
         REACTANTS,
         REAGENTS,
         SOLVENTS,
         CATALYSTS,
         PRODUCTS,
-        typing.List[MOLECULE_IDENTIFIER],
+        List[MOLECULE_IDENTIFIER],
     ]:
         """
         Extract reaction information from ORD input object (ord_reaction_pb2.Reaction.inputs)
@@ -324,7 +313,7 @@ class OrdExtractor:
     @staticmethod
     def rxn_outcomes_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Tuple[PRODUCTS, YIELDS, typing.List[MOLECULE_IDENTIFIER]]:
+    ) -> Tuple[PRODUCTS, YIELDS, List[MOLECULE_IDENTIFIER]]:
         """
         Extract reaction information from ORD output object (ord_reaction_pb2.Reaction.outcomes)
         """
@@ -368,7 +357,7 @@ class OrdExtractor:
     @staticmethod
     def temperature_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> typing.Optional[TEMPERATURE_CELCIUS]:
+    ) -> Optional[TEMPERATURE_CELCIUS]:
         """
         Gets the temperature of a reaction in degrees celcius
         """
@@ -400,7 +389,7 @@ class OrdExtractor:
         return None  # No temperature found
 
     @staticmethod
-    def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> typing.Optional[float]:
+    def rxn_time_extractor(rxn: ord_reaction_pb2.Reaction) -> Optional[float]:
         if rxn.outcomes[0].reaction_time.units == 1:  # hour
             return round(float(rxn.outcomes[0].reaction_time.value), 2)
         elif rxn.outcomes[0].reaction_time.units == 2:  # minutes
@@ -420,11 +409,11 @@ class OrdExtractor:
 
     @staticmethod
     def apply_replacements_dict(
-        smiles_list: typing.List[MOLECULE_IDENTIFIER],
-        manual_replacements_dict: typing.Dict[
-            MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
+        smiles_list: List[MOLECULE_IDENTIFIER],
+        manual_replacements_dict: Dict[
+            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
         ],
-    ) -> typing.List[SMILES]:
+    ) -> List[SMILES]:
         smiles_list = [
             x
             for x in pd.Series(smiles_list, dtype=pd.StringDtype())
@@ -441,9 +430,9 @@ class OrdExtractor:
     def match_yield_with_product(
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
-        yields: typing.Optional[YIELDS],
+        yields: Optional[YIELDS],
         use_labelling_if_extract_fails: bool = True,
-    ) -> typing.Tuple[PRODUCTS, typing.Optional[YIELDS]]:
+    ) -> Tuple[PRODUCTS, Optional[YIELDS]]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
         """
@@ -466,13 +455,13 @@ class OrdExtractor:
 
     @staticmethod
     def merge_to_agents(
-        rxn_string_agents: typing.Optional[AGENTS],
-        catalysts: typing.Optional[CATALYSTS],
-        solvents: typing.Optional[SOLVENTS],
-        reagents: typing.Optional[REAGENTS],
+        rxn_string_agents: Optional[AGENTS],
+        catalysts: Optional[CATALYSTS],
+        solvents: Optional[SOLVENTS],
+        reagents: Optional[REAGENTS],
         metals: METALS,
-        solvents_set: typing.Set[SOLVENT],
-    ) -> typing.Tuple[AGENTS, SOLVENTS]:
+        solvents_set: Set[SOLVENT],
+    ) -> Tuple[AGENTS, SOLVENTS]:
         """
         Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put metals (likely to be catalysts) first.
         """
@@ -521,16 +510,16 @@ class OrdExtractor:
     @staticmethod
     def handle_reaction_object(
         rxn: ord_reaction_pb2.Reaction,
-        manual_replacements_dict: typing.Dict[
-            MOLECULE_IDENTIFIER, typing.Optional[SMILES | CANON_SMILES]
+        manual_replacements_dict: Dict[
+            MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]
         ],
-        solvents_set: typing.Set[SOLVENT],
+        solvents_set: Set[SOLVENT],
         metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
         include_unadded_labelled_agents: bool = True,
-    ) -> typing.Optional[
-        typing.Tuple[
+    ) -> Optional[
+        Tuple[
             REACTANTS,
             AGENTS,
             REAGENTS,
@@ -538,11 +527,11 @@ class OrdExtractor:
             CATALYSTS,
             PRODUCTS,
             YIELDS,
-            typing.Optional[TEMPERATURE_CELCIUS],
-            typing.Optional[RXN_TIME],
-            typing.Optional[RXN_STR],
+            Optional[TEMPERATURE_CELCIUS],
+            Optional[RXN_TIME],
+            Optional[RXN_STR],
             str,
-            typing.List[MOLECULE_IDENTIFIER],
+            List[MOLECULE_IDENTIFIER],
         ]
     ]:
         """
@@ -692,7 +681,7 @@ class OrdExtractor:
 
         # clean the smiles
 
-        def is_digit(x: typing.Optional[str]) -> typing.Optional[bool]:
+        def is_digit(x: Optional[str]) -> Optional[bool]:
             if x is None:
                 return None
             elif isinstance(x, str):
@@ -710,9 +699,9 @@ class OrdExtractor:
         def canonicalise_and_get_non_smiles_names(
             mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS,
             is_mapped: bool = False,
-        ) -> typing.Tuple[
+        ) -> Tuple[
             REACTANTS | REAGENTS | SOLVENTS | CATALYSTS,
-            typing.List[MOLECULE_IDENTIFIER],
+            List[MOLECULE_IDENTIFIER],
         ]:
             """Canonicalise the smiles and return the identifier (either SMILES or non-SMILES) as well as a list of non-SMILES names"""
             assert isinstance(mole_id_list, list)
@@ -823,21 +812,21 @@ class OrdExtractor:
 
     def build_rxn_lists(
         self,
-    ) -> typing.Tuple[
-        typing.Tuple[
-            typing.List[typing.Optional[RXN_STR]],
-            typing.List[REACTANTS],
-            typing.List[AGENTS],
-            typing.List[REAGENTS],
-            typing.List[SOLVENTS],
-            typing.List[CATALYSTS],
-            typing.List[typing.Optional[TEMPERATURE_CELCIUS]],
-            typing.List[typing.Optional[RXN_TIME]],
-            typing.List[PRODUCTS],
-            typing.List[YIELDS],
-            typing.List[str],
+    ) -> Tuple[
+        Tuple[
+            List[Optional[RXN_STR]],
+            List[REACTANTS],
+            List[AGENTS],
+            List[REAGENTS],
+            List[SOLVENTS],
+            List[CATALYSTS],
+            List[Optional[TEMPERATURE_CELCIUS]],
+            List[Optional[RXN_TIME]],
+            List[PRODUCTS],
+            List[YIELDS],
+            List[str],
         ],
-        typing.List[MOLECULE_IDENTIFIER],
+        List[MOLECULE_IDENTIFIER],
     ]:
         rxn_str_all = []
         reactants_all = []
@@ -852,7 +841,7 @@ class OrdExtractor:
         rxn_time_all = []
 
         procedure_details_all = []
-        rxn_non_smiles_names_list: typing.List[MOLECULE_IDENTIFIER] = []
+        rxn_non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
 
         assert self.solvents_set is not None
         assert self.metals is not None
@@ -913,9 +902,7 @@ class OrdExtractor:
             procedure_details_all,
         ), rxn_non_smiles_names_list
 
-    def create_column_headers(
-        self, df: pd.DataFrame, base_string: str
-    ) -> typing.List[str]:
+    def create_column_headers(self, df: pd.DataFrame, base_string: str) -> List[str]:
         """
         create the column headers for the df
         adds a base_string to the columns (prefix)
@@ -927,7 +914,7 @@ class OrdExtractor:
 
     def build_full_df(
         self,
-    ) -> typing.Tuple[pd.DataFrame, typing.List[MOLECULE_IDENTIFIER]]:
+    ) -> Tuple[pd.DataFrame, List[MOLECULE_IDENTIFIER]]:
         headers = [
             "rxn_str_",
             "reactant_",

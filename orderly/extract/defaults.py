@@ -1,4 +1,4 @@
-import typing
+from typing import List, Dict, Set
 
 import orderly.data.solvents
 
@@ -106,7 +106,7 @@ def get_metals_list() -> METALS:
     ]
 
 
-def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
+def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     """
     Returns a dictionary mapping common representations of molecules (particularly catalysts) to a canonical representation.
     """
@@ -214,12 +214,12 @@ def get_molecule_replacements() -> typing.Dict[MOLECULE_IDENTIFIER, SMILES]:
     return molecule_replacements
 
 
-def get_molecule_str_force_nones() -> typing.List[MOLECULE_IDENTIFIER]:
+def get_molecule_str_force_nones() -> List[MOLECULE_IDENTIFIER]:
     return [
         "solution",  # someone probably wrote 'water solution' and that was translated to 'water' and 'solution' I'd imagine
         "liquid",
     ]
 
 
-def get_solvents_set() -> typing.Set[SOLVENT]:
+def get_solvents_set() -> Set[SOLVENT]:
     return orderly.data.solvents.get_solvents_set()

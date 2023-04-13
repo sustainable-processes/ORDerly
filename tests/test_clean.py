@@ -1,6 +1,7 @@
-import typing
-import pytest
+from typing import List, Dict, Tuple, Any
 import pathlib
+import pytest
+
 
 import pandas as pd
 
@@ -32,7 +33,7 @@ def test_molecule_names_not_empty() -> None:
 
 
 @pytest.fixture
-def toy_dict() -> typing.Dict[str, typing.List[str]]:
+def toy_dict() -> Dict[str, List[str]]:
     toy_dict = {
         "reactant_0": ["B", "A", "F", "A"],
         "reactant_1": ["D", "A", "G", "B"],
@@ -74,9 +75,9 @@ def toy_dict() -> typing.Dict[str, typing.List[str]]:
     ),
 )
 def test_get_value_counts(
-    toy_dict: typing.Dict[str, typing.List[str]],
-    columns_to_count_from: typing.List[str],
-    expected_total_value_counts: typing.Dict[str, int],
+    toy_dict: Dict[str, List[str]],
+    columns_to_count_from: List[str],
+    expected_total_value_counts: Dict[str, int],
 ) -> None:
     import orderly.clean.cleaner
     import pandas as pd
@@ -149,11 +150,11 @@ def test_get_value_counts(
     ),
 )
 def test_map_rare_molecules_to_other(
-    toy_dict: typing.Dict[str, typing.List[str]],
-    columns_to_transform: typing.List[str],
-    value_counts_dict: typing.Dict[str, int],
+    toy_dict: Dict[str, List[str]],
+    columns_to_transform: List[str],
+    value_counts_dict: Dict[str, int],
     min_frequency_of_occurrence: int,
-    expected_dict: typing.Dict[str, typing.List[str]],
+    expected_dict: Dict[str, List[str]],
 ) -> None:
     import pandas as pd
     import orderly.clean.cleaner
@@ -223,11 +224,11 @@ def test_map_rare_molecules_to_other(
     ),
 )
 def test_remove_rare_molecules(
-    toy_dict: typing.Dict[str, typing.List[str]],
-    columns_to_transform: typing.List[str],
-    value_counts_dict: typing.Dict[str, int],
+    toy_dict: Dict[str, List[str]],
+    columns_to_transform: List[str],
+    value_counts_dict: Dict[str, int],
     min_frequency_of_occurrence: int,
-    expected_dict: typing.Dict[str, typing.List[str]],
+    expected_dict: Dict[str, List[str]],
 ) -> None:
     import pandas as pd
     import orderly.clean.cleaner
@@ -300,7 +301,7 @@ def get_cleaned_df(
 @pytest.fixture
 def cleaned_df_params(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
     return get_cleaned_df(tmp_path, *request.param), request.param
 
@@ -308,7 +309,7 @@ def cleaned_df_params(
 @pytest.fixture
 def cleaned_df_params_without_min_freq(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> typing.Tuple[pd.DataFrame, typing.List[typing.Any]]:
+) -> Tuple[pd.DataFrame, List[Any]]:
     import copy
 
     args = copy.copy(request.param)
@@ -355,9 +356,7 @@ def cleaned_df_params_without_min_freq(
     ),
     indirect=True,
 )
-def test_get_cleaned_df(
-    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]
-) -> None:
+def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
     import copy
 
     cleaned_df, _ = copy.copy(cleaned_df_params)
@@ -410,9 +409,7 @@ def test_get_cleaned_df(
     ),
     indirect=True,
 )
-def test_number_of_columns(
-    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]]
-) -> None:
+def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
     import copy
 
     cleaned_df, params = copy.copy(cleaned_df_params)
@@ -462,8 +459,8 @@ def test_number_of_columns(
 
 
 def double_list(
-    x: typing.List[typing.Any],
-) -> typing.Tuple[typing.List[typing.Any], typing.List[typing.Any]]:
+    x: List[Any],
+) -> Tuple[List[Any], List[Any]]:
     return (x, x)
 
 
@@ -518,10 +515,8 @@ def double_list(
     indirect=True,
 )
 def test_frequency(
-    cleaned_df_params: typing.Tuple[pd.DataFrame, typing.List[typing.Any]],
-    cleaned_df_params_without_min_freq: typing.Tuple[
-        pd.DataFrame, typing.List[typing.Any]
-    ],
+    cleaned_df_params: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_without_min_freq: Tuple[pd.DataFrame, List[Any]],
 ) -> None:
     import copy
 
