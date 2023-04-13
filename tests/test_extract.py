@@ -4,7 +4,7 @@ import pathlib
 
 from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
-REPETITIONS = 1
+REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
 
