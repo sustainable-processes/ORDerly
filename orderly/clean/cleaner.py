@@ -1,6 +1,6 @@
 import logging
 import os
-import typing
+from typing import List, Dict
 import dataclasses
 import datetime
 import pathlib
@@ -16,41 +16,31 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass(kw_only=True)
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
-    1) Merge the pickle files from orderly.extract into a df
+    1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Removal or remapping to 'other' of rare molecules
+    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
+        a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
+        b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
     6) Remove duplicate reactions
-    7) Pickle the final df
+    7) Save the final df
+
+    Output:
+
+    1) A parquet file containing the cleaned data
 
     Args:
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
-        num_reactant, num_product, num_solv, num_agent, num_cat, num_reag: (int)
-
-            The number of molecules of that type to keep. Keep in mind that if trust_labelling=False in orderly.extract, there will only be agents,
-            but no catalysts/reagents, and if trust_labelling=True, there will only be catalysts and reagents, but no agents. Agents should be seen
-            as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is
-            more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents.
-            Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to
-            0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable;
-            furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling,
-            so it's probably best to merge these.
-
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
         num_solv (int): See help for num_reactant
         num_agent (int): See help for num_reactant
         num_cat (int): See help for num_reactant
         num_reag (int): See help for num_reactant
-        min_frequency_of_occurance_primary (int):
-            The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably
-            add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of
-            that type, ie solvent_0, agent_0, catalyst_0, reagent_0
-        min_frequency_of_occurance_secondary (int): See above. Secondary: Any other columns than the first.
-        include_other_category (bool): Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary
-                                       but above map_rare_to_other_threshold) by mapping these molecules to the string 'other'
-        map_rare_to_other_threshold (bool): Frequency cutoff (see above).
+
+        min_frequency_of_occurrence (int): The minimum number of times a molecule must appear in the dataset (cumulatively, across agents, reagents, solvents, catalysts) to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is probably best to remove them (or map to 'other').
+        map_rare_molecules_to_other (bool): Will map rare molecules (see above) to the string 'other' rather than removing the reactions with rare molecules
         molecules_to_remove (list[str]: Remove reactions that are represented by a name instead of a SMILES string
         disable_tqdm (bool, optional): Controls the use of tqdm progress bar. Defaults to False.
     """
@@ -63,18 +53,19 @@ class Cleaner:
     num_agent: int
     num_cat: int
     num_reag: int
-    min_frequency_of_occurance_primary: int
-    min_frequency_of_occurance_secondary: int
-    include_other_category: bool
-    map_rare_to_other_threshold: int
-    molecules_to_remove: typing.List[str]
+    min_frequency_of_occurrence: int
+    map_rare_molecules_to_other: bool
+    molecules_to_remove: List[str]
+    remove_with_unresolved_names: bool = True
+    replace_empty_with_none: bool = True
+    drop_duplicates: bool = True
     disable_tqdm: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.cleaned_reactions = self._get_dataframe()
 
     def _merge_pickles(self) -> pd.DataFrame:
-        # create one big df of all the pickled data
+        # create one big df of all the extracted data
 
         LOG.info("Getting merged dataframe from pickle files")
 
@@ -93,7 +84,7 @@ class Cleaner:
                     dfs.append(unpickled_df)
         return pd.concat(dfs, ignore_index=True)
 
-    def _get_number_of_columns_to_keep(self) -> typing.Dict[str, int]:
+    def _get_number_of_columns_to_keep(self) -> Dict[str, int]:
         return {
             "reactant": self.num_reactant,
             "product": self.num_product,
@@ -106,7 +97,7 @@ class Cleaner:
 
     def _remove_reactions_with_too_many_of_component(
         self, df: pd.DataFrame, component_name: str
-    ):
+    ) -> pd.DataFrame:
         try:
             number_of_columns_to_keep = self._get_number_of_columns_to_keep()[
                 component_name
@@ -119,14 +110,12 @@ class Cleaner:
         cols = list(df.columns)
         count = 0
         for col in cols:
-            if component_name in col:
+            if col.startswith(component_name):
                 count += 1
-
         columns_to_remove = []  # columns to remove
         for i in range(count):
             if i >= number_of_columns_to_keep:
                 columns_to_remove.append(component_name + "_" + str(i))
-
         for col in columns_to_remove:
             # Create a boolean mask for the rows with missing values in col
             mask = pd.isnull(df[col])
@@ -137,94 +126,75 @@ class Cleaner:
         df = df.drop(columns_to_remove, axis=1)
         return df
 
-    def _remove_rare_molecules(
-        self, df: pd.DataFrame, columns: typing.List[str]
+    @staticmethod
+    def _get_value_counts(
+        df: pd.DataFrame, columns_to_count_from: List[str]
+    ) -> pd.Series:
+        """
+        Get cumulative value across all columns in columns_to_count_from
+        """
+        # Initialize a list to store the results
+        results = []
+
+        # Loop through the columns
+        for col in columns_to_count_from:
+            # Get the value counts for the column
+            results += [df[col].value_counts()]
+
+        total_value_counts = (
+            pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
+        )
+        total_value_counts = total_value_counts.sort_values(ascending=False)
+        return total_value_counts
+
+    @staticmethod
+    def _map_rare_molecules_to_other(
+        df: pd.DataFrame,
+        columns_to_transform: List[str],
+        value_counts: pd.Series,
+        min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:
         """
-        Molecules that appear keep_as_is_cutoff times or more will be kept as is
-        Molecules that appear less than keep_as_is_cutoff times but more than convert_to_other_cutoff times will be replaced with 'other'
-        Molecules that appear less than convert_to_other_cutoff times will be removed
+        Maps rare values in specified columns to 'other'.
         """
-
-        LOG.info("Removing rare molecules")
-
-        # Get the count of each value for all columns
-        value_counts: pd.Series = df[columns[0]].value_counts()
-        assert isinstance(value_counts, pd.Series)
-        for i in range(1, len(columns)):
-            value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
-
-        for col in columns:
-            df = self._filtering_and_removal(df, col, value_counts)
-            LOG.info(f"After removing reactions with rare {col}: {len(df)}")
-
+        LOG.info("Mapping rare molecules to 'other'")
+        for col in columns_to_transform:
+            # Find the values that occur less frequently than the minimum frequency threshold
+            rare_values = value_counts[
+                value_counts < min_frequency_of_occurrence
+            ].index.tolist()
+            # Map the rare values to 'other'
+            df[col] = df[col].apply(lambda x: "other" if x in rare_values else x)
         return df
 
-    def _filtering_and_removal(
-        self,
+    @staticmethod
+    def _remove_rare_molecules(
         df: pd.DataFrame,
-        col: str,
+        columns_to_transform: List[str],
         value_counts: pd.Series,
+        min_frequency_of_occurrence: int,
     ) -> pd.DataFrame:
-        LOG.info("Running filtering and removal")
+        """
+        Removes rows with rare values in specified columns.
+        """
+        LOG.info("Removing rare molecules")
+        # Get the indices of rows where the column contains a rare value
+        rare_values = value_counts[value_counts < min_frequency_of_occurrence].index
+        index_union = None
 
-        if "0" in col:
-            upper_cutoff = self.min_frequency_of_occurance_primary
-        else:
-            upper_cutoff = self.min_frequency_of_occurance_secondary
-
-        pre_len, post_len = 2, 1
-        while_loop_counter = 0
-        while pre_len > post_len:
-            while_loop_counter += 1
-            if while_loop_counter > 15:
-                exc = TimeoutError(
-                    "Looped to many times in trying to remove rare molecules"
-                )
-                LOG.exception(exc)
-                raise exc
-
-            # When we remove rows that feature rare molecules, we iterate through the columns. This means that we may remove a row with a rare molecule with
-            # a frequency that was just above the threshold before, and just under the threshold after. So we loop through this code again and again
-            # until all solvent and agent molecules appear at least cutoff times.
-            pre_len = len(df)
-
-            if self.include_other_category:
-                # Select the values where the count is less than cutoff
-                set_to_other = value_counts[
-                    (value_counts >= self.map_rare_to_other_threshold)
-                    & (value_counts < upper_cutoff)
-                ].index
-                set_to_other = set(set_to_other)
-                # Create a boolean mask for the rows with values in set_to_other
-                mask = df[col].isin(set_to_other)
-
-                # Replace the values in the selected rows and columns with 'other'
-                df.loc[mask, col] = "other"
-
-                # Remove rows with a very rare molecule
-                to_remove = value_counts[
-                    value_counts < self.map_rare_to_other_threshold
-                ].index
-
+        for col in columns_to_transform:
+            mask = df[col].isin(rare_values)
+            rare_indices = df.loc[mask].index
+            if index_union is None:
+                index_union = rare_indices
             else:
-                # Remove rows with a very rare molecule
-                to_remove = value_counts[value_counts < upper_cutoff].index
-
-            to_remove = set(to_remove)
-
-            # Create a boolean mask for the rows that do not contain rare molecules
-            mask = ~df[col].isin(to_remove)
-
-            # Create a new DataFrame with the selected rows
-            df = df.loc[mask]
-
-            post_len = len(df)
-
+                index_union = index_union.union(rare_indices)
+        # Remove the rows with rare values
+        df = df.drop(index_union)
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
-        # Merge all the pickled data into one big df
+        # Merge all the extracted data into one big df
 
         LOG.info("Getting dataframe")
 
@@ -277,56 +247,59 @@ class Cleaner:
             df = df.drop("total_yield", axis=1)
             LOG.info(f"After removing reactions with inconsistent yields: {len(df)}")
 
-        # Remove reactions with rare molecules
-        # Apply this to each column (this implies that if our cutoff is 100, and there's 60 instances of a molecule in one column,
-        # and 60 instances of the same molecule in another column, we will still remove the reaction)
+        # drop duplicates
+        if self.drop_duplicates:
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {len(df)}")
 
-        # Get a list of columns with either solvent, reagent, catalyst, or agent in the name
-        columns = []
-        for col in list(df.columns):
-            if any([j in col for j in ["reagent", "solvent", "catalyst", "agent"]]):
-                # see if the column name contains any from the list of reag, solv, cat, agent
-                columns.append(col)
-
-        if (
-            self.min_frequency_of_occurance_primary
-            or self.min_frequency_of_occurance_secondary != 0
-        ):
-            df = self._remove_rare_molecules(df, columns)
-
-        # cols = []
-        # for col in list(df.columns):
-        #     if 'reagent' in col or 'solvent' in col or 'catalyst' in col or 'agent' in col:
-        #         cols.append(col)
-        # It may be faster to only loop over columns containing cat, solv, reag, or agent, however, if time isn't an issue we might as well loop over the whole df.
-
-        for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
-            df = df[~df[col].isin(self.molecules_to_remove)]
+        if self.remove_with_unresolved_names:
             # Remove reactions that are represented by a name instead of a SMILES string
-            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. I'm not sure what to do with these. I have decided to stay on the safe side and remove any reactions that includes one of these. However, other researchers are welcome to revisit this assumption - maybe we can recover a lot of insightful reactions by replacing 'ice' with 'O' (as in, the SMILES string for water).
+            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
+            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+                df = df[~df[col].isin(self.molecules_to_remove)]
+            LOG.info(
+                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
+            )
 
-        LOG.info(
-            f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
-        )
+        # Remove reactions with rare molecules
+        if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
+            # Define the list of columns to check
+            columns_to_count_from = [
+                col
+                for col in df.columns
+                if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+            ]
+            value_counts = Cleaner._get_value_counts(
+                df, columns_to_count_from
+            )  # Get the value counts for the subset df[columns_to_check_for_rare_molecules]
+            if self.map_rare_molecules_to_other:
+                df = Cleaner._map_rare_molecules_to_other(
+                    df,
+                    columns_to_count_from,
+                    value_counts,
+                    self.min_frequency_of_occurrence,
+                )
+            else:
+                df = Cleaner._remove_rare_molecules(
+                    df,
+                    columns_to_count_from,
+                    value_counts,
+                    self.min_frequency_of_occurrence,
+                )
 
-        # This method is apparently very slow
-        # # Replace any instances of an empty string with None
-        # df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-
-        # # Replace nan with None
-        # df.replace(np.nan, None, inplace=True)
-
-        # Replace any instances of an empty string with None
-        df = df.applymap(
-            lambda x: None if (isinstance(x, str) and x.strip() == "") else x
-        )
+        if self.replace_empty_with_none:
+            # Replace any instances of an empty string with None
+            df = df.applymap(
+                lambda x: None if (isinstance(x, str) and x.strip() == "") else x
+            )
 
         # Replace np.nan with None
         df = df.applymap(lambda x: None if pd.isna(x) else x)
 
-        # drop duplicates
-        df = df.drop_duplicates()
-        LOG.info(f"After removing duplicates: {len(df)}")
+        # drop duplicates deals with any final duplicates from mapping rares to other
+        if self.drop_duplicates:
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {len(df)}")
 
         df.reset_index(inplace=True, drop=True)
         return df
@@ -402,31 +375,32 @@ class Cleaner:
     help="See help for num_reactant",
 )
 @click.option(
-    "--min_frequency_of_occurance_primary",
+    "--min_frequency_of_occurrence",
     type=int,
     default=15,
     show_default=True,
-    help="The minimum number of times a molecule must appear in the dataset to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them. Primary: refers to the first index of columns of that type, ie solvent_0, agent_0, catalyst_0, reagent_0",
+    help="The minimum number of times a molecule must appear in the dataset (cumulatively, as an agent, solvent, catalyst, or reagent) to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them.",
 )
 @click.option(
-    "--min_frequency_of_occurance_secondary",
-    type=int,
-    default=15,
-    show_default=True,
-    help="See help for min_frequency_of_occurance_primary. Secondary: Any other columns than the first.",
-)
-@click.option(
-    "--include_other_category",
+    "--map_rare_molecules_to_other",
     type=bool,
     default=True,
-    help="Will save reactions with infrequent molecules (below min_frequency_of_occurance_primary/secondary but above save_with_label_called_other) by mapping these molecules to the string 'other'",
+    help="If True, molecules that appear less than map_rare_to_other_threshold times will be mapped to the 'other' category. If False, the reaction they appear in will be removed.",
 )
 @click.option(
-    "--map_rare_to_other_threshold",
-    type=int,
-    default=3,
-    help="Frequency cutoff (see help for include_other_category).",
-    show_default=True,
+    "--remove_with_unresolved_names",
+    type=bool,
+    default=True,
+)
+@click.option(
+    "--replace_empty_with_none",
+    type=bool,
+    default=True,
+)
+@click.option(
+    "--drop_duplicates",
+    type=bool,
+    default=True,
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 def main_click(
@@ -440,33 +414,34 @@ def main_click(
     num_agent: int,
     num_cat: int,
     num_reag: int,
-    min_frequency_of_occurance_primary: int,
-    min_frequency_of_occurance_secondary: int,
-    include_other_category: bool,
-    map_rare_to_other_threshold: int,
+    min_frequency_of_occurrence: int,
+    map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
     disable_tqdm: bool,
-):
+) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
 
     Functionality:
 
-    1) Merge the pickle files from orderly.extract into a df
-
+    1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Removal or remapping to 'other' of rare molecules
+    4) Handle rare molecules (frequency of occurrence <= min_frequency_of_occurrence)
+        a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
+        b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
     6) Remove duplicate reactions
-    7) Pickle the final df
+    7) Save the final df
 
     Output:
 
-    1) A pickle file containing the cleaned data
+    1) A parquet file containing the cleaned data
 
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
-    2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
     main(
         clean_data_path=pathlib.Path(clean_data_path),
@@ -479,10 +454,11 @@ def main_click(
         num_agent=num_agent,
         num_cat=num_cat,
         num_reag=num_reag,
-        min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
-        min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
-        include_other_category=include_other_category,
-        map_rare_to_other_threshold=map_rare_to_other_threshold,
+        min_frequency_of_occurrence=min_frequency_of_occurrence,
+        map_rare_molecules_to_other=map_rare_molecules_to_other,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
 
@@ -498,33 +474,34 @@ def main(
     num_agent: int,
     num_cat: int,
     num_reag: int,
-    min_frequency_of_occurance_primary: int,
-    min_frequency_of_occurance_secondary: int,
-    include_other_category: bool,
-    map_rare_to_other_threshold: int,
+    min_frequency_of_occurrence: int,
+    map_rare_molecules_to_other: bool,
+    remove_with_unresolved_names: bool,
+    replace_empty_with_none: bool,
+    drop_duplicates: bool,
     disable_tqdm: bool,
-):
+) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
 
     Functionality:
 
-    1) Merge the pickle files from orderly.extract into a df
-
+    1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Removal or remapping to 'other' of rare molecules
+    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
+        a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
+        b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
     6) Remove duplicate reactions
-    7) Pickle the final df
+    7) Save the final df
 
     Output:
 
-    1) A pickle file containing the cleaned data
+    1) A parquet file containing the cleaned data
 
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
-    2) Explanation of how the cutoffs work: Any given molecule map appear n times in the dataset, where n is the number of reactions that molecule appears in. For any molecule where n<molecules_to_remove we will remove the whole reaction. For any molecule where molecules_to_remove<n<save_with_label_called_other we will map the molecule to 'other'. For any molecule where n>save_with_label_called_other we will keep the molecule as is.
     """
 
     if not isinstance(clean_data_path, pathlib.Path):
@@ -543,9 +520,6 @@ def main(
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0
     ), "Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
-    assert (min_frequency_of_occurance_primary > map_rare_to_other_threshold) and (
-        min_frequency_of_occurance_secondary > map_rare_to_other_threshold
-    ), "min_frequency_of_occurance_primary and min_frequency_of_occurance_secondary must be greater than save_with_label_called_other. Anything between save_with_label_called_other and min_frequency_of_occurance_primary/secondary will be set to 'other' if include_other_category=True."
 
     instance = Cleaner(
         pickles_path=pickles_path,
@@ -556,11 +530,12 @@ def main(
         num_agent=num_agent,
         num_cat=num_cat,
         num_reag=num_reag,
-        min_frequency_of_occurance_primary=min_frequency_of_occurance_primary,
-        min_frequency_of_occurance_secondary=min_frequency_of_occurance_secondary,
-        include_other_category=include_other_category,
-        map_rare_to_other_threshold=map_rare_to_other_threshold,
+        min_frequency_of_occurrence=min_frequency_of_occurrence,
+        map_rare_molecules_to_other=map_rare_molecules_to_other,
         molecules_to_remove=molecules_to_remove,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
     instance.cleaned_reactions.to_parquet(clean_data_path)

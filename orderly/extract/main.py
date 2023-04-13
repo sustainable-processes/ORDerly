@@ -1,6 +1,5 @@
 import logging
-import os
-import typing
+from typing import List, Dict, Tuple, Set, Optional
 import datetime
 import pathlib
 import pickle
@@ -16,7 +15,7 @@ from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 import orderly.extract.extractor
 import orderly.extract.canonicalise
 import orderly.extract.defaults
-import orderly.data
+import orderly.data.solvents
 
 from orderly.types import *
 
@@ -26,7 +25,7 @@ LOG = logging.getLogger(__name__)
 def get_file_names(
     directory: pathlib.Path,
     file_ending: str = ".pb.gz",
-) -> typing.List[pathlib.Path]:
+) -> List[pathlib.Path]:
     """
     Goes into the ord data directory and for each folder extracts the file path of all sub data files with the file ending
     """
@@ -48,7 +47,7 @@ def merge_pickled_mol_names(
     ),
     overwrite: bool = True,
     molecule_names_file_ending: str = ".pkl",
-):
+) -> None:
     """
     Merges all the pickle files containing molecule non-smiles identifiers (typically english names) into one file.
     """
@@ -79,16 +78,18 @@ def merge_pickled_mol_names(
 
 
 def build_solvents_set_and_dict(
-    solvents_path: typing.Optional[pathlib.Path] = None,
-) -> typing.Tuple[typing.Set, typing.Dict]:
+    solvents_path: Optional[pathlib.Path] = None,
+) -> Tuple[Set[CANON_SMILES], Dict[MOLECULE_IDENTIFIER, CANON_SMILES]]:
     """
     Builds a set of canonical smiles strings for all solvents (used to identify which agents are solvents) and a dictionary of solvent names to canonical smiles strings (for name resolution)
     """
-    solvents = orderly.data.get_solvents(path=solvents_path)
+    solvents = orderly.data.solvents.get_solvents(path=solvents_path)
 
     solvents["canonical_smiles"] = solvents["smiles"].apply(
         orderly.extract.canonicalise.get_canonicalised_smiles
     )
+
+    # TODO raise error if any of the canonical smiles have a none in
 
     solvents_set = set(solvents["canonical_smiles"])
 
@@ -105,11 +106,9 @@ def build_solvents_set_and_dict(
 
 
 def build_replacements(
-    molecule_replacements: typing.Optional[
-        typing.Dict[MOLECULE_IDENTIFIER, SMILES]
-    ] = None,
-    molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
-) -> typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]]:
+    molecule_replacements: Optional[Dict[MOLECULE_IDENTIFIER, SMILES]] = None,
+    molecule_str_force_nones: Optional[List[MOLECULE_IDENTIFIER]] = None,
+) -> Dict[MOLECULE_IDENTIFIER, Optional[SMILES]]:
     """
     Builds dictionary mapping english name molecule identifiers to canonical smiles. Dict is based on manually curated list.
     """
@@ -129,7 +128,7 @@ def build_replacements(
             orderly.extract.defaults.get_molecule_str_force_nones()
         )
 
-    molecule_replacements_with_force_nones: typing.Dict[MOLECULE_IDENTIFIER, typing.Optional[SMILES]] = molecule_replacements.copy()  # type: ignore
+    molecule_replacements_with_force_nones: Dict[MOLECULE_IDENTIFIER, Optional[SMILES]] = molecule_replacements.copy()  # type: ignore
 
     for molecule_str in molecule_str_force_nones:
         molecule_replacements_with_force_nones[molecule_str] = None
@@ -139,12 +138,10 @@ def build_replacements(
 
 
 def get_manual_replacements_dict(
-    molecule_replacements: typing.Optional[
-        typing.Dict[MOLECULE_IDENTIFIER, CANON_SMILES]
-    ] = None,
-    molecule_str_force_nones: typing.Optional[typing.List[MOLECULE_IDENTIFIER]] = None,
-    solvents_path: typing.Optional[pathlib.Path] = None,
-):
+    molecule_replacements: Optional[Dict[MOLECULE_IDENTIFIER, CANON_SMILES]] = None,
+    molecule_str_force_nones: Optional[List[MOLECULE_IDENTIFIER]] = None,
+    solvents_path: Optional[pathlib.Path] = None,
+) -> Dict[MOLECULE_IDENTIFIER, Optional[SMILES | CANON_SMILES]]:
     """
     Combines manually curated dictioary of molecule names to canonical smiles strings with the dictionary of solvent names to canonical smiles strings.
     """
@@ -152,23 +149,23 @@ def get_manual_replacements_dict(
         molecule_replacements=molecule_replacements,
         molecule_str_force_nones=molecule_str_force_nones,
     )
-    solvents_dict = orderly.data.get_solvents_dict(path=solvents_path)
+    solvents_dict = orderly.data.solvents.get_solvents_dict(path=solvents_path)
     manual_replacements_dict.update(solvents_dict)
     return manual_replacements_dict
 
 
 def extract(
     output_path: pathlib.Path,
-    file,
-    trust_labelling,
-    manual_replacements_dict,
-    solvents_set,
+    file: pathlib.Path,
+    trust_labelling: bool,
+    manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
+    solvents_set: Set[CANON_SMILES],
     pickled_data_folder: str = "pickled_data",
     molecule_names_folder: str = "molecule_names",
-    name_contains_substring: typing.Optional[str] = None,
+    name_contains_substring: Optional[str] = None,
     inverse_substring: bool = False,
     overwrite: bool = True,
-):
+) -> None:
     """
     Extract information from an ORD file.
     """
@@ -318,7 +315,7 @@ def main_click(
     name_contains_substring: str,
     inverse_substring: bool,
     overwrite: bool,
-):
+) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to pickle files. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
         Example:
@@ -337,7 +334,7 @@ def main_click(
         - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
     5) pickled_data_folder: str
         - The name of folder than contains the pickle data structures
-    6) solvents_path: typing.Optional[str]
+    6) solvents_path: Optional[str]
         - The path to the solvents csv, if None will use the default
     7) molecule_names_folder: str
         - The name of the folder that contains the molecule_name pickles per folder
@@ -345,7 +342,7 @@ def main_click(
         - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
-    10) name_contains_substring: typing.Optional[str]
+    10) name_contains_substring: Optional[str]
         - A filter for the ORD file names, will only extract files that includes the str. If left empty will not search for anything. For example 'uspto' grabs only uspto data (https://figshare.com/articles/dataset/Chemical_reactions_from_US_patents_1976-Sep2016_/5104873)
     11) inverse_substring: bool
         - Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in
@@ -379,11 +376,11 @@ def main_click(
     2) A list of all unique molecule names (in merged_molecules_file)
     """
 
-    _solvents_path: typing.Optional[pathlib.Path] = None
+    _solvents_path: Optional[pathlib.Path] = None
     if solvents_path != "default":
         _solvents_path = pathlib.Path(solvents_path)
 
-    _name_contains_substring: typing.Optional[str] = None
+    _name_contains_substring: Optional[str] = None
     if name_contains_substring != "":
         _name_contains_substring = name_contains_substring
 
@@ -409,14 +406,14 @@ def main(
     trust_labelling: bool,
     output_path: pathlib.Path,
     pickled_data_folder: str,
-    solvents_path: typing.Optional[pathlib.Path],
+    solvents_path: Optional[pathlib.Path],
     molecule_names_folder: str,
     merged_molecules_file: str,
     use_multiprocessing: bool,
-    name_contains_substring: typing.Optional[str],
+    name_contains_substring: Optional[str],
     inverse_substring: bool,
     overwrite: bool,
-):
+) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to pickle files.
         Example:
@@ -431,11 +428,11 @@ def main(
     3) trust_labelling: Bool
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
-    4) output_path: str
+    4) output_path: pathlib.Path
         - The path to the folder than will contain the pickled_data_folder and molecule_names_folder
     5) pickled_data_folder: str
         - The name of folder than contains the pickle data structures
-    6) solvents_path: typing.Optional[str]
+    6) solvents_path: Optional[str]
         - The path to the solvents csv, if None will use the default
     7) molecule_names_folder: str
         - The name of the folder that contains the molecule_name pickles per folder
@@ -443,7 +440,7 @@ def main(
         - The name and file tag of the merged_molecules pickle file (the merged_molecules_file is outputed to output_path / merged_molecules_file)
     9) use_multiprocessing: bool
         - Boolean to make the processing of each ORD file done with multiprocessing
-    10) name_contains_substring: typing.Optional[str]
+    10) name_contains_substring: Optional[str]
         - A filter for the ORD file names, will only extract files that includes the str. If left empty will not search for anything. For example 'uspto' grabs only uspto data (https://figshare.com/articles/dataset/Chemical_reactions_from_US_patents_1976-Sep2016_/5104873)
     11) inverse_substring: bool
         - Inversed the name contains substring, so name_contains_substring='uspto' & inverse_substring=True will exclude names with uspto in
@@ -503,7 +500,7 @@ def main(
 
     files = get_file_names(directory=data_path, file_ending=ord_file_ending)
 
-    solvents_set = orderly.data.get_solvents_set(path=solvents_path)
+    solvents_set = orderly.data.solvents.get_solvents_set(path=solvents_path)
     manual_replacements_dict = get_manual_replacements_dict(solvents_path=solvents_path)
 
     kwargs = {
@@ -533,7 +530,8 @@ def main(
         else:
             with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
                 for file in tqdm.tqdm(files):
-                    extract(file=file, **kwargs)
+                    extract(file=file, **kwargs)  # type: ignore
+                    # mypy fails with kwargs
     except KeyboardInterrupt:
         LOG.info(
             "KeyboardInterrupt: exiting the extraction but will quickly merge the files"

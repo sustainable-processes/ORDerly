@@ -1,16 +1,18 @@
-import typing
+from typing import List, Dict, Callable, Set, Optional
 import pytest
 import pathlib
+
+from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
 REPETITIONS = 3
 SLOW_REPETITIONS = 1
 
 
-def test_hello_world():
+def test_hello_world() -> None:
     assert True
 
 
-def get_rxn_func() -> typing.Callable:
+def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
     from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
     def get_rxn(
@@ -18,11 +20,11 @@ def get_rxn_func() -> typing.Callable:
         rxn_idx: int,
     ) -> ord_reaction_pb2.Reaction:
         import orderly.extract.extractor
-        import orderly.data
+        import orderly.data.test_data
         import orderly.extract.main
 
         _file = orderly.extract.main.get_file_names(
-            directory=orderly.data.get_path_of_test_ords(),
+            directory=orderly.data.test_data.get_path_of_test_ords(),
             file_ending=f"{file_name}.pb.gz",
         )
         assert len(_file) == 1
@@ -112,17 +114,17 @@ def get_rxn_func() -> typing.Callable:
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_input_extractor(
-    execution_number,
-    file_name,
-    rxn_idx,
-    expected_labelled_reactants,
-    expected_labelled_reagents,
-    expected_labelled_solvents,
-    expected_labelled_catalysts,
-    expected_labelled_products_from_input,
-    expected_non_smiles_names_list_additions,
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_labelled_reactants: List[str],
+    expected_labelled_reagents: List[str],
+    expected_labelled_solvents: List[str],
+    expected_labelled_catalysts: List[str],
+    expected_labelled_products_from_input: List[str],
+    expected_non_smiles_names_list_additions: List[str],
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     import orderly.extract.extractor
 
@@ -190,14 +192,14 @@ def test_rxn_input_extractor(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_outcomes_extractor(
-    execution_number,
-    file_name,
-    rxn_idx,
-    expected_labelled_products,
-    expected_yields,
-    expected_non_smiles_names_list_additions,
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_labelled_products: List[str],
+    expected_yields: List[Optional[float]],
+    expected_non_smiles_names_list_additions: List[str],
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     import orderly.extract.extractor
 
@@ -242,13 +244,13 @@ def test_rxn_outcomes_extractor(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_rxn_string_and_is_mapped(
-    execution_number,
-    file_name,
-    rxn_idx,
-    expected_rxn_str,
-    expected_is_mapped,
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_rxn_str: Optional[str],
+    expected_is_mapped: Optional[bool],
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     import orderly.extract.extractor
 
@@ -350,18 +352,18 @@ def test_rxn_string_and_is_mapped(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_extract_info_from_rxn(
-    execution_number,
-    file_name,
-    rxn_idx,
-    rxn_overwrite,
-    expected_rxn_str_reactants,
-    expected_rxn_str_agents,
-    expected_rxn_str_products,
-    expected_rxn_str,
-    expected_non_smiles_names_list_additions,
-    expected_none,
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    rxn_overwrite: Optional[bool],
+    expected_rxn_str_reactants: Optional[List[str]],
+    expected_rxn_str_agents: Optional[List[str]],
+    expected_rxn_str_products: Optional[List[str]],
+    expected_rxn_str: Optional[str],
+    expected_non_smiles_names_list_additions: Optional[List[str]],
+    expected_none: bool,
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     if rxn_overwrite is not None:
         rxn.identifiers[0].value = rxn_overwrite
@@ -381,6 +383,12 @@ def test_extract_info_from_rxn(
         rxn_str,
         non_smiles_names_list_additions,
     ) = rxn_info
+
+    assert expected_rxn_str_reactants is not None
+    assert expected_rxn_str_agents is not None
+    assert expected_rxn_str_products is not None
+    assert expected_rxn_str is not None
+    assert expected_non_smiles_names_list_additions is not None
 
     assert expected_rxn_str_reactants == rxn_str_reactants
     assert expected_rxn_str_agents == rxn_str_agents
@@ -404,9 +412,12 @@ def test_extract_info_from_rxn(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_temperature_extractor(
-    execution_number, file_name, rxn_idx, expected_temperature
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_temperature: Optional[float],
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     import orderly.extract.extractor
 
@@ -432,12 +443,12 @@ def test_temperature_extractor(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_time_extractor(
-    execution_number,
-    file_name,
-    rxn_idx,
-    expected_rxn_time,
-):
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    expected_rxn_time: Optional[float],
+) -> None:
+    rxn = get_rxn_func()(file_name, rxn_idx)
 
     import orderly.extract.extractor
 
@@ -445,7 +456,7 @@ def test_time_extractor(
 
     assert (
         expected_rxn_time == rxn_time
-    ), f"failure for {expected_rxn_time=} got {rxn_time}"
+    ), f"failure for {expected_rxn_time=} got {rxn_time=}"
 
     if rxn_time is not None:
         assert isinstance(rxn_time, float), f"expected a float but got {rxn_time=}"
@@ -488,7 +499,12 @@ def test_time_extractor(
         ],
         # Made up test cases:
         [
-            ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O", None],
+            [
+                "c1ccccc1",
+                "Cc1ccc(S(=O)(=O)O)cc1",
+                "O",
+                None,
+            ],  # TODO we should consider removing this none
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
@@ -534,16 +550,16 @@ def test_time_extractor(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_merge_to_agents(
-    execution_number,
-    rxn_str_agents,
-    labelled_catalysts,
-    labelled_solvents,
-    labelled_reagents,
-    metals,
-    solvents_set,
-    expected_agents,
-    expected_solvents,
-):
+    execution_number: int,
+    rxn_str_agents: Optional[List[str]],
+    labelled_catalysts: Optional[List[str]],
+    labelled_solvents: Optional[List[str]],
+    labelled_reagents: Optional[List[str]],
+    metals: List[str],
+    solvents_set: Set[str],
+    expected_agents: Optional[List[str]],
+    expected_solvents: Optional[List[str]],
+) -> None:
     import orderly.extract.extractor
 
     if metals is None:
@@ -616,13 +632,13 @@ def test_merge_to_agents(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_match_yield_with_product(
-    execution_number,
-    rxn_str_products,
-    labelled_products,
-    input_yields,
-    expected_products,
-    expected_yields,
-):
+    execution_number: int,
+    rxn_str_products: List[str],
+    labelled_products: List[str],
+    input_yields: Optional[List[Optional[float]]],
+    expected_products: List[str],
+    expected_yields: Optional[List[Optional[float]]],
+) -> None:
     import orderly.extract.extractor
 
     products, yields = orderly.extract.extractor.OrdExtractor.match_yield_with_product(
@@ -631,8 +647,8 @@ def test_match_yield_with_product(
 
     assert (
         expected_products == products
-    ), f"failure for {expected_products=} got {products}"
-    assert expected_yields == yields, f"failure for {expected_yields=} got {yields}"
+    ), f"failure for {expected_products=} got {products=}"
+    assert expected_yields == yields, f"failure for {expected_yields=} got {yields=}"
 
 
 @pytest.mark.parametrize(
@@ -912,34 +928,42 @@ def test_match_yield_with_product(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_handle_reaction_object(
-    execution_number,
-    file_name,
-    rxn_idx,
-    manual_replacements_dict,
-    trust_labelling,
-    expected_reactants,
-    expected_agents,
-    expected_reagents,
-    expected_solvents,
-    expected_catalysts,
-    expected_products,
-    expected_yields,
-    expected_temperature,
-    expected_rxn_time,
-    expected_rxn_str,
-    expected_procedure_details,
-    expected_names_list,
-):
+    execution_number: int,
+    file_name: str,
+    rxn_idx: int,
+    manual_replacements_dict: Optional[Dict[str, Optional[str]]],
+    trust_labelling: bool,
+    expected_reactants: List[str],
+    expected_agents: List[str],
+    expected_reagents: List[str],
+    expected_solvents: List[str],
+    expected_catalysts: List[str],
+    expected_products: List[str],
+    expected_yields: List[Optional[float]],
+    expected_temperature: Optional[float],
+    expected_rxn_time: Optional[float],
+    expected_rxn_str: Optional[str],
+    expected_procedure_details: str,
+    expected_names_list: List[str],
+) -> None:
     import orderly.extract.extractor
 
-    rxn = get_rxn_func()(file_name=file_name, rxn_idx=rxn_idx)
-    if len(manual_replacements_dict) == 0:
+    rxn = get_rxn_func()(file_name, rxn_idx)
+    if manual_replacements_dict == {}:
         manual_replacements_dict = orderly.extract.main.get_manual_replacements_dict(
             solvents_path=None
         )
 
+    assert manual_replacements_dict is not None
+
     metals = orderly.extract.defaults.get_metals_list()
     solvents_set = orderly.extract.defaults.get_solvents_set()
+
+    rnx_object = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
+        rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
+    )
+
+    assert rnx_object is not None
 
     (
         reactants,
@@ -954,11 +978,9 @@ def test_handle_reaction_object(
         rxn_str,
         procedure_details,
         names_list,
-    ) = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
-    )
+    ) = rnx_object
 
-    def clean_string(s):
+    def clean_string(s: str) -> str:
         import string
 
         printable = set(string.printable)
@@ -1025,11 +1047,11 @@ def test_handle_reaction_object(
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
 def test_canonicalisation(
-    execution_number,
-    smiles,
-    is_mapped,
-    expected_canonical_smiles,
-):
+    execution_number: int,
+    smiles: str,
+    is_mapped: bool,
+    expected_canonical_smiles: Optional[str],
+) -> None:
     from orderly.extract.canonicalise import get_canonicalised_smiles
 
     canonical_smiles = get_canonicalised_smiles(smiles, is_mapped)
@@ -1055,23 +1077,23 @@ def test_canonicalisation(
 )
 @pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
 def test_extraction_pipeline(
-    execution_number,
-    tmp_path,
-    trust_labelling,
-    use_multiprocessing,
-    name_contains_substring,
-    inverse_substring,
-):
-    pickled_data_folder = tmp_path / "pkl_data"
-    pickled_data_folder.mkdir()
-    molecule_names_folder = tmp_path / "molecule_names"
-    molecule_names_folder.mkdir()
+    execution_number: int,
+    tmp_path: pathlib.Path,
+    trust_labelling: bool,
+    use_multiprocessing: bool,
+    name_contains_substring: Optional[str],
+    inverse_substring: bool,
+) -> None:
+    pickled_data_folder = "pkl_data"
+    (tmp_path / pickled_data_folder).mkdir()
+    molecule_names_folder = "molecule_names"
+    (tmp_path / molecule_names_folder).mkdir()
 
     import orderly.extract.main
-    import orderly.data
+    import orderly.data.test_data
 
     orderly.extract.main.main(
-        data_path=orderly.data.get_path_of_test_ords(),
+        data_path=orderly.data.test_data.get_path_of_test_ords(),
         ord_file_ending=".pb.gz",
         trust_labelling=trust_labelling,
         output_path=tmp_path,
@@ -1088,7 +1110,7 @@ def test_extraction_pipeline(
     import pandas as pd
     import numpy as np
 
-    for extraction in pickled_data_folder.glob("*"):
+    for extraction in (tmp_path / pickled_data_folder).glob("*"):
         df = pd.read_pickle(extraction)
         if df is None:
             continue
