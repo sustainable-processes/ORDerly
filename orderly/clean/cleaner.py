@@ -144,13 +144,13 @@ class Cleaner:
 
     @staticmethod
     def _map_rare_molecules_to_other(
-        df, columns_to_count_from, value_counts, min_frequency_of_occurrence
+        df, columns_to_transform, value_counts, min_frequency_of_occurrence
     ) -> pd.DataFrame:
         """
         Maps rare values in specified columns to 'other'.
         """
         LOG.info("Mapping rare molecules to 'other'")
-        for col in columns_to_count_from:
+        for col in columns_to_transform:
             # Find the values that occur less frequently than the minimum frequency threshold
             rare_values = value_counts[
                 value_counts < min_frequency_of_occurrence
@@ -161,19 +161,25 @@ class Cleaner:
 
     @staticmethod
     def _remove_rare_molecules(
-        df, columns_to_count_from, value_counts, min_frequency_of_occurrence
+        df, columns_to_transform, value_counts, min_frequency_of_occurrence
     ) -> pd.DataFrame:
         """
         Removes rows with rare values in specified columns.
         """
         LOG.info("Removing rare molecules")
-        for col in columns_to_count_from:
-            # Get the indices of rows where the column contains a rare value
-            rare_values = value_counts[value_counts < min_frequency_of_occurrence].index
+        # Get the indices of rows where the column contains a rare value
+        rare_values = value_counts[value_counts < min_frequency_of_occurrence].index
+        index_union = None
+
+        for col in columns_to_transform:
             mask = df[col].isin(rare_values)
             rare_indices = df.loc[mask].index
-            # Remove the rows with rare values
-            df = df.drop(rare_indices)
+            if index_union is None:
+                index_union = rare_indices
+            else:
+                index_union = index_union.union(rare_indices)
+        # Remove the rows with rare values
+        df = df.drop(index_union)
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
@@ -395,7 +401,7 @@ def main_click(
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
+    4) Handle rare molecules (frequency of occurrence <= min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
