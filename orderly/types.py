@@ -1,14 +1,6 @@
 import typing
 
-# we ignore types below so that we dont have to go through the hassle of the protobuf stubs being installed
-# import google.protobuf.pyext._message  # type: ignore
-# from google.protobuf import message as _message
-
-# IDENTIFIERS_MSG = _message.RepeatedCompositeContainer
-
-# import ord_schema
-
-IDENTIFIERS_MSG = typing.Any #ord_schema.proto.reaction_pb2.ReactionIdentifier
+REPEATEDCOMPOSITECONTAINER = typing.TypeVar('REPEATEDCOMPOSITECONTAINER', bound=typing.Iterable[typing.Any])
 
 MOLECULE_IDENTIFIER = str
 SMILES = str
