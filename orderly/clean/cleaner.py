@@ -19,7 +19,7 @@ class Cleaner:
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurance < min_frequency_of_occurrence)
+    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
@@ -395,7 +395,7 @@ def main_click(
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurance < min_frequency_of_occurrence)
+    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
@@ -449,7 +449,7 @@ def main(
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurance < min_frequency_of_occurrence)
+    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
     5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.

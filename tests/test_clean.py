@@ -24,7 +24,7 @@ def test_molecule_names_not_empty():
     assert not all_empty
 
 
-def check_frequency_of_occurance(
+def check_frequency_of_occurrence(
     df,
     min_frequency_of_occurrence,
 ):
@@ -64,7 +64,7 @@ def get_cleaned_df(
     num_agent,
     num_cat,
     num_reag,
-    min_frequency_of_occurance,
+    min_frequency_of_occurrence,
     map_rare_molecules_to_other,
 ):
     import orderly.clean.cleaner
@@ -90,7 +90,7 @@ def get_cleaned_df(
         num_agent=num_agent,
         num_cat=num_cat,
         num_reag=num_reag,
-        min_frequency_of_occurance=min_frequency_of_occurance,
+        min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
         disable_tqdm=False,
     )
@@ -299,8 +299,8 @@ def test_frequency(cleaned_df_params):
         _,
         _,
         _,
-        min_frequency_of_occurance,
+        min_frequency_of_occurrence,
         _,
     ) = params
 
-    check_frequency_of_occurance(cleaned_df, min_frequency_of_occurance)
+    check_frequency_of_occurrence(cleaned_df, min_frequency_of_occurrence)
