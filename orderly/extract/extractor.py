@@ -516,6 +516,7 @@ class OrdExtractor:
             Optional[RXN_TIME],
             Optional[RXN_STR],
             str,
+            Optional[pd.Timestamp],
             List[MOLECULE_IDENTIFIER],
         ]
     ]:
@@ -771,6 +772,12 @@ class OrdExtractor:
         catalysts = [c for c in catalysts if c not in reactants]
 
         procedure_details = rxn.notes.procedure_details
+        date_of_experiment = rxn.provenance.experiment_start.value
+        if len(date_of_experiment) == 0:
+            date_of_experiment = None
+        else:  # we trust that it is a string that is convertible to a pd.Timestamp
+            date_of_experiment = pd.to_datetime(date_of_experiment, format="%m/%d/%Y")
+
         rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
         return (
@@ -785,6 +792,7 @@ class OrdExtractor:
             rxn_time,
             rxn_str,
             procedure_details,
+            date_of_experiment,
             rxn_non_smiles_names_list,
         )
 
@@ -803,6 +811,7 @@ class OrdExtractor:
             List[PRODUCTS],
             List[YIELDS],
             List[str],
+            List[Optional[pd.Timestamp]],
         ],
         List[MOLECULE_IDENTIFIER],
     ]:
@@ -819,6 +828,7 @@ class OrdExtractor:
         rxn_time_all = []
 
         procedure_details_all = []
+        date_of_experiment_all = []
         rxn_non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
 
         assert self.solvents_set is not None
@@ -844,6 +854,7 @@ class OrdExtractor:
                 rxn_time,
                 rxn_str,
                 procedure_details,
+                date_of_experiment,
                 rxn_non_smiles_names_list_additions,
             ) = extracted_reaction
 
@@ -859,6 +870,7 @@ class OrdExtractor:
                 temperature_all.append(temperature)
                 rxn_time_all.append(rxn_time)
                 procedure_details_all.append(procedure_details)
+                date_of_experiment_all.append(date_of_experiment)
                 agents_all.append(agents)
                 solvents_all.append(solvents)
                 reagents_all.append(reagents)
@@ -876,6 +888,7 @@ class OrdExtractor:
             products_all,
             yields_all,
             procedure_details_all,
+            date_of_experiment_all,
         ), rxn_non_smiles_names_list
 
     def create_column_headers(self, df: pd.DataFrame, base_string: str) -> List[str]:
@@ -912,4 +925,5 @@ class OrdExtractor:
                 full_df = new_df
             else:
                 full_df = pd.concat([full_df, new_df], axis=1)
+        full_df = full_df.assign(date_of_experiment=data_lists[-1])
         return full_df, rxn_non_smiles_names_list

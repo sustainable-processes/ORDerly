@@ -483,6 +483,7 @@ def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> No
 )
 def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
     import copy
+    import numpy as np
 
     cleaned_df, params = copy.copy(cleaned_df_params)
 
@@ -528,6 +529,30 @@ def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) ->
     assert num_cat_cols == num_cat
     assert num_reag_cols == num_reag
     assert num_solv_cols == num_solv
+    assert "grant_date" in cols
+    assert "date_of_experiment" in cols
+
+    import numpy as np
+
+    grant_date = cleaned_df["grant_date"].replace({None: np.nan})
+    date_of_experiment = cleaned_df["date_of_experiment"].replace({None: np.nan})
+    if not grant_date.dropna().empty:
+        assert pd.api.types.is_datetime64_ns_dtype(
+            grant_date
+        ), f"failure for grant_date: {cleaned_df['grant_date'].dtype}"
+    if not date_of_experiment.dropna().empty:
+        assert pd.api.types.is_datetime64_ns_dtype(
+            date_of_experiment
+        ), f"failure for date_of_experiment: {cleaned_df['date_of_experiment'].dtype}"
+
+    # Check that grant_date and date_of_experiment columns are either dtype = datetime64 or full of None
+    datetime_coumns = cleaned_df.select_dtypes(include=[np.datetime64])
+    assert ("grant_date" in datetime_coumns.columns) or (
+        len(cleaned_df["grant_date"].dropna()) == 0
+    )
+    assert ("date_of_experiment" in datetime_coumns.columns) or (
+        len(cleaned_df["date_of_experiment"].dropna()) == 0
+    )
 
 
 def double_list(
