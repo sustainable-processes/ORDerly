@@ -4,9 +4,9 @@ import pathlib
 
 
 def _get_orderly_data_path() -> pathlib.Path:
-    file_path = sys.modules["orderly.data"].__file__
+    file_path = sys.modules["orderly.data.test_data"].__file__
     if file_path is None:
-        raise ValueError("The path for orderly.data was not found")
+        raise ValueError("The path for orderly.data.test_data was not found")
     return pathlib.Path(os.path.dirname(file_path))
 
 
