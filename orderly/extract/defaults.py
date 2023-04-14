@@ -1,5 +1,4 @@
 from typing import List, Dict, Set
-from rdkit import Chem
 
 import orderly.data.solvents
 
