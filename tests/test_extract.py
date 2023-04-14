@@ -563,6 +563,7 @@ def test_merge_to_agents(
     expected_solvents: Optional[List[str]],
 ) -> None:
     import orderly.extract.extractor
+    import orderly.extract.defaults
 
     if metals is None:
         metals = orderly.extract.defaults.get_metals_list()
@@ -949,6 +950,8 @@ def test_handle_reaction_object(
     expected_names_list: List[str],
 ) -> None:
     import orderly.extract.extractor
+    import orderly.extract.main
+    import orderly.extract.defaults
 
     rxn = get_rxn_func()(file_name, rxn_idx)
     if manual_replacements_dict == {}:
