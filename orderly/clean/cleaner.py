@@ -525,7 +525,9 @@ def main(
 
     if not overwrite:
         if clean_data_path.exists():
-            raise FileExistsError("Trying to overwrite the orderly_ord output. Either move the file, change the clean_data_path (output_path) or set to overwrite.")
+            raise FileExistsError(
+                "Trying to overwrite the orderly_ord output. Either move the file, change the clean_data_path (output_path) or set to overwrite."
+            )
 
     clean_data_path.parent.mkdir(parents=True, exist_ok=True)
 
