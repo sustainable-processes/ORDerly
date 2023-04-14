@@ -405,6 +405,13 @@ class Cleaner:
     default=True,
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
+@click.option(
+    "--overwrite",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="If true, will overwrite the existing orderly_ord.parquet, else will through an error if a file exists",
+)
 def main_click(
     clean_data_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
@@ -422,6 +429,7 @@ def main_click(
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
+    overwrite: bool,
 ) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
@@ -462,6 +470,7 @@ def main_click(
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
+        overwrite=overwrite,
     )
 
 
@@ -482,6 +491,7 @@ def main(
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
+    overwrite: bool,
 ) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
@@ -512,6 +522,14 @@ def main(
         raise ValueError(f"Expect pathlib.Path: got {type(ord_extraction_path)}")
     if not isinstance(molecules_to_remove_path, pathlib.Path):
         raise ValueError(f"Expect pathlib.Path: got {type(molecules_to_remove_path)}")
+
+    if not overwrite:
+        if clean_data_path.exists():
+            raise FileExistsError(
+                "Trying to overwrite the orderly_ord output. Either move the file, change the clean_data_path (output_path) or set to overwrite."
+            )
+
+    clean_data_path.parent.mkdir(parents=True, exist_ok=True)
 
     start_time = datetime.datetime.now()
 
