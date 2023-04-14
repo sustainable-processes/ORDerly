@@ -465,7 +465,7 @@ def test_time_extractor(
 
 
 @pytest.mark.parametrize(
-    "rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,metals,solvents_set,expected_agents,expected_solvents",
+    "rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,solvents_set,expected_agents,expected_solvents",
     (
         [
             None,
@@ -477,7 +477,6 @@ def test_time_extractor(
             [],
             ["O=C([O-])[O-]", "[Cs+]"],
             None,
-            None,
             [
                 "[Cs+]",
                 "[Pd]",
@@ -487,14 +486,13 @@ def test_time_extractor(
             ],
             [],
         ],
-        [["C1CCOC1"], None, ["C1CCOC1", "C1CCOC1"], None, None, None, [], ["C1CCOC1"]],
-        [["O"], [], ["O"], [], None, None, [], ["O"]],
+        [["C1CCOC1"], None, ["C1CCOC1", "C1CCOC1"], None, None, [], ["C1CCOC1"]],
+        [["O"], [], ["O"], [], None, [], ["O"]],
         [
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             [],
             ["c1ccccc1"],
             [],
-            None,
             None,
             ["Cc1ccc(S(=O)(=O)O)cc1"],
             ["O", "c1ccccc1"],
@@ -511,7 +509,6 @@ def test_time_extractor(
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
             None,
-            None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["CCO", "O", "c1ccccc1"],
         ],
@@ -520,7 +517,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["O", "CCO"],
@@ -531,7 +527,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]", "O", "CCO", "c1ccccc1"],
             [],
@@ -542,7 +537,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["O", "O", "CCO", "c1ccccc1"],
@@ -557,15 +551,12 @@ def test_merge_to_agents(
     labelled_catalysts: Optional[List[str]],
     labelled_solvents: Optional[List[str]],
     labelled_reagents: Optional[List[str]],
-    metals: List[str],
     solvents_set: Set[str],
     expected_agents: Optional[List[str]],
     expected_solvents: Optional[List[str]],
 ) -> None:
     import orderly.extract.extractor
 
-    if metals is None:
-        metals = orderly.extract.defaults.get_metals_list()
     if solvents_set is None:
         solvents_set = orderly.extract.defaults.get_solvents_set()
 
@@ -574,7 +565,6 @@ def test_merge_to_agents(
         labelled_catalysts,
         labelled_solvents,
         labelled_reagents,
-        metals,
         solvents_set,
     )
 
@@ -856,10 +846,10 @@ def test_match_yield_with_product(
             ["C#CC(O)(CO)CO"],
             [
                 "[Cu+2]",
-                "[K+]",
                 "Antifoam 204",
                 "O=S(=O)([O-])CCN1CCN(CCS(=O)(=O)[O-])CC1",
                 "O=S(=O)([O-])[O-]",
+                "[K+]",
                 "bovine catalase",
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
@@ -958,11 +948,10 @@ def test_handle_reaction_object(
 
     assert manual_replacements_dict is not None
 
-    metals = orderly.extract.defaults.get_metals_list()
     solvents_set = orderly.extract.defaults.get_solvents_set()
 
     rnx_object = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
+        rxn, manual_replacements_dict, solvents_set, trust_labelling
     )
 
     assert rnx_object is not None

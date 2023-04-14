@@ -37,7 +37,6 @@ class OrdExtractor:
     ord_file_path: pathlib.Path
     trust_labelling: bool
     manual_replacements_dict: MANUAL_REPLACEMENTS_DICT
-    metals: Optional[METALS] = None
     solvents_set: Optional[Set[SOLVENT]] = None
     filename: Optional[str] = None
     contains_substring: Optional[str] = None  # typically: None or uspto
@@ -89,8 +88,6 @@ class OrdExtractor:
                 )
                 return
 
-        if self.metals is None:
-            self.metals = orderly.extract.defaults.get_metals_list()
         if self.solvents_set is None:
             self.solvents_set = orderly.extract.defaults.get_solvents_set()
         self.full_df, self.non_smiles_names_list = self.build_full_df()
@@ -450,11 +447,10 @@ class OrdExtractor:
         catalysts: Optional[CATALYSTS],
         solvents: Optional[SOLVENTS],
         reagents: Optional[REAGENTS],
-        metals: METALS,
         solvents_set: Set[SOLVENT],
     ) -> Tuple[AGENTS, SOLVENTS]:
         """
-        Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put metals (likely to be catalysts) first.
+        Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put transition metals (likely to be catalysts) first.
         """
         # merge the solvents, reagents, and catalysts into one list
         agents = []
@@ -477,7 +473,7 @@ class OrdExtractor:
         _agents = agents_set.difference(_solvents)
 
         # I think we should add some ordering to the agents
-        # What if we first order them alphabetically, and afterwards by putting the metals first in the list
+        # What if we first order them alphabetically, and afterwards by putting the transition metals first in the list
 
         agents = sorted(list(_agents))
         solvents = sorted(list(_solvents))
@@ -485,7 +481,7 @@ class OrdExtractor:
 
         # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
-        # Instead, let's move all agents that contain a metal centre to the front of the list
+        # Instead, let's move all agents that contain a transition metal centre to the front of the list
 
         agents_with_transition_metal = []
         agents_wo_transition_metal = []
@@ -505,7 +501,6 @@ class OrdExtractor:
         rxn: ord_reaction_pb2.Reaction,
         manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
         solvents_set: Set[SOLVENT],
-        metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
         include_unadded_labelled_agents: bool = True,
@@ -659,7 +654,6 @@ class OrdExtractor:
                 labelled_catalysts,
                 labelled_solvents,
                 labelled_reagents,
-                metals,
                 solvents_set,
             )
             reagents = []
@@ -835,14 +829,12 @@ class OrdExtractor:
         rxn_non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
 
         assert self.solvents_set is not None
-        assert self.metals is not None
 
         for rxn in self.data.reactions:
             extracted_reaction = OrdExtractor.handle_reaction_object(
                 rxn,
                 manual_replacements_dict=self.manual_replacements_dict,
                 solvents_set=self.solvents_set,
-                metals=self.metals,
                 trust_labelling=self.trust_labelling,
             )
             if extracted_reaction is None:
