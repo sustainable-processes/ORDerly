@@ -37,7 +37,6 @@ class OrdExtractor:
     ord_file_path: pathlib.Path
     trust_labelling: bool
     manual_replacements_dict: MANUAL_REPLACEMENTS_DICT
-    metals: Optional[METALS] = None
     solvents_set: Optional[Set[SOLVENT]] = None
     filename: Optional[str] = None
     contains_substring: Optional[str] = None  # typically: None or uspto
@@ -89,8 +88,6 @@ class OrdExtractor:
                 )
                 return
 
-        if self.metals is None:
-            self.metals = orderly.extract.defaults.get_metals_list()
         if self.solvents_set is None:
             self.solvents_set = orderly.extract.defaults.get_solvents_set()
         self.full_df, self.non_smiles_names_list = self.build_full_df()
@@ -151,22 +148,21 @@ class OrdExtractor:
         rxn_str = rxn_str_extended_smiles.split(" ")[
             0
         ]  # this is to get rid of the extended smiles info
-        return RXN_STR(rxn_str), is_mapped
+
+        count = rxn_str.count(">")
+        if count == 2:  # Finally, we need to check whether the reaction string is valid
+            return RXN_STR(rxn_str), is_mapped
+        else:
+            return None
 
     @staticmethod
-    def extract_info_from_rxn(
-        rxn: ord_reaction_pb2.Reaction,
-    ) -> Optional[
-        Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]
-    ]:
+    def extract_info_from_rxn_str(
+        rxn_str: RXN_STR, is_mapped: bool
+    ) -> Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
         _ = rdkit_BlockLogs()
-        _rxn_str = OrdExtractor.get_rxn_string_and_is_mapped(rxn)
-        if _rxn_str is None:
-            return None
-        rxn_str, is_mapped = _rxn_str
 
         reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
 
@@ -450,11 +446,10 @@ class OrdExtractor:
         catalysts: Optional[CATALYSTS],
         solvents: Optional[SOLVENTS],
         reagents: Optional[REAGENTS],
-        metals: METALS,
         solvents_set: Set[SOLVENT],
     ) -> Tuple[AGENTS, SOLVENTS]:
         """
-        Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put metals (likely to be catalysts) first.
+        Merge cat, solv, reag into agents list, and then extract solvents from agents list by cross-referencing to solvents_set. Then sort alphabetically and put transition metals (likely to be catalysts) first.
         """
         # merge the solvents, reagents, and catalysts into one list
         agents = []
@@ -477,7 +472,7 @@ class OrdExtractor:
         _agents = agents_set.difference(_solvents)
 
         # I think we should add some ordering to the agents
-        # What if we first order them alphabetically, and afterwards by putting the metals first in the list
+        # What if we first order them alphabetically, and afterwards by putting the transition metals first in the list
 
         agents = sorted(list(_agents))
         solvents = sorted(list(_solvents))
@@ -485,17 +480,19 @@ class OrdExtractor:
 
         # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
-        # Instead, let's move all agents that contain a metal centre to the front of the list
+        # Instead, let's move all agents that contain a transition metal centre to the front of the list
 
-        agents_with_metal = []
-        agents_wo_metal = []
+        agents_with_transition_metal = []
+        agents_wo_transition_metal = []
         for agent in agents:
-            contains_metal = any(metal in agent for metal in metals)
-            if contains_metal:
-                agents_with_metal.append(agent)
+            agent_has_transition_metal = orderly.extract.defaults.has_transition_metal(
+                agent
+            )
+            if agent_has_transition_metal:
+                agents_with_transition_metal.append(agent)
             else:
-                agents_wo_metal.append(agent)
-        agents = agents_with_metal + agents_wo_metal
+                agents_wo_transition_metal.append(agent)
+        agents = agents_with_transition_metal + agents_wo_transition_metal
         return agents, solvents
 
     @staticmethod
@@ -503,7 +500,6 @@ class OrdExtractor:
         rxn: ord_reaction_pb2.Reaction,
         manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
         solvents_set: Set[SOLVENT],
-        metals: METALS,
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
         include_unadded_labelled_agents: bool = True,
@@ -588,7 +584,8 @@ class OrdExtractor:
         else:
             rxn_str, is_mapped = _rxn_str
 
-        if trust_labelling:
+        # Get all the molecules
+        if trust_labelling or (rxn_str is None and use_labelling_if_extract_fails):
             reactants = labelled_reactants
             products = labelled_products
             yields = yields
@@ -597,38 +594,24 @@ class OrdExtractor:
             reagents = labelled_reagents
             catalysts = labelled_catalysts
             is_mapped = False
-        else:
-            # TODO we should remove this try block
-            try:  # to extract info from the reaction string
-                rxn_info = OrdExtractor.extract_info_from_rxn(rxn)
-                if rxn_info is None:
-                    raise ValueError("rxn_info is None")
-                (
-                    rxn_str_reactants,
-                    rxn_str_agents,
-                    rxn_str_products,
-                    rxn_str,
-                    rxn_non_smiles_names_list,
-                ) = rxn_info
-                reactants = list(set(rxn_str_reactants))
-                # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
-                rxn_str_products = list(set(rxn_str_products))
-                products, _yields = OrdExtractor.match_yield_with_product(
-                    rxn_str_products, labelled_products, yields
-                )
-                if _yields is None:
-                    _yields = []
-                yields = _yields
 
-            except (ValueError, TypeError) as e:
-                rxn_str_agents = []
-                # ValueError is raised when rxn_info is None, or when it's invalid, e.g. if the rxn_string only has one >. Rxn strings should have 2, e.g. A>B>C
-                # TypeError is raised when rxn_str is neither None nor a string (this should be impossible though due to the schema!)
-                if use_labelling_if_extract_fails:
-                    reactants = labelled_reactants
-                    products = labelled_products
-                else:
-                    return None
+        elif rxn_str is not None:
+            # extract info from the reaction string
+            rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
+            (
+                reactants,
+                agents,
+                _products,
+                rxn_str,
+                rxn_non_smiles_names_list,
+            ) = rxn_info
+            # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
+            products, _yields = OrdExtractor.match_yield_with_product(
+                _products, labelled_products, yields
+            )
+            if _yields is None:
+                _yields = []
+            yields = _yields
 
             if (
                 include_unadded_labelled_agents
@@ -647,21 +630,27 @@ class OrdExtractor:
                 molecules_unique_to_labelled_data = [
                     x
                     for x in all_labelled_molecules
-                    if x not in reactants + rxn_str_agents + solvents + products
+                    if x not in reactants + agents + solvents + products
                 ]
-                rxn_str_agents += molecules_unique_to_labelled_data
+                agents += molecules_unique_to_labelled_data
 
+        else:
+            return None
+
+        if (
+            not trust_labelling
+        ):  # if we don't trust the labelling, we should merge the labelled data with the extracted data into just 'agents' and 'solvents'
             # Merge conditions
             agents, solvents = OrdExtractor.merge_to_agents(
-                rxn_str_agents,
+                agents,
                 labelled_catalysts,
                 labelled_solvents,
                 labelled_reagents,
-                metals,
                 solvents_set,
             )
             reagents = []
             catalysts = []
+
         # extract temperature
         temperature = OrdExtractor.temperature_extractor(rxn)
 
@@ -707,7 +696,7 @@ class OrdExtractor:
             return mole_id_list, non_smiles_names_list_additions
 
         # Reactants and products might be mapped, but agents are not
-        # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
+        # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn_str function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
         (
             reactants,
             non_smiles_names_list_additions,
@@ -833,14 +822,12 @@ class OrdExtractor:
         rxn_non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
 
         assert self.solvents_set is not None
-        assert self.metals is not None
 
         for rxn in self.data.reactions:
             extracted_reaction = OrdExtractor.handle_reaction_object(
                 rxn,
                 manual_replacements_dict=self.manual_replacements_dict,
                 solvents_set=self.solvents_set,
-                metals=self.metals,
                 trust_labelling=self.trust_labelling,
             )
             if extracted_reaction is None:

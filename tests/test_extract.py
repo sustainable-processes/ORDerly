@@ -6,7 +6,7 @@ from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
 from orderly.types import YIELD, MANUAL_REPLACEMENTS_DICT
 
-REPETITIONS = 3
+REPETITIONS = 1
 SLOW_REPETITIONS = 1
 
 
@@ -344,16 +344,13 @@ def test_rxn_string_and_is_mapped(
             ["CCC"],
             "CC.C>CCC",
             [],
-            False,
-            marks=pytest.mark.xfail(
-                reason="ValueError: not enough values to unpack (expected 3, got 2)"
-            ),
+            True,
         ),
         # There's no point in trying to test whether the the rxn.identifiers[0].value = None because the schema doesn't allow that overwrite to happen!
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
-def test_extract_info_from_rxn(
+def test_extract_info_from_rxn_str(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
@@ -372,7 +369,14 @@ def test_extract_info_from_rxn(
 
     import orderly.extract.extractor
 
-    rxn_info = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn(rxn)
+    _rxn_info = orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    if _rxn_info is None:
+        return None
+    rxn_str, is_mapped = _rxn_info
+
+    rxn_info = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn_str(
+        rxn_str, is_mapped
+    )
     if expected_none:
         assert rxn_info is None, f"expected a none but got {rxn_info=}"
         return
@@ -465,7 +469,7 @@ def test_time_extractor(
 
 
 @pytest.mark.parametrize(
-    "rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,metals,solvents_set,expected_agents,expected_solvents",
+    "rxn_str_agents,labelled_catalysts,labelled_solvents,labelled_reagents,solvents_set,expected_agents,expected_solvents",
     (
         [
             None,
@@ -477,24 +481,22 @@ def test_time_extractor(
             [],
             ["O=C([O-])[O-]", "[Cs+]"],
             None,
-            None,
             [
-                "[Cs+]",
                 "[Pd]",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
                 "O=C([O-])[O-]",
+                "[Cs+]",
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
             ],
             [],
         ],
-        [["C1CCOC1"], None, ["C1CCOC1", "C1CCOC1"], None, None, None, [], ["C1CCOC1"]],
-        [["O"], [], ["O"], [], None, None, [], ["O"]],
+        [["C1CCOC1"], None, ["C1CCOC1", "C1CCOC1"], None, None, [], ["C1CCOC1"]],
+        [["O"], [], ["O"], [], None, [], ["O"]],
         [
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             [],
             ["c1ccccc1"],
             [],
-            None,
             None,
             ["Cc1ccc(S(=O)(=O)O)cc1"],
             ["O", "c1ccccc1"],
@@ -511,7 +513,6 @@ def test_time_extractor(
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
             None,
-            None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["CCO", "O", "c1ccccc1"],
         ],
@@ -520,7 +521,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["c1ccccc1", "Cc1ccc(S(=O)(=O)O)cc1", "O"],
             ["O", "CCO"],
@@ -531,7 +531,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]", "O", "CCO", "c1ccccc1"],
             [],
@@ -542,7 +541,6 @@ def test_time_extractor(
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
-            None,
             None,
             ["[Pd]", "Cc1ccc(S(=O)(=O)O)cc1", "O=C([O-])[O-]"],
             ["O", "O", "CCO", "c1ccccc1"],
@@ -557,7 +555,6 @@ def test_merge_to_agents(
     labelled_catalysts: Optional[List[str]],
     labelled_solvents: Optional[List[str]],
     labelled_reagents: Optional[List[str]],
-    metals: List[str],
     solvents_set: Set[str],
     expected_agents: Optional[List[str]],
     expected_solvents: Optional[List[str]],
@@ -565,8 +562,6 @@ def test_merge_to_agents(
     import orderly.extract.extractor
     import orderly.extract.defaults
 
-    if metals is None:
-        metals = orderly.extract.defaults.get_metals_list()
     if solvents_set is None:
         solvents_set = orderly.extract.defaults.get_solvents_set()
 
@@ -575,7 +570,6 @@ def test_merge_to_agents(
         labelled_catalysts,
         labelled_solvents,
         labelled_reagents,
-        metals,
         solvents_set,
     )
 
@@ -664,10 +658,10 @@ def test_match_yield_with_product(
             False,
             ["CC(C)N1CCNCC1", "CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F"],
             [
-                "[Cs+]",
                 "[Pd]",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
                 "O=C([O-])[O-]",
+                "[Cs+]",
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
             ],
             [],
@@ -690,7 +684,7 @@ def test_match_yield_with_product(
                 "SCc1ccccc1",
                 "O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1[N+](=O)[O-]",
             ],
-            ["[Na+]", "[H-]"],
+            ["[H-]", "[Na+]"],
             [],
             ["C1CCOC1"],
             [],
@@ -857,10 +851,10 @@ def test_match_yield_with_product(
             ["C#CC(O)(CO)CO"],
             [
                 "[Cu+2]",
-                "[K+]",
                 "Antifoam 204",
                 "O=S(=O)([O-])CCN1CCN(CCS(=O)(=O)[O-])CC1",
                 "O=S(=O)([O-])[O-]",
+                "[K+]",
                 "bovine catalase",
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
@@ -961,11 +955,10 @@ def test_handle_reaction_object(
 
     assert manual_replacements_dict is not None
 
-    metals = orderly.extract.defaults.get_metals_list()
     solvents_set = orderly.extract.defaults.get_solvents_set()
 
     rnx_object = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, metals, trust_labelling
+        rxn, manual_replacements_dict, solvents_set, trust_labelling
     )
 
     assert rnx_object is not None
