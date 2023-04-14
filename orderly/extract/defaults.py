@@ -1,40 +1,8 @@
 from typing import List, Dict, Set
-from rdkit import Chem
 
 import orderly.data.solvents
 
 from orderly.types import *
-
-
-def is_transition_metal(atom: Chem.Atom) -> bool:
-    """Determines if an atom is a transition metal.
-    Args:
-        atom: The atom in question. Should be of type rdkit.Chem.rdchem.Atom
-    Returns:
-        Boolean for whether the atom is a transition metal.
-    """
-    atom_n = atom.GetAtomicNum()
-    return bool((22 <= atom_n <= 29) or (40 <= atom_n <= 47) or (72 <= atom_n <= 79))
-
-
-def has_transition_metal(smiles: SMILES) -> bool:
-    """
-    Determines if a molecule contains a transition metal.
-    Args:
-        mol: The molecule in question. Should be of type rdkit.Chem.rdchem.Mol
-    Returns:
-        Boolean for whether the molecule has a transition metal.
-
-    Inspiration: https://github.com/open-reaction-database/ord-schema/blob/e114eb6360badbf3a2d0552bea20be0d438966a3/ord_schema/message_helpers.py?fbclid=IwAR0qQuhveV_YF98qrNXMf3njPmkHmzlkuUAYIGAFhEkc_1UnVZITZG4U8sU#L579
-    """
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return False
-
-    for atom in mol.GetAtoms():
-        if is_transition_metal(atom):
-            return True
-    return False
 
 
 def get_metals_list() -> METALS:

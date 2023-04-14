@@ -487,17 +487,15 @@ class OrdExtractor:
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
         # Instead, let's move all agents that contain a metal centre to the front of the list
 
-        agents_with_transition_metal = []
-        agents_wo_transition_metal = []
+        agents_with_metal = []
+        agents_wo_metal = []
         for agent in agents:
-            agent_has_transition_metal = orderly.extract.defaults.has_transition_metal(
-                agent
-            )
-            if agent_has_transition_metal:
-                agents_with_transition_metal.append(agent)
+            contains_metal = any(metal in agent for metal in metals)
+            if contains_metal:
+                agents_with_metal.append(agent)
             else:
-                agents_wo_transition_metal.append(agent)
-        agents = agents_with_transition_metal + agents_wo_transition_metal
+                agents_wo_metal.append(agent)
+        agents = agents_with_metal + agents_wo_metal
         return agents, solvents
 
     @staticmethod
