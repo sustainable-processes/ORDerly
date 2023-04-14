@@ -158,9 +158,7 @@ class OrdExtractor:
     @staticmethod
     def extract_info_from_rxn_str(
         rxn_str: RXN_STR, is_mapped: bool
-    ) -> Optional[
-        Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]
-    ]:
+    ) -> Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]:
         """
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
@@ -596,13 +594,8 @@ class OrdExtractor:
             reagents = labelled_reagents
             catalysts = labelled_catalysts
             is_mapped = False
-        elif (
-            (not trust_labelling)
-            and (rxn_str is None)
-            and (not use_labelling_if_extract_fails)
-        ):
-            return None
-        else:
+
+        elif rxn_str is not None:
             # extract info from the reaction string
             rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
             (
@@ -641,7 +634,12 @@ class OrdExtractor:
                 ]
                 agents += molecules_unique_to_labelled_data
 
-        if trust_labelling == False:
+        else:
+            return None
+
+        if (
+            not trust_labelling
+        ):  # if we don't trust the labelling, we should merge the labelled data with the extracted data into just 'agents' and 'solvents'
             # Merge conditions
             agents, solvents = OrdExtractor.merge_to_agents(
                 agents,
