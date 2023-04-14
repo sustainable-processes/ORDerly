@@ -1136,11 +1136,11 @@ def test_extraction_pipeline(
             series = df[col].replace({None: np.nan})
             if len(series.dropna()) == 0:
                 continue
-            elif col == "grant_date":
+            elif col in ["grant_date", 'date_of_experiment']:
                 assert pd.api.types.is_datetime64_ns_dtype(
                     series
-                ), f"failure for {col=}"
-            elif "temperature" in col or "rxn_time" in col or "yield" in col:
+                ), f"failure for {col=}: {col.dtype}"
+            elif ("temperature" in col) or ("rxn_time" in col) or ("yield" in col):
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
                 assert pd.api.types.is_string_dtype(series), f"failure for {col=}"

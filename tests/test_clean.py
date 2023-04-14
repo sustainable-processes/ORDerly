@@ -531,7 +531,19 @@ def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) ->
     assert num_solv_cols == num_solv
     assert 'grant_date' in cols
     assert 'date_of_experiment' in cols
-    assert cleaned_df['date_of_experiment'].dtype == 'datetime64' or cleaned_df['date_of_experiment'].dtype is None
+    
+    import numpy as np
+
+    grant_date = cleaned_df['grant_date'].replace({None: np.nan})
+    date_of_experiment = cleaned_df['date_of_experiment'].replace({None: np.nan})
+    if not grant_date.dropna().empty:
+        assert pd.api.types.is_datetime64_ns_dtype(
+            grant_date
+        ), f"failure for grant_date: {cleaned_df['grant_date'].dtype}"
+    if not date_of_experiment.dropna().empty:
+        assert pd.api.types.is_datetime64_ns_dtype(
+            date_of_experiment
+        ), f"failure for date_of_experiment: {cleaned_df['date_of_experiment'].dtype}"
 
 
 
