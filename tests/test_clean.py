@@ -46,22 +46,22 @@ def get_cleaned_df(
     import orderly.clean.cleaner
     import orderly.data.test_data
 
-    pickles_path = (
+    ord_extraction_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
         )
-        / "pickled_data"
+        / "extracted_ords"
     )
     molecules_to_remove_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
         )
-        / "all_molecule_names.pkl"
+        / "all_molecule_names.csv"
     )
 
     orderly.clean.cleaner.main(
         clean_data_path=output_path / "orderly_ord.parquet",
-        pickles_path=pickles_path,
+        ord_extraction_path=ord_extraction_path,
         molecules_to_remove_path=molecules_to_remove_path,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
@@ -168,9 +168,12 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
 
 
 def test_molecule_names_not_empty() -> None:
-    from orderly.data.test_data import get_path_of_molecule_names
-    import pandas as pd
     import os
+    import pathlib
+    import pandas as pd
+    import orderly.data.util
+
+    from orderly.data.test_data import get_path_of_molecule_names
 
     all_empty = True
 
@@ -178,12 +181,9 @@ def test_molecule_names_not_empty() -> None:
 
     files = os.listdir(molecule_names_folder_path)
     for file in files:
-        if file.endswith(".pkl"):  # or file.endswith(".parquet")
-            file_path = os.path.join(molecule_names_folder_path, file)
-            # df = pd.read_parquet(file_path)
-            # if not df.empty:
-            #     all_empty = False
-            molecule_names_list = pd.read_pickle(file_path)
+        if file.endswith(".csv"):  # or file.endswith(".parquet")
+            file_path = pathlib.Path(os.path.join(molecule_names_folder_path, file))
+            molecule_names_list = orderly.data.util.load_list(path=file_path)
             if len(molecule_names_list) > 0:
                 all_empty = False
     assert not all_empty

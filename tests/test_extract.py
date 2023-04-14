@@ -560,6 +560,7 @@ def test_merge_to_agents(
     expected_solvents: Optional[List[str]],
 ) -> None:
     import orderly.extract.extractor
+    import orderly.extract.defaults
 
     if solvents_set is None:
         solvents_set = orderly.extract.defaults.get_solvents_set()
@@ -943,6 +944,8 @@ def test_handle_reaction_object(
     expected_names_list: List[str],
 ) -> None:
     import orderly.extract.extractor
+    import orderly.extract.main
+    import orderly.extract.defaults
 
     rxn = get_rxn_func()(file_name, rxn_idx)
     if manual_replacements_dict == {}:
@@ -1079,8 +1082,8 @@ def test_extraction_pipeline(
     name_contains_substring: Optional[str],
     inverse_substring: bool,
 ) -> None:
-    pickled_data_folder = "pkl_data"
-    (tmp_path / pickled_data_folder).mkdir()
+    extracted_ord_data_folder = "extracted_ord_data"
+    (tmp_path / extracted_ord_data_folder).mkdir()
     molecule_names_folder = "molecule_names"
     (tmp_path / molecule_names_folder).mkdir()
 
@@ -1092,10 +1095,10 @@ def test_extraction_pipeline(
         ord_file_ending=".pb.gz",
         trust_labelling=trust_labelling,
         output_path=tmp_path,
-        pickled_data_folder=pickled_data_folder,
+        extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=None,
         molecule_names_folder=molecule_names_folder,
-        merged_molecules_file="all_molecule_names.pkl",
+        merged_molecules_file="all_molecule_names.csv",
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
         inverse_substring=inverse_substring,
@@ -1105,8 +1108,8 @@ def test_extraction_pipeline(
     import pandas as pd
     import numpy as np
 
-    for extraction in (tmp_path / pickled_data_folder).glob("*"):
-        df = pd.read_pickle(extraction)
+    for extraction in (tmp_path / extracted_ord_data_folder).glob("*"):
+        df = pd.read_parquet(extraction)
         if df is None:
             continue
 
