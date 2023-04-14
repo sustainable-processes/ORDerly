@@ -148,11 +148,16 @@ class OrdExtractor:
         rxn_str = rxn_str_extended_smiles.split(" ")[
             0
         ]  # this is to get rid of the extended smiles info
-        return RXN_STR(rxn_str), is_mapped
+
+        count = rxn_str.count(">")
+        if count == 2:  # Finally, we need to check whether the reaction string is valid
+            return RXN_STR(rxn_str), is_mapped
+        else:
+            return None
 
     @staticmethod
-    def extract_info_from_rxn(
-        rxn: ord_reaction_pb2.Reaction,
+    def extract_info_from_rxn_str(
+        rxn_str: RXN_STR, is_mapped: bool
     ) -> Optional[
         Tuple[REACTANTS, AGENTS, PRODUCTS, RXN_STR, List[MOLECULE_IDENTIFIER]]
     ]:
@@ -160,10 +165,6 @@ class OrdExtractor:
         Input a reaction object, and return the reactants, agents, products, and the reaction smiles string
         """
         _ = rdkit_BlockLogs()
-        _rxn_str = OrdExtractor.get_rxn_string_and_is_mapped(rxn)
-        if _rxn_str is None:
-            return None
-        rxn_str, is_mapped = _rxn_str
 
         reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
 
@@ -585,7 +586,8 @@ class OrdExtractor:
         else:
             rxn_str, is_mapped = _rxn_str
 
-        if trust_labelling:
+        # Get all the molecules
+        if trust_labelling or (rxn_str is None and use_labelling_if_extract_fails):
             reactants = labelled_reactants
             products = labelled_products
             yields = yields
@@ -594,38 +596,29 @@ class OrdExtractor:
             reagents = labelled_reagents
             catalysts = labelled_catalysts
             is_mapped = False
+        elif (
+            (not trust_labelling)
+            and (rxn_str is None)
+            and (not use_labelling_if_extract_fails)
+        ):
+            return None
         else:
-            # TODO we should remove this try block
-            try:  # to extract info from the reaction string
-                rxn_info = OrdExtractor.extract_info_from_rxn(rxn)
-                if rxn_info is None:
-                    raise ValueError("rxn_info is None")
-                (
-                    rxn_str_reactants,
-                    rxn_str_agents,
-                    rxn_str_products,
-                    rxn_str,
-                    rxn_non_smiles_names_list,
-                ) = rxn_info
-                reactants = list(set(rxn_str_reactants))
-                # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
-                rxn_str_products = list(set(rxn_str_products))
-                products, _yields = OrdExtractor.match_yield_with_product(
-                    rxn_str_products, labelled_products, yields
-                )
-                if _yields is None:
-                    _yields = []
-                yields = _yields
-
-            except (ValueError, TypeError) as e:
-                rxn_str_agents = []
-                # ValueError is raised when rxn_info is None, or when it's invalid, e.g. if the rxn_string only has one >. Rxn strings should have 2, e.g. A>B>C
-                # TypeError is raised when rxn_str is neither None nor a string (this should be impossible though due to the schema!)
-                if use_labelling_if_extract_fails:
-                    reactants = labelled_reactants
-                    products = labelled_products
-                else:
-                    return None
+            # extract info from the reaction string
+            rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
+            (
+                reactants,
+                agents,
+                _products,
+                rxn_str,
+                rxn_non_smiles_names_list,
+            ) = rxn_info
+            # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
+            products, _yields = OrdExtractor.match_yield_with_product(
+                _products, labelled_products, yields
+            )
+            if _yields is None:
+                _yields = []
+            yields = _yields
 
             if (
                 include_unadded_labelled_agents
@@ -644,13 +637,14 @@ class OrdExtractor:
                 molecules_unique_to_labelled_data = [
                     x
                     for x in all_labelled_molecules
-                    if x not in reactants + rxn_str_agents + solvents + products
+                    if x not in reactants + agents + solvents + products
                 ]
-                rxn_str_agents += molecules_unique_to_labelled_data
+                agents += molecules_unique_to_labelled_data
 
+        if trust_labelling == False:
             # Merge conditions
             agents, solvents = OrdExtractor.merge_to_agents(
-                rxn_str_agents,
+                agents,
                 labelled_catalysts,
                 labelled_solvents,
                 labelled_reagents,
@@ -658,6 +652,7 @@ class OrdExtractor:
             )
             reagents = []
             catalysts = []
+
         # extract temperature
         temperature = OrdExtractor.temperature_extractor(rxn)
 
@@ -703,7 +698,7 @@ class OrdExtractor:
             return mole_id_list, non_smiles_names_list_additions
 
         # Reactants and products might be mapped, but agents are not
-        # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
+        # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn_str function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
         (
             reactants,
             non_smiles_names_list_additions,

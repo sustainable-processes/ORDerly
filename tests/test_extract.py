@@ -344,16 +344,13 @@ def test_rxn_string_and_is_mapped(
             ["CCC"],
             "CC.C>CCC",
             [],
-            False,
-            marks=pytest.mark.xfail(
-                reason="ValueError: not enough values to unpack (expected 3, got 2)"
-            ),
+            True,
         ),
         # There's no point in trying to test whether the the rxn.identifiers[0].value = None because the schema doesn't allow that overwrite to happen!
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
-def test_extract_info_from_rxn(
+def test_extract_info_from_rxn_str(
     execution_number: int,
     file_name: str,
     rxn_idx: int,
@@ -372,7 +369,14 @@ def test_extract_info_from_rxn(
 
     import orderly.extract.extractor
 
-    rxn_info = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn(rxn)
+    _rxn_info = orderly.extract.extractor.OrdExtractor.get_rxn_string_and_is_mapped(rxn)
+    if _rxn_info is None:
+        return None
+    rxn_str, is_mapped = _rxn_info
+
+    rxn_info = orderly.extract.extractor.OrdExtractor.extract_info_from_rxn_str(
+        rxn_str, is_mapped
+    )
     if expected_none:
         assert rxn_info is None, f"expected a none but got {rxn_info=}"
         return
