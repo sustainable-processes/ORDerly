@@ -69,6 +69,7 @@ class OrdExtractor:
                 )
                 self.filename = str(self.data.dataset_id)
 
+        # Get the date of the grant (proxy for when the data was collected)
         _grant_date = self.filename.split("uspto-grants-")
         grant_date: Optional[pd.Timestamp] = None
         if len(_grant_date) > 1:
@@ -274,7 +275,6 @@ class OrdExtractor:
                 if smiles is None:
                     LOG.debug(f"No smiles or english name found for {identifiers=}")
                     continue
-                # raise AttributeError # TODO there is an issue here with catalyst being none
                 if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
                     reactants += [r for r in smiles.split(".")]
                 elif rxn_role == 2:  # reagent

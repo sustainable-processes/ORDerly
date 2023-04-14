@@ -508,7 +508,7 @@ def test_time_extractor(
                 "Cc1ccc(S(=O)(=O)O)cc1",
                 "O",
                 None,
-            ],  # TODO we should consider removing this none
+            ],
             ["[Pd]"],
             ["O", "CCO"],
             ["O=C([O-])[O-]"],
@@ -1120,7 +1120,9 @@ def test_extraction_pipeline(
             if len(series.dropna()) == 0:
                 continue
             elif col == "grant_date":
-                continue  # TODO check that it is an optional datetime
+                assert pd.api.types.is_datetime64_ns_dtype(
+                    series
+                ), f"failure for {col=}"
             elif "temperature" in col or "rxn_time" in col or "yield" in col:
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
