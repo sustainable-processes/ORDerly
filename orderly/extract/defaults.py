@@ -37,7 +37,6 @@ def has_transition_metal(smiles: SMILES) -> bool:
     return False
 
 
-
 def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     """
     Returns a dictionary mapping common representations of molecules (particularly catalysts) to a canonical representation.

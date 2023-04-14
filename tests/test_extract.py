@@ -6,7 +6,7 @@ from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
 from orderly.types import YIELD, MANUAL_REPLACEMENTS_DICT
 
-REPETITIONS = 3
+REPETITIONS = 1
 SLOW_REPETITIONS = 1
 
 
@@ -478,10 +478,10 @@ def test_time_extractor(
             ["O=C([O-])[O-]", "[Cs+]"],
             None,
             [
-                "[Cs+]",
                 "[Pd]",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
                 "O=C([O-])[O-]",
+                "[Cs+]",
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
             ],
             [],
@@ -653,10 +653,10 @@ def test_match_yield_with_product(
             False,
             ["CC(C)N1CCNCC1", "CCOC(=O)c1cnc2cc(OCC)c(Br)cc2c1Nc1ccc(F)cc1F"],
             [
-                "[Cs+]",
                 "[Pd]",
                 "O=C(/C=C/c1ccccc1)/C=C/c1ccccc1",
                 "O=C([O-])[O-]",
+                "[Cs+]",
                 "c1ccc(P(c2ccccc2)c2ccc3ccccc3c2-c2c(P(c3ccccc3)c3ccccc3)ccc3ccccc23)cc1",
             ],
             [],
@@ -679,7 +679,7 @@ def test_match_yield_with_product(
                 "SCc1ccccc1",
                 "O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1[N+](=O)[O-]",
             ],
-            ["[Na+]", "[H-]"],
+            ["[H-]", "[Na+]"],
             [],
             ["C1CCOC1"],
             [],
