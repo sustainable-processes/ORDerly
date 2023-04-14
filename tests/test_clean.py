@@ -521,6 +521,7 @@ def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) ->
             num_reag_cols += 1
         elif col.startswith("solv"):
             num_solv_cols += 1
+        
 
     assert num_reactant_cols == num_reactant
     assert num_product_cols == num_product
@@ -528,6 +529,10 @@ def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) ->
     assert num_cat_cols == num_cat
     assert num_reag_cols == num_reag
     assert num_solv_cols == num_solv
+    assert 'grant_date' in cols
+    assert 'date_of_experiment' in cols
+    assert cleaned_df['date_of_experiment'].dtype == 'datetime64' or cleaned_df['date_of_experiment'].dtype is None
+
 
 
 def double_list(
