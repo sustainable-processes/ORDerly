@@ -2,7 +2,6 @@ import logging
 from typing import List, Dict, Tuple, Set, Optional
 import datetime
 import pathlib
-import pickle
 import click
 
 import pandas as pd
@@ -20,6 +19,8 @@ import orderly.data.solvents
 from orderly.types import *
 
 LOG = logging.getLogger(__name__)
+
+import orderly.data.util
 
 
 def get_file_names(
@@ -40,20 +41,20 @@ def get_file_names(
     )  # sort just so that there is no randomness in order of processing
 
 
-def merge_pickled_mol_names(
+def merge_mol_names(
     molecule_names_path: pathlib.Path = pathlib.Path("data/orderly/molecule_names"),
     output_file_path: pathlib.Path = pathlib.Path(
-        "data/orderly/all_molecule_names.pkl"
+        "data/orderly/all_molecule_names.csv"
     ),
     overwrite: bool = True,
-    molecule_names_file_ending: str = ".pkl",
+    molecule_names_file_ending: str = ".csv",
 ) -> None:
     """
-    Merges all the pickle files containing molecule non-smiles identifiers (typically english names) into one file.
+    Merges all the files containing molecule non-smiles identifiers (typically english names) into one file.
     """
-    if output_file_path.suffix != ".pkl":
+    if output_file_path.suffix != ".csv":
         raise ValueError(
-            f"The file extension for {output_file_path=} is expected to be .pkl not {output_file_path.suffix}"
+            f"The file extension for {output_file_path=} is expected to be .csv not {output_file_path.suffix}"
         )
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -67,13 +68,12 @@ def merge_pickled_mol_names(
 
     full_lst = []
     for f in molecule_names_path.glob(f"./*{molecule_names_file_ending}"):
-        full_lst += pd.read_pickle(f)
+        full_lst += orderly.data.util.load_list(f)
 
     unique_molecule_names = list(set(full_lst))
 
     # save the list
-    with output_file_path.open("wb") as f:  # type: ignore
-        pickle.dump(unique_molecule_names, f)  # type: ignore
+    orderly.data.util.save_list(x=unique_molecule_names, path=output_file_path)
     LOG.info(f"Saved list of unique molecule names at {output_file_path=}")
 
 
@@ -187,7 +187,7 @@ def extract(
 
     df_path = output_path / extracted_ord_data_folder / f"{filename}.parquet"
     molecule_names_path = (
-        output_path / molecule_names_folder / f"molecules_{filename}.pkl"
+        output_path / molecule_names_folder / f"molecules_{filename}.csv"
     )
     if not overwrite:
         if df_path.exists():
@@ -208,10 +208,13 @@ def extract(
 
     # list of the names used for molecules, as opposed to SMILES strings
     # save the non_smiles_names_list to file
-    with open(
-        output_path / molecule_names_folder / f"molecules_{filename}.pkl", "wb"
-    ) as f:
-        pickle.dump(instance.non_smiles_names_list, f)
+
+    assert (
+        instance.non_smiles_names_list is not None
+    ), "we dont expect this to be none here"
+    orderly.data.util.save_list(
+        x=instance.non_smiles_names_list, path=molecule_names_path
+    )
     LOG.debug(f"Saves molecule names for {filename} at {molecule_names_path}")
 
 
@@ -270,7 +273,7 @@ def extract(
 @click.option(
     "--merged_molecules_file",
     type=str,
-    default="all_molecule_names.pkl",
+    default="all_molecule_names.csv",
     show_default=True,
     help="The name and file tag of the merged_molecules file (the merged_molecules_file is outputed to output_path / merged_molecules_file)",
 )
@@ -368,7 +371,7 @@ def main_click(
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a file
     5) Create a list of all molecule names and save as a file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
+    6) Merge all the lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.csv").
 
     Output:
 
@@ -466,7 +469,7 @@ def main(
         - Reactions will only be added if the reactants and products are different (i.e. no crystalisation reactions etc.)
     4) Build a pandas DataFrame from this data (one for each ORD file), and save each as a file
     5) Create a list of all molecule names and save as a file. This comes in handy when performing name resolution (many molecules are represented with an english name as opposed to a smiles string). A molecule is understood as having an english name (as opposed to a SMILES string) if it is unresolvable by RDKit.
-    6) Merge all the lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.pkl").
+    6) Merge all the lists of molecule names to create a list of unique molecule names (in merged_molecules_file eg "data/ORD/all_molecule_names.csv").
 
     Output:
 
@@ -538,11 +541,11 @@ def main(
         )
         pass
 
-    merge_pickled_mol_names(
+    merge_mol_names(
         molecule_names_path=molecule_name_path,
         output_file_path=output_path / merged_molecules_file,
         overwrite=overwrite,
-        molecule_names_file_ending=".pkl",
+        molecule_names_file_ending=".csv",
     )
     end_time = datetime.datetime.now()
     LOG.info("Duration: {}".format(end_time - start_time))

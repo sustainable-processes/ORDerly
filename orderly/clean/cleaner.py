@@ -12,6 +12,8 @@ import pandas as pd
 
 LOG = logging.getLogger(__name__)
 
+import orderly.data.util
+
 
 @dataclasses.dataclass(kw_only=True)
 class Cleaner:
@@ -321,7 +323,7 @@ class Cleaner:
 )
 @click.option(
     "--molecules_to_remove_path",
-    default="data/orderly/all_molecule_names.pkl",
+    default="data/orderly/all_molecule_names.csv",
     type=str,
     help="The path to the file than contains the molecules_names",
 )
@@ -513,9 +515,7 @@ def main(
 
     start_time = datetime.datetime.now()
 
-    molecules_to_remove = pd.read_pickle(
-        molecules_to_remove_path
-    )  # reads in list of strs
+    molecules_to_remove = orderly.data.util.load_list(molecules_to_remove_path)
 
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0

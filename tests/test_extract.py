@@ -1105,7 +1105,7 @@ def test_extraction_pipeline(
         extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=None,
         molecule_names_folder=molecule_names_folder,
-        merged_molecules_file="all_molecule_names.pkl",
+        merged_molecules_file="all_molecule_names.csv",
         use_multiprocessing=use_multiprocessing,
         name_contains_substring=name_contains_substring,
         inverse_substring=inverse_substring,
