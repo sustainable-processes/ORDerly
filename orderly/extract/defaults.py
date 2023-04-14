@@ -1,12 +1,13 @@
 from typing import List, Dict, Set
 from rdkit import Chem
+from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
 import orderly.data.solvents
 
 from orderly.types import *
 
 
-def is_transition_metal(atom: Chem.Atom) -> bool:
+def _is_transition_metal(atom: Chem.Atom) -> bool:
     """Determines if an atom is a transition metal.
     Args:
         atom: The atom in question. Should be of type rdkit.Chem.rdchem.Atom
@@ -27,12 +28,13 @@ def has_transition_metal(smiles: SMILES) -> bool:
 
     Inspiration: https://github.com/open-reaction-database/ord-schema/blob/e114eb6360badbf3a2d0552bea20be0d438966a3/ord_schema/message_helpers.py?fbclid=IwAR0qQuhveV_YF98qrNXMf3njPmkHmzlkuUAYIGAFhEkc_1UnVZITZG4U8sU#L579
     """
+    _ = rdkit_BlockLogs()
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return False
 
     for atom in mol.GetAtoms():
-        if is_transition_metal(atom):
+        if _is_transition_metal(atom):
             return True
     return False
 
