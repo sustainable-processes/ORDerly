@@ -1136,7 +1136,7 @@ def test_extraction_pipeline(
             series = df[col].replace({None: np.nan})
             if len(series.dropna()) == 0:
                 continue
-            elif col in ["grant_date", 'date_of_experiment']:
+            elif col in ["grant_date", "date_of_experiment"]:
                 assert pd.api.types.is_datetime64_ns_dtype(
                     series
                 ), f"failure for {col=}: {col.dtype}"
