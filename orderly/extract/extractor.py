@@ -31,7 +31,7 @@ class OrdExtractor:
     """Read in an ord file, check if it contains data, and then:
     1) Extract all the relevant data (raw): reactants, products, catalysts, reagents, yields, temp, time
     2) Canonicalise all the molecules
-    3) Write to a pickle file
+    3) Write the dataframe to a parquet file
     """
 
     ord_file_path: pathlib.Path

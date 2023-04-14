@@ -45,7 +45,7 @@ class Cleaner:
         disable_tqdm (bool, optional): Controls the use of tqdm progress bar. Defaults to False.
     """
 
-    pickles_path: pathlib.Path
+    ord_extraction_path: pathlib.Path
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -64,24 +64,24 @@ class Cleaner:
     def __post_init__(self) -> None:
         self.cleaned_reactions = self._get_dataframe()
 
-    def _merge_pickles(self) -> pd.DataFrame:
+    def _merge_extracted_ords(self) -> pd.DataFrame:
         # create one big df of all the extracted data
 
-        LOG.info("Getting merged dataframe from pickle files")
+        LOG.info("Getting merged dataframe from extracted ord files")
 
         onlyfiles = [
             f
-            for f in os.listdir(self.pickles_path)
-            if os.path.isfile(os.path.join(self.pickles_path, f))
+            for f in os.listdir(self.ord_extraction_path)
+            if os.path.isfile(os.path.join(self.ord_extraction_path, f))
         ]
 
         dfs = []
         with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
             for file in tqdm.tqdm(onlyfiles, disable=self.disable_tqdm):
-                if file[0] != ".":  # We don't want to try to unpickle .DS_Store
-                    filepath = self.pickles_path / file
-                    unpickled_df = pd.read_parquet(filepath)
-                    dfs.append(unpickled_df)
+                if file[0] != ".":  # We don't want to try to read the .DS_Store
+                    filepath = self.ord_extraction_path / file
+                    extracted_df = pd.read_parquet(filepath)
+                    dfs.append(extracted_df)
         return pd.concat(dfs, ignore_index=True)
 
     def _get_number_of_columns_to_keep(self) -> Dict[str, int]:
@@ -198,7 +198,7 @@ class Cleaner:
 
         LOG.info("Getting dataframe")
 
-        df = self._merge_pickles()
+        df = self._merge_extracted_ords()
         LOG.info(f"All data length: {len(df)}")
 
         # Remove reactions with too many of a certain component
@@ -314,16 +314,16 @@ class Cleaner:
     help="The filepath where the cleaned data will be saved",
 )
 @click.option(
-    "--pickles_path",
-    default="data/orderly/pickled_data",
+    "--ord_extraction_path",
+    default="data/orderly/extracted_ords",
     type=str,
-    help="The filepath to the folder than contains the extracted pickles",
+    help="The filepath to the folder than contains the extracted ord data",
 )
 @click.option(
     "--molecules_to_remove_path",
     default="data/orderly/all_molecule_names.pkl",
     type=str,
-    help="The path to the pickle file than contains the molecules_names",
+    help="The path to the file than contains the molecules_names",
 )
 @click.option(
     "--consistent_yield",
@@ -405,7 +405,7 @@ class Cleaner:
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 def main_click(
     clean_data_path: pathlib.Path,
-    pickles_path: pathlib.Path,
+    ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
     num_reactant: int,
@@ -445,7 +445,7 @@ def main_click(
     """
     main(
         clean_data_path=pathlib.Path(clean_data_path),
-        pickles_path=pathlib.Path(pickles_path),
+        ord_extraction_path=pathlib.Path(ord_extraction_path),
         molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
@@ -465,7 +465,7 @@ def main_click(
 
 def main(
     clean_data_path: pathlib.Path,
-    pickles_path: pathlib.Path,
+    ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
     num_reactant: int,
@@ -506,8 +506,8 @@ def main(
 
     if not isinstance(clean_data_path, pathlib.Path):
         raise ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
-    if not isinstance(pickles_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(pickles_path)}")
+    if not isinstance(ord_extraction_path, pathlib.Path):
+        raise ValueError(f"Expect pathlib.Path: got {type(ord_extraction_path)}")
     if not isinstance(molecules_to_remove_path, pathlib.Path):
         raise ValueError(f"Expect pathlib.Path: got {type(molecules_to_remove_path)}")
 
@@ -522,7 +522,7 @@ def main(
     ), "Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
 
     instance = Cleaner(
-        pickles_path=pickles_path,
+        ord_extraction_path=ord_extraction_path,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,

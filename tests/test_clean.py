@@ -46,11 +46,11 @@ def get_cleaned_df(
     import orderly.clean.cleaner
     import orderly.data.test_data
 
-    pickles_path = (
+    ord_extraction_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
         )
-        / "pickled_data"
+        / "extracted_ords"
     )
     molecules_to_remove_path = (
         orderly.data.test_data.get_path_of_test_extracted_ords(
@@ -61,7 +61,7 @@ def get_cleaned_df(
 
     orderly.clean.cleaner.main(
         clean_data_path=output_path / "orderly_ord.parquet",
-        pickles_path=pickles_path,
+        ord_extraction_path=ord_extraction_path,
         molecules_to_remove_path=molecules_to_remove_path,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
