@@ -561,6 +561,5 @@ def main(
     instance.cleaned_reactions.to_parquet(clean_data_path)
     LOG.info("Saved")
 
-
     end_time = datetime.datetime.now()
     LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
