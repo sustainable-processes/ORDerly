@@ -539,6 +539,7 @@ def main(
         num_cat == 0 and num_reag == 0
     ), "Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
 
+    LOG.info(f"Beginning extraction for files in {ord_extraction_path}")
     instance = Cleaner(
         ord_extraction_path=ord_extraction_path,
         consistent_yield=consistent_yield,
@@ -556,7 +557,10 @@ def main(
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
+    LOG.info(f"completed cleaning, saving to {clean_data_path}")
     instance.cleaned_reactions.to_parquet(clean_data_path)
+    LOG.info("Saved")
+
 
     end_time = datetime.datetime.now()
-    LOG.info("Duration: {}".format(end_time - start_time))
+    LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
