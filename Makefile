@@ -13,7 +13,7 @@ black:
 	poetry run python -m black .
 
 pytest:
-	poetry run python -m pytest -v tests/test_extract.py
+	poetry run python -m pytest -vv tests/test_extract.py
 
 gen_all_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="" --trust_labelling=False --output_path="data/orderly/all_no_trust"
@@ -34,8 +34,8 @@ gen_uspto_trust:
 gen_datasets: gen_all_no_trust gen_all_trust gen_uspto_no_trust gen_uspto_trust
 
 gen_test_data:
-	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False --use_multiprocessing=True
-	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling  --trust_labelling=False --name_contains_substring="" --overwrite=False --use_multiprocessing=True
+	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=True --use_multiprocessing=True
+	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling  --trust_labelling=False --name_contains_substring="" --overwrite=True --use_multiprocessing=True
 
 build_orderly:
 	docker image build --target orderly_base --tag orderly_base .
