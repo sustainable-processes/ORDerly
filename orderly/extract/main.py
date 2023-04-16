@@ -4,6 +4,8 @@ import datetime
 import pathlib
 import click
 
+from click_loglevel import LogLevel
+
 import pandas as pd
 import tqdm
 import tqdm.contrib.logging
@@ -305,6 +307,14 @@ def extract(
     show_default=True,
     help="If true, will overwrite existing files, else will through an error if a file exists",
 )
+@click.option(
+    "--log_file",
+    type=str,
+    default="default_path_extract.log",
+    show_default=True,
+    help="path for the log file for extraction",
+)
+@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     data_path: str,
     ord_file_ending: str,
@@ -318,6 +328,8 @@ def main_click(
     name_contains_substring: str,
     inverse_substring: bool,
     overwrite: bool,
+    log_file: str,
+    log_level: int,
 ) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to file. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
@@ -387,6 +399,10 @@ def main_click(
     if name_contains_substring != "":
         _name_contains_substring = name_contains_substring
 
+    _log_file = pathlib.Path(output_path) / "extract.log"
+    if log_file != "default_path_extract.log":
+        _log_file = pathlib.Path(log_file)
+
     main(
         data_path=pathlib.Path(data_path),
         ord_file_ending=ord_file_ending,
@@ -400,6 +416,8 @@ def main_click(
         name_contains_substring=_name_contains_substring,
         inverse_substring=inverse_substring,
         overwrite=overwrite,
+        log_file=_log_file,
+        log_level=log_level,
     )
 
 
@@ -416,6 +434,8 @@ def main(
     name_contains_substring: Optional[str],
     inverse_substring: bool,
     overwrite: bool,
+    log_file: pathlib.Path = pathlib.Path("extraction.log"),
+    log_level: int = logging.INFO,
 ) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to files.
@@ -476,6 +496,14 @@ def main(
     1) A file with the cleaned data for each folder of data. NB: Temp always in C, time always in hours
     2) A list of all unique molecule names (in merged_molecules_file)
     """
+
+    logging.basicConfig(
+        filename=log_file,
+        encoding="utf-8",
+        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s",
+        datefmt="%d-%b-%y %H:%M:%S",
+        level=log_level,
+    )
 
     if not isinstance(data_path, pathlib.Path):
         raise ValueError(f"Expect pathlib.Path: got {type(data_path)}")
