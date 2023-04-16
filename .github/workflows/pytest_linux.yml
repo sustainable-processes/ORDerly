@@ -1,17 +1,9 @@
 name: PyTest
 on: push
 
-# jobs:
-#   test:
-#     runs-on: ubuntu-latest
-#     timeout-minutes: 10
-
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
