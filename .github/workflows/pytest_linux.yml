@@ -1,4 +1,4 @@
-name: PyTest
+name: PyTest_linux
 on: push
 
 jobs:
