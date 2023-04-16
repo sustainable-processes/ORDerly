@@ -6,6 +6,8 @@ import datetime
 import pathlib
 import click
 
+from click_loglevel import LogLevel
+
 import tqdm
 import tqdm.contrib.logging
 import pandas as pd
@@ -412,6 +414,14 @@ class Cleaner:
     show_default=True,
     help="If true, will overwrite the existing orderly_ord.parquet, else will through an error if a file exists",
 )
+@click.option(
+    "--log_file",
+    type=str,
+    default="default_path_clean.log",
+    show_default=True,
+    help="path for the log file for cleaning",
+)
+@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     clean_data_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
@@ -430,6 +440,8 @@ def main_click(
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
+    log_file: str,
+    log_level: int,
 ) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
@@ -453,6 +465,11 @@ def main_click(
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
+
+    _log_file = pathlib.Path(ord_extraction_path) / "clean.log"
+    if log_file != "default_path_clean.log":
+        _log_file = pathlib.Path(log_file)
+
     main(
         clean_data_path=pathlib.Path(clean_data_path),
         ord_extraction_path=pathlib.Path(ord_extraction_path),
@@ -471,6 +488,8 @@ def main_click(
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
+        log_file=_log_file,
+        log_level=log_level,
     )
 
 
@@ -492,6 +511,8 @@ def main(
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
+    log_file: pathlib.Path = pathlib.Path("cleaning.log"),
+    log_level: int = logging.INFO,
 ) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
@@ -515,6 +536,14 @@ def main(
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
+
+    logging.basicConfig(
+        filename=log_file,
+        encoding="utf-8",
+        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s",
+        datefmt="%d-%b-%y %H:%M:%S",
+        level=log_level,
+    )
 
     if not isinstance(clean_data_path, pathlib.Path):
         raise ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
