@@ -51,4 +51,4 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-            strict: [, --strict]
+            strict: ["", "--strict"]
