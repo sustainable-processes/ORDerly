@@ -1212,4 +1212,7 @@ def test_extraction_pipeline_exact_output(
     )
     created_df = pd.read_parquet(tmp_path / extracted_ord_data_folder / file_to_compare_against)
 
+    print(f"{created_df=}")
+    print(f"{compare_against_df=}")
+
     pd.testing.assert_frame_equal(created_df, compare_against_df)
