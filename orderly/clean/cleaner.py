@@ -537,6 +537,8 @@ def main(
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
 
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
     logging.basicConfig(
         filename=log_file,
         encoding="utf-8",

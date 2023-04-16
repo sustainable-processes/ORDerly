@@ -497,6 +497,8 @@ def main(
     2) A list of all unique molecule names (in merged_molecules_file)
     """
 
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
     logging.basicConfig(
         filename=log_file,
         encoding="utf-8",
