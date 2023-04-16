@@ -72,7 +72,7 @@ def merge_mol_names(
     for f in molecule_names_path.glob(f"./*{molecule_names_file_ending}"):
         full_lst += orderly.data.util.load_list(f)
 
-    unique_molecule_names = list(set(full_lst))
+    unique_molecule_names = sorted(list(set(full_lst)))
 
     # save the list
     orderly.data.util.save_list(x=unique_molecule_names, path=output_file_path)
