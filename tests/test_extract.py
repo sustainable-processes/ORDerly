@@ -132,7 +132,9 @@ def test_rxn_input_extractor(
     expected_labelled_reagents = sorted(expected_labelled_reagents)
     expected_labelled_solvents = sorted(expected_labelled_solvents)
     expected_labelled_catalysts = sorted(expected_labelled_catalysts)
-    expected_labelled_products_from_input = sorted(expected_labelled_products_from_input)
+    expected_labelled_products_from_input = sorted(
+        expected_labelled_products_from_input
+    )
 
     import orderly.extract.extractor
 
@@ -145,11 +147,21 @@ def test_rxn_input_extractor(
         non_smiles_names_list_additions,
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
-    assert expected_labelled_reactants == labelled_reactants, f"failure for {sorted(expected_labelled_reactants)=}, got {labelled_reactants}"  # TODO unsure why we have random ordering on ubuntu
-    assert expected_labelled_reagents == labelled_reagents, f"failure for {expected_labelled_reagents=}, got {labelled_reagents}"
-    assert expected_labelled_solvents == labelled_solvents, f"failure for {expected_labelled_solvents=}, got {labelled_solvents}"
-    assert expected_labelled_catalysts == labelled_catalysts, f"failure for {expected_labelled_catalysts=}, got {labelled_catalysts}"
-    assert expected_labelled_products_from_input == labelled_products_from_input, f"failure for {expected_labelled_products_from_input=}, got {labelled_products_from_input}"
+    assert (
+        expected_labelled_reactants == labelled_reactants
+    ), f"failure for {sorted(expected_labelled_reactants)=}, got {labelled_reactants}"  # TODO unsure why we have random ordering on ubuntu
+    assert (
+        expected_labelled_reagents == labelled_reagents
+    ), f"failure for {expected_labelled_reagents=}, got {labelled_reagents}"
+    assert (
+        expected_labelled_solvents == labelled_solvents
+    ), f"failure for {expected_labelled_solvents=}, got {labelled_solvents}"
+    assert (
+        expected_labelled_catalysts == labelled_catalysts
+    ), f"failure for {expected_labelled_catalysts=}, got {labelled_catalysts}"
+    assert (
+        expected_labelled_products_from_input == labelled_products_from_input
+    ), f"failure for {expected_labelled_products_from_input=}, got {labelled_products_from_input}"
     assert (
         expected_non_smiles_names_list_additions == non_smiles_names_list_additions
     ), f"failure for {expected_non_smiles_names_list_additions=}, got {non_smiles_names_list_additions}"
@@ -1202,10 +1214,12 @@ def test_extraction_pipeline_exact_output(
     compare_against_df = pd.read_parquet(
         orderly.data.test_data.get_path_of_test_extracted_ords(
             trust_labelling=trust_labelling
-        ) 
-        / "extracted_ords" 
+        )
+        / "extracted_ords"
         / file_to_compare_against
     )
-    created_df = pd.read_parquet(tmp_path / extracted_ord_data_folder / file_to_compare_against)
+    created_df = pd.read_parquet(
+        tmp_path / extracted_ord_data_folder / file_to_compare_against
+    )
 
     pd.testing.assert_frame_equal(created_df, compare_against_df)
