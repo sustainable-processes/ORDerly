@@ -264,6 +264,7 @@ class OrdExtractor:
 
         for key in rxn.inputs:
             components = rxn.inputs[key].components
+
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
@@ -289,12 +290,13 @@ class OrdExtractor:
                 elif rxn_role == 8:  # product
                     # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
                     products += [r for r in smiles.split(".")]
+
         return (
-            reactants,
-            reagents,
-            solvents,
-            catalysts,
-            products,
+            sorted(reactants),
+            sorted(reagents),
+            sorted(solvents),
+            sorted(catalysts),
+            sorted(products),
             non_smiles_names_list,
         )
 
@@ -626,7 +628,7 @@ class OrdExtractor:
                     + labelled_catalysts
                 )
                 # remove duplicates
-                all_labelled_molecules = list(set(all_labelled_molecules))
+                all_labelled_molecules = sorted(list(set(all_labelled_molecules)))
                 # remove any molecules that are already in the reactants, agents, or solvents
                 molecules_unique_to_labelled_data = [
                     x

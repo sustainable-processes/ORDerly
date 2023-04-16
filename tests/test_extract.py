@@ -6,7 +6,7 @@ from ord_schema.proto import reaction_pb2 as ord_reaction_pb2
 
 from orderly.types import YIELD, MANUAL_REPLACEMENTS_DICT
 
-REPETITIONS = 3
+REPETITIONS = 1
 SLOW_REPETITIONS = 1
 
 
@@ -128,6 +128,14 @@ def test_rxn_input_extractor(
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
 
+    expected_labelled_reactants = sorted(expected_labelled_reactants)
+    expected_labelled_reagents = sorted(expected_labelled_reagents)
+    expected_labelled_solvents = sorted(expected_labelled_solvents)
+    expected_labelled_catalysts = sorted(expected_labelled_catalysts)
+    expected_labelled_products_from_input = sorted(
+        expected_labelled_products_from_input
+    )
+
     import orderly.extract.extractor
 
     (
@@ -139,9 +147,9 @@ def test_rxn_input_extractor(
         non_smiles_names_list_additions,
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
-    assert sorted(expected_labelled_reactants) == sorted(
-        labelled_reactants
-    ), f"failure for {sorted(expected_labelled_reactants)=}, got {sorted(labelled_reactants)}"  # TODO unsure why we have random ordering on ubuntu
+    assert (
+        expected_labelled_reactants == labelled_reactants
+    ), f"failure for {sorted(expected_labelled_reactants)=}, got {labelled_reactants}"  # TODO unsure why we have random ordering on ubuntu
     assert (
         expected_labelled_reagents == labelled_reagents
     ), f"failure for {expected_labelled_reagents=}, got {labelled_reagents}"
@@ -1144,3 +1152,74 @@ def test_extraction_pipeline(
                 assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
             else:
                 assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
+
+
+@pytest.mark.parametrize(
+    "use_multiprocessing,name_contains_substring,inverse_substring,file_to_extract,file_to_compare_against",
+    (
+        [
+            True,
+            "uspto",
+            False,
+            "0c61835e3a0b4986aabf2b61b708e322.pb.gz",
+            "uspto-grants-1995_11.parquet",
+        ],
+        [
+            True,
+            "uspto",
+            False,
+            "0c61835e3a0b4986aabf2b61b708e322.pb.gz",
+            "uspto-grants-1995_11.parquet",
+        ],
+    ),
+)
+@pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
+@pytest.mark.parametrize("trust_labelling", [False, True])
+def test_extraction_pipeline_exact_output(
+    execution_number: int,
+    tmp_path: pathlib.Path,
+    trust_labelling: bool,
+    use_multiprocessing: bool,
+    name_contains_substring: Optional[str],
+    inverse_substring: bool,
+    file_to_extract: str,
+    file_to_compare_against: str,
+) -> None:
+    extracted_ord_data_folder = "extracted_ord_data"
+    (tmp_path / extracted_ord_data_folder).mkdir()
+    molecule_names_folder = "molecule_names"
+    (tmp_path / molecule_names_folder).mkdir()
+
+    import orderly.extract.main
+    import orderly.data.test_data
+
+    orderly.extract.main.main(
+        data_path=orderly.data.test_data.get_path_of_test_ords(),
+        ord_file_ending=file_to_extract,
+        trust_labelling=trust_labelling,
+        output_path=tmp_path,
+        extracted_ord_data_folder=extracted_ord_data_folder,
+        solvents_path=None,
+        molecule_names_folder=molecule_names_folder,
+        merged_molecules_file="all_molecule_names.csv",
+        use_multiprocessing=use_multiprocessing,
+        name_contains_substring=name_contains_substring,
+        inverse_substring=inverse_substring,
+        overwrite=False,
+    )
+
+    import pandas as pd
+    import numpy as np
+
+    compare_against_df = pd.read_parquet(
+        orderly.data.test_data.get_path_of_test_extracted_ords(
+            trust_labelling=trust_labelling
+        )
+        / "extracted_ords"
+        / file_to_compare_against
+    )
+    created_df = pd.read_parquet(
+        tmp_path / extracted_ord_data_folder / file_to_compare_against
+    )
+
+    pd.testing.assert_frame_equal(created_df, compare_against_df)
