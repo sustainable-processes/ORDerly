@@ -5,6 +5,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        strict: ["", "--strict"]
 
     steps:
       - name: Check out repository code
@@ -48,7 +52,4 @@ jobs:
       
       - name: Code Quality
         run: poetry run python -m mypy . --ignore-missing-imports ${{ matrix.strict }}
-        strategy:
-          fail-fast: false
-          matrix:
-            strict: ["", "--strict"]
+  
