@@ -264,6 +264,7 @@ class OrdExtractor:
 
         for key in rxn.inputs:
             components = rxn.inputs[key].components
+
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
@@ -292,28 +293,12 @@ class OrdExtractor:
 
         return (
             sorted(reactants),
-            reagents,
-            solvents,
-            catalysts,
-            products,
+            sorted(reagents),
+            sorted(solvents),
+            sorted(catalysts),
+            sorted(products),
             non_smiles_names_list,
         )
-        # return (
-        #     sorted(reactants),
-        #     reagents,
-        #     sorted(solvents),
-        #     sorted(catalysts),
-        #     products,
-        #     non_smiles_names_list,
-        # )
-        # return (
-        #     reactants,
-        #     reagents,
-        #     solvents,
-        #     catalysts,
-        #     products,
-        #     non_smiles_names_list,
-        # )
 
     @staticmethod
     def rxn_outcomes_extractor(
