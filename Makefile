@@ -31,7 +31,7 @@ gen_uspto_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_trust"
 	poetry run python -m orderly.clean --clean_data_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv"
 
-gen_datasets: gen_all_no_trust gen_all_trust gen_uspto_no_trust gen_uspto_trust
+gen_datasets: gen_uspto_no_trust gen_uspto_trust gen_all_no_trust gen_all_trust
 
 gen_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False --use_multiprocessing=True
