@@ -1135,10 +1135,11 @@ def test_extraction_pipeline(
 
     for extraction in (tmp_path / extracted_ord_data_folder).glob("*"):
         df = pd.read_parquet(extraction)
+
         if df is None:
             continue
 
-        # Columns: ['rxn_str_0', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature_0', 'rxn_time_0', 'product_0', 'yield_0', 'grant_date'],
+        # Columns: ['rxn_str', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature', 'rxn_time', 'product_0', 'yield_0', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})
@@ -1147,11 +1148,15 @@ def test_extraction_pipeline(
             elif col in ["grant_date", "date_of_experiment"]:
                 assert pd.api.types.is_datetime64_ns_dtype(
                     series
-                ), f"failure for {col=}: {col.dtype}"
+                ), f"failure for {col=}: {series.dtype=}"
             elif ("temperature" in col) or ("rxn_time" in col) or ("yield" in col):
-                assert pd.api.types.is_float_dtype(series), f"failure for {col=}"
+                assert pd.api.types.is_float_dtype(
+                    series
+                ), f"failure for {col=} {series.dtype=}"
             else:
-                assert pd.api.types.is_string_dtype(series), f"failure for {col=}"
+                assert pd.api.types.is_object_dtype(
+                    series
+                ), f"failure for {col=} {series.dtype=}"
 
 
 @pytest.mark.parametrize(

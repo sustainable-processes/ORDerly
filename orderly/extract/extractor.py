@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Tuple, Set, Optional, Union
+from typing import List, Dict, Tuple, Set, Optional, Union, Any
 import pathlib
 import dataclasses
 import warnings
@@ -94,6 +94,7 @@ class OrdExtractor:
         self.full_df, self.non_smiles_names_list = self.build_full_df()
 
         self.full_df = self.full_df.assign(grant_date=grant_date)
+        self.full_df.grant_date = pd.to_datetime(self.full_df.grant_date)
 
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
@@ -399,6 +400,24 @@ class OrdExtractor:
             return None  # no time found
 
     @staticmethod
+    def procedure_details_extractor(
+        rxn: ord_reaction_pb2.Reaction,
+    ) -> str:  # TODO check does it return empty string or none
+        procedure_details = rxn.notes.procedure_details
+        return str(procedure_details)
+
+    @staticmethod
+    def date_of_experiment_extractor(
+        rxn: ord_reaction_pb2.Reaction,
+    ) -> Optional[pd.Timestamp]:
+        _date_of_experiment = rxn.provenance.experiment_start.value
+        if len(_date_of_experiment) == 0:
+            date_of_experiment = None
+        else:  # we trust that it is a string that is convertible to a pd.Timestamp
+            date_of_experiment = pd.to_datetime(_date_of_experiment, format="%m/%d/%Y")
+        return date_of_experiment
+
+    @staticmethod
     def apply_replacements_dict(
         smiles_list: List[MOLECULE_IDENTIFIER],
         manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
@@ -654,12 +673,6 @@ class OrdExtractor:
             reagents = []
             catalysts = []
 
-        # extract temperature
-        temperature = OrdExtractor.temperature_extractor(rxn)
-
-        # extract rxn_time
-        rxn_time = OrdExtractor.rxn_time_extractor(rxn)
-
         # clean the smiles
 
         def is_digit(x: Optional[str]) -> Optional[bool]:
@@ -773,12 +786,10 @@ class OrdExtractor:
         solvents = [s for s in solvents if s not in reactants]
         catalysts = [c for c in catalysts if c not in reactants]
 
-        procedure_details = rxn.notes.procedure_details
-        date_of_experiment = rxn.provenance.experiment_start.value
-        if len(date_of_experiment) == 0:
-            date_of_experiment = None
-        else:  # we trust that it is a string that is convertible to a pd.Timestamp
-            date_of_experiment = pd.to_datetime(date_of_experiment, format="%m/%d/%Y")
+        procedure_details = OrdExtractor.procedure_details_extractor(rxn)
+        date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
+        temperature = OrdExtractor.temperature_extractor(rxn)
+        rxn_time = OrdExtractor.rxn_time_extractor(rxn)
 
         rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
@@ -801,37 +812,42 @@ class OrdExtractor:
     def build_rxn_lists(
         self,
     ) -> Tuple[
-        Tuple[
-            List[Optional[RXN_STR]],
-            List[REACTANTS],
-            List[AGENTS],
-            List[REAGENTS],
-            List[SOLVENTS],
-            List[CATALYSTS],
-            List[Optional[TEMPERATURE_CELCIUS]],
-            List[Optional[RXN_TIME]],
-            List[PRODUCTS],
-            List[YIELDS],
-            List[str],
-            List[Optional[pd.Timestamp]],
+        Dict[
+            str,
+            Union[
+                List[Optional[RXN_STR]],
+                List[REACTANTS],
+                List[AGENTS],
+                List[REAGENTS],
+                List[SOLVENTS],
+                List[CATALYSTS],
+                List[Optional[TEMPERATURE_CELCIUS]],
+                List[Optional[RXN_TIME]],
+                List[PRODUCTS],
+                List[YIELDS],
+                List[str],
+                List[Optional[pd.Timestamp]],
+            ],
         ],
         List[MOLECULE_IDENTIFIER],
     ]:
-        rxn_str_all = []
-        reactants_all = []
-        products_all = []
-        yields_all = []
-        reagents_all = []
-        agents_all = []
-        solvents_all = []
-        catalysts_all = []
-
-        temperature_all = []
-        rxn_time_all = []
-
-        procedure_details_all = []
-        date_of_experiment_all = []
         rxn_non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
+
+        # mypy struggles with the dict so we just ignore here
+        rxn_lists = {  # type: ignore
+            "rxn_str": [],
+            "reactant": [],
+            "agent": [],
+            "reagent": [],
+            "solvent": [],
+            "catalyst": [],
+            "temperature": [],
+            "rxn_time": [],
+            "product": [],
+            "yield": [],
+            "procedure_details": [],
+            "date_of_experiment": [],
+        }
 
         assert self.solvents_set is not None
 
@@ -865,67 +881,106 @@ class OrdExtractor:
             if set(reactants) != set(
                 products
             ):  # If the reactants and products are the same, then we don't want to add this reaction to our dataset
-                rxn_str_all.append(rxn_str)
-                reactants_all.append(reactants)
-                products_all.append(products)
-                yields_all.append(yields)
-                temperature_all.append(temperature)
-                rxn_time_all.append(rxn_time)
-                procedure_details_all.append(procedure_details)
-                date_of_experiment_all.append(date_of_experiment)
-                agents_all.append(agents)
-                solvents_all.append(solvents)
-                reagents_all.append(reagents)
-                catalysts_all.append(catalysts)
+                rxn_lists["rxn_str"].append(rxn_str)
+                rxn_lists["reactant"].append(reactants)
+                rxn_lists["agent"].append(agents)
+                rxn_lists["reagent"].append(reagents)
+                rxn_lists["solvent"].append(solvents)
+                rxn_lists["catalyst"].append(catalysts)
+                rxn_lists["temperature"].append(temperature)
+                rxn_lists["rxn_time"].append(rxn_time)
+                rxn_lists["product"].append(products)
+                rxn_lists["yield"].append(yields)
+                rxn_lists["procedure_details"].append(procedure_details)
+                rxn_lists["date_of_experiment"].append(date_of_experiment)
 
-        return (
-            rxn_str_all,
-            reactants_all,
-            agents_all,
-            reagents_all,
-            solvents_all,
-            catalysts_all,
-            temperature_all,
-            rxn_time_all,
-            products_all,
-            yields_all,
-            procedure_details_all,
-            date_of_experiment_all,
-        ), rxn_non_smiles_names_list
+        return rxn_lists, rxn_non_smiles_names_list
 
-    def create_column_headers(self, df: pd.DataFrame, base_string: str) -> List[str]:
+    @staticmethod
+    def _create_column_headers(num_cols: int, base_string: str) -> List[str]:
         """
         create the column headers for the df
         adds a base_string to the columns (prefix)
         """
-        column_headers = []
-        for i in range(len(df.columns)):
-            column_headers.append(base_string + str(i))
-        return column_headers
+        return [f"{base_string}_{i}" for i in range(num_cols)]
+
+    @staticmethod
+    def _to_dataframe(cols: List[Any], base_string: str | List[str]) -> pd.DataFrame:
+        df = pd.DataFrame(cols)
+        if isinstance(base_string, str):
+            df.columns = OrdExtractor._create_column_headers(
+                num_cols=df.shape[1], base_string=base_string
+            )
+        else:
+            df.columns = base_string
+        return df
 
     def build_full_df(
         self,
     ) -> Tuple[pd.DataFrame, List[MOLECULE_IDENTIFIER]]:
-        headers = [
-            "rxn_str_",
-            "reactant_",
-            "agent_",
-            "reagent_",
-            "solvent_",
-            "catalyst_",
-            "temperature_",
-            "rxn_time_",
-            "product_",
-            "yield_",
-        ]
         data_lists, rxn_non_smiles_names_list = self.build_rxn_lists()
-        for i in range(len(headers)):
-            new_df = pd.DataFrame(data_lists[i])
-            df_headers = self.create_column_headers(new_df, headers[i])
-            new_df.columns = df_headers
-            if i == 0:
-                full_df = new_df
-            else:
-                full_df = pd.concat([full_df, new_df], axis=1)
-        full_df = full_df.assign(date_of_experiment=data_lists[-1])
+
+        dfs = []
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["rxn_str"], base_string=["rxn_str"]
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["reactant"], base_string="reactant"
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent").astype(
+                "string"
+            )
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["reagent"], base_string="reagent"
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["solvent"], base_string="solvent"
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["catalyst"], base_string="catalyst"
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["temperature"], base_string=["temperature"]
+            ).astype("float")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["rxn_time"], base_string=["rxn_time"]
+            ).astype("float")
+        )  # TODO do we extract multiple rxn times
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["product"], base_string="product"
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(data_lists["yield"], base_string="yield").astype(
+                "float"
+            )
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["procedure_details"], base_string=["procedure_details"]
+            ).astype("string")
+        )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["date_of_experiment"], base_string=["date_of_experiment"]
+            ).apply(pd.to_datetime, errors="coerce")
+        )
+
+        full_df = pd.concat(dfs, axis=1)
         return full_df, rxn_non_smiles_names_list
