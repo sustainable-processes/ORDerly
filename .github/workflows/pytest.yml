@@ -42,3 +42,12 @@ jobs:
 
       - name: Run test suite
         run: poetry run pytest -v --cov --cov-fail-under=90 --cov-report html
+
+      - name: ls
+        run: ls
+
+      # - name: Upload
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: coverage_report
+      #     path: paper.pdf
