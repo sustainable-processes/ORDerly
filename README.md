@@ -60,6 +60,17 @@ We can run extraction using: ```poetry run python -m orderly.extract```. Using `
 
 We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```poetry run python -m orderly.clean --help``` will explain the arguments. Certain args must be set such as data paths.
 
+# ML models trained on ORDerly
+
+We plan to show the usefulness of ORDerly by training ML models from the literature on ORDerly for standardised prediction tasks. Prediction tasks include:
+- Yield prediction
+    - https://chemrxiv.org/engage/chemrxiv/article-details/6150143118be8575b030ad43
+- Retrosynthesis
+- Forward prediction
+- Condition prediction
+
+We may be able to use https://deepchem.io/models
+
 
 ## Appendix
 
@@ -68,3 +79,5 @@ We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```po
 In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in USPTO), this list was created from the intersection of the following two lists (excluding acids, bases, and polymers):
  - https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv
  - https://github.com/sustainable-processes/summit/blob/main/data/ucb_pharma_approved_list.csv
+ 
+ 
