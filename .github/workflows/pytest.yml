@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest] # [macos-latest, ubuntu-latest, windows-latest, ubuntu-18, ubuntu-20]
+        os: [ubuntu-latest, ubuntu-18, ubuntu-20] # [macos-latest, ubuntu-latest, windows-latest, ubuntu-18, ubuntu-20]
     timeout-minutes: 10
 
     steps:
@@ -41,4 +41,4 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: poetry run pytest -v --cov --cov-fail-under=90
+        run: poetry run pytest -v --cov --cov-fail-under=90 --cov-report html

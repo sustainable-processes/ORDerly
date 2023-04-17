@@ -206,6 +206,7 @@ def extract(
             raise e
 
     instance.full_df.to_parquet(df_path)
+
     LOG.debug(f"Saved df at {df_path}")
 
     # list of the names used for molecules, as opposed to SMILES strings
