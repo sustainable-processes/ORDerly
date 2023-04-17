@@ -128,7 +128,7 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _remove_with_inconsistent_yield(df, num_product: int) -> pd.DataFrame:
+    def _remove_with_inconsistent_yield(df: pd.DataFrame, num_product: int) -> pd.DataFrame:
         # Keep rows with yield <= 100 or missing yield values
         mask = pd.Series(data=True, index=df.index)  # start with all rows selected
         for i in range(num_product):
