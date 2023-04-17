@@ -78,10 +78,10 @@ class Cleaner:
             for file in tqdm.tqdm(
                 self.ord_extraction_path.glob("*.parquet"), disable=self.disable_tqdm
             ):
-                LOG.info(f"Reading {file=}")
+                LOG.debug(f"Reading {file=}")
                 extracted_df = pd.read_parquet(file)
                 dfs.append(extracted_df)
-                LOG.info(f"Read {file=}")
+                LOG.debug(f"Read {file=}")
         LOG.info("Successfully read all data")
         return pd.concat(dfs, ignore_index=True)
 
