@@ -912,6 +912,7 @@ class OrdExtractor:
                 num_cols=df.shape[1], base_string=base_string
             )
         else:
+            assert df.shape[1] == 1
             df.columns = base_string
         return df
 
@@ -919,6 +920,7 @@ class OrdExtractor:
         self,
     ) -> Tuple[pd.DataFrame, List[MOLECULE_IDENTIFIER]]:
         data_lists, rxn_non_smiles_names_list = self.build_rxn_lists()
+        LOG.info("Build rxn lists")
 
         dfs = []
         dfs.append(
@@ -960,7 +962,7 @@ class OrdExtractor:
             OrdExtractor._to_dataframe(
                 data_lists["rxn_time"], base_string=["rxn_time"]
             ).astype("float")
-        )  # TODO do we extract multiple rxn times
+        )  # TODO do we extract multiple rxn times?
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["product"], base_string="product"
@@ -981,6 +983,8 @@ class OrdExtractor:
                 data_lists["date_of_experiment"], base_string=["date_of_experiment"]
             ).apply(pd.to_datetime, errors="coerce")
         )
+        LOG.info("Constructed dict of dfs")
 
         full_df = pd.concat(dfs, axis=1)
+        LOG.info("Constructed df")
         return full_df, rxn_non_smiles_names_list
