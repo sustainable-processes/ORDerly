@@ -392,14 +392,14 @@ class Cleaner:
 @click.option(
     "--num_cat",
     type=int,
-    default=2,
+    default=0,
     show_default=True,
     help="See help for num_reactant",
 )
 @click.option(
     "--num_reag",
     type=int,
-    default=3,
+    default=0,
     show_default=True,
     help="See help for num_reactant",
 )
@@ -601,7 +601,7 @@ def main(
 
     assert num_agent == 0 or (
         num_cat == 0 and num_reag == 0
-    ), "Invalid input: If trust_labelling=True in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=False, then num_agent must be 0."
+    ), "Invalid input: If trust_labelling=False in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=True, then num_agent must be 0."
 
     LOG.info(f"Beginning extraction for files in {ord_extraction_path}")
     instance = Cleaner(
