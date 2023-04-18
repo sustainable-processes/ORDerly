@@ -2,6 +2,9 @@ from typing import List, Optional
 import platform
 import subprocess
 import os
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 def run_docker_download(
@@ -44,14 +47,18 @@ def mac_download(output_control: bool = True) -> None:
 
 def download(output_control: bool = True) -> None:
     if platform.system() == "Windows":
-        raise NotImplementedError()
+        e = NotImplementedError()
+        LOG.error(e)
+        raise e
     elif platform.system() == "Linux":
         linux_download(output_control=output_control)
         return
     elif platform.system() == "MacOS":
         mac_download(output_control=output_control)
     else:
-        raise NotImplementedError()
+        e = NotImplementedError()
+        LOG.error(e)
+        raise e
 
 
 if __name__ == "__main__":

@@ -55,18 +55,20 @@ def merge_mol_names(
     Merges all the files containing molecule non-smiles identifiers (typically english names) into one file.
     """
     if output_file_path.suffix != ".csv":
-        raise ValueError(
+        suffix_error = ValueError(
             f"The file extension for {output_file_path=} is expected to be .csv not {output_file_path.suffix}"
         )
+        LOG.error(suffix_error)
+        raise suffix_error
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not overwrite:
         if output_file_path.exists():
-            e = FileExistsError(
+            file_error = FileExistsError(
                 f"{output_file_path} exists, with {overwrite=}, we expect the file to not exist."
             )
-            LOG.error(e)
-            raise e
+            LOG.error(file_error)
+            raise file_error
 
     full_lst = []
     for f in molecule_names_path.glob(f"./*{molecule_names_file_ending}"):
@@ -509,19 +511,29 @@ def main(
     )
 
     if not isinstance(data_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(data_path)}")
+        e = ValueError(f"Expect pathlib.Path: got {type(data_path)}")
+        LOG.error(e)
+        raise e
     if not isinstance(output_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(output_path)}")
+        e = ValueError(f"Expect pathlib.Path: got {type(output_path)}")
+        LOG.error(e)
+        raise e
     if solvents_path is not None:
         if not isinstance(solvents_path, pathlib.Path):
-            raise ValueError(f"Expect pathlib.Path: got {type(solvents_path)}")
+            e = ValueError(f"Expect pathlib.Path: got {type(solvents_path)}")
+            LOG.error(e)
+            raise e
     if not isinstance(merged_molecules_file, str):
-        raise ValueError(
+        e = ValueError(
             f"Expect str: got {type(merged_molecules_file)}. This is just the name of the file"
         )
+        LOG.error(e)
+        raise e
     if name_contains_substring is not None:
         if not isinstance(name_contains_substring, str):
-            raise ValueError(f"Expect str: got {type(name_contains_substring)}")
+            e = ValueError(f"Expect str: got {type(name_contains_substring)}")
+            LOG.error(e)
+            raise e
 
     LOG.info("starting extraction")
     start_time = datetime.datetime.now()

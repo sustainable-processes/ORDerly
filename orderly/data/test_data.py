@@ -1,12 +1,17 @@
 import os
 import sys
 import pathlib
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 def _get_orderly_data_path() -> pathlib.Path:
     file_path = sys.modules["orderly.data"].__file__
     if file_path is None:
-        raise ValueError("The path for orderly.data was not found")
+        e = ValueError("The path for orderly.data was not found")
+        LOG.error(e)
+        raise e
     return pathlib.Path(os.path.dirname(file_path))
 
 

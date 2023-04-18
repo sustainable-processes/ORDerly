@@ -681,7 +681,9 @@ class OrdExtractor:
             elif isinstance(x, str):
                 return x.isdigit()
             else:
-                raise ValueError(f"Expected a string or None, got {type(x)}")
+                e = ValueError(f"Expected a string or None, got {type(x)}")
+                LOG.error(e)
+                raise e
 
         # remove molecules that are integers
         reactants = [x for x in reactants if not is_digit(x)]
