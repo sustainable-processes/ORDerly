@@ -904,7 +904,7 @@ class OrdExtractor:
         create the column headers for the df
         adds a base_string to the columns (prefix)
         """
-        return [f"{base_string}_{i}" for i in range(num_cols)]
+        return [f"{base_string}_{i:03d}" for i in range(num_cols)]
 
     @staticmethod
     def _to_dataframe(cols: List[Any], base_string: str | List[str]) -> pd.DataFrame:
