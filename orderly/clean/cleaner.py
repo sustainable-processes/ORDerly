@@ -392,14 +392,14 @@ class Cleaner:
 @click.option(
     "--num_cat",
     type=int,
-    default=0,
+    default=2,
     show_default=True,
     help="See help for num_reactant",
 )
 @click.option(
     "--num_reag",
     type=int,
-    default=0,
+    default=3,
     show_default=True,
     help="See help for num_reactant",
 )
