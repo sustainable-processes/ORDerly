@@ -115,7 +115,9 @@ def cleaned_df_params_without_unresolved_names_and_duplicates(
     ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
-            tmp_path / "cleaned_df_params_without_unresolved_names_and_duplicates" / "orderly_ord.parquet",
+            tmp_path
+            / "cleaned_df_params_without_unresolved_names_and_duplicates"
+            / "orderly_ord.parquet",
             *updated_args,
         ),
         request.param,
@@ -162,7 +164,8 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates" / "orderly_ord.parquet",
+            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates"
+            / "orderly_ord.parquet",
             *updated_args,
         ),
         args,
