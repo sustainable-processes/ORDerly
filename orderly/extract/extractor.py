@@ -926,32 +926,32 @@ class OrdExtractor:
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["rxn_str"], base_string=["rxn_str"]
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["reactant"], base_string="reactant"
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent").astype(
                 "string"
-            )
+            ).astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["reagent"], base_string="reagent"
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["solvent"], base_string="solvent"
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["catalyst"], base_string="catalyst"
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
@@ -966,7 +966,7 @@ class OrdExtractor:
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["product"], base_string="product"
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["yield"], base_string="yield").astype(
@@ -976,7 +976,7 @@ class OrdExtractor:
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
-            ).astype("string")
+            ).astype("string").astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
