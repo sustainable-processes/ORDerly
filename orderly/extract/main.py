@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple, Set, Optional
 import datetime
 import pathlib
 import click
+import json
 
 from click_loglevel import LogLevel
 
@@ -560,6 +561,21 @@ def main(
         "inverse_substring": inverse_substring,
         "overwrite": overwrite,
     }
+
+    config_path = output_path / "extract_config.json"
+    if not overwrite:
+        if config_path.exists():
+            e = FileExistsError(
+                f"You are trying to overwrite the config file at {config_path} with {overwrite=}"
+            )
+            LOG.error(e)
+            raise e
+    copy_kwargs = kwargs.copy()
+    copy_kwargs["output_path"] = str(copy_kwargs["output_path"])
+    copy_kwargs["solvents_set"] = list(copy_kwargs["solvents_set"])  # type: ignore
+
+    with open(config_path, "w") as f:
+        json.dump(copy_kwargs, f, indent=4, sort_keys=True)
 
     try:
         if use_multiprocessing:

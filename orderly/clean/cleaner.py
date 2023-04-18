@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from typing import List, Dict
 import dataclasses
 import datetime
@@ -599,9 +600,52 @@ def main(
 
     molecules_to_remove = orderly.data.util.load_list(molecules_to_remove_path)
 
-    assert num_agent == 0 or (
-        num_cat == 0 and num_reag == 0
-    ), "Invalid input: If trust_labelling=False in orderly.extract, then num_cat and num_reag must be 0. If trust_labelling=True, then num_agent must be 0."
+    extract_config_path = ord_extraction_path / ".." / "extract_config.json"
+
+    with open(extract_config_path, "r") as f:
+        extract_config = json.load(f)
+
+    if extract_config["trust_labelling"]:
+        assert (
+            num_agent == 0
+        ), "Invalid input: If trust_labelling=True, then num_agent must be 0."
+    else:
+        assert (num_cat == 0) and (
+            num_reag == 0
+        ), "Invalid input: If trust_labelling=False in orderly.extract, then num_cat and num_reag must be 0."
+
+    kwargs = {
+        "ord_extraction_path": ord_extraction_path,
+        "consistent_yield": consistent_yield,
+        "num_reactant": num_reactant,
+        "num_product": num_product,
+        "num_solv": num_solv,
+        "num_agent": num_agent,
+        "num_cat": num_cat,
+        "num_reag": num_reag,
+        "min_frequency_of_occurrence": min_frequency_of_occurrence,
+        "map_rare_molecules_to_other": map_rare_molecules_to_other,
+        "molecules_to_remove": molecules_to_remove,
+        "remove_with_unresolved_names": remove_with_unresolved_names,
+        "replace_empty_with_none": replace_empty_with_none,
+        "drop_duplicates": drop_duplicates,
+        "disable_tqdm": disable_tqdm,
+    }
+
+    clean_config_path = clean_data_path.parent / "clean_config.json"
+    if not overwrite:
+        if clean_config_path.exists():
+            e = FileExistsError(
+                f"You are trying to overwrite the config file at {clean_config_path} with {overwrite=}"
+            )
+            LOG.error(e)
+            raise e
+    copy_kwargs = kwargs.copy()
+    copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])
+    copy_kwargs["clean_data_path"] = str(clean_data_path)
+
+    with open(clean_config_path, "w") as f:
+        json.dump(copy_kwargs, f, indent=4, sort_keys=True)
 
     LOG.info(f"Beginning extraction for files in {ord_extraction_path}")
     instance = Cleaner(
