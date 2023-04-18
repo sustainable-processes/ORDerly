@@ -641,14 +641,30 @@ def main(
             LOG.error(e)
             raise e
     copy_kwargs = kwargs.copy()
-    copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])
-    copy_kwargs["clean_data_path"] = str(clean_data_path)
+    copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])  # type: ignore
+    copy_kwargs["clean_data_path"] = str(clean_data_path)  # type: ignore
 
     with open(clean_config_path, "w") as f:
         json.dump(copy_kwargs, f, indent=4, sort_keys=True)
 
     LOG.info(f"Beginning extraction for files in {ord_extraction_path}")
-    instance = Cleaner(**kwargs)
+    instance = Cleaner(
+        ord_extraction_path=ord_extraction_path,
+        consistent_yield=consistent_yield,
+        num_reactant=num_reactant,
+        num_product=num_product,
+        num_solv=num_solv,
+        num_agent=num_agent,
+        num_cat=num_cat,
+        num_reag=num_reag,
+        min_frequency_of_occurrence=min_frequency_of_occurrence,
+        map_rare_molecules_to_other=map_rare_molecules_to_other,
+        molecules_to_remove=molecules_to_remove,
+        remove_with_unresolved_names=remove_with_unresolved_names,
+        replace_empty_with_none=replace_empty_with_none,
+        drop_duplicates=drop_duplicates,
+        disable_tqdm=disable_tqdm,
+    )
     LOG.info(f"completed cleaning, saving to {clean_data_path}")
     instance.cleaned_reactions.to_parquet(clean_data_path)
     LOG.info("Saved")
