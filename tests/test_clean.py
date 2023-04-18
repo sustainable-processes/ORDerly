@@ -60,7 +60,7 @@ def get_cleaned_df(
     )
 
     orderly.clean.cleaner.main(
-        clean_data_path=output_path / "orderly_ord.parquet",
+        output_path=output_path,
         ord_extraction_path=ord_extraction_path,
         molecules_to_remove_path=molecules_to_remove_path,
         consistent_yield=consistent_yield,
@@ -81,7 +81,7 @@ def get_cleaned_df(
 
     import pandas as pd
 
-    return pd.read_parquet(output_path / "orderly_ord.parquet")
+    return pd.read_parquet(output_path)
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ def cleaned_df_params(
     ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
-            tmp_path / "cleaned_df",
+            tmp_path / "cleaned_df" / "orderly_ord.parquet",
             *updated_args,
         ),
         request.param,
@@ -115,7 +115,9 @@ def cleaned_df_params_without_unresolved_names_and_duplicates(
     ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
-            tmp_path / "cleaned_df_params_without_unresolved_names_and_duplicates",
+            tmp_path
+            / "cleaned_df_params_without_unresolved_names_and_duplicates"
+            / "orderly_ord.parquet",
             *updated_args,
         ),
         request.param,
@@ -138,7 +140,7 @@ def cleaned_df_params_without_min_freq(
     ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
-            tmp_path / "cleaned_df_params_without_min_freq",
+            tmp_path / "cleaned_df_params_without_min_freq" / "orderly_ord.parquet",
             *updated_args,
         ),
         args,
@@ -162,7 +164,8 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates",
+            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates"
+            / "orderly_ord.parquet",
             *updated_args,
         ),
         args,
