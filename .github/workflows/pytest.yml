@@ -44,9 +44,6 @@ jobs:
       - name: Run test suite
         run: poetry run pytest -v --cov --cov-fail-under=90 --cov-report html
 
-      - name: ls 
-        run: ls htmlcov
-
       - name: Upload
         uses: actions/upload-artifact@v1
         with:
