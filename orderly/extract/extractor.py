@@ -926,34 +926,34 @@ class OrdExtractor:
 
         dfs = []
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["rxn_str"], base_string=["rxn_str"]
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"])
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["reactant"], base_string="reactant"
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent").astype(
-                "string"
-            )
+            OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["reagent"], base_string="reagent"
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["solvent"], base_string="solvent"
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["catalyst"], base_string="catalyst"
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
@@ -966,9 +966,9 @@ class OrdExtractor:
             ).astype("float")
         )  # TODO do we extract multiple rxn times?
         dfs.append(
-            OrdExtractor._to_dataframe(
-                data_lists["product"], base_string="product"
-            ).astype("string")
+            OrdExtractor._to_dataframe(data_lists["product"], base_string="product")
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["yield"], base_string="yield").astype(
@@ -978,7 +978,9 @@ class OrdExtractor:
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
-            ).astype("string")
+            )
+            .astype("string")
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
