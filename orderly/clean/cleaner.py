@@ -625,11 +625,9 @@ def main(
         "num_reag": num_reag,
         "min_frequency_of_occurrence": min_frequency_of_occurrence,
         "map_rare_molecules_to_other": map_rare_molecules_to_other,
-        "molecules_to_remove": molecules_to_remove,
         "remove_with_unresolved_names": remove_with_unresolved_names,
         "replace_empty_with_none": replace_empty_with_none,
         "drop_duplicates": drop_duplicates,
-        "disable_tqdm": disable_tqdm,
     }
 
     clean_config_path = clean_data_path.parent / "clean_config.json"
