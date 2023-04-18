@@ -98,15 +98,11 @@ class Cleaner:
 
     @staticmethod
     def _remove_reactions_with_too_many_of_component(
-        df: pd.DataFrame, component_name: str, num__of_columns_to_keep: Dict[str, int]
+        df: pd.DataFrame, component_name: str, number_of_columns_to_keep: int
     ) -> pd.DataFrame:
-        LOG.info(f"Removing reactions with too many components for {component_name=}")
-        try:
-            number_of_columns_to_keep = num__of_columns_to_keep[component_name]
-        except KeyError as exc:
-            msg = "component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
-            LOG.error(msg)
-            raise KeyError(msg) from exc
+        LOG.info(
+            f"Removing reactions with too many components for {component_name=} threshold {number_of_columns_to_keep}"
+        )
 
         cols = list(df.columns)
         count = 0
@@ -241,7 +237,7 @@ class Cleaner:
         LOG.info(f"All data length: {len(df)}")
 
         # Remove reactions with too many of a certain component
-        columns = [
+        for col in [
             "reactant",
             "product",
             "yield",
@@ -249,15 +245,20 @@ class Cleaner:
             "agent",
             "catalyst",
             "reagent",
-        ]
-        for col in columns:
+        ]:
+            try:
+                number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
+            except KeyError as exc:
+                msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
+                LOG.error(msg)
+                raise KeyError(msg) from exc
+
             df = Cleaner._remove_reactions_with_too_many_of_component(
                 df,
                 component_name=col,
-                num__of_columns_to_keep=self._get_number_of_columns_to_keep(),
+                number_of_columns_to_keep=number_of_columns_to_keep,
             )
-            if col != "yield":
-                LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
+            LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -572,17 +573,25 @@ def main(
     )
 
     if not isinstance(clean_data_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
+        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
+        LOG.error(e)
+        raise e
     if not isinstance(ord_extraction_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(ord_extraction_path)}")
+        e = ValueError(f"Expect pathlib.Path: got {type(ord_extraction_path)}")
+        LOG.error(e)
+        raise e
     if not isinstance(molecules_to_remove_path, pathlib.Path):
-        raise ValueError(f"Expect pathlib.Path: got {type(molecules_to_remove_path)}")
+        e = ValueError(f"Expect pathlib.Path: got {type(molecules_to_remove_path)}")
+        LOG.error(e)
+        raise e
 
     if not overwrite:
         if clean_data_path.exists():
-            raise FileExistsError(
+            e = FileExistsError(
                 "Trying to overwrite the orderly_ord output. Either move the file, change the clean_data_path (output_path) or set to overwrite."
             )
+            LOG.error(e)
+            raise e
 
     clean_data_path.parent.mkdir(parents=True, exist_ok=True)
 

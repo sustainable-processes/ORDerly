@@ -1,9 +1,12 @@
 from typing import Optional
+import logging
 
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
 from orderly.types import *
+
+LOG = logging.getLogger(__name__)
 
 
 def remove_mapping_info_and_canonicalise_smiles(
