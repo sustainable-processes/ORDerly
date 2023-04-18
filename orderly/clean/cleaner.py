@@ -641,8 +641,8 @@ def main(
             LOG.error(e)
             raise e
     copy_kwargs = kwargs.copy()
-    copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])  # type: ignore
-    copy_kwargs["clean_data_path"] = str(clean_data_path)  # type: ignore
+    copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])
+    copy_kwargs["clean_data_path"] = str(clean_data_path)
 
     with open(clean_config_path, "w") as f:
         json.dump(copy_kwargs, f, indent=4, sort_keys=True)

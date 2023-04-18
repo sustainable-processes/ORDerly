@@ -571,7 +571,7 @@ def main(
             LOG.error(e)
             raise e
     copy_kwargs = kwargs.copy()
-    copy_kwargs["output_path"] = str(copy_kwargs["output_path"])  # type: ignore
+    copy_kwargs["output_path"] = str(copy_kwargs["output_path"])
     copy_kwargs["solvents_set"] = list(copy_kwargs["solvents_set"])  # type: ignore
 
     with open(config_path, "w") as f:
