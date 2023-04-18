@@ -24,7 +24,7 @@ extract_all_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="" --trust_labelling=False --output_path="data/orderly/all_no_trust"
 
 clean_all_no_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/all_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
+	poetry run python -m orderly.clean --output_path="data/orderly/all_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
 
 gen_all_no_trust: extract_all_no_trust clean_all_no_trust
 	
@@ -32,7 +32,7 @@ extract_all_trust:
 	poetry run python -m orderly.extract --name_contains_substring="" --trust_labelling=True --output_path="data/orderly/all_trust"
 
 clean_all_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/all_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
+	poetry run python -m orderly.clean --output_path="data/orderly/all_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
 
 gen_all_trust: extract_all_trust clean_all_trust
 	
@@ -40,7 +40,7 @@ extract_uspto_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
 
 clean_uspto_no_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
+	poetry run python -m orderly.clean --output_path="data/orderly/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
 
 gen_uspto_no_trust: extract_uspto_no_trust clean_uspto_no_trust
 	
@@ -48,7 +48,7 @@ extract_uspto_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_trust"
 
 clean_uspto_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
+	poetry run python -m orderly.clean --output_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
 
 gen_uspto_trust: extract_uspto_trust clean_uspto_trust
 	

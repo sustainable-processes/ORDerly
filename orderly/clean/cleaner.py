@@ -337,7 +337,7 @@ class Cleaner:
 
 @click.command()
 @click.option(
-    "--clean_data_path",
+    "--output_path",
     type=str,
     default="data/orderly/orderly_ord.parquet",
     show_default=True,
@@ -449,7 +449,7 @@ class Cleaner:
 )
 @click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
-    clean_data_path: pathlib.Path,
+    output_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
@@ -497,7 +497,7 @@ def main_click(
         _log_file = pathlib.Path(log_file)
 
     main(
-        clean_data_path=pathlib.Path(clean_data_path),
+        output_path=pathlib.Path(output_path),
         ord_extraction_path=pathlib.Path(ord_extraction_path),
         molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
@@ -520,7 +520,7 @@ def main_click(
 
 
 def main(
-    clean_data_path: pathlib.Path,
+    output_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
@@ -573,8 +573,8 @@ def main(
         level=log_level,
     )
 
-    if not isinstance(clean_data_path, pathlib.Path):
-        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
+    if not isinstance(output_path, pathlib.Path):
+        e = ValueError(f"Expect pathlib.Path: got {type(output_path)}")
         LOG.error(e)
         raise e
     if not isinstance(ord_extraction_path, pathlib.Path):
@@ -587,14 +587,14 @@ def main(
         raise e
 
     if not overwrite:
-        if clean_data_path.exists():
+        if output_path.exists():
             e = FileExistsError(
-                "Trying to overwrite the orderly_ord output. Either move the file, change the clean_data_path (output_path) or set to overwrite."
+                "Trying to overwrite the orderly_ord output. Either move the file, change the output_path (output_path) or set to overwrite."
             )
             LOG.error(e)
             raise e
 
-    clean_data_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     start_time = datetime.datetime.now()
 
@@ -630,7 +630,7 @@ def main(
         "drop_duplicates": drop_duplicates,
     }
 
-    clean_config_path = clean_data_path.parent / "clean_config.json"
+    clean_config_path = output_path.parent / "clean_config.json"
     if not overwrite:
         if clean_config_path.exists():
             e = FileExistsError(
@@ -640,7 +640,7 @@ def main(
             raise e
     copy_kwargs = kwargs.copy()
     copy_kwargs["ord_extraction_path"] = str(copy_kwargs["ord_extraction_path"])
-    copy_kwargs["clean_data_path"] = str(clean_data_path)
+    copy_kwargs["output_path"] = str(output_path)
 
     with open(clean_config_path, "w") as f:
         json.dump(copy_kwargs, f, indent=4, sort_keys=True)
@@ -663,8 +663,8 @@ def main(
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )
-    LOG.info(f"completed cleaning, saving to {clean_data_path}")
-    instance.cleaned_reactions.to_parquet(clean_data_path)
+    LOG.info(f"completed cleaning, saving to {output_path}")
+    instance.cleaned_reactions.to_parquet(output_path)
     LOG.info("Saved")
 
     end_time = datetime.datetime.now()
