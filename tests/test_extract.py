@@ -1157,10 +1157,13 @@ def test_extraction_pipeline(
                     current_isna = pd.isna(a)
                     if seen_none:
                         if current_isna:
-                            raise ValueError(f"Unexpected order at {idx=} for {row.tolist()=}")
+                            raise ValueError(
+                                f"Unexpected order at {idx=} for {row.tolist()=}"
+                            )
                     if current_isna:
                         seen_none = True
                 return row
+
             tmp_df.apply(check_valid_order, axis=0)
 
         # Columns: ['rxn_str', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature', 'rxn_time', 'product_0', 'yield_0', 'grant_date'],
