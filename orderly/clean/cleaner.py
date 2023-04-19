@@ -102,7 +102,7 @@ class Cleaner:
         df: pd.DataFrame, component_name: str, number_of_columns_to_keep: int
     ) -> pd.DataFrame:
         LOG.info(
-            f"Removing reactions with too many components for {component_name=} threshold {number_of_columns_to_keep}"
+            f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
 
         cols = list(df.columns)
@@ -113,7 +113,7 @@ class Cleaner:
         columns_to_remove = []  # columns to remove
         for i in range(count):
             if i >= number_of_columns_to_keep:
-                columns_to_remove.append(component_name + "_" + str(i))
+                columns_to_remove.append(f"{component_name}_{i:03d}")
         for col in columns_to_remove:
             # Create a boolean mask for the rows with missing values in col
             mask = pd.isnull(df[col])
