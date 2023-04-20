@@ -247,6 +247,7 @@ class OrdExtractor:
         SOLVENTS,
         CATALYSTS,
         PRODUCTS,
+        ICE_PRESENT,
         List[MOLECULE_IDENTIFIER],
     ]:
         """
@@ -262,6 +263,7 @@ class OrdExtractor:
         solvents = []
         catalysts = []
         products = []
+        ice_present = False
 
         for key in rxn.inputs:
             components = rxn.inputs[key].components
@@ -269,6 +271,8 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
+                if component in ['ice', 'ice water']:
+                    ice_present = True
 
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
@@ -298,6 +302,7 @@ class OrdExtractor:
             sorted(solvents),
             sorted(catalysts),
             sorted(products),
+            ice_present,
             non_smiles_names_list,
         )
 
@@ -565,6 +570,7 @@ class OrdExtractor:
             labelled_solvents,
             labelled_catalysts,
             labelled_products_from_input,  # I'm not sure what to do with this, it doesn't make sense for people to have put a product as an input, so this list should be empty anyway
+            ice_present,
             non_smiles_names_list_additions,
         ) = OrdExtractor.rxn_input_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
@@ -790,8 +796,11 @@ class OrdExtractor:
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
-        temperature = OrdExtractor.temperature_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
+        temperature = OrdExtractor.temperature_extractor(rxn)
+        if ice_present and (temperature is None): #We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
+            temperature = 0.0 #degrees C
+            
 
         rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
