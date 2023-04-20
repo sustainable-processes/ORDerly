@@ -48,10 +48,10 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
     molecule_replacements[
         "CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3].[Rh+3]"
-    ] = "CC(=O)[O-].[Rh+2]"
+    ] = "O=C([O-])C[Rh+2]"
     molecule_replacements[
         "[CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3]]"
-    ] = "CC(=O)[O-].[Rh+2]"
+    ] = "O=C([O-])C[Rh+2]"
     molecule_replacements[
         "[CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C]"
     ] = "CC(C)(C)[PH]([Pd][PH](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C"
@@ -70,18 +70,18 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     ] = "Cl[Pd](Cl)([PH](c1ccccc1)(c1ccccc1)c1ccccc1)[PH](c1ccccc1)(c1ccccc1)c1ccccc1"
     molecule_replacements["[Cl[Pd+2](Cl)(Cl)Cl.[Na+].[Na+]]"] = "Cl[Pd]Cl"
     molecule_replacements["Cl[Pd+2](Cl)(Cl)Cl"] = "Cl[Pd]Cl"
-    molecule_replacements["Karstedt catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
-    molecule_replacements["Karstedt's catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
+    molecule_replacements["Karstedt catalyst"] = "C=C[Si](C)(C)O[Si](C)(C)C=C[Pt]"
+    molecule_replacements["Karstedt's catalyst"] = "C=C[Si](C)(C)O[Si](C)(C)C=C[Pt]"
     molecule_replacements["[O=C([O-])[O-].[Ag+2]]"] = "O=C([O-])[O-].[Ag+]"
     molecule_replacements["[O=S(=O)([O-])[O-].[Ag+2]]"] = "O=S(=O)([O-])[O-].[Ag+]"
     molecule_replacements["[O=[Ag-]]"] = "O=[Ag]"
     molecule_replacements["[O=[Cu-]]"] = "O=[Cu]"
-    molecule_replacements["[Pd on-carbon]"] = "[C].[Pd]"
+    molecule_replacements["[Pd on-carbon]"] = "C[Pd]"
     molecule_replacements["[TEA]"] = "OCCN(CCO)CCO"
-    molecule_replacements["[Ti-superoxide]"] = "O=[O-].[Ti]"
+    molecule_replacements["[Ti-superoxide]"] = "[O-]O[Ti]"
     molecule_replacements[
         "[[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1]"
-    ] = "[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1"
+    ] = "[Pd]c1ccc(P(c2ccccc2)c2ccccc2)cc1"
     molecule_replacements["[sulfated tin oxide]"] = "O=S(O[Sn])(O[Sn])O[Sn]"
 
     # Synonyms for tetrakis triphenylphosphine palladium
@@ -108,6 +108,7 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
         ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
 
     molecule_replacements["[zeolite]"] = "O=[Al]O[Al]=O.O=[Si]=O"
+    molecule_replacements["zeolite"] = "O=[Al]O[Al]=O.O=[Si]=O"
 
     # Molecules found among the most common names in molecule_names
     molecule_replacements["TEA"] = "OCCN(CCO)CCO"
