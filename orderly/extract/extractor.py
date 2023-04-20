@@ -271,7 +271,7 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
-                if component in ['ice', 'ice water']:
+                if component in ["ice", "ice water"]:
                     ice_present = True
 
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
@@ -699,7 +699,7 @@ class OrdExtractor:
         catalysts = [x for x in catalysts if not is_digit(x)]
 
         def canonicalise_and_get_non_smiles_names(
-            mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS| PRODUCTS,
+            mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
             is_mapped: bool = False,
         ) -> Tuple[
             REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
@@ -788,19 +788,20 @@ class OrdExtractor:
         products = OrdExtractor.apply_replacements_dict(
             products, manual_replacements_dict=manual_replacements_dict
         )
-        
-        
-        def remove_none_and_empty_str(mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS| PRODUCTS) -> Tuple[
-            REACTANTS | REAGENTS | SOLVENTS | CATALYSTS| PRODUCTS,
+
+        def remove_none_and_empty_str(
+            mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+        ) -> Tuple[
+            REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
             List[MOLECULE_IDENTIFIER],
         ]:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mole_id_list, list)
-            
-            mole_id_list_without_none = [x for x in mole_id_list if x not in ['', None]]
-            
+
+            mole_id_list_without_none = [x for x in mole_id_list if x not in ["", None]]
+
             return mole_id_list_without_none
-        
+
         reactants = OrdExtractor.remove_none_and_empty_str(
             reactants, manual_replacements_dict=manual_replacements_dict
         )
@@ -819,7 +820,6 @@ class OrdExtractor:
         products = OrdExtractor.remove_none_and_empty_str(
             products, manual_replacements_dict=manual_replacements_dict
         )
-            
 
         # if reagent appears in reactant list, remove it
         # Since we're technically not sure whether something is a reactant (contributes atoms) or a reagent/solvent/catalyst (does not contribute atoms), it's probably more cautious to remove molecules that appear in both lists from the reagents/solvents/catalysts list rather than the reactants list
@@ -833,9 +833,10 @@ class OrdExtractor:
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
         temperature = OrdExtractor.temperature_extractor(rxn)
-        if ice_present and (temperature is None): #We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
-            temperature = 0.0 #degrees C
-            
+        if ice_present and (
+            temperature is None
+        ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
+            temperature = 0.0  # degrees C
 
         rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
