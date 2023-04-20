@@ -342,6 +342,24 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        
+        # test case where the products list starts non-empty but ends empty
+        # I think this is a crystalisation/protonation/stabilisation reaction
+        ['data/ord//a0/ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad.pb.gz',
+         10,
+         None,
+         [],
+         ['Cc1cc2c([N+](=O)[O-])cccc2cn1', 'Cl', 'I', 'O=[N+]([O-])c1ccc(Cl)c2ccncc12'],
+         [],
+         'CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2.Cl.CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[IH:44]>>[IH:44].[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2',
+         [],
+         False
+         
+         
+         
+            
+        ],
+        
         # Test case where reaction with only 1 >
         pytest.param(
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -940,6 +958,8 @@ def test_match_yield_with_product(
             None,
             ["CrO3"],
         ],
+        
+
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
