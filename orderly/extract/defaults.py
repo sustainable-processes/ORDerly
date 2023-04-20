@@ -120,7 +120,8 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["ethyl acetate hexanes"] = "CCCCCC.CCOC(=O)C"
     molecule_replacements["cuprous iodide"] = "[Cu]I"
     molecule_replacements["N,N-dimethylaminopyridine"] = "n1ccc(N(C)C)cc1"
-    molecule_replacements["dimethyl acetal"] = "CN(C)C(OC)OC"
+    molecule_replacements["dimethyl acetal"] = "COC(C)OC"
+    molecule_replacements["diethyl acetal"] = 'CCOC(C)OCC'
     molecule_replacements["cuprous chloride"] = "Cl[Cu]"
     molecule_replacements["N,N'-carbonyldiimidazole"] = "O=C(n1cncc1)n2ccnc2"
     molecule_replacements["CrO3"] = "O=[Cr](=O)=O"
