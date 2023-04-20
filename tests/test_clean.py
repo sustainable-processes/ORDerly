@@ -666,8 +666,8 @@ def test_frequency_without_unresolved_names_and_duplicates(
     uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
 
     assert min_frequency_of_occurrence > 0  # sanity check the copying worked
-    assert '' not in cleaned_value_counts.keys() #check there are no empty strings
-    assert '' not in uncleaned_value_counts.keys() #check there are no empty strings
+    assert "" not in cleaned_value_counts.keys()  # check there are no empty strings
+    assert "" not in uncleaned_value_counts.keys()  # check there are no empty strings
 
     cleaned_rare = cleaned_value_counts[
         cleaned_value_counts < min_frequency_of_occurrence
@@ -769,8 +769,8 @@ def test_frequency_with_unresolved_names_and_duplicates(
     uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
 
     assert min_frequency_of_occurrence > 0  # sanity check the copying worked
-    assert '' not in cleaned_value_counts.keys() #check there are no empty strings
-    assert '' not in uncleaned_value_counts.keys() #check there are no empty strings
+    assert "" not in cleaned_value_counts.keys()  # check there are no empty strings
+    assert "" not in uncleaned_value_counts.keys()  # check there are no empty strings
 
     cleaned_rare = cleaned_value_counts[
         cleaned_value_counts < min_frequency_of_occurrence
