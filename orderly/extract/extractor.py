@@ -549,7 +549,6 @@ class OrdExtractor:
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
         include_unadded_labelled_molecules_as_agents: bool = True,
-        merge_ions_to_salt: bool = True,
     ) -> Optional[
         Tuple[
             REACTANTS,
@@ -851,21 +850,8 @@ class OrdExtractor:
             products, manual_replacements_dict=manual_replacements_dict
         )
 
-        # def merge_ions_to_salt_func(
-        #     mole_id_list: REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-        # ) -> REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
-
-        #     """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
-        #     assert isinstance(mole_id_list, list)
-
-        #     mole_id_list_with_ions_merged = ... TODO
-
-        #     return mole_id_list_with_ions_merged
-
-        # if merge_ions_to_salt:
-
         #### Secondary reaction participation checks before returning
-        # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, merge ions to salts, and apply the manual_replacements_dict, so we need to do another check here
+        # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, and apply the manual_replacements_dict, so we need to do another check here
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
             assert set(reactants).isdisjoint(
