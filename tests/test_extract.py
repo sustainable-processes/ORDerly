@@ -1180,22 +1180,21 @@ def test_extraction_pipeline(
         for check_col in check_none_order_cols:
             valid_cols = [col for col in df.columns if col.startswith(check_col)]
             tmp_df = df[valid_cols]
-            breakpoint()
 
             def check_valid_order(row: pd.Series) -> pd.Series:
                 seen_none = False
                 for idx, a in enumerate(row):
                     current_isna = pd.isna(a)
                     if seen_none:
-                        if current_isna:
+                        if not current_isna:
                             raise ValueError(
-                                f"Unexpected order at {idx=} for {row.tolist()=}. shape_df is {tmp_df.shape}"
+                                f"Unexpected order at {idx=} for {row.tolist()=}"
                             )
                     if current_isna:
                         seen_none = True
                 return row
 
-            tmp_df.apply(check_valid_order, axis=0)
+            tmp_df.apply(check_valid_order, axis=1)
 
         # Columns: ['rxn_str', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature', 'rxn_time', 'product_0', 'yield_0', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
