@@ -129,9 +129,7 @@ class Cleaner:
 
         df = df.drop(columns_to_remove, axis=1)
         return df
-    
-    
-    
+
     @staticmethod
     def _remove_reactions_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
         LOG.info(f"Removing reactions with no reactants")
@@ -143,30 +141,30 @@ class Cleaner:
         LOG.info("Removing reactions with no products")
         df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
-    
+
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
-        
         # Replace 'none' with np.nan in 'products_0' column
-        df[col+'_0'] = df[col+'_0'].replace(None, np.nan)
+        df[col + "_0"] = df[col + "_0"].replace(None, np.nan)
 
         # Get indices where col is NaN
-        nan_indices = df.index[df[col+'_0'].isna()]
-        
+        nan_indices = df.index[df[col + "_0"].isna()]
 
         # Create a mask for all columns that start with 'products_'
         mask = df.columns.str.startswith(col)
-    
+
         # For all indices where 'products_0' is NaN, check if any column starting with 'products_'
         # contains a non-null value
         remove_indices = []
         for index in nan_indices:
             if not df.loc[index, mask].isna().all():
-                raise ValueError(f"Non-null value found in 'products_' columns for index {index} despite products_0 being null")
+                raise ValueError(
+                    f"Non-null value found in 'products_' columns for index {index} despite products_0 being null"
+                )
 
         # Remove rows from df using the mask
         df = df.drop(remove_indices)
-        
+
         LOG.info(f"Removing rows with empty {col}")
         df = df.dropna(subset=[col])
         return df
@@ -307,27 +305,30 @@ class Cleaner:
                 number_of_columns_to_keep=number_of_columns_to_keep,
             )
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
-            
+
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_reactants(df)
             LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
-              
+
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._remove_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
-            
         # Ensure consistent yield
         if self.consistent_yield:
-            LOG.info(f"Before removing reactions with inconsistent yields: {df.shape[0]}")
+            LOG.info(
+                f"Before removing reactions with inconsistent yields: {df.shape[0]}"
+            )
             df = Cleaner._remove_with_inconsistent_yield(
                 df, num_product=self.num_product
             )
-            LOG.info(f"After removing reactions with inconsistent yields: {df.shape[0]}")
+            LOG.info(
+                f"After removing reactions with inconsistent yields: {df.shape[0]}"
+            )
 
         # drop duplicates
         if self.drop_duplicates:
@@ -577,7 +578,7 @@ def main_click(
         ord_extraction_path=pathlib.Path(ord_extraction_path),
         molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
-        remove_reactions_with_no_reactants = remove_reactions_with_no_reactants,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,
@@ -697,8 +698,8 @@ def main(
     kwargs = {
         "ord_extraction_path": ord_extraction_path,
         "consistent_yield": consistent_yield,
-        'remove_reactions_with_no_reactants': remove_reactions_with_no_reactants,
-        'remove_reactions_with_no_products': remove_reactions_with_no_products,
+        "remove_reactions_with_no_reactants": remove_reactions_with_no_reactants,
+        "remove_reactions_with_no_products": remove_reactions_with_no_products,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -731,7 +732,7 @@ def main(
     instance = Cleaner(
         ord_extraction_path=ord_extraction_path,
         consistent_yield=consistent_yield,
-        remove_reactions_with_no_reactants = remove_reactions_with_no_reactants,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,

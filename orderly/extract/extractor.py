@@ -236,7 +236,9 @@ class OrdExtractor:
             # Only the *mapped* products that also don't appear as reactants or agents should be trusted as products
             # I.e. first check whether a product molecule has at least 1 mapped atom, and then check whether it appears in the reactants or agents
             products = []
-            for p_map, p_clean in zip(products_from_rxn, products_from_rxn_without_mapping):
+            for p_map, p_clean in zip(
+                products_from_rxn, products_from_rxn_without_mapping
+            ):
                 # check products is mapped and also that it's not already present in (reactants or agents)
                 mol = rdkit_Chem.MolFromSmiles(p_map)
                 if mol != None:
