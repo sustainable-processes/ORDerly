@@ -40,7 +40,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
+    "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_ice_present,expected_non_smiles_names_list_additions",
     (
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
@@ -57,6 +57,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
                 "[Pd]",
             ],
             [],
+            False,
             [],
         ],
         [
@@ -72,6 +73,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["C1CCOC1", "C1CCOC1"],
             [],
             [],
+            False,
             [],
         ],
         [
@@ -100,6 +102,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["O"],
             [],
             [],
+            False,
             ["35(Na2O)"],
         ],
         [
@@ -110,6 +113,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["c1ccccc1"],
             [],
             [],
+            False,
             [],
         ],
     ),
@@ -124,6 +128,7 @@ def test_rxn_input_extractor(
     expected_labelled_solvents: List[str],
     expected_labelled_catalysts: List[str],
     expected_labelled_products_from_input: List[str],
+    expected_ice_present: bool,
     expected_non_smiles_names_list_additions: List[str],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
@@ -144,6 +149,7 @@ def test_rxn_input_extractor(
         labelled_solvents,
         labelled_catalysts,
         labelled_products_from_input,  # Daniel: I'm not sure what to do with this, it doesn't make sense for people to have put a product as an input, so this list should be empty anyway
+        ice_present,
         non_smiles_names_list_additions,
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
@@ -162,6 +168,9 @@ def test_rxn_input_extractor(
     assert (
         expected_labelled_products_from_input == labelled_products_from_input
     ), f"failure for {expected_labelled_products_from_input=}, got {labelled_products_from_input}"
+    assert (
+        expected_ice_present == ice_present
+    ), f"failure for {expected_ice_present=}, got {ice_present}"
     assert (
         expected_non_smiles_names_list_additions == non_smiles_names_list_additions
     ), f"failure for {expected_non_smiles_names_list_additions=}, got {non_smiles_names_list_additions}"
@@ -345,9 +354,12 @@ def test_rxn_string_and_is_mapped(
         # test case where the products list starts non-empty but ends empty
         # I think this is a crystalisation/protonation/stabilisation reaction
         [
-            "data/ord//a0/ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad.pb.gz",
-            10,
-            None,
+            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+            0,
+            # This test case actually comes from the following file, index, 
+            # "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad", 10
+            # however, it's not currently in our test data folder # TODO: add it
+            "CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2.Cl.CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[IH:44]>>[IH:44].[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2",
             [],
             [
                 "Cc1cc2c([N+](=O)[O-])cccc2cn1",
@@ -1168,6 +1180,7 @@ def test_extraction_pipeline(
         for check_col in check_none_order_cols:
             valid_cols = [col for col in df.columns if col.startswith(check_col)]
             tmp_df = df[valid_cols]
+            breakpoint()
 
             def check_valid_order(row: pd.Series) -> pd.Series:
                 seen_none = False
@@ -1176,7 +1189,7 @@ def test_extraction_pipeline(
                     if seen_none:
                         if current_isna:
                             raise ValueError(
-                                f"Unexpected order at {idx=} for {row.tolist()=}"
+                                f"Unexpected order at {idx=} for {row.tolist()=}. shape_df is {tmp_df.shape}"
                             )
                     if current_isna:
                         seen_none = True

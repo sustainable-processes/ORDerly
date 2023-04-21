@@ -30,6 +30,8 @@ def toy_dict() -> Dict[str, List[str]]:
 def get_cleaned_df(
     output_path: pathlib.Path,
     trust_labelling: bool,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -63,6 +65,8 @@ def get_cleaned_df(
         output_path=output_path,
         ord_extraction_path=ord_extraction_path,
         molecules_to_remove_path=molecules_to_remove_path,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,

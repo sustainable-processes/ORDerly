@@ -131,13 +131,13 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _remove_reactions_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
+    def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
         LOG.info(f"Removing reactions with no reactants")
         df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
         return df
 
     @staticmethod
-    def _remove_reactions_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
+    def _remove_rxn_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
         LOG.info("Removing reactions with no products")
         df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
@@ -155,7 +155,6 @@ class Cleaner:
 
         # For all indices where 'products_0' is NaN, check if any column starting with 'products_'
         # contains a non-null value
-        remove_indices = []
         for index in nan_indices:
             if not df.loc[index, mask].isna().all():
                 raise ValueError(
@@ -163,7 +162,7 @@ class Cleaner:
                 )
 
         # Remove rows from df using the mask
-        df = df.drop(remove_indices)
+        df = df.drop(nan_indices)
 
         LOG.info(f"Removing rows with empty {col}")
         df = df.dropna(subset=[col])
@@ -315,7 +314,7 @@ class Cleaner:
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
-            df = Cleaner._remove_with_no_products(df)
+            df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
         # Ensure consistent yield

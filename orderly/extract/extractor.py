@@ -166,13 +166,16 @@ class OrdExtractor:
         """
         _ = rdkit_BlockLogs()
 
-        reactant_from_rxn, agent, product_from_rxn = rxn_str.split(">")
+        reactant_from_rxn, agent_from_rxn, product_from_rxn = rxn_str.split(">")
 
         reactants_from_rxn = reactant_from_rxn.split(".")
-        agents = agent.split(".")
+        if len(agent_from_rxn) == 0:
+            agents = []
+        else:
+            agents = agent_from_rxn.split(".")
         products_from_rxn = product_from_rxn.split(".")
         del reactant_from_rxn
-        del agent
+        del agent_from_rxn
         del product_from_rxn
 
         non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
@@ -836,24 +839,12 @@ class OrdExtractor:
 
             return mole_id_list_without_none
 
-        reactants = OrdExtractor.remove_none_and_empty_str(
-            reactants, manual_replacements_dict=manual_replacements_dict
-        )
-        agents = OrdExtractor.remove_none_and_empty_str(
-            agents, manual_replacements_dict=manual_replacements_dict
-        )
-        reagents = OrdExtractor.remove_none_and_empty_str(
-            reagents, manual_replacements_dict=manual_replacements_dict
-        )
-        solvents = OrdExtractor.remove_none_and_empty_str(
-            solvents, manual_replacements_dict=manual_replacements_dict
-        )
-        catalysts = OrdExtractor.remove_none_and_empty_str(
-            catalysts, manual_replacements_dict=manual_replacements_dict
-        )
-        products = OrdExtractor.remove_none_and_empty_str(
-            products, manual_replacements_dict=manual_replacements_dict
-        )
+        reactants = remove_none_and_empty_str(reactants)
+        agents = remove_none_and_empty_str(agents)
+        reagents = remove_none_and_empty_str(reagents)
+        solvents = remove_none_and_empty_str(solvents)
+        catalysts = remove_none_and_empty_str(catalysts)
+        products = remove_none_and_empty_str(products)
 
         #### Secondary reaction participation checks before returning
         # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, and apply the manual_replacements_dict, so we need to do another check here
@@ -875,7 +866,7 @@ class OrdExtractor:
         if ice_present and (
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
-            temperature = 0.0  # degrees C
+            temperature = TEMPERATURE_CELCIUS(0.0)
 
         rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
