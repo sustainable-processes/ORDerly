@@ -282,7 +282,7 @@ class Cleaner:
 
         LOG.info("Getting dataframe from extracted ORDs")
         df = self._merge_extracted_ords()
-        LOG.info(f"All data length: {len(df)}")
+        LOG.info(f"All data length: {df.shape[0]}")
 
         # Remove reactions with too many of a certain component
         for col in [
@@ -306,45 +306,45 @@ class Cleaner:
                 component_name=col,
                 number_of_columns_to_keep=number_of_columns_to_keep,
             )
-            LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
+            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
             
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
-            LOG.info(f"Before removing reactions with no reactants: {len(df)}")
+            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_reactants(df)
-            LOG.info(f"After removing reactions with no reactant: {len(df)}")
+            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
               
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
-            LOG.info(f"Before removing reactions with no products: {len(df)}")
+            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._remove_with_no_products(df)
-            LOG.info(f"After removing reactions with no products: {len(df)}")
+            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
             
         # Ensure consistent yield
         if self.consistent_yield:
-            LOG.info(f"Before removing reactions with inconsistent yields: {len(df)}")
+            LOG.info(f"Before removing reactions with inconsistent yields: {df.shape[0]}")
             df = Cleaner._remove_with_inconsistent_yield(
                 df, num_product=self.num_product
             )
-            LOG.info(f"After removing reactions with inconsistent yields: {len(df)}")
+            LOG.info(f"After removing reactions with inconsistent yields: {df.shape[0]}")
 
         # drop duplicates
         if self.drop_duplicates:
-            LOG.info(f"Before removing duplicates: {len(df)}")
+            LOG.info(f"Before removing duplicates: {df.shape[0]}")
             df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates: {len(df)}")
+            LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         if self.remove_with_unresolved_names:
             # Remove reactions that are represented by a name instead of a SMILES string
             # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
             LOG.info(
-                f"Before removing reactions with nonsensical/unresolvable names: {len(df)}"
+                f"Before removing reactions with nonsensical/unresolvable names: {df.shape[0]}"
             )
             for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
                 df = df[~df[col].isin(self.molecules_to_remove)]
             LOG.info(
-                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
+                f"After removing reactions with nonsensical/unresolvable names: {df.shape[0]}"
             )
 
         # Remove reactions with rare molecules
@@ -372,7 +372,7 @@ class Cleaner:
                     value_counts,
                     self.min_frequency_of_occurrence,
                 )
-                LOG.info(f"After removing rare molecules: {len(df)}")
+                LOG.info(f"After removing rare molecules: {df.shape[0]}")
 
         if self.replace_empty_with_none:
             # Replace any instances of an empty string with None
@@ -387,9 +387,9 @@ class Cleaner:
 
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
-            LOG.info(f"Before removing duplicates: {len(df)}")
+            LOG.info(f"Before removing duplicates: {df.shape[0]}")
             df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates: {len(df)}")
+            LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
         return df
