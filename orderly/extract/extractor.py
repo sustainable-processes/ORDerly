@@ -210,9 +210,13 @@ class OrdExtractor:
             cleaned_agents.append(canon_smi)
         # assert len(agents) == len(cleaned_agents)
 
-        reactants = []
-        # Only the mapped reactants that also don't appear as products should be trusted as reactants
+        ############ Reaction participation logic
+
+        # Finding genuine reactants
+        # Only the *mapped* reactants that also don't appear as products should be trusted as reactants
         # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
+
+        reactants = []
         for r_map, r_clean in zip(
             reactants_from_rxn, reactants_from_rxn_without_mapping
         ):
@@ -227,8 +231,24 @@ class OrdExtractor:
                     reactants.append(r_clean)
                 else:
                     cleaned_agents.append(r_clean)
-        products = [p for p in products_from_rxn_without_mapping if p not in reactants]
-        products = [p for p in products if p not in cleaned_agents]
+
+        # Finding genuine products
+        # Only the *mapped* products that also don't appear as reactants or agents should be trusted as products
+        # I.e. first check whether a product molecule has at least 1 mapped atom, and then check whether it appears in the reactants or agents
+        products = []
+        for p_map, p_clean in zip(products_from_rxn, products_from_rxn_without_mapping):
+            # check products is mapped and also that it's not already present in (reactants or agents)
+            mol = rdkit_Chem.MolFromSmiles(p_map)
+            if mol != None:
+                if any(
+                    atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
+                ) and (  # any(generator)
+                    (p_clean not in reactants_from_rxn_without_mapping)
+                    and (p_clean not in cleaned_agents)
+                ):
+                    products.append(p_clean)
+                else:
+                    cleaned_agents.append(p_clean)
 
         return (
             sorted(list(set(reactants))),
@@ -528,7 +548,8 @@ class OrdExtractor:
         solvents_set: Set[SOLVENT],
         trust_labelling: bool = False,
         use_labelling_if_extract_fails: bool = True,
-        include_unadded_labelled_agents: bool = True,
+        include_unadded_labelled_molecules_as_agents: bool = True,
+        merge_ions_to_salt: bool = True,
     ) -> Optional[
         Tuple[
             REACTANTS,
@@ -551,7 +572,7 @@ class OrdExtractor:
         If trust_labelling is True, we trust the labelling of the rxn.inputs and rxn.outcomes, and don't use the rxn string.
         If trust_labelling is False (default), we determine reactants, agents, solvents, and products, from the rxn string by looking at the mapping of the reaction (hence why we trust the rxn string more than the inputs/outcomes labelling, and this behaviour is set to default). However, the rxn.inputs and rxn.outcomes may contain info not contained in the rxn string:
             - If use_labelling_if_extract_fails is True, we use the labelling of the rxn.inputs and rxn.outcomes instead of simply returning None
-            - If include_unadded_labelled_agents is True, we look through the rxn.inputs for any agents that were not added to the reactants, agents, solvents, or products, and add them to the agents list
+            - If include_unadded_labelled_molecules_as_agents is True, we look through the rxn.inputs for any agents that were not added to the reactants, agents, solvents, or products, and add them to the agents list
         """
         # handle rxn inputs: reactants, reagents etc
 
@@ -582,6 +603,7 @@ class OrdExtractor:
         ) = OrdExtractor.rxn_outcomes_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
+        # This whole block is just to raise warnings incase the products in the input object look weird.
         if (labelled_products_from_input != []) and (
             labelled_products_from_input != labelled_products
         ):  # we would expect the labelled products from input to be empty, but if it's not, we should check that it's the same as the labelled products
@@ -642,7 +664,7 @@ class OrdExtractor:
             yields = _yields
 
             if (
-                include_unadded_labelled_agents
+                include_unadded_labelled_molecules_as_agents
             ):  # Add any agents that were not added to the reactants, agents, or solvents
                 # merge all the lists
                 all_labelled_molecules = (
@@ -697,12 +719,18 @@ class OrdExtractor:
         reagents = [x for x in reagents if not is_digit(x)]
         solvents = [x for x in solvents if not is_digit(x)]
         catalysts = [x for x in catalysts if not is_digit(x)]
+        products = [x for x in products if not is_digit(x)]
 
         def canonicalise_and_get_non_smiles_names(
-            mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+            mole_id_list: REACTANTS
+            | AGENTS
+            | REAGENTS
+            | SOLVENTS
+            | CATALYSTS
+            | PRODUCTS,
             is_mapped: bool = False,
         ) -> Tuple[
-            REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+            REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
             List[MOLECULE_IDENTIFIER],
         ]:
             """Canonicalise the smiles and return the identifier (either SMILES or non-SMILES) as well as a list of non-SMILES names"""
@@ -790,11 +818,13 @@ class OrdExtractor:
         )
 
         def remove_none_and_empty_str(
-            mole_id_list: REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-        ) -> Tuple[
-            REACTANTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-            List[MOLECULE_IDENTIFIER],
-        ]:
+            mole_id_list: REACTANTS
+            | AGENTS
+            | REAGENTS
+            | SOLVENTS
+            | CATALYSTS
+            | PRODUCTS,
+        ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mole_id_list, list)
 
@@ -821,13 +851,31 @@ class OrdExtractor:
             products, manual_replacements_dict=manual_replacements_dict
         )
 
-        # if reagent appears in reactant list, remove it
-        # Since we're technically not sure whether something is a reactant (contributes atoms) or a reagent/solvent/catalyst (does not contribute atoms), it's probably more cautious to remove molecules that appear in both lists from the reagents/solvents/catalysts list rather than the reactants list
+        # def merge_ions_to_salt_func(
+        #     mole_id_list: REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+        # ) -> REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
 
-        agents = [a for a in agents if a not in reactants]
-        reagents = [r for r in reagents if r not in reactants]
-        solvents = [s for s in solvents if s not in reactants]
-        catalysts = [c for c in catalysts if c not in reactants]
+        #     """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
+        #     assert isinstance(mole_id_list, list)
+
+        #     mole_id_list_with_ions_merged = ... TODO
+
+        #     return mole_id_list_with_ions_merged
+
+        # if merge_ions_to_salt:
+
+        #### Secondary reaction participation checks before returning
+        # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, merge ions to salts, and apply the manual_replacements_dict, so we need to do another check here
+        # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
+        if not trust_labelling:
+            assert set(reactants).isdisjoint(
+                products
+            ), "The intersection between reactants and products is not None."
+            reactants_and_products = reactants + products
+            agents = [a for a in agents if a not in reactants_and_products]
+            reagents = [r for r in reagents if r not in reactants_and_products]
+            solvents = [s for s in solvents if s not in reactants_and_products]
+            catalysts = [c for c in catalysts if c not in reactants_and_products]
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
