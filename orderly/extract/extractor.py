@@ -215,40 +215,43 @@ class OrdExtractor:
         # Finding genuine reactants
         # Only the *mapped* reactants that also don't appear as products should be trusted as reactants
         # I.e. first check whether a reactant molecule has at least 1 mapped atom, and then check whether it appears in the products
+        if is_mapped:
+            reactants = []
+            for r_map, r_clean in zip(
+                reactants_from_rxn, reactants_from_rxn_without_mapping
+            ):
+                # check reactant is mapped and also that it's not in the products
+                mol = rdkit_Chem.MolFromSmiles(r_map)
+                if mol != None:
+                    if any(
+                        atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
+                    ) and (  # any(generator)
+                        r_clean not in products_from_rxn_without_mapping
+                    ):
+                        reactants.append(r_clean)
+                    else:
+                        cleaned_agents.append(r_clean)
 
-        reactants = []
-        for r_map, r_clean in zip(
-            reactants_from_rxn, reactants_from_rxn_without_mapping
-        ):
-            # check reactant is mapped and also that it's not in the products
-            mol = rdkit_Chem.MolFromSmiles(r_map)
-            if mol != None:
-                if any(
-                    atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
-                ) and (  # any(generator)
-                    r_clean not in products_from_rxn_without_mapping
-                ):
-                    reactants.append(r_clean)
-                else:
-                    cleaned_agents.append(r_clean)
-
-        # Finding genuine products
-        # Only the *mapped* products that also don't appear as reactants or agents should be trusted as products
-        # I.e. first check whether a product molecule has at least 1 mapped atom, and then check whether it appears in the reactants or agents
-        products = []
-        for p_map, p_clean in zip(products_from_rxn, products_from_rxn_without_mapping):
-            # check products is mapped and also that it's not already present in (reactants or agents)
-            mol = rdkit_Chem.MolFromSmiles(p_map)
-            if mol != None:
-                if any(
-                    atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
-                ) and (  # any(generator)
-                    (p_clean not in reactants_from_rxn_without_mapping)
-                    and (p_clean not in cleaned_agents)
-                ):
-                    products.append(p_clean)
-                else:
-                    cleaned_agents.append(p_clean)
+            # Finding genuine products
+            # Only the *mapped* products that also don't appear as reactants or agents should be trusted as products
+            # I.e. first check whether a product molecule has at least 1 mapped atom, and then check whether it appears in the reactants or agents
+            products = []
+            for p_map, p_clean in zip(products_from_rxn, products_from_rxn_without_mapping):
+                # check products is mapped and also that it's not already present in (reactants or agents)
+                mol = rdkit_Chem.MolFromSmiles(p_map)
+                if mol != None:
+                    if any(
+                        atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
+                    ) and (  # any(generator)
+                        (p_clean not in reactants_from_rxn_without_mapping)
+                        and (p_clean not in cleaned_agents)
+                    ):
+                        products.append(p_clean)
+                    else:
+                        cleaned_agents.append(p_clean)
+        else:
+            reactants = reactants_from_rxn_without_mapping
+            products = products_from_rxn_without_mapping
 
         return (
             sorted(list(set(reactants))),
