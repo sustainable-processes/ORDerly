@@ -12,6 +12,7 @@ from click_loglevel import LogLevel
 import tqdm
 import tqdm.contrib.logging
 import pandas as pd
+import numpy as np
 
 LOG = logging.getLogger(__name__)
 
@@ -22,20 +23,23 @@ import orderly.data.util
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
     1) Merge the parquet files generated during orderly.extract into a df
-    2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
-    3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
+    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products)
+    3) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
+    4) Remove reactions with inconsistent yields (consistent_yield)
+    5) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
-    5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
-    6) Remove duplicate reactions
-    7) Save the final df
+    6) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
+    7) Remove duplicate reactions
+    8) Save the final df
 
     Output:
 
     1) A parquet file containing the cleaned data
 
     Args:
+        remove_reactions_with_no_reactants (bool): Remove reactions with no reactants
+        remove_reactions_with_no_products (bool): Remove reactions with no products
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
@@ -51,6 +55,8 @@ class Cleaner:
     """
 
     ord_extraction_path: pathlib.Path
+    remove_reactions_with_no_reactants: bool
+    remove_reactions_with_no_products: bool
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -122,6 +128,47 @@ class Cleaner:
             df = df.loc[mask]
 
         df = df.drop(columns_to_remove, axis=1)
+        return df
+    
+    
+    
+    @staticmethod
+    def _remove_reactions_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
+        LOG.info(f"Removing reactions with no reactants")
+        df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
+        return df
+
+    @staticmethod
+    def _remove_reactions_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
+        LOG.info("Removing reactions with no products")
+        df = Cleaner._del_rows_empty_in_this_col(df, "product")
+        return df
+    
+    @staticmethod
+    def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        
+        # Replace 'none' with np.nan in 'products_0' column
+        df[col+'_0'] = df[col+'_0'].replace(None, np.nan)
+
+        # Get indices where col is NaN
+        nan_indices = df.index[df[col+'_0'].isna()]
+        
+
+        # Create a mask for all columns that start with 'products_'
+        mask = df.columns.str.startswith(col)
+    
+        # For all indices where 'products_0' is NaN, check if any column starting with 'products_'
+        # contains a non-null value
+        remove_indices = []
+        for index in nan_indices:
+            if not df.loc[index, mask].isna().all():
+                raise ValueError(f"Non-null value found in 'products_' columns for index {index} despite products_0 being null")
+
+        # Remove rows from df using the mask
+        df = df.drop(remove_indices)
+        
+        LOG.info(f"Removing rows with empty {col}")
+        df = df.dropna(subset=[col])
         return df
 
     @staticmethod
@@ -260,7 +307,20 @@ class Cleaner:
                 number_of_columns_to_keep=number_of_columns_to_keep,
             )
             LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
+            
+        # Remove reactions with no reactants
+        if self.remove_reactions_with_no_reactants:
+            LOG.info(f"Before removing reactions with no reactants: {len(df)}")
+            df = Cleaner._remove_rxn_with_no_reactants(df)
+            LOG.info(f"After removing reactions with no reactant: {len(df)}")
+              
+        # Remove reactions with no products
+        if self.remove_reactions_with_no_products:
+            LOG.info(f"Before removing reactions with no products: {len(df)}")
+            df = Cleaner._remove_with_no_products(df)
+            LOG.info(f"After removing reactions with no products: {len(df)}")
 
+            
         # Ensure consistent yield
         if self.consistent_yield:
             LOG.info(f"Before removing reactions with inconsistent yields: {len(df)}")
@@ -363,6 +423,20 @@ class Cleaner:
     help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
 )
 @click.option(
+    "--consistent_yield",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
+)
+@click.option(
+    "--consistent_yield",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
+)
+@click.option(
     "--num_reactant",
     type=int,
     default=5,
@@ -452,6 +526,8 @@ def main_click(
     output_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -501,6 +577,8 @@ def main_click(
         ord_extraction_path=pathlib.Path(ord_extraction_path),
         molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
+        remove_reactions_with_no_reactants = remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -524,6 +602,8 @@ def main(
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     num_reactant: int,
     num_product: int,
     num_solv: int,
@@ -617,6 +697,8 @@ def main(
     kwargs = {
         "ord_extraction_path": ord_extraction_path,
         "consistent_yield": consistent_yield,
+        'remove_reactions_with_no_reactants': remove_reactions_with_no_reactants,
+        'remove_reactions_with_no_products': remove_reactions_with_no_products,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -649,6 +731,8 @@ def main(
     instance = Cleaner(
         ord_extraction_path=ord_extraction_path,
         consistent_yield=consistent_yield,
+        remove_reactions_with_no_reactants = remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
