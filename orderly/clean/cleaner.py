@@ -13,6 +13,7 @@ import tqdm
 import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
+from rdkit import Chem as rdkit_Chem
 
 LOG = logging.getLogger(__name__)
 
@@ -67,12 +68,25 @@ class Cleaner:
     min_frequency_of_occurrence: int
     map_rare_molecules_to_other: bool
     molecules_to_remove: List[str]
-    remove_with_unresolved_names: bool = True
+
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool = True
+    remove_rxn_with_unresolved_names: bool = False
+    set_unresolved_names_to_none: bool = False
+
     replace_empty_with_none: bool = True
     drop_duplicates: bool = True
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
+        LOG.info("Entered post_init")
+
+        # Only zero or one of the following three bools can be True
+        true_count = (
+            self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn
+            + self.remove_rxn_with_unresolved_names
+            + self.set_unresolved_names_to_none
+        )
+        assert true_count <= 1
         self.cleaned_reactions = self._get_dataframe()
 
     def _merge_extracted_ords(self) -> pd.DataFrame:
@@ -317,6 +331,59 @@ class Cleaner:
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
+        def is_mapped(rxn_str) -> bool:
+            """
+            Check if a reaction string is mapped using RDKit.
+            """
+            reactants, _, _ = rxn_str.split(">")
+            reactants = reactants.split(".")
+            for r in reactants:
+                mol = rdkit_Chem.MolFromSmiles(r)
+                if mol != None:
+                    if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
+                        return True
+            return False
+
+        if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
+            LOG.info(
+                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+            mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            mapped_rxn_df = df.iloc[mask_is_mapped]
+            not_mapped_rxn_df = df.iloc[~mask_is_mapped]
+
+            # set unresolved names to none
+            mapped_rxn_df = mapped_rxn_df.replace(self.molecules_to_remove, None)
+
+            # remove reactions with unresolved names
+            for col in tqdm.tqdm(not_mapped_rxn_df.columns, disable=self.disable_tqdm):
+                not_mapped_rxn_df = not_mapped_rxn_df[
+                    ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
+                ]
+
+            # concat the dfs again
+            df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
+
+            LOG.info(
+                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+
+        elif self.remove_rxn_with_unresolved_names:
+            LOG.info(
+                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+                df = df[~df[col].isin(self.molecules_to_remove)]
+            LOG.info(
+                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+
+        elif self.set_unresolved_names_to_none:
+            LOG.info(
+                f"Setting unresolvable names to None (without removing any reactions)"
+            )
+            df = df.replace(self.molecules_to_remove, None)
+
         # Ensure consistent yield
         if self.consistent_yield:
             LOG.info(
@@ -334,18 +401,6 @@ class Cleaner:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
             df = df.drop_duplicates()
             LOG.info(f"After removing duplicates: {df.shape[0]}")
-
-        if self.remove_with_unresolved_names:
-            # Remove reactions that are represented by a name instead of a SMILES string
-            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
-            LOG.info(
-                f"Before removing reactions with nonsensical/unresolvable names: {df.shape[0]}"
-            )
-            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
-                df = df[~df[col].isin(self.molecules_to_remove)]
-            LOG.info(
-                f"After removing reactions with nonsensical/unresolvable names: {df.shape[0]}"
-            )
 
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
@@ -492,9 +547,19 @@ class Cleaner:
     help="If True, molecules that appear less than map_rare_to_other_threshold times will be mapped to the 'other' category. If False, the reaction they appear in will be removed.",
 )
 @click.option(
-    "--remove_with_unresolved_names",
+    "--set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn",
     type=bool,
     default=True,
+)
+@click.option(
+    "--remove_rxn_with_unresolved_names",
+    type=bool,
+    default=False,
+)
+@click.option(
+    "--set_unresolved_names_to_none",
+    type=bool,
+    default=False,
 )
 @click.option(
     "--replace_empty_with_none",
@@ -537,7 +602,9 @@ def main_click(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    remove_rxn_with_unresolved_names: bool,
+    set_unresolved_names_to_none: bool,
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
@@ -587,7 +654,9 @@ def main_click(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
-        remove_with_unresolved_names=remove_with_unresolved_names,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn = set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        remove_rxn_with_unresolved_names = remove_rxn_with_unresolved_names,
+        set_unresolved_names_to_none = set_unresolved_names_to_none,
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
@@ -612,7 +681,9 @@ def main(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    remove_rxn_with_unresolved_names: bool,
+    set_unresolved_names_to_none: bool,
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
@@ -707,7 +778,9 @@ def main(
         "num_reag": num_reag,
         "min_frequency_of_occurrence": min_frequency_of_occurrence,
         "map_rare_molecules_to_other": map_rare_molecules_to_other,
-        "remove_with_unresolved_names": remove_with_unresolved_names,
+        "set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn": set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        "remove_rxn_with_unresolved_names": remove_rxn_with_unresolved_names,
+        "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "replace_empty_with_none": replace_empty_with_none,
         "drop_duplicates": drop_duplicates,
     }
@@ -741,8 +814,9 @@ def main(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
-        molecules_to_remove=molecules_to_remove,
-        remove_with_unresolved_names=remove_with_unresolved_names,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn = set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        remove_rxn_with_unresolved_names = remove_rxn_with_unresolved_names,
+        set_unresolved_names_to_none = set_unresolved_names_to_none,
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
