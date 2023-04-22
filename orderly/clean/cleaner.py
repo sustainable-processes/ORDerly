@@ -15,6 +15,8 @@ import pandas as pd
 import numpy as np
 from rdkit import Chem as rdkit_Chem
 
+from orderly.types import *
+
 LOG = logging.getLogger(__name__)
 
 import orderly.data.util
@@ -331,12 +333,12 @@ class Cleaner:
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
-        def is_mapped(rxn_str) -> bool:
+        def is_mapped(rxn_str: RXN_STR) -> bool:
             """
             Check if a reaction string is mapped using RDKit.
             """
-            reactants, _, _ = rxn_str.split(">")
-            reactants = reactants.split(".")
+            reactants_from_rxn, _, _ = rxn_str.split(">")
+            reactants = reactants_from_rxn.split(".")
             for r in reactants:
                 mol = rdkit_Chem.MolFromSmiles(r)
                 if mol != None:
@@ -817,6 +819,7 @@ def main(
         set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
+        molecules_to_remove=molecules_to_remove,
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,

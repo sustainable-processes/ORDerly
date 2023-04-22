@@ -41,7 +41,9 @@ def get_cleaned_df(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    set_unresolved_names_to_none: bool,
+    remove_rxn_with_unresolved_names: bool,
     replace_empty_with_none: bool,
     drop_duplicates: bool,
 ) -> pd.DataFrame:
@@ -76,7 +78,10 @@ def get_cleaned_df(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
-        remove_with_unresolved_names=remove_with_unresolved_names,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        set_unresolved_names_to_none = set_unresolved_names_to_none,
+        remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
+        
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
@@ -97,7 +102,7 @@ def cleaned_df_params(
         True,
         True,
         True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]  # remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
             tmp_path / "cleaned_df" / "orderly_ord.parquet",
@@ -116,7 +121,7 @@ def cleaned_df_params_without_unresolved_names_and_duplicates(
         False,
         True,
         False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]  # remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
             tmp_path
@@ -141,7 +146,7 @@ def cleaned_df_params_without_min_freq(
         True,
         True,
         True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]  # remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
             tmp_path / "cleaned_df_params_without_min_freq" / "orderly_ord.parquet",
@@ -164,7 +169,7 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
         False,
         True,
         False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]  # remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
     return (
         get_cleaned_df(
             tmp_path
