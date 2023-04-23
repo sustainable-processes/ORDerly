@@ -1196,7 +1196,7 @@ def test_extraction_pipeline(
 
             tmp_df.apply(check_valid_order, axis=1)
 
-        # Columns: ['rxn_str', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature', 'rxn_time', 'product_0', 'yield_0', 'grant_date'],
+        # Columns: ['rxn_str', 'reactant_000', 'reactant_001', 'reactant_002', 'reactant_003', 'agent_000', 'agent_001', 'agent_002', 'agent_003', 'agent_004', 'agent_005', 'solvent_000', 'solvent_001', 'solvent_002', 'temperature', 'rxn_time', 'product_000', 'yield_000', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})

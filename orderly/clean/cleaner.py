@@ -160,21 +160,21 @@ class Cleaner:
 
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
-        # Replace 'none' with np.nan in 'products_0' column
-        df[col + "_0"] = df[col + "_0"].replace(None, np.nan)
+        # Replace 'none' with np.nan in 'products_000' column
+        df[col + "_000"] = df[col + "_000"].replace(None, np.nan)
 
         # Get indices where col is NaN
-        nan_indices = df.index[df[col + "_0"].isna()]
+        nan_indices = df.index[df[col + "_000"].isna()]
 
         # Create a mask for all columns that start with 'products_'
         mask = df.columns.str.startswith(col)
 
-        # For all indices where 'products_0' is NaN, check if any column starting with 'products_'
+        # For all indices where 'products_000' is NaN, check if any column starting with 'products_'
         # contains a non-null value
         for index in nan_indices:
             if not df.loc[index, mask].isna().all():
                 raise ValueError(
-                    f"Non-null value found in 'products_' columns for index {index} despite products_0 being null"
+                    f"Non-null value found in 'products_' columns for index {index} despite products_000 being null"
                 )
 
         # Remove rows from df using the mask
