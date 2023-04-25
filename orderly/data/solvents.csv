@@ -374,7 +374,7 @@ phenyl isothiocyanate,phenylisothiocyanat,,,103-72-0,C7H5NS,S=C=Nc1ccccc1,https:
 phenylhydrazine,phenyl-hydrazine,,,100-63-0,C6H8N2,[H+].[Cl-].NNc1ccccc1,https://doi.org/10.1039/C9SC01844A
 phenylisocyanate,isocyanatobenzene,,,103-71-9,C7H5NO,O=C=Nc1ccccc1,https://doi.org/10.1039/C9SC01844A
 phosphorus oxychloride,pocl3,,,10025-87-3,Cl3OP,Cl[P](Cl)(Cl)=O,https://doi.org/10.1039/C9SC01844A
-phosphorus trichloride,pcl3,,,7719-12-2,Cl3P,ClP(Cl)Cl,https://doi.org/10.1039/C9SC01844A
+phosphorus trichloride,pcl3,,,"""7719-12-2""",Cl3P,ClP(Cl)Cl,https://doi.org/10.1039/C9SC01844A
 piperidine,piperidine,,,110-89-4,C5H11N,C1CCNCC1,https://doi.org/10.1039/C9SC01844A
 propanal,propanal,,,123-38-6,C3H6O,CCC=O,https://doi.org/10.1039/C9SC01844A
 propane,propane,,,74-98-6,C3H8,CCC,https://doi.org/10.1039/C9SC01844A
@@ -404,7 +404,7 @@ tetrahydronaphthalene,tetralin,,,119-64-2,C10H12,C1CCc2ccccc2C1,https://doi.org/
 tetramethylsilane,tetramethylsilane,,,75-76-3,C4H12Si,C[Si](C)(C)C,https://doi.org/10.1039/C9SC01844A
 tetranitromethane,tetranitro-methane,,,509-14-8,CN4O8,[O-][N+](=O)C([N+]([O-])=O)([N+]([O-])=O)[N+]([O-])=O,https://doi.org/10.1039/C9SC01844A
 thiane,tetrahydro-2h-thiopyran,,,1613-51-0,C5H10S,C1CCSCC1,https://doi.org/10.1039/C9SC01844A
-thionyl chloride,thionylchloride,,,43655,Cl2OS,ClS(Cl)=O,https://doi.org/10.1039/C9SC01844A
+thionyl chloride,thionylchloride,,,"""7719-09-7""",Cl2OS,ClS(Cl)=O,https://doi.org/10.1039/C9SC01844A
 thiophene,biurea,,,110-02-1,C4H4S,s1cccc1,https://doi.org/10.1039/C9SC01844A
 "trans-1,2-dichloroethene","trans-1,2-dichloroethene",,,156-60-5,C2H2Cl2,Cl\C=C\Cl,https://doi.org/10.1039/C9SC01844A
 trans-decalin,trans-decalin,,,493-02-7,C10H18,C1CCC2CCCCC2C1,https://doi.org/10.1039/C9SC01844A
