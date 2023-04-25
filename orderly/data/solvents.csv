@@ -6,7 +6,7 @@ solvent_name_1,solvent_name_2,solvent_name_3,solvent_name_4,cas_number,chemical_
 "(E)-1,3-pentadiene",1-trans-3-pentadiene,,,2004-70-8,C5H8,C/C=C/C=C,https://doi.org/10.1039/C9SC01844A
 (E)-2-butenenitrile,(e)-2-butenenitrile,,,627-26-9,C4H5N,C/C=C/C#N,https://doi.org/10.1039/C9SC01844A
 (Z)-3-hexene,cis-3-hexene,,,592-47-2,C6H12,CC\C=C\CC,https://doi.org/10.1039/C9SC01844A
-"1,1,1-trichloroethane",glycerol,,,71-55-6,C2H3Cl3,CC(Cl)(Cl)Cl,https://doi.org/10.1039/C9SC01844A
+"1,1,1-trichloroethane",,,,71-55-6,C2H3Cl3,CC(Cl)(Cl)Cl,https://doi.org/10.1039/C9SC01844A
 "1,1,1-trichlorotrifluoroethane","1,1,1-trichloro-2,2,2-trifluoroethane",,,354-58-5,C2Cl3F3,FC(F)(F)C(Cl)(Cl)Cl,https://doi.org/10.1039/C9SC01844A
 "1,1,2,2-tetrabromoethane","1,1,2,2-tetrabromoethane",,,79-27-6,C2H2Br4,BrC(Br)C(Br)Br,https://doi.org/10.1039/C9SC01844A
 "1,1,2,2-tetrachloroethane","1,1,2,2-tetrachloroethane",,,79-34-5,C2H2Cl4,ClC(Cl)C(Cl)Cl,https://doi.org/10.1039/C9SC01844A
@@ -125,7 +125,7 @@ solvent_name_1,solvent_name_2,solvent_name_3,solvent_name_4,cas_number,chemical_
 2-methyl-1-butene,2-methyl-1-butene,,,563-46-2,C5H10,CCC(C)=C,https://doi.org/10.1039/C9SC01844A
 2-methyl-1-heptanol,2-methyl-1-heptanol,,,60435-70-3,C8H18O,CCCCCC(C)CO,https://doi.org/10.1039/C9SC01844A
 2-methyl-2-butanol,2-methyl-2-butanol,,,75-85-4,C5H12O,CCC(C)(C)O,https://doi.org/10.1039/C9SC01844A
-2-methyl-2-phenylpropane,"(1,1-dimethylethyl)benzene",,,98-06-6,C10H14,CC(C)(C)c1ccccc1,https://doi.org/10.1039/C9SC01844A
+2-methyl-2-phenylpropane,"(1,1-dimethylethyl)benzene",tert-butylbenzene,,98-06-6,C10H14,CC(C)(C)c1ccccc1,https://doi.org/10.1039/C9SC01844A
 2-methyl-2-propanamine,2-amino-2-methylpropane,,,75-64-9,C4H11N,CC(C)(C)N,https://doi.org/10.1039/C9SC01844A
 2-methyl-2-propanethiol,tert-butylthiol,,,75-66-1,C4H10S,CC(C)(C)S,https://doi.org/10.1039/C9SC01844A
 2-methyl-2-propanol,tert-butanol,,,75-65-0,C4H10O,CC(C)(C)O,https://doi.org/10.1039/C9SC01844A
@@ -232,9 +232,9 @@ cyclohexanecarboxylic acid,cyclohexanecarboxylicacid,,,98-89-5,C7H12O2,OC(=O)C1C
 cyclohexanol,cyclohexanol,,,108-93-0,C6H12O,OC1CCCCC1,https://doi.org/10.1039/C9SC01844A
 cyclohexene,cyclohexene,,,110-83-8,C6H10,C1CCC=CC1,https://doi.org/10.1039/C9SC01844A
 cyclohexyl acetate,aceticacidcyclohexylester,,,622-45-7,C8H14O2,CC(=O)OC1CCCCC1,https://doi.org/10.1039/C9SC01844A
-cyclooctane,aceticacidcyclohexylester,,,292-64-8,C8H16,C1CCCCCCC1,https://doi.org/10.1039/C9SC01844A
-cyclooctatetraene,cyclooctane,,,629-20-9,C8H8,C/1=C/C=C\C=C/C=C1,https://doi.org/10.1039/C9SC01844A
-cyclopentane,"1,3,5,7-cyclooctatetraene",,,287-92-3,C5H10,C1CCCC1,https://doi.org/10.1039/C9SC01844A
+cyclooctane,,,,292-64-8,C8H16,C1CCCCCCC1,https://doi.org/10.1039/C9SC01844A
+cyclooctatetraene,,,,629-20-9,C8H8,C/1=C/C=C\C=C/C=C1,https://doi.org/10.1039/C9SC01844A
+cyclopentane,,,,287-92-3,C5H10,C1CCCC1,https://doi.org/10.1039/C9SC01844A
 cyclopentanone,cyclopentanone,,,120-92-3,C5H8O,O=C1CCCC1,https://doi.org/10.1039/C9SC01844A
 d-carvone,carvon,,,2244-16-8  ,C10H14O,CC(=C)[C@H]1CC=C(C)C(=O)C1,https://doi.org/10.1039/C9SC01844A
 decane,n-decane,,,124-18-5,C10H22,CCCCCCCCCC,https://doi.org/10.1039/C9SC01844A
@@ -374,7 +374,7 @@ phenyl isothiocyanate,phenylisothiocyanat,,,103-72-0,C7H5NS,S=C=Nc1ccccc1,https:
 phenylhydrazine,phenyl-hydrazine,,,100-63-0,C6H8N2,[H+].[Cl-].NNc1ccccc1,https://doi.org/10.1039/C9SC01844A
 phenylisocyanate,isocyanatobenzene,,,103-71-9,C7H5NO,O=C=Nc1ccccc1,https://doi.org/10.1039/C9SC01844A
 phosphorus oxychloride,pocl3,,,10025-87-3,Cl3OP,Cl[P](Cl)(Cl)=O,https://doi.org/10.1039/C9SC01844A
-phosphorus trichloride,pcl3,,,12/02/2019,Cl3P,ClP(Cl)Cl,https://doi.org/10.1039/C9SC01844A
+phosphorus trichloride,pcl3,,,7719-12-2,Cl3P,ClP(Cl)Cl,https://doi.org/10.1039/C9SC01844A
 piperidine,piperidine,,,110-89-4,C5H11N,C1CCNCC1,https://doi.org/10.1039/C9SC01844A
 propanal,propanal,,,123-38-6,C3H6O,CCC=O,https://doi.org/10.1039/C9SC01844A
 propane,propane,,,74-98-6,C3H8,CCC,https://doi.org/10.1039/C9SC01844A
@@ -404,7 +404,7 @@ tetrahydronaphthalene,tetralin,,,119-64-2,C10H12,C1CCc2ccccc2C1,https://doi.org/
 tetramethylsilane,tetramethylsilane,,,75-76-3,C4H12Si,C[Si](C)(C)C,https://doi.org/10.1039/C9SC01844A
 tetranitromethane,tetranitro-methane,,,509-14-8,CN4O8,[O-][N+](=O)C([N+]([O-])=O)([N+]([O-])=O)[N+]([O-])=O,https://doi.org/10.1039/C9SC01844A
 thiane,tetrahydro-2h-thiopyran,,,1613-51-0,C5H10S,C1CCSCC1,https://doi.org/10.1039/C9SC01844A
-thionyl chloride,thionylchloride,,,09/07/2019,Cl2OS,ClS(Cl)=O,https://doi.org/10.1039/C9SC01844A
+thionyl chloride,thionylchloride,,,43655,Cl2OS,ClS(Cl)=O,https://doi.org/10.1039/C9SC01844A
 thiophene,biurea,,,110-02-1,C4H4S,s1cccc1,https://doi.org/10.1039/C9SC01844A
 "trans-1,2-dichloroethene","trans-1,2-dichloroethene",,,156-60-5,C2H2Cl2,Cl\C=C\Cl,https://doi.org/10.1039/C9SC01844A
 trans-decalin,trans-decalin,,,493-02-7,C10H18,C1CCC2CCCCC2C1,https://doi.org/10.1039/C9SC01844A
@@ -457,7 +457,7 @@ butyl acetate,n-butylacetate,,,123-86-4,C6H12O2,CCCCOC(C)=O,https://doi.org/10.1
 triethoxymethane,triethyl orthoformate,,,122-51-0,C7H16O3,CCOC(OCC)OCC,https://doi.org/10.1039/C9SC01844A
 "N,N-dimethylacetamide","n,n-dimethylacetamide",,,127-19-5,C4H9NO,CN(C)C(C)=O,https://doi.org/10.1039/C9SC01844A
 diisopropyl ether,diisopropylether,,,108-20-3,C6H14O,CC(C)OC(C)C,https://doi.org/10.1039/C9SC01844A
-2-propanol,2-propanol,,,67-63-0,C3H8O,CC(C)O,https://doi.org/10.1039/C9SC01844A
+2-propanol,Isopropyl alcohol,,,67-63-0,C3H8O,CC(C)O,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 methanol,,,,67-56-1,CH4O,CO,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 1-Methoxypropan-2-ol,,,,107-98-2,C4H10O2,CC(O)COC,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 1-pentanol,,,,71-41-0 ,C5H12O,CCCCCO,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
