@@ -14,6 +14,7 @@ import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
 from rdkit import Chem as rdkit_Chem
+from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
 from orderly.types import *
 
@@ -161,10 +162,10 @@ class Cleaner:
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
         # Replace 'none' with np.nan in 'products_000' column
-        df[col + "_000"] = df[col + "_000"].replace(None, np.nan)
-
+        column_name = col + "_000"
+        df[column_name] = df[column_name].replace({None: np.nan})
         # Get indices where col is NaN
-        nan_indices = df.index[df[col + "_000"].isna()]
+        nan_indices = df.index[df[column_name].isna()]
 
         # Create a mask for all columns that start with 'products_'
         mask = df.columns.str.startswith(col)
@@ -174,14 +175,14 @@ class Cleaner:
         for index in nan_indices:
             if not df.loc[index, mask].isna().all():
                 raise ValueError(
-                    f"Non-null value found in 'products_' columns for index {index} despite products_000 being null"
+                    f"Non-null value found in {col} columns for index {index} despite {column_name} being null"
                 )
 
         # Remove rows from df using the mask
         df = df.drop(nan_indices)
 
         LOG.info(f"Removing rows with empty {col}")
-        df = df.dropna(subset=[col])
+        df = df.dropna(subset=[column_name])
         return df
 
     @staticmethod
@@ -191,7 +192,7 @@ class Cleaner:
         # Keep rows with yield <= 100 or missing yield values
         mask = pd.Series(data=True, index=df.index)  # start with all rows selected
         for i in range(num_product):
-            yield_col = "yield_" + str(i)
+            yield_col = f"yield_{i:03d}"
             yield_mask = (df[yield_col] >= 0) & (df[yield_col] <= 100) | pd.isna(
                 df[yield_col]
             )
@@ -291,12 +292,12 @@ class Cleaner:
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
+        _ = rdkit_BlockLogs()
         # Merge all the extracted data into one big df
 
         LOG.info("Getting dataframe from extracted ORDs")
         df = self._merge_extracted_ords()
         LOG.info(f"All data length: {df.shape[0]}")
-
         # Remove reactions with too many of a certain component
         for col in [
             "reactant",
@@ -326,17 +327,19 @@ class Cleaner:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_reactants(df)
             LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
-
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
-        def is_mapped(rxn_str: RXN_STR) -> bool:
+        def is_mapped(rxn_str: Optional[RXN_STR]) -> bool:
             """
             Check if a reaction string is mapped using RDKit.
             """
+            _ = rdkit_BlockLogs()
+            if rxn_str is None:
+                return False
             reactants_from_rxn, _, _ = rxn_str.split(">")
             reactants = reactants_from_rxn.split(".")
             for r in reactants:
@@ -350,10 +353,10 @@ class Cleaner:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
-            mask_is_mapped = df["rxn_str"].apply(is_mapped)
-            mapped_rxn_df = df.iloc[mask_is_mapped]
-            not_mapped_rxn_df = df.iloc[~mask_is_mapped]
 
+            mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            mapped_rxn_df = df.loc[mask_is_mapped]
+            not_mapped_rxn_df = df.loc[~mask_is_mapped]
             # set unresolved names to none
             mapped_rxn_df = mapped_rxn_df.replace(self.molecules_to_remove, None)
 
@@ -441,7 +444,6 @@ class Cleaner:
         # Replace np.nan with None
         LOG.info("Map np.nan to None")
         df = df.applymap(lambda x: None if pd.isna(x) else x)
-
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
@@ -766,7 +768,6 @@ def main(
         assert (num_cat == 0) and (
             num_reag == 0
         ), "Invalid input: If trust_labelling=False in orderly.extract, then num_cat and num_reag must be 0."
-
     kwargs = {
         "ord_extraction_path": ord_extraction_path,
         "consistent_yield": consistent_yield,

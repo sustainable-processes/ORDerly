@@ -93,7 +93,7 @@ def get_cleaned_df(
 
 
 @pytest.fixture
-def cleaned_df_params(
+def cleaned_df_params_default(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
@@ -105,7 +105,14 @@ def cleaned_df_params(
         True,
         True,
         True,
-    ]  # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn, set_unresolved_names_to_none, remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
     return (
         get_cleaned_df(
             tmp_path / "cleaned_df" / "orderly_ord.parquet",
@@ -116,23 +123,67 @@ def cleaned_df_params(
 
 
 @pytest.fixture
-def cleaned_df_params_without_unresolved_names_and_duplicates(
+def cleaned_df_params_default_without_min_freq(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    import copy
+
+    args = copy.copy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    updated_args = args + [
+        True,
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
+    return (
+        get_cleaned_df(
+            tmp_path
+            / "cleaned_df_params_default_without_min_freq"
+            / "orderly_ord.parquet",
+            *updated_args,
+        ),
+        args,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_retaining_unresolved_names_and_duplicates(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
     updated_args = request.param + [
-        True,
         False,
         False,
+        False,
         True,
         True,
         True,
-        True,
-    ]  # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn, set_unresolved_names_to_none, remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
+        False,
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
+
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_unresolved_names_and_duplicates"
+            / "cleaned_df_params_retaining_unresolved_names_and_duplicates"
             / "orderly_ord.parquet",
             *updated_args,
         ),
@@ -141,34 +192,7 @@ def cleaned_df_params_without_unresolved_names_and_duplicates(
 
 
 @pytest.fixture
-def cleaned_df_params_without_min_freq(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    import copy
-
-    args = copy.copy(request.param)
-    args[-2] = 0
-    assert len(request.param) == 10
-    updated_args = args + [
-        True,
-        False,
-        False,
-        True,
-        True,
-        True,
-        True,
-    ]  # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn, set_unresolved_names_to_none, remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path / "cleaned_df_params_without_min_freq" / "orderly_ord.parquet",
-            *updated_args,
-        ),
-        args,
-    )
-
-
-@pytest.fixture
-def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
+def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     import copy
@@ -178,13 +202,24 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
     assert len(request.param) == 10
     updated_args = args + [
         False,
+        False,
+        False,
+        True,
+        True,
         True,
         False,
-    ]  # remove_rxn_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates"
+            / "cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq"
             / "orderly_ord.parquet",
             *updated_args,
         ),
@@ -414,10 +449,10 @@ def test_remove_rare_molecules(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params",
+    "cleaned_df_params_default",
     (
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            [False, False, 5, 5, 2, 3, 0, 0, 55, False],
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
@@ -451,15 +486,15 @@ def test_remove_rare_molecules(
     ),
     indirect=True,
 )
-def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_get_cleaned_df(cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]) -> None:
     import copy
 
-    cleaned_df, _ = copy.copy(cleaned_df_params)
+    cleaned_df, _ = copy.copy(cleaned_df_params_default)
     assert not cleaned_df.empty
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params",
+    "cleaned_df_params_default",
     (
         pytest.param(
             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
@@ -504,11 +539,11 @@ def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> No
     ),
     indirect=True,
 )
-def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_number_of_columns(cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]) -> None:
     import copy
     import numpy as np
 
-    cleaned_df, params = copy.copy(cleaned_df_params)
+    cleaned_df, params = copy.copy(cleaned_df_params_default)
 
     (
         _,
@@ -585,7 +620,7 @@ def double_list(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params_without_unresolved_names_and_duplicates,cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates",
+    "cleaned_df_params_default,cleaned_df_params_default_without_min_freq",
     (
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
@@ -634,22 +669,18 @@ def double_list(
     ),
     indirect=True,
 )
-def test_frequency_without_unresolved_names_and_duplicates(
-    cleaned_df_params_without_unresolved_names_and_duplicates: Tuple[
-        pd.DataFrame, List[Any]
-    ],
-    cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates: Tuple[
-        pd.DataFrame, List[Any]
-    ],
+def test_frequency_params_default(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_default_without_min_freq: Tuple[pd.DataFrame, List[Any]],
 ) -> None:
+    """
+    Test that there are no rare molecules left in the dataset after the cleaning process. There may be molecules appearing less often than the minimum frequency of occurrence, even after the cleaning, but this is because when deleting rows with rare values we may cause new molecules to become rare; this is why we check for the intersection of the two dfs at the very end of the test.
+    """
+
     import copy
 
-    cleaned_df, params = copy.copy(
-        cleaned_df_params_without_unresolved_names_and_duplicates
-    )
-    uncleaned_df, unclean_params = copy.copy(
-        cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates
-    )
+    cleaned_df, params = copy.copy(cleaned_df_params_default)
+    uncleaned_df, unclean_params = copy.copy(cleaned_df_params_default_without_min_freq)
 
     assert len(params) == len(unclean_params)
     assert unclean_params[-2] == 0
@@ -701,7 +732,7 @@ def test_frequency_without_unresolved_names_and_duplicates(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params,cleaned_df_params_without_min_freq",
+    "cleaned_df_params_retaining_unresolved_names_and_duplicates,cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq",
     (
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
@@ -742,17 +773,27 @@ def test_frequency_without_unresolved_names_and_duplicates(
     ),
     indirect=True,
 )
-def test_frequency_with_unresolved_names_and_duplicates(
-    cleaned_df_params: Tuple[pd.DataFrame, List[Any]],
-    cleaned_df_params_without_min_freq: Tuple[pd.DataFrame, List[Any]],
+def test_frequency_retaining_unresolved_names_and_duplicates(
+    cleaned_df_params_retaining_unresolved_names_and_duplicates: Tuple[
+        pd.DataFrame, List[Any]
+    ],
+    cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq: Tuple[
+        pd.DataFrame, List[Any]
+    ],
 ) -> None:
     """
-    this test checks if enough data is being removed, it is possible too much data is removed but this is covered by other tests
+    Test that there are no rare molecules left in the dataset after the cleaning process. There may be molecules appearing less often than the minimum frequency of occurrence, even after the cleaning, but this is because when deleting rows with rare values we may cause new molecules to become rare; this is why we check for the intersection of the two dfs at the very end of the test.
+
+    In this test we retain duplicate reactions and unresolved names (e.g. english names for molecules that aren't in our manual mapping).
     """
     import copy
 
-    cleaned_df, params = copy.copy(cleaned_df_params)
-    uncleaned_df, unclean_params = copy.copy(cleaned_df_params_without_min_freq)
+    cleaned_df, params = copy.copy(
+        cleaned_df_params_retaining_unresolved_names_and_duplicates
+    )
+    uncleaned_df, unclean_params = copy.copy(
+        cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
+    )
 
     assert len(params) == len(unclean_params)
     assert unclean_params[-2] == 0
