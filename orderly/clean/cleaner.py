@@ -16,6 +16,7 @@ import numpy as np
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
+from typing import Optional
 from orderly.types import *
 
 LOG = logging.getLogger(__name__)
