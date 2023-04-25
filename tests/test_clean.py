@@ -486,7 +486,9 @@ def test_remove_rare_molecules(
     ),
     indirect=True,
 )
-def test_get_cleaned_df(cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_get_cleaned_df(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
+) -> None:
     import copy
 
     cleaned_df, _ = copy.copy(cleaned_df_params_default)
@@ -539,7 +541,9 @@ def test_get_cleaned_df(cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]
     ),
     indirect=True,
 )
-def test_number_of_columns(cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_number_of_columns(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
+) -> None:
     import copy
     import numpy as np
 
