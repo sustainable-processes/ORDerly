@@ -485,275 +485,275 @@ Ethyl tert-butyl ether,ETBE,,,637-92-3,C6H14O,O(C(C)(C)C)CC,MOLECULES FROM https
 Butyl ether,Dibutyl ether,,,6863-58-7,C8H18O,CCCCOCCCC,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 Tetrahydro furfuryl alcohol,THFA,,,97-99-4,C5H10O2,C1CC(OC1)CO,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 Furfuryl alcohol,,,,98-00-0,C5H6O2,c1cc(oc1)CO,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
-"1,1,1-Trichloroethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-TMU ,"1,1,3,3-Tetramethylurea",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,1-Dichloroethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,1-Dichloroethene",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Diaminoethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Dichlorobenzene",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Dichloroethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Dimethoxyethane",DME,Glyme ,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Ethanediol",Ethylene Glycol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,3,5-Trimethylbenzene",Mesitylene,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-p-Xylene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,4-Dioxane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Methylpyrrolidone,NMP,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,4-Dimethyl-3-pentanone",Diisopropyl ketone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,6-Dimethyl-4-heptanone",Diisobutyl ketone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Aminoethanol,Ethanolamine,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methoxyethanol,Methyl Cellosolve,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylpentane,iso-Hexane,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-MeTHF,2-Methyltetrahydrofuran,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylbutan-2-ol,tert-Amyl Alcohol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylpropan-1-ol,iso-Butanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylpropan-2-ol,tert-Butanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"3,3-Dimethyl-2-butanone",MTBK,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-3-Methyl-2-butanone,Methyl isopropyl ketone,MIPK,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-3-Methylbutan-1-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-4-Methyl-2-pentanone,Methyl iso-Butyl Ketone,MIBK,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Acetic Acid,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Acetic Anhydride,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Acetone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Acetonitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Acetophenone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Aniline,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Anisole,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzonitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzotrifluoride,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzyl alcohol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Bromobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butan-1-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butan-2-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butanone ,MEK,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyronitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Carbon Disulfide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Chlorobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Chloroform,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-cis-Decalin,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclohexane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclohexanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclohexanone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-CPME,Cyclopentyl Methyl Ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Decane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DCM ,Dichloromethane,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diethyl Ether,Ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diethylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diethyl Carbonate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diethylene Glycol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diethyleneglycol diethyl ether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diglyme,Diethyleneglycol dimethyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DiIodomethane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Di-isopropylether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMSO,Dimethylsulfoxide,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Di-n-butylether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Di-n-propylether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diphenyl Ether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethoxybenzene,phenetole,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Fluorobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Formamide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Formic Acid,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Glycerol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-HMPA,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Iodobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-iso-Butyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-iso-Propyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Morpholine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMA,"N,N-Dimethylacetamide",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMF,"N,N-Dimethylformamide",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Butyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Heptane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Hexane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Nitrobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Nitromethane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Methylacetamide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Methylformamide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Nonane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Octane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Pentane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentan-1-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentan-2-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentan-2-one,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentan-3-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentan-3-one,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Piperidine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propan-1-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-IPA,Propan-2-ol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propanoic Acid,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Proprionitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pyridine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Quinoline,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Sulfolane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-MTBE ,tert-Butylmethylether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetrachloroethene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetrachloromethane,Carbon Tetrachloride,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetraethylene glycol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-THF ,Tetrahydrofuran,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetralin,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Toluene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tributylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Trichloroethene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triethylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triethylene Glycol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triglyme ,Triethyleneglycol dimethyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Water,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"N,N-Dimethylaniline",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methylcyclohexane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMPU,"1,3-dimethyltetrahydropyrimidin-2(1H)-one",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMI ,"1,3-dimethylimidazolidin-2-one",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-NEP ,1-Ethylpyrrolidin-2-one,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-TAME ,tert-amyl methyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,3-Dioxolane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl Lactate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Dimethoxypropane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Methoxypropan-2-ol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propylene Carbonate ,"4-Methyl-1,3-dioxolan-2-one",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dimethyl Carbonate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DMI ,Dimethyl isosorbide,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetramethoxymethane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2,2-Trifluoroethanol",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"3,5,5-Trimethylcyclohex-2-enone",Isophorone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylcyclohexanone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Ethoxyethyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl 3-oxobutanoate,Ethyl acetoacetate,EAA,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methylpyridine,2-Picoline,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,6-Dimethylpyridine","2,6-Lutidine",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triethanolamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,3-Dithiolane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dimethyl Sulfite,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,3,2-Dioxathiolane-2-oxide",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Perfluorobenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2,3,4,5-Pentafluoro-6-(trifluoromethyl)benzene",Perfluorotoluene,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Perfluorodecalin,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-p-Cymene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,3-Dichlorobenzene",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetrahydrothiophene 1-oxide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2,2-Trifluoroacetic Acid ",TFA,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2,2-trifluoroacetic Anhydride",TFAA,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,1,1,3,3,3-Hexafluoropropan-2-ol",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Methylazepan-2-one,N-Methylcaprolactam,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetraethylsulfamide,TES,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentamethyl Phosphonic Diamide,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2-Dimethoxypropane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"(2,2-Dimethyl-1,3-dioxolan-4-yl)methanol",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Methyl-4-(prop-1-en-2-yl)cyclohex-1-ene,D-Limonene,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-5-Methyldihydrofuran-2(3H)-one,gamma-valerolactone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,8-Diazabicycloundec-7-ene",DBU,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Ethyl-N-isopropylpropan-2-amine ,Hunig's Base,Diispropylethylamine,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"(E)-1,2-Dichloroethene",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"(Z)-1,2-Dichloroethene",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Ethoxyethanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexan-2-one ,Methylbutylketone,MBK,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Formate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl Formate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propyl Formate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyl Formate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dimethyl Adipate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Isopentyl Acetate,Isoamyl acetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"Ethane-1,2-diyl diacetate",Ethylene glycol diacetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dihydrofuran-2(3H)-one,Butyrolactone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Trimethoxymethane,Trimethyl orthoformate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triethoxymethane,Triethyl orthoformate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2-Dimethyl-1,3-dioxolane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"Pentane-2,4-dione",Acetylacetone,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethylcyclohexane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexanenitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Pentyl Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Propionate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Butyrate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-5-Nonanone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Indane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pyrimidine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pyridazine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclopentane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Nonanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dipropylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pyrrolidine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-4-Hydroxy-4-methylpentan-2-one,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclopentanone,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzyl Benzoate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dibutylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Heptanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexanedinitrile,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Hexanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Pentylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Thiophene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetrahydrothiophene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Furan,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pyrrole,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Butylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Propyl acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Cyclohexylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Diisopropylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-Nitropropane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyric acid,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Propylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl propionate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl butyrate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butylbenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Methylaniline,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-Ethylaniline,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Benzylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethylbenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Isopropylbenzene,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Furfural,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methylcyclopentane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl benzoate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Nitropropane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,1,2,2-Tetrachloroethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Isobutyric acid,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Nitroethane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,1,2-Trichloroethane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methyl-1-propanamine,Isobutylamine,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Pentachloroethane,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Amino-2-methylpropane,tert-Butylamine,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Isopropylamine,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propylene Glycol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Tetrahydropyran,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"1,2-Diacetoxypropane",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methoxy-1-[(1-methoxy-2-propanyl)oxy]propane,Propylene Glycol Dimethyl Ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dihydrolevoglucosenone,Cyrene,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-(Trifluoromethoxy)benzene,Trifluoromethylphenyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-N-methylmorpholine,NNM,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-4-Methylcyclohexanemethanol,MCHM,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexamethyldisiloxane,M2,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Octamethyltrisiloxane,MDM,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Decamethyltetrasiloxane,MD2M,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Octamethylcyclotetrasiloxane,D4,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Decamethylcyclopentasiloxane,D5,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyl Carbitol,2-[2-(Butyloxy)ethoxy]ethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Hexyl Carbitol,2-[2-(Hexyloxy)ethoxy]ethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Carbitol,2-[2-(Methoxy)ethoxy]ethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Carbitol,2-(2-ethoxyethoxy)ethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyl Carbitol Acetate,2-(2-Butoxyethoxy)ethyl acetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Propyl Cellosolve,2-Propoxyethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyl Cellosolve Acetate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butyl Cellosolve,Ethylene glycol monobutyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DPnP Glycol Ether,1-(1-propoxypropan-2-yloxy)propan-2-ol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-EPh Glycol Ether,2-phenoxyethanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PMA Glycol Ether,1-methoxy-2-propanol acetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PGDA Glycol Ether,Propylene glycol diacetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PM Glycol Ether,1-Methoxy-2-propanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PnB Glycol Ether,3-Butoxypropan-2-ol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PnP Glycol Ether,1-Propoxy-2-propanol,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-PPh Glycol Ether,Propylene glycol phenyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-TPM Glycol Ether,Tripropylene glycol methyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-TPnB Glycol Ether,Tripropylene glycol n-butyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DPM Glycol Ether,Dipropylene glycol methyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DPMA Glycol Ether,Dipropylene glycol methyl ether acetate,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-DPnB Glycol Ether,Dipropylene glycol n-butyl ether,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Ethylhexanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-2-Methyl Butanol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Methyl Isobutyl Carbinol,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Propyl Propionate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Ethyl 3-Ethoxypropionate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-"2,2,4-Trimethyl-1,3-pentanediol 1-isobutyrate",,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-n-Pentyl Propionate,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Butoxytriglycol,"3,6,9-Trioxatridecan-1-ol",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Dipropylene Glycol Dimethyl Ether,,,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-Triacetin ,"1,2,3-triacetoxypropane",,,,,O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1,1-Trichloroethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+TMU ,"1,1,3,3-Tetramethylurea",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1-Dichloroethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1-Dichloroethene",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Diaminoethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Dichlorobenzene",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Dichloroethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Dimethoxyethane",DME,Glyme ,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Ethanediol",Ethylene Glycol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,3,5-Trimethylbenzene",Mesitylene,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+p-Xylene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,4-Dioxane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Methylpyrrolidone,NMP,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,4-Dimethyl-3-pentanone",Diisopropyl ketone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,6-Dimethyl-4-heptanone",Diisobutyl ketone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Aminoethanol,Ethanolamine,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methoxyethanol,Methyl Cellosolve,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylpentane,iso-Hexane,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-MeTHF,2-Methyltetrahydrofuran,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylbutan-2-ol,tert-Amyl Alcohol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylpropan-1-ol,iso-Butanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylpropan-2-ol,tert-Butanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"3,3-Dimethyl-2-butanone",MTBK,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+3-Methyl-2-butanone,Methyl isopropyl ketone,MIPK,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+3-Methylbutan-1-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+4-Methyl-2-pentanone,Methyl iso-Butyl Ketone,MIBK,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Acetic Acid,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Acetic Anhydride,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Acetone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Acetonitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Acetophenone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Aniline,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Anisole,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzonitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzotrifluoride,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzyl alcohol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Bromobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butan-1-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butan-2-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butanone ,MEK,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyronitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Carbon Disulfide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Chlorobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Chloroform,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+cis-Decalin,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclohexane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclohexanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclohexanone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+CPME,Cyclopentyl Methyl Ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Decane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DCM ,Dichloromethane,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diethyl Ether,Ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diethylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diethyl Carbonate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diethylene Glycol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diethyleneglycol diethyl ether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diglyme,Diethyleneglycol dimethyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DiIodomethane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Di-isopropylether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMSO,Dimethylsulfoxide,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Di-n-butylether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Di-n-propylether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diphenyl Ether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethoxybenzene,phenetole,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Fluorobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Formamide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Formic Acid,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Glycerol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+HMPA,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Iodobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+iso-Butyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+iso-Propyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Morpholine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMA,"N,N-Dimethylacetamide",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMF,"N,N-Dimethylformamide",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Butyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Heptane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Hexane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Nitrobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Nitromethane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Methylacetamide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Methylformamide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Nonane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Octane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Pentane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentan-1-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentan-2-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentan-2-one,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentan-3-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentan-3-one,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Piperidine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propan-1-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+IPA,Propan-2-ol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propanoic Acid,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Proprionitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pyridine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Quinoline,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Sulfolane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+MTBE ,tert-Butylmethylether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetrachloroethene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetrachloromethane,Carbon Tetrachloride,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetraethylene glycol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+THF ,Tetrahydrofuran,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetralin,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Toluene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tributylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Trichloroethene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triethylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triethylene Glycol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triglyme ,Triethyleneglycol dimethyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Water,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"N,N-Dimethylaniline",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methylcyclohexane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMPU,"1,3-dimethyltetrahydropyrimidin-2(1H)-one",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMI ,"1,3-dimethylimidazolidin-2-one",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+NEP ,1-Ethylpyrrolidin-2-one,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+TAME ,tert-amyl methyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,3-Dioxolane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl Lactate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Dimethoxypropane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Methoxypropan-2-ol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propylene Carbonate ,"4-Methyl-1,3-dioxolan-2-one",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dimethyl Carbonate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DMI ,Dimethyl isosorbide,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetramethoxymethane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2,2-Trifluoroethanol",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"3,5,5-Trimethylcyclohex-2-enone",Isophorone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylcyclohexanone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Ethoxyethyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl 3-oxobutanoate,Ethyl acetoacetate,EAA,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methylpyridine,2-Picoline,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,6-Dimethylpyridine","2,6-Lutidine",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triethanolamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,3-Dithiolane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dimethyl Sulfite,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,3,2-Dioxathiolane-2-oxide",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Perfluorobenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2,3,4,5-Pentafluoro-6-(trifluoromethyl)benzene",Perfluorotoluene,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Perfluorodecalin,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+p-Cymene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,3-Dichlorobenzene",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetrahydrothiophene 1-oxide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2,2-Trifluoroacetic Acid ",TFA,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2,2-trifluoroacetic Anhydride",TFAA,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1,1,3,3,3-Hexafluoropropan-2-ol",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Methylazepan-2-one,N-Methylcaprolactam,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetraethylsulfamide,TES,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentamethyl Phosphonic Diamide,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2-Dimethoxypropane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"(2,2-Dimethyl-1,3-dioxolan-4-yl)methanol",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Methyl-4-(prop-1-en-2-yl)cyclohex-1-ene,D-Limonene,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+5-Methyldihydrofuran-2(3H)-one,gamma-valerolactone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,8-Diazabicycloundec-7-ene",DBU,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Ethyl-N-isopropylpropan-2-amine ,Hunig's Base,Diispropylethylamine,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"(E)-1,2-Dichloroethene",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"(Z)-1,2-Dichloroethene",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Ethoxyethanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexan-2-one ,Methylbutylketone,MBK,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Formate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl Formate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propyl Formate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyl Formate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dimethyl Adipate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Isopentyl Acetate,Isoamyl acetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"Ethane-1,2-diyl diacetate",Ethylene glycol diacetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dihydrofuran-2(3H)-one,Butyrolactone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Trimethoxymethane,Trimethyl orthoformate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triethoxymethane,Triethyl orthoformate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2-Dimethyl-1,3-dioxolane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"Pentane-2,4-dione",Acetylacetone,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethylcyclohexane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexanenitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Pentyl Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Propionate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Butyrate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+5-Nonanone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Indane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pyrimidine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pyridazine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclopentane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Nonanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dipropylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pyrrolidine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+4-Hydroxy-4-methylpentan-2-one,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclopentanone,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzyl Benzoate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dibutylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Heptanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexanedinitrile,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Hexanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Pentylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Thiophene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetrahydrothiophene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Furan,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pyrrole,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Butylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Propyl acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Cyclohexylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Diisopropylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-Nitropropane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyric acid,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Propylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl propionate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl butyrate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butylbenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Methylaniline,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-Ethylaniline,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Benzylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethylbenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Isopropylbenzene,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Furfural,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methylcyclopentane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl benzoate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Nitropropane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1,2,2-Tetrachloroethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Isobutyric acid,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Nitroethane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,1,2-Trichloroethane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methyl-1-propanamine,Isobutylamine,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Pentachloroethane,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Amino-2-methylpropane,tert-Butylamine,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Isopropylamine,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propylene Glycol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Tetrahydropyran,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"1,2-Diacetoxypropane",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methoxy-1-[(1-methoxy-2-propanyl)oxy]propane,Propylene Glycol Dimethyl Ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dihydrolevoglucosenone,Cyrene,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+(Trifluoromethoxy)benzene,Trifluoromethylphenyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+N-methylmorpholine,NNM,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+4-Methylcyclohexanemethanol,MCHM,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexamethyldisiloxane,M2,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Octamethyltrisiloxane,MDM,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Decamethyltetrasiloxane,MD2M,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Octamethylcyclotetrasiloxane,D4,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Decamethylcyclopentasiloxane,D5,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyl Carbitol,2-[2-(Butyloxy)ethoxy]ethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Hexyl Carbitol,2-[2-(Hexyloxy)ethoxy]ethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Carbitol,2-[2-(Methoxy)ethoxy]ethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Carbitol,2-(2-ethoxyethoxy)ethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyl Carbitol Acetate,2-(2-Butoxyethoxy)ethyl acetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Propyl Cellosolve,2-Propoxyethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyl Cellosolve Acetate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butyl Cellosolve,Ethylene glycol monobutyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DPnP Glycol Ether,1-(1-propoxypropan-2-yloxy)propan-2-ol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+EPh Glycol Ether,2-phenoxyethanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PMA Glycol Ether,1-methoxy-2-propanol acetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PGDA Glycol Ether,Propylene glycol diacetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PM Glycol Ether,1-Methoxy-2-propanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PnB Glycol Ether,3-Butoxypropan-2-ol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PnP Glycol Ether,1-Propoxy-2-propanol,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+PPh Glycol Ether,Propylene glycol phenyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+TPM Glycol Ether,Tripropylene glycol methyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+TPnB Glycol Ether,Tripropylene glycol n-butyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DPM Glycol Ether,Dipropylene glycol methyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DPMA Glycol Ether,Dipropylene glycol methyl ether acetate,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+DPnB Glycol Ether,Dipropylene glycol n-butyl ether,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Ethylhexanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+2-Methyl Butanol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Methyl Isobutyl Carbinol,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Propyl Propionate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Ethyl 3-Ethoxypropionate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+"2,2,4-Trimethyl-1,3-pentanediol 1-isobutyrate",,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+n-Pentyl Propionate,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Butoxytriglycol,"3,6,9-Trioxatridecan-1-ol",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Dipropylene Glycol Dimethyl Ether,,,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+Triacetin ,"1,2,3-triacetoxypropane",,,,,,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
