@@ -128,6 +128,8 @@ class Cleaner:
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
+        if number_of_columns_to_keep == -1:
+            return df
 
         cols = list(df.columns)
         count = 0
