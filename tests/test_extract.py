@@ -354,12 +354,9 @@ def test_rxn_string_and_is_mapped(
         # test case where the products list starts non-empty but ends empty
         # I think this is a crystalisation/protonation/stabilisation reaction
         [
-            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
-            0,
-            # This test case actually comes from the following file, index,
-            # "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad", 10
-            # however, it's not currently in our test data folder # TODO: add test file
-            "CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2.Cl.CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[IH:44]>>[IH:44].[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2",
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            10,
+            None,
             [],
             [
                 "Cc1cc2c([N+](=O)[O-])cccc2cn1",

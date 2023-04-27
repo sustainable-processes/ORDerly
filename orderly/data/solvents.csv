@@ -1,4 +1,4 @@
-solvent_name_1,solvent_name_2,solvent_name_3,cas_number,chemical_formula,canon_smiles,source
+solvent_name_1,solvent_name_2,solvent_name_3,cas_number,chemical_formula,smiles,source
 "(1z,5z)-cycloocta-1,5-diene","1,5-cyclooctadiene",,111-78-4,C8H12,C1=CCCC=CCC1,https://doi.org/10.1039/C9SC01844A
 "(2e,4e)-2,4-hexadiene","trans,trans-2,4-hexadiene",,5194-51-4,C6H10,CC=CC=CC,https://doi.org/10.1039/C9SC01844A
 (dichloromethyl)benzene,(dichloromethyl)-benzene,,98-87-3,C7H6Cl2,ClC(Cl)c1ccccc1,https://doi.org/10.1039/C9SC01844A
