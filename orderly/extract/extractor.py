@@ -710,23 +710,33 @@ class OrdExtractor:
 
         # clean the smiles
 
-        def is_digit(x: Optional[str]) -> Optional[bool]:
+        def is_number(x: Optional[str]) -> Optional[bool]:
             if x is None:
                 return None
             elif isinstance(x, str):
-                return x.isdigit()
+                try:
+                    int(x)
+                    return True
+                except ValueError:
+                    try:
+                        float(x)
+                        return True
+                    except ValueError:
+                        return False
             else:
                 e = ValueError(f"Expected a string or None, got {type(x)}")
                 LOG.error(e)
                 raise e
 
+
         # remove molecules that are integers
-        reactants = [x for x in reactants if not is_digit(x)]
-        agents = [x for x in agents if not is_digit(x)]
-        reagents = [x for x in reagents if not is_digit(x)]
-        solvents = [x for x in solvents if not is_digit(x)]
-        catalysts = [x for x in catalysts if not is_digit(x)]
-        products = [x for x in products if not is_digit(x)]
+        reactants = [x for x in reactants if not is_number(x)]
+        agents = [x for x in agents if not is_number(x)]
+        reagents = [x for x in reagents if not is_number(x)]
+        solvents = [x for x in solvents if not is_number(x)]
+        catalysts = [x for x in catalysts if not is_number(x)]
+        products = [x for x in products if not is_number(x)]
+        rxn_non_smiles_names_list = [x for x in rxn_non_smiles_names_list if not is_number(x)]
 
         def canonicalise_and_get_non_smiles_names(
             mole_id_list: REACTANTS
