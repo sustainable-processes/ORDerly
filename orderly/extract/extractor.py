@@ -275,7 +275,7 @@ class OrdExtractor:
         SOLVENTS,
         CATALYSTS,
         PRODUCTS,
-        ICE_PRESENT,
+        bool,
         List[MOLECULE_IDENTIFIER],
     ]:
         """
