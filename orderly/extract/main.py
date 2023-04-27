@@ -90,7 +90,7 @@ def build_solvents_set_and_dict(
     """
     solvents = orderly.data.solvents.get_solvents(path=solvents_path)
 
-    solvents["canonical_smiles"] = solvents["smiles"].apply(
+    solvents["canonical_smiles"] = solvents["canon_smiles"].apply(
         orderly.extract.canonicalise.get_canonicalised_smiles
     )
 
@@ -100,8 +100,8 @@ def build_solvents_set_and_dict(
 
     # Combine the lists into a sequence of key-value pairs
     key_value_pairs = zip(
-        list(solvents["stenutz_name"]) + list(solvents["cosmo_name"]),
-        list(solvents["canonical_smiles"]) + list(solvents["canonical_smiles"]),
+        list(solvents["solvent_name_1"]) + list(solvents["solvent_name_2"])+list(solvents["solvent_name_3"]),
+        list(solvents["canonical_smiles"]) + list(solvents["canonical_smiles"] + list(solvents["canonical_smiles"]+ list(solvents["canonical_smiles"])),
     )
 
     # Create a dictionary from the sequence

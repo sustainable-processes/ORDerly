@@ -58,7 +58,7 @@ def get_solvents_dict(
         pd.concat(
             [
                 get_df(name=i, solvents_df=solvents)
-                for i in ["stenutz_name", "cosmo_name", "other_name_1", "other_name_2"]
+                for i in ["solvent_name_1", "solvent_name_2", "solvent_name_3"]
             ],
             axis=0,
         )

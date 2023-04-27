@@ -1,4 +1,4 @@
-solvent_name_1,solvent_name_2,solvent_name_3,cas_number,chemical_formula,canon_smiles,source
+solvent_name_1,solvent_name_2,solvent_name_3,cas_number,chemical_formula,smiles,source
 "(1z,5z)-cycloocta-1,5-diene","1,5-cyclooctadiene",,111-78-4,C8H12,C1=CCCC=CCC1,https://doi.org/10.1039/C9SC01844A
 "(2e,4e)-2,4-hexadiene","trans,trans-2,4-hexadiene",,5194-51-4,C6H10,CC=CC=CC,https://doi.org/10.1039/C9SC01844A
 (dichloromethyl)benzene,(dichloromethyl)-benzene,,98-87-3,C7H6Cl2,ClC(Cl)c1ccccc1,https://doi.org/10.1039/C9SC01844A
@@ -62,7 +62,7 @@ solvent_name_1,solvent_name_2,solvent_name_3,cas_number,chemical_formula,canon_s
 "1,2-difluorobenzene",o-difluorobenzene,,367-11-3,C6H4F2,Fc1ccccc1F,https://doi.org/10.1039/C9SC01844A
 "1,2-dimethoxybenzene",,,91-16-7,C8H10O2,COc1ccccc1OC,https://doi.org/10.1039/C9SC01844A
 "1,2-dimethoxyethane",,,110-71-4,C4H10O2,COCCOC,https://doi.org/10.1039/C9SC01844A
-"1,2-dimethylbenzene",o-xylene,,95-47-6,C8H10,Cc1ccccc1C,https://doi.org/10.1039/C9SC01844A
+"1,2-dimethylbenzene",,,95-47-6,C8H10,Cc1ccccc1C,https://doi.org/10.1039/C9SC01844A
 "1,2-diphenylethane","1,1'-(1,2-ethanediyl)bis-benzene",,103-29-7,C14H14,c1ccc(CCc2ccccc2)cc1,https://doi.org/10.1039/C9SC01844A
 "1,2-propanediol",propyleneglycol,,57-55-6,C3H8O2,CC(O)CO,https://doi.org/10.1039/C9SC01844A
 "1,2,3-propanetriol",glycerol,,56-81-5,C3H8O3,OCC(O)CO,https://doi.org/10.1039/C9SC01844A
@@ -77,7 +77,7 @@ indane,,,496-11-7,C9H10,c1ccc2c(c1)CCC2,https://doi.org/10.1039/C9SC01844A
 "1,3-dichlorobenzene",,,541-73-1,C6H4Cl2,Clc1cccc(Cl)c1,https://doi.org/10.1039/C9SC01844A
 "1,3-dichloropropane",,,142-28-9,C3H6Cl2,ClCCCCl,https://doi.org/10.1039/C9SC01844A
 "1,3-difluorobenzene",m-difluorobenzene,,372-18-9,C6H4F2,Fc1cccc(F)c1,https://doi.org/10.1039/C9SC01844A
-"1,3-dimethylbenzene",m-xylene,,108-38-3,C8H10,Cc1cccc(C)c1,https://doi.org/10.1039/C9SC01844A
+"1,3-dimethylbenzene",,,108-38-3,C8H10,Cc1cccc(C)c1,https://doi.org/10.1039/C9SC01844A
 "1,3-dimethyltetrahydropyrimidin-2(1h)-one",dmpu,,7226-23-5,C6H12N2O,CN1CCCN(C)C1=O,https://doi.org/10.1039/C9SC01844A
 "1,3-dioxolan-2-one",,,96-49-1,C3H4O3,O=C1OCCO1,https://doi.org/10.1039/C9SC01844A
 "1,3,3-trimethyl-2-oxabicyclo[2.2.2]octane","1,8-cineole",,470-82-6,C10H18O,CC12CCC(CC1)C(C)(C)O2,https://doi.org/10.1039/C9SC01844A
@@ -89,7 +89,7 @@ indane,,,496-11-7,C9H10,c1ccc2c(c1)CCC2,https://doi.org/10.1039/C9SC01844A
 "1,4-dichlorobenzene",,,106-46-7,C6H4Cl2,Clc1ccc(Cl)cc1,https://doi.org/10.1039/C9SC01844A
 "1,4-dichlorobutane",,,110-56-5,C4H8Cl2,ClCCCCCl,https://doi.org/10.1039/C9SC01844A
 "1,4-difluorobenzene",p-difluorobenzene,,540-36-3,C6H4F2,Fc1ccc(F)cc1,https://doi.org/10.1039/C9SC01844A
-"1,4-dimethylbenzene",p-xylene,,106-42-3,C8H10,Cc1ccc(C)cc1,https://doi.org/10.1039/C9SC01844A
+"1,4-dimethylbenzene",,,106-42-3,C8H10,Cc1ccc(C)cc1,https://doi.org/10.1039/C9SC01844A
 "1,5-dichloropentane","1,5-dichloro-pentane",,628-76-2,C5H10Cl2,ClCCCCCCl,https://doi.org/10.1039/C9SC01844A
 2-(2-aminoethylamino)ethanol,2-(2-aminoethyl)aminoethanol,,111-41-1,C4H12N2O,NCCNCCO,https://doi.org/10.1039/C9SC01844A
 2-aminoethanol,ethanolamine,,141-43-5,C2H7NO,NCCO,https://doi.org/10.1039/C9SC01844A
@@ -174,7 +174,7 @@ indane,,,496-11-7,C9H10,c1ccc2c(c1)CCC2,https://doi.org/10.1039/C9SC01844A
 3-methyl-2-butanone,,,563-80-4,C5H10O,CC(=O)C(C)C,https://doi.org/10.1039/C9SC01844A
 3-methylaniline,,,108-44-1,C7H9N,Cc1cccc(N)c1,https://doi.org/10.1039/C9SC01844A
 3-methylbutanoic acid,isovalericacid,,503-74-2,C5H10O2,CC(C)CC(=O)O,https://doi.org/10.1039/C9SC01844A
-3-methylbutyl acetate,isoamyl acetate,isopentyl acetate,123-92-2,C7H14O2,CC(=O)OCCC(C)C,https://doi.org/10.1039/C9SC01844A
+3-methylbutyl acetate,isoamyl acetate,isopentyl acetate,123-92-2,C7H14O2,O=C(OCCC(C)C)C,https://doi.org/10.1039/C9SC01844A
 3-methylhexane,3-methyl-hexane,,589-34-4,C7H16,CCCC(C)CC,https://doi.org/10.1039/C9SC01844A
 3-methylphenol,3-hydroxytoluene,,108-39-4,C7H8O,Cc1cccc(O)c1,https://doi.org/10.1039/C9SC01844A
 3-methylpyridine,3-picoline,,108-99-6,C6H7N,Cc1cccnc1,https://doi.org/10.1039/C9SC01844A
@@ -268,7 +268,7 @@ dichloromethane,ch2cl2,,75-09-2,CH2Cl2,ClCCl,https://doi.org/10.1039/C9SC01844A
 diethanolamine,,,111-42-2,C4H11NO2,OCCNCCO,https://doi.org/10.1039/C9SC01844A
 tert-octyl mercaptan,"2,4,4-trimethyl-2-pentanethiol
 ",,141-59-3,"	C8H18S",CC(C)(C)CC(C)(C)S,https://doi.org/10.1039/C9SC01844A
-diethyl (2z)-2-butenedioate,,,141-05-9,C8H12O4,CCOC(=O)C=CC(=O)OCC,https://doi.org/10.1039/C9SC01844A
+diethyl (2z)-2-butenedioate,,,141-05-9,C8H12O4,CCOC(=O)/C=C\C(=O)OCC,https://doi.org/10.1039/C9SC01844A
 diethyl butanedioate,diethyl succinate,,123-25-1,C8H14O4,CCOC(=O)CCC(=O)OCC,https://doi.org/10.1039/C9SC01844A
 diethyl carbonate,diethylcarbonate,,105-58-8,C5H10O3,CCOC(=O)OCC,https://doi.org/10.1039/C9SC01844A
 diethyl disulfide,diethyldisulfide,,110-81-6,C4H10S2,CCSSCC,https://doi.org/10.1039/C9SC01844A
@@ -477,7 +477,7 @@ water,h2o,,7732-18-5,H2O,O,https://doi.org/10.1039/C9SC01844A
 "1,8-diazabicycloundec-7-ene",dbu,,,,C1CCC2=NCCCN2CC1,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 2-ethoxyethyl acetate,,,,,CCOCCOC(C)=O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 2-ethylhexanol,,,,,CCCCC(CC)CO,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
-1-methoxy-2-propanol,Propylene glycol methyl ether,,,,COCC(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+1-methoxy-2-propanol,Propylene glycol methyl ether,,,,CC(O)COC,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 2-methyl butanol,,,,,CCC(C)CO,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 2-methylbutan-2-ol,tert-amyl alcohol,,,,CCC(C)(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 2-methylcyclohexanone,,,,,CC1CCCCC1=O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
@@ -534,6 +534,7 @@ ipa,propan-2-ol,,,,CC(C)O,https://www.acs.org/greenchemistry/research-innovation
 iso-butyl acetate,,,,,CC(=O)OCC(C)C,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 iso-propyl acetate,,,,,CC(=O)OC(C)C,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 isobutyric acid,,,,,CC(C)C(=O)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+isopentyl acetate,isoamyl acetate,,,,CC(=O)OCCC(C)C,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 methyl butyrate,,,,,CCCC(=O)OC,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 methyl carbitol,2-[2-(methoxy)ethoxy]ethanol,,,,COCCOCCO,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 methyl isobutyl carbinol,,,,,CC(C)CC(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
@@ -564,6 +565,7 @@ pentan-3-one,,,,,CCC(=O)CC,https://www.acs.org/greenchemistry/research-innovatio
 perfluorobenzene,,,,,Fc1c(F)c(F)c(F)c(F)c1F,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 perfluorodecalin,,,,,FC1(F)C(F)(F)C(F)(F)C2(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C2(F)C1(F)F,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 pgda glycol ether,propylene glycol diacetate,,,,CC(=O)OCC(C)OC(C)=O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
+pm glycol ether,1-methoxy-2-propanol,,,,COCC(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 pma glycol ether,1-methoxy-2-propanol acetate,,,,COCC(C)OC(C)=O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 pnb glycol ether,3-butoxypropan-2-ol,,,,CCCCOCC(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
 pnp glycol ether,1-propoxy-2-propanol,,,,CCCOCC(C)O,https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
@@ -610,8 +612,11 @@ methyl oleate,,,111-62-6,C19H36O2,CCCCCCCCC=CCCCCCCCC(=O)OC,MOLECULES FROM https
 p-cymene,,,99-87-6,C10H14,Cc1ccc(C(C)C)cc1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 p-limonene,,,5989-27-5,C10H16,C=C(C)C1CC=C(C)CC1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 t-butyl acetate,,,540-88-5,C6H12O2,CC(=O)OC(C)(C)C,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
-tert-amyl methyl ether,tame,,994-05-8,C7H16O,CCC(C)(C)OC,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
-tert-amyl ethyl ether,taee,,,,CCOC(C)(C)CC,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+tert-amyl methyl ether,tame,,994-05-8,C7H16O,O(C(C)(C)CC)C,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+tert-amyl ethyl ether,taee,,,,CCC(C)(C)OCC,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 tetrahydro furfuryl alcohol,thfa,,97-99-4,C5H10O2,OCC1CCCO1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
-tetramethyl tetrahydrofurane,tmthf,,15045-43-9,C8H16O,CC1(C)CCC(C)(C)O1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+tetramethyl tetrahydrofurane,tmthf,,15045-43-9,C8H16O,CC1(CCC(O1)(C)C)C,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
 xylenes,xylol,,1330-20-7,C8H10,Cc1ccc(C)cc1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+o-xylene,,,,,"Cc1c(C)cccc1	",MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+m-xylene,,,,,"Cc1cc(C)ccc1	",MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
+p-xylene,,,,,Cc1ccc(C)cc1,MOLECULES FROM https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv NOT IN https://doi.org/10.1039/C9SC01844A
