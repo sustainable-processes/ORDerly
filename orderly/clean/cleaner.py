@@ -12,6 +12,12 @@ from click_loglevel import LogLevel
 import tqdm
 import tqdm.contrib.logging
 import pandas as pd
+import numpy as np
+from rdkit import Chem as rdkit_Chem
+from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
+
+from typing import Optional
+from orderly.types import *
 
 LOG = logging.getLogger(__name__)
 
@@ -22,20 +28,23 @@ import orderly.data.util
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
     1) Merge the parquet files generated during orderly.extract into a df
-    2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
-    3) Remove reactions with inconsistent yields (consistent_yield)
-    4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
+    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products)
+    3) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
+    4) Remove reactions with inconsistent yields (consistent_yield)
+    5) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
-    5) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
-    6) Remove duplicate reactions
-    7) Save the final df
+    6) Remove reactions that have a molecule represented by an unresolvable name. This is often an english name or a number.
+    7) Remove duplicate reactions
+    8) Save the final df
 
     Output:
 
     1) A parquet file containing the cleaned data
 
     Args:
+        remove_reactions_with_no_reactants (bool): Remove reactions with no reactants
+        remove_reactions_with_no_products (bool): Remove reactions with no products
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
@@ -51,6 +60,8 @@ class Cleaner:
     """
 
     ord_extraction_path: pathlib.Path
+    remove_reactions_with_no_reactants: bool
+    remove_reactions_with_no_products: bool
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -61,12 +72,25 @@ class Cleaner:
     min_frequency_of_occurrence: int
     map_rare_molecules_to_other: bool
     molecules_to_remove: List[str]
-    remove_with_unresolved_names: bool = True
+
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool = True
+    remove_rxn_with_unresolved_names: bool = False
+    set_unresolved_names_to_none: bool = False
+
     replace_empty_with_none: bool = True
     drop_duplicates: bool = True
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
+        LOG.info("Entered post_init")
+
+        # Only zero or one of the following three bools can be True
+        true_count = (
+            self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn
+            + self.remove_rxn_with_unresolved_names
+            + self.set_unresolved_names_to_none
+        )
+        assert true_count <= 1
         self.cleaned_reactions = self._get_dataframe()
 
     def _merge_extracted_ords(self) -> pd.DataFrame:
@@ -104,6 +128,8 @@ class Cleaner:
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
+        if number_of_columns_to_keep == -1:
+            return df
 
         cols = list(df.columns)
         count = 0
@@ -125,13 +151,52 @@ class Cleaner:
         return df
 
     @staticmethod
+    def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
+        LOG.info(f"Removing reactions with no reactants")
+        df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
+        return df
+
+    @staticmethod
+    def _remove_rxn_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
+        LOG.info("Removing reactions with no products")
+        df = Cleaner._del_rows_empty_in_this_col(df, "product")
+        return df
+
+    @staticmethod
+    def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        # Helper function to remove reactions with no reactants or products (hence why we're only looking at the first column)
+        # Replace 'none' with np.nan in 'products_000' column
+        column_name = col + "_000"
+        # df[column_name] = df[column_name].replace({None: np.nan})
+        # Get indices where col is NaN
+        nan_indices = df.index[df[column_name].isna()]
+
+        # Create a mask for all columns that start with 'products_'
+        mask = df.columns.str.startswith(col)
+
+        # For all indices where 'products_000' is NaN, check if any column starting with 'products_'
+        # contains a non-null value
+        for index in nan_indices:
+            if not df.loc[index, mask].isna().all():
+                raise ValueError(
+                    f"Non-null value found in {col} columns for index {index} despite {column_name} being null"
+                )
+
+        # Remove rows from df using the mask
+        df = df.drop(nan_indices)
+
+        LOG.info(f"Removing rows with empty {col}")
+        df = df.dropna(subset=[column_name])
+        return df
+
+    @staticmethod
     def _remove_with_inconsistent_yield(
         df: pd.DataFrame, num_product: int
     ) -> pd.DataFrame:
         # Keep rows with yield <= 100 or missing yield values
         mask = pd.Series(data=True, index=df.index)  # start with all rows selected
         for i in range(num_product):
-            yield_col = "yield_" + str(i)
+            yield_col = f"yield_{i:03d}"
             yield_mask = (df[yield_col] >= 0) & (df[yield_col] <= 100) | pd.isna(
                 df[yield_col]
             )
@@ -231,12 +296,12 @@ class Cleaner:
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
+        _ = rdkit_BlockLogs()
         # Merge all the extracted data into one big df
 
         LOG.info("Getting dataframe from extracted ORDs")
         df = self._merge_extracted_ords()
-        LOG.info(f"All data length: {len(df)}")
-
+        LOG.info(f"All data length: {df.shape[0]}")
         # Remove reactions with too many of a certain component
         for col in [
             "reactant",
@@ -259,33 +324,93 @@ class Cleaner:
                 component_name=col,
                 number_of_columns_to_keep=number_of_columns_to_keep,
             )
-            LOG.info(f"After removing reactions with too many {col}s: {len(df)}")
+            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
 
-        # Ensure consistent yield
-        if self.consistent_yield:
-            LOG.info(f"Before removing reactions with inconsistent yields: {len(df)}")
-            df = Cleaner._remove_with_inconsistent_yield(
-                df, num_product=self.num_product
-            )
-            LOG.info(f"After removing reactions with inconsistent yields: {len(df)}")
+        # Remove reactions with no reactants
+        if self.remove_reactions_with_no_reactants:
+            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_reactants(df)
+            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
+        # Remove reactions with no products
+        if self.remove_reactions_with_no_products:
+            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_products(df)
+            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
-        # drop duplicates
-        if self.drop_duplicates:
-            LOG.info(f"Before removing duplicates: {len(df)}")
-            df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates: {len(df)}")
+        def is_mapped(rxn_str: Optional[RXN_STR]) -> bool:
+            """
+            Check if a reaction string is mapped using RDKit.
+            """
+            _ = rdkit_BlockLogs()
+            if rxn_str is None:
+                return False
+            if rxn_str is np.nan:  # type: ignore
+                return False
+            reactants_from_rxn, _, _ = rxn_str.split(">")
+            reactants = reactants_from_rxn.split(".")
+            for r in reactants:
+                mol = rdkit_Chem.MolFromSmiles(r)
+                if mol != None:
+                    if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
+                        return True
+            return False
 
-        if self.remove_with_unresolved_names:
-            # Remove reactions that are represented by a name instead of a SMILES string
-            # NB: There are 74k instances of solution, 59k instances of 'ice water', and 36k instances of 'ice'. It's unclear what the best course of action for these is, we decided to map 'ice water' and 'ice' to O (the smiles string for water), and simply remove the word 'solution' (rather than removing the whole reaction where the word 'solution' occurs).
+        if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
-                f"Before removing reactions with nonsensical/unresolvable names: {len(df)}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+            mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            mapped_rxn_df = df.loc[mask_is_mapped]
+            not_mapped_rxn_df = df.loc[~mask_is_mapped]
+            # set unresolved names to none
+            mapped_rxn_df = mapped_rxn_df.replace(self.molecules_to_remove, None)
+
+            # remove reactions with unresolved names
+            for col in tqdm.tqdm(not_mapped_rxn_df.columns, disable=self.disable_tqdm):
+                not_mapped_rxn_df = not_mapped_rxn_df[
+                    ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
+                ]
+
+            # concat the dfs again
+            df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
+
+            LOG.info(
+                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+            )
+
+        elif self.remove_rxn_with_unresolved_names:
+            LOG.info(
+                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
             for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
                 df = df[~df[col].isin(self.molecules_to_remove)]
             LOG.info(
-                f"After removing reactions with nonsensical/unresolvable names: {len(df)}"
+                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
+
+        elif self.set_unresolved_names_to_none:
+            LOG.info(
+                f"Setting unresolvable names to None (without removing any reactions)"
+            )
+            df = df.replace(self.molecules_to_remove, None)
+
+        # Ensure consistent yield
+        if self.consistent_yield:
+            LOG.info(
+                f"Before removing reactions with inconsistent yields: {df.shape[0]}"
+            )
+            df = Cleaner._remove_with_inconsistent_yield(
+                df, num_product=self.num_product
+            )
+            LOG.info(
+                f"After removing reactions with inconsistent yields: {df.shape[0]}"
+            )
+
+        # drop duplicates
+        if self.drop_duplicates:
+            LOG.info(f"Before removing duplicates: {df.shape[0]}")
+            df = df.drop_duplicates()
+            LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
@@ -312,7 +437,7 @@ class Cleaner:
                     value_counts,
                     self.min_frequency_of_occurrence,
                 )
-                LOG.info(f"After removing rare molecules: {len(df)}")
+                LOG.info(f"After removing rare molecules: {df.shape[0]}")
 
         if self.replace_empty_with_none:
             # Replace any instances of an empty string with None
@@ -324,12 +449,11 @@ class Cleaner:
         # Replace np.nan with None
         LOG.info("Map np.nan to None")
         df = df.applymap(lambda x: None if pd.isna(x) else x)
-
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
-            LOG.info(f"Before removing duplicates: {len(df)}")
+            LOG.info(f"Before removing duplicates: {df.shape[0]}")
             df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates: {len(df)}")
+            LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
         return df
@@ -354,6 +478,20 @@ class Cleaner:
     default="data/orderly/all_molecule_names.csv",
     type=str,
     help="The path to the file than contains the molecules_names",
+)
+@click.option(
+    "--consistent_yield",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
+)
+@click.option(
+    "--consistent_yield",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
 )
 @click.option(
     "--consistent_yield",
@@ -418,9 +556,19 @@ class Cleaner:
     help="If True, molecules that appear less than map_rare_to_other_threshold times will be mapped to the 'other' category. If False, the reaction they appear in will be removed.",
 )
 @click.option(
-    "--remove_with_unresolved_names",
+    "--set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn",
     type=bool,
     default=True,
+)
+@click.option(
+    "--remove_rxn_with_unresolved_names",
+    type=bool,
+    default=False,
+)
+@click.option(
+    "--set_unresolved_names_to_none",
+    type=bool,
+    default=False,
 )
 @click.option(
     "--replace_empty_with_none",
@@ -452,6 +600,8 @@ def main_click(
     output_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -461,7 +611,9 @@ def main_click(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    remove_rxn_with_unresolved_names: bool,
+    set_unresolved_names_to_none: bool,
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
@@ -501,6 +653,8 @@ def main_click(
         ord_extraction_path=pathlib.Path(ord_extraction_path),
         molecules_to_remove_path=pathlib.Path(molecules_to_remove_path),
         consistent_yield=consistent_yield,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -509,7 +663,9 @@ def main_click(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
-        remove_with_unresolved_names=remove_with_unresolved_names,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
+        set_unresolved_names_to_none=set_unresolved_names_to_none,
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
@@ -524,6 +680,8 @@ def main(
     ord_extraction_path: pathlib.Path,
     molecules_to_remove_path: pathlib.Path,
     consistent_yield: bool,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     num_reactant: int,
     num_product: int,
     num_solv: int,
@@ -532,7 +690,9 @@ def main(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    remove_rxn_with_unresolved_names: bool,
+    set_unresolved_names_to_none: bool,
     replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
@@ -613,10 +773,11 @@ def main(
         assert (num_cat == 0) and (
             num_reag == 0
         ), "Invalid input: If trust_labelling=False in orderly.extract, then num_cat and num_reag must be 0."
-
     kwargs = {
         "ord_extraction_path": ord_extraction_path,
         "consistent_yield": consistent_yield,
+        "remove_reactions_with_no_reactants": remove_reactions_with_no_reactants,
+        "remove_reactions_with_no_products": remove_reactions_with_no_products,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -625,7 +786,9 @@ def main(
         "num_reag": num_reag,
         "min_frequency_of_occurrence": min_frequency_of_occurrence,
         "map_rare_molecules_to_other": map_rare_molecules_to_other,
-        "remove_with_unresolved_names": remove_with_unresolved_names,
+        "set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn": set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        "remove_rxn_with_unresolved_names": remove_rxn_with_unresolved_names,
+        "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "replace_empty_with_none": replace_empty_with_none,
         "drop_duplicates": drop_duplicates,
     }
@@ -649,6 +812,8 @@ def main(
     instance = Cleaner(
         ord_extraction_path=ord_extraction_path,
         consistent_yield=consistent_yield,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -657,8 +822,10 @@ def main(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
+        set_unresolved_names_to_none=set_unresolved_names_to_none,
         molecules_to_remove=molecules_to_remove,
-        remove_with_unresolved_names=remove_with_unresolved_names,
         replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,

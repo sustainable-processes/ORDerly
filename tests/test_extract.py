@@ -40,7 +40,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_non_smiles_names_list_additions",
+    "file_name,rxn_idx,expected_labelled_reactants,expected_labelled_reagents,expected_labelled_solvents,expected_labelled_catalysts,expected_labelled_products_from_input,expected_ice_present,expected_non_smiles_names_list_additions",
     (
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
@@ -57,6 +57,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
                 "[Pd]",
             ],
             [],
+            False,
             [],
         ],
         [
@@ -72,6 +73,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["C1CCOC1", "C1CCOC1"],
             [],
             [],
+            False,
             [],
         ],
         [
@@ -100,6 +102,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["O"],
             [],
             [],
+            False,
             ["35(Na2O)"],
         ],
         [
@@ -110,6 +113,7 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             ["c1ccccc1"],
             [],
             [],
+            False,
             [],
         ],
     ),
@@ -124,6 +128,7 @@ def test_rxn_input_extractor(
     expected_labelled_solvents: List[str],
     expected_labelled_catalysts: List[str],
     expected_labelled_products_from_input: List[str],
+    expected_ice_present: bool,
     expected_non_smiles_names_list_additions: List[str],
 ) -> None:
     rxn = get_rxn_func()(file_name, rxn_idx)
@@ -144,6 +149,7 @@ def test_rxn_input_extractor(
         labelled_solvents,
         labelled_catalysts,
         labelled_products_from_input,  # Daniel: I'm not sure what to do with this, it doesn't make sense for people to have put a product as an input, so this list should be empty anyway
+        ice_present,
         non_smiles_names_list_additions,
     ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
 
@@ -162,6 +168,9 @@ def test_rxn_input_extractor(
     assert (
         expected_labelled_products_from_input == labelled_products_from_input
     ), f"failure for {expected_labelled_products_from_input=}, got {labelled_products_from_input}"
+    assert (
+        expected_ice_present == ice_present
+    ), f"failure for {expected_ice_present=}, got {ice_present}"
     assert (
         expected_non_smiles_names_list_additions == non_smiles_names_list_additions
     ), f"failure for {expected_non_smiles_names_list_additions=}, got {non_smiles_names_list_additions}"
@@ -339,6 +348,24 @@ def test_rxn_string_and_is_mapped(
             ["Cc1ccc(S(=O)(=O)O)cc1", "O", "c1ccccc1"],
             ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
             "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1",
+            [],
+            False,
+        ],
+        # test case where the products list starts non-empty but ends empty
+        # I think this is a crystalisation/protonation/stabilisation reaction
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            10,
+            None,
+            [],
+            [
+                "Cc1cc2c([N+](=O)[O-])cccc2cn1",
+                "Cl",
+                "I",
+                "O=[N+]([O-])c1ccc(Cl)c2ccncc12",
+            ],
+            [],
+            "CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2.Cl.CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[IH:44]>>[IH:44].[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2",
             [],
             False,
         ],
@@ -1087,6 +1114,7 @@ def test_canonicalisation(
 @pytest.mark.parametrize(
     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
+        [True, False, "uspto", True],
         [False, True, "uspto", True],
         [
             False,
@@ -1094,7 +1122,6 @@ def test_canonicalisation(
             "uspto",
             False,
         ],
-        [True, False, "uspto", True],
         [True, True, None, True],
     ),
 )
@@ -1156,7 +1183,7 @@ def test_extraction_pipeline(
                 for idx, a in enumerate(row):
                     current_isna = pd.isna(a)
                     if seen_none:
-                        if current_isna:
+                        if not current_isna:
                             raise ValueError(
                                 f"Unexpected order at {idx=} for {row.tolist()=}"
                             )
@@ -1164,9 +1191,9 @@ def test_extraction_pipeline(
                         seen_none = True
                 return row
 
-            tmp_df.apply(check_valid_order, axis=0)
+            tmp_df.apply(check_valid_order, axis=1)
 
-        # Columns: ['rxn_str', 'reactant_0', 'reactant_1', 'reactant_2', 'reactant_3', 'agent_0', 'agent_1', 'agent_2', 'agent_3', 'agent_4', 'agent_5', 'solvent_0', 'solvent_1', 'solvent_2', 'temperature', 'rxn_time', 'product_0', 'yield_0', 'grant_date'],
+        # Columns: ['rxn_str', 'reactant_000', 'reactant_001', 'reactant_002', 'reactant_003', 'agent_000', 'agent_001', 'agent_002', 'agent_003', 'agent_004', 'agent_005', 'solvent_000', 'solvent_001', 'solvent_002', 'temperature', 'rxn_time', 'product_000', 'yield_000', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
         for col in df.columns:
             series = df[col].replace({None: np.nan})

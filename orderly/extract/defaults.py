@@ -76,51 +76,39 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["[O=S(=O)([O-])[O-].[Ag+2]]"] = "O=S(=O)([O-])[O-].[Ag+]"
     molecule_replacements["[O=[Ag-]]"] = "O=[Ag]"
     molecule_replacements["[O=[Cu-]]"] = "O=[Cu]"
-    molecule_replacements["[Pd on-carbon]"] = "[C].[Pd]"
+    molecule_replacements["[Pd on-carbon]"] = "C[Pd]"
     molecule_replacements["[TEA]"] = "OCCN(CCO)CCO"
     molecule_replacements["[Ti-superoxide]"] = "O=[O-].[Ti]"
     molecule_replacements[
         "[[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1]"
-    ] = "[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "[c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd-4]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "[c1ccc([P]([Pd][P](c2ccccc2)(c2ccccc2)c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "[c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    ] = "[Pd]c1ccc(P(c2ccccc2)c2ccccc2)cc1"
     molecule_replacements["[sulfated tin oxide]"] = "O=S(O[Sn])(O[Sn])O[Sn]"
-    molecule_replacements[
-        "[tereakis(triphenylphosphine)palladium(0)]"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakistriphenylphosphine palladium"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "Pd(Ph3)4"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakistriphenylphosphine palladium(0)"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakistriphenylphosphine palladium (0)"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakis-(triphenylphosphine)palladium"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "Pd[PPh3]4"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakis (triphenylphosphine)palladium(0)"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
-    molecule_replacements[
-        "tetrakis triphenylphosphine palladium"
-    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+
+    # Synonyms for tetrakis triphenylphosphine palladium
+    tetrakis_synonyms = [
+        "tetrakistriphenylphosphine palladium",
+        "tetrakis triphenylphosphine palladium",
+        "tetrakis-(triphenylphosphine)palladium",
+        "tetrakis-(triphenylphosphine) palladium",
+        "tetrakistriphenylphosphine palladium(0)",
+        "tetrakistriphenylphosphine palladium (0)",
+        "tetrakis (triphenylphosphine)palladium(0)",
+        "tetrakis (triphenylphosphine)palladium (0)",
+        "tetrakis (triphenylphosphine) palladium (0)",
+        "[tereakis(triphenylphosphine)palladium(0)]",
+        "Pd(Ph3)4",
+        "Pd[PPh3]4",
+        "[c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]",
+        "[c1ccc([P]([Pd][P](c2ccccc2)(c2ccccc2)c2ccccc2)(c2ccccc2)c2ccccc2)cc1]",
+        "[c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd-4]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]",
+    ]
+    for synonym in tetrakis_synonyms:
+        molecule_replacements[
+            synonym
+        ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
 
     molecule_replacements["[zeolite]"] = "O=[Al]O[Al]=O.O=[Si]=O"
+    molecule_replacements["zeolite"] = "O=[Al]O[Al]=O.O=[Si]=O"
 
     # Molecules found among the most common names in molecule_names
     molecule_replacements["TEA"] = "OCCN(CCO)CCO"
@@ -132,7 +120,8 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["ethyl acetate hexanes"] = "CCCCCC.CCOC(=O)C"
     molecule_replacements["cuprous iodide"] = "[Cu]I"
     molecule_replacements["N,N-dimethylaminopyridine"] = "n1ccc(N(C)C)cc1"
-    molecule_replacements["dimethyl acetal"] = "CN(C)C(OC)OC"
+    molecule_replacements["dimethyl acetal"] = "COC(C)OC"
+    molecule_replacements["diethyl acetal"] = "CCOC(C)OCC"
     molecule_replacements["cuprous chloride"] = "Cl[Cu]"
     molecule_replacements["N,N'-carbonyldiimidazole"] = "O=C(n1cncc1)n2ccnc2"
     molecule_replacements["CrO3"] = "O=[Cr](=O)=O"

@@ -29,15 +29,24 @@ import orderly.data.util
 def get_file_names(
     directory: pathlib.Path,
     file_ending: str = ".pb.gz",
+    include_cleaned_USPTO_file: bool = False,
 ) -> List[pathlib.Path]:
     """
     Goes into the ord data directory and for each folder extracts the file path of all sub data files with the file ending
+
+    The reason for include_cleaned_USPTO_file:
+        This file: ord_dataset-de0979205c84441190feef587fef8d6d is a cleaned version of USPTO from https://pubs.rsc.org/en/content/articlelanding/2019/SC/C8SC04228D
+
+        So it doesn't include new information, and extraction from this file is pretty slow because it's 10x bigger than the second largest dataset in ORD (400k reactions vs 40k). So default behaviour is to ignore it.
     """
 
     files = []
     for i in directory.glob("./*"):
         for j in i.glob(f"./*{file_ending}"):
-            files.append(j)
+            if "ord_dataset-de0979205c84441190feef587fef8d6d" not in str(j):
+                files.append(j)
+            elif include_cleaned_USPTO_file:
+                files.append(j)
 
     return sorted(
         files
@@ -100,8 +109,11 @@ def build_solvents_set_and_dict(
 
     # Combine the lists into a sequence of key-value pairs
     key_value_pairs = zip(
-        list(solvents["stenutz_name"]) + list(solvents["cosmo_name"]),
-        list(solvents["canonical_smiles"]) + list(solvents["canonical_smiles"]),
+        list(solvents["solvent_name_1"])
+        + list(solvents["solvent_name_2"])
+        + list(solvents["solvent_name_3"]),
+        list(solvents["canonical_smiles"])
+        + list(solvents["canonical_smiles"] + list(solvents["canonical_smiles"])),
     )
 
     # Create a dictionary from the sequence

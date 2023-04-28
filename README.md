@@ -76,8 +76,14 @@ We may be able to use https://deepchem.io/models
 
 ### Solvents
 
-In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in USPTO), this list was created from the intersection of the following two lists (excluding acids, bases, and polymers):
- - https://github.com/sustainable-processes/vle_prediction/blob/master/data/cosmo/solvent_descriptors.csv
+In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in ORD), this list was created from the intersection of solvents coming from three different sources. The following procedure was followed for the construction of solvents.csv:
+
+1. Data curation: We compiled a list of solvent names from the following 3 sources. Unfortunately they did not include SMILES strings.
+ - https://doi.org/10.1039/C9SC01844A
+ - https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
  - https://github.com/sustainable-processes/summit/blob/main/data/ucb_pharma_approved_list.csv
- 
- 
+
+2. Filtering: Make all solvent names lower case, strip spaces, find and remove duplicate names. (Before: 458+272+115=845 rows in total. After removing duplicates: 615)
+3. Name resolution: The dataframe has 4 columns of identifiers: 3 for (english) solvent names, and 1 for CAS numbers. We ran (Pura)[https://github.com/sustainable-processes/pura] with <services=[PubChem(autocomplete=True), Opsin(), CIR(),]> and <agreement=2> separately on each of the three solvent name columns, and <services=[CAS()]>, <agreement=1> to resolve the CAS numbers.
+4. Agreement: We now had up to 4 SMILES strings for each solvent, and the SMILES string was trusted when all of them were in agreement (either the other items were the same SMILES or empty). There were ~40 rows with disagreement, and these were resolved manually (by cross-checking name and CAS with PubChem/Wikipedia).
+5. The final dataset consists of the following columns: 'solvent_name_1', 'solvent_name_2', 'solvent_name_3', 'cas_number', 'chemical_formula', 'smiles', 'source'.

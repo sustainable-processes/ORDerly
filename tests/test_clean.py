@@ -13,15 +13,15 @@ def test_hello_world() -> None:
 @pytest.fixture
 def toy_dict() -> Dict[str, List[str]]:
     toy_dict = {
-        "reactant_0": ["B", "A", "F", "A"],
-        "reactant_1": ["D", "A", "G", "B"],
-        "product_0": ["C", "A", "E", "A"],
-        "product_1": ["E", "G", "C", "H"],
-        "agent_0": ["D", "F", "D", "B"],
-        "agent_1": ["C", "E", "G", "A"],
-        "solvent_0": ["E", "B", "G", "C"],
-        "solvent_1": ["C", "D", "B", "G"],
-        "solvent_2": ["D", "B", "F", "G"],
+        "reactant_000": ["B", "A", "F", "A"],
+        "reactant_001": ["D", "A", "G", "B"],
+        "product_000": ["C", "A", "E", "A"],
+        "product_001": ["E", "G", "C", "H"],
+        "agent_000": ["D", "F", "D", "B"],
+        "agent_001": ["C", "E", "G", "A"],
+        "solvent_000": ["E", "B", "G", "C"],
+        "solvent_001": ["C", "D", "B", "G"],
+        "solvent_002": ["D", "B", "F", "G"],
     }
 
     return toy_dict
@@ -39,8 +39,12 @@ def get_cleaned_df(
     num_reag: int,
     min_frequency_of_occurrence: int,
     map_rare_molecules_to_other: bool,
-    remove_with_unresolved_names: bool,
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    set_unresolved_names_to_none: bool,
+    remove_rxn_with_unresolved_names: bool,
     replace_empty_with_none: bool,
+    remove_reactions_with_no_reactants: bool,
+    remove_reactions_with_no_products: bool,
     drop_duplicates: bool,
 ) -> pd.DataFrame:
     import orderly.clean.cleaner
@@ -72,8 +76,12 @@ def get_cleaned_df(
         num_reag=num_reag,
         min_frequency_of_occurrence=min_frequency_of_occurrence,
         map_rare_molecules_to_other=map_rare_molecules_to_other,
-        remove_with_unresolved_names=remove_with_unresolved_names,
+        set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
+        set_unresolved_names_to_none=set_unresolved_names_to_none,
+        remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         replace_empty_with_none=replace_empty_with_none,
+        remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
+        remove_reactions_with_no_products=remove_reactions_with_no_products,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
         overwrite=False,
@@ -85,15 +93,26 @@ def get_cleaned_df(
 
 
 @pytest.fixture
-def cleaned_df_params(
+def cleaned_df_params_default(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
     updated_args = request.param + [
         True,
+        False,
+        False,
         True,
         True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+        True,
+        True,
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
     return (
         get_cleaned_df(
             tmp_path / "cleaned_df" / "orderly_ord.parquet",
@@ -104,19 +123,67 @@ def cleaned_df_params(
 
 
 @pytest.fixture
-def cleaned_df_params_without_unresolved_names_and_duplicates(
+def cleaned_df_params_default_without_min_freq(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    import copy
+
+    args = copy.copy(request.param)
+    args[-2] = 0
+    assert len(request.param) == 10
+    updated_args = args + [
+        True,
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
+    return (
+        get_cleaned_df(
+            tmp_path
+            / "cleaned_df_params_default_without_min_freq"
+            / "orderly_ord.parquet",
+            *updated_args,
+        ),
+        args,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_retaining_unresolved_names_and_duplicates(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     assert len(request.param) == 10
     updated_args = request.param + [
         False,
+        False,
+        False,
+        True,
+        True,
         True,
         False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
+
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_unresolved_names_and_duplicates"
+            / "cleaned_df_params_retaining_unresolved_names_and_duplicates"
             / "orderly_ord.parquet",
             *updated_args,
         ),
@@ -125,30 +192,7 @@ def cleaned_df_params_without_unresolved_names_and_duplicates(
 
 
 @pytest.fixture
-def cleaned_df_params_without_min_freq(
-    tmp_path: pathlib.Path, request: pytest.FixtureRequest
-) -> Tuple[pd.DataFrame, List[Any]]:
-    import copy
-
-    args = copy.copy(request.param)
-    args[-2] = 0
-    assert len(request.param) == 10
-    updated_args = args + [
-        True,
-        True,
-        True,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
-    return (
-        get_cleaned_df(
-            tmp_path / "cleaned_df_params_without_min_freq" / "orderly_ord.parquet",
-            *updated_args,
-        ),
-        args,
-    )
-
-
-@pytest.fixture
-def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
+def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq(
     tmp_path: pathlib.Path, request: pytest.FixtureRequest
 ) -> Tuple[pd.DataFrame, List[Any]]:
     import copy
@@ -158,13 +202,24 @@ def cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates(
     assert len(request.param) == 10
     updated_args = args + [
         False,
+        False,
+        False,
+        True,
+        True,
         True,
         False,
-    ]  # remove_with_unresolved_names, replace_empty_with_none, drop_duplicates
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # replace_empty_with_none: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # drop_duplicates: bool
     return (
         get_cleaned_df(
             tmp_path
-            / "cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates"
+            / "cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq"
             / "orderly_ord.parquet",
             *updated_args,
         ),
@@ -199,21 +254,21 @@ def test_molecule_names_not_empty() -> None:
     (
         pytest.param(
             [
-                "reactant_0",
-                "reactant_1",
-                "product_0",
-                "product_1",
-                "agent_0",
-                "agent_1",
-                "solvent_0",
-                "solvent_1",
-                "solvent_2",
+                "reactant_000",
+                "reactant_001",
+                "product_000",
+                "product_001",
+                "agent_000",
+                "agent_001",
+                "solvent_000",
+                "solvent_001",
+                "solvent_002",
             ],
             {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
             id="all_columns",
         ),
         pytest.param(
-            ["agent_0", "agent_1", "solvent_0", "solvent_1", "solvent_2"],
+            ["agent_000", "agent_001", "solvent_000", "solvent_001", "solvent_002"],
             {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4},
             id="agent_and_solvent_columns",
         ),
@@ -250,45 +305,45 @@ def test_get_value_counts(
     (
         pytest.param(
             [
-                "reactant_0",
-                "reactant_1",
-                "product_0",
-                "product_1",
-                "agent_0",
-                "agent_1",
-                "solvent_0",
-                "solvent_1",
-                "solvent_2",
+                "reactant_000",
+                "reactant_001",
+                "product_000",
+                "product_001",
+                "agent_000",
+                "agent_001",
+                "solvent_000",
+                "solvent_001",
+                "solvent_002",
             ],
             {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
             4,
             {
-                "reactant_0": ["B", "A", "other", "A"],
-                "reactant_1": ["D", "A", "G", "B"],
-                "product_0": ["C", "A", "E", "A"],
-                "product_1": ["E", "G", "C", "other"],
-                "agent_0": ["D", "other", "D", "B"],
-                "agent_1": ["C", "E", "G", "A"],
-                "solvent_0": ["E", "B", "G", "C"],
-                "solvent_1": ["C", "D", "B", "G"],
-                "solvent_2": ["D", "B", "other", "G"],
+                "reactant_000": ["B", "A", "other", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "other"],
+                "agent_000": ["D", "other", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "other", "G"],
             },
             id="all_columns",
         ),
         pytest.param(
-            ["agent_0", "agent_1", "solvent_0", "solvent_1", "solvent_2"],
+            ["agent_000", "agent_001", "solvent_000", "solvent_001", "solvent_002"],
             {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4},
             3,
             {
-                "reactant_0": ["B", "A", "F", "A"],
-                "reactant_1": ["D", "A", "G", "B"],
-                "product_0": ["C", "A", "E", "A"],
-                "product_1": ["E", "G", "C", "H"],
-                "agent_0": ["D", "other", "D", "B"],
-                "agent_1": ["C", "other", "G", "other"],
-                "solvent_0": ["other", "B", "G", "C"],
-                "solvent_1": ["C", "D", "B", "G"],
-                "solvent_2": ["D", "B", "other", "G"],
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "other", "D", "B"],
+                "agent_001": ["C", "other", "G", "other"],
+                "solvent_000": ["other", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "other", "G"],
             },
             id="agent_and_solvent_columns",
         ),
@@ -324,45 +379,45 @@ def test_map_rare_molecules_to_other(
     (
         pytest.param(
             [
-                "reactant_0",
-                "reactant_1",
-                "product_0",
-                "product_1",
-                "agent_0",
-                "agent_1",
-                "solvent_0",
-                "solvent_1",
-                "solvent_2",
+                "reactant_000",
+                "reactant_001",
+                "product_000",
+                "product_001",
+                "agent_000",
+                "agent_001",
+                "solvent_000",
+                "solvent_001",
+                "solvent_002",
             ],
             {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
             4,
             {
-                "reactant_0": ["B"],
-                "reactant_1": ["D"],
-                "product_0": ["C"],
-                "product_1": ["E"],
-                "agent_0": ["D"],
-                "agent_1": ["C"],
-                "solvent_0": ["E"],
-                "solvent_1": ["C"],
-                "solvent_2": ["D"],
+                "reactant_000": ["B"],
+                "reactant_001": ["D"],
+                "product_000": ["C"],
+                "product_001": ["E"],
+                "agent_000": ["D"],
+                "agent_001": ["C"],
+                "solvent_000": ["E"],
+                "solvent_001": ["C"],
+                "solvent_002": ["D"],
             },
             id="all_columns",
         ),
         pytest.param(
-            ["agent_0", "agent_1", "solvent_0", "solvent_1", "solvent_2"],
+            ["agent_000", "agent_001", "solvent_000", "solvent_001", "solvent_002"],
             {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4},
             2,
             {
-                "reactant_0": ["B", "A", "F"],
-                "reactant_1": ["D", "A", "G"],
-                "product_0": ["C", "A", "E"],
-                "product_1": ["E", "G", "C"],
-                "agent_0": ["D", "F", "D"],
-                "agent_1": ["C", "E", "G"],
-                "solvent_0": ["E", "B", "G"],
-                "solvent_1": ["C", "D", "B"],
-                "solvent_2": ["D", "B", "F"],
+                "reactant_000": ["B", "A", "F"],
+                "reactant_001": ["D", "A", "G"],
+                "product_000": ["C", "A", "E"],
+                "product_001": ["E", "G", "C"],
+                "agent_000": ["D", "F", "D"],
+                "agent_001": ["C", "E", "G"],
+                "solvent_000": ["E", "B", "G"],
+                "solvent_001": ["C", "D", "B"],
+                "solvent_002": ["D", "B", "F"],
             },
             id="agent_and_solvent_columns",
         ),
@@ -394,10 +449,10 @@ def test_remove_rare_molecules(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params",
+    "cleaned_df_params_default",
     (
         pytest.param(
-            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            [False, False, 5, 5, 2, 3, 0, 0, 55, False],
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F",
         ),
         pytest.param(
@@ -431,15 +486,18 @@ def test_remove_rare_molecules(
     ),
     indirect=True,
 )
-def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_get_cleaned_df(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
+) -> None:
     import copy
 
-    cleaned_df, _ = copy.copy(cleaned_df_params)
+    cleaned_df, _ = copy.copy(cleaned_df_params_default)
     assert not cleaned_df.empty
+    # TODO: check that there's only NaN or NaT, but no None
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params",
+    "cleaned_df_params_default",
     (
         pytest.param(
             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
@@ -484,11 +542,13 @@ def test_get_cleaned_df(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> No
     ),
     indirect=True,
 )
-def test_number_of_columns(cleaned_df_params: Tuple[pd.DataFrame, List[Any]]) -> None:
+def test_number_of_columns(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
+) -> None:
     import copy
     import numpy as np
 
-    cleaned_df, params = copy.copy(cleaned_df_params)
+    cleaned_df, params = copy.copy(cleaned_df_params_default)
 
     (
         _,
@@ -565,7 +625,7 @@ def double_list(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params_without_unresolved_names_and_duplicates,cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates",
+    "cleaned_df_params_default,cleaned_df_params_default_without_min_freq",
     (
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
@@ -614,22 +674,18 @@ def double_list(
     ),
     indirect=True,
 )
-def test_frequency_without_unresolved_names_and_duplicates(
-    cleaned_df_params_without_unresolved_names_and_duplicates: Tuple[
-        pd.DataFrame, List[Any]
-    ],
-    cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates: Tuple[
-        pd.DataFrame, List[Any]
-    ],
+def test_frequency_params_default(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_default_without_min_freq: Tuple[pd.DataFrame, List[Any]],
 ) -> None:
+    """
+    Test that there are no rare molecules left in the dataset after the cleaning process. There may be molecules appearing less often than the minimum frequency of occurrence, even after the cleaning, but this is because when deleting rows with rare values we may cause new molecules to become rare; this is why we check for the intersection of the two dfs at the very end of the test.
+    """
+
     import copy
 
-    cleaned_df, params = copy.copy(
-        cleaned_df_params_without_unresolved_names_and_duplicates
-    )
-    uncleaned_df, unclean_params = copy.copy(
-        cleaned_df_params_without_min_freq_without_unresolved_names_and_duplicates
-    )
+    cleaned_df, params = copy.copy(cleaned_df_params_default)
+    uncleaned_df, unclean_params = copy.copy(cleaned_df_params_default_without_min_freq)
 
     assert len(params) == len(unclean_params)
     assert unclean_params[-2] == 0
@@ -666,6 +722,8 @@ def test_frequency_without_unresolved_names_and_duplicates(
     uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
 
     assert min_frequency_of_occurrence > 0  # sanity check the copying worked
+    assert "" not in cleaned_value_counts.keys()  # check there are no empty strings
+    assert "" not in uncleaned_value_counts.keys()  # check there are no empty strings
 
     cleaned_rare = cleaned_value_counts[
         cleaned_value_counts < min_frequency_of_occurrence
@@ -679,7 +737,7 @@ def test_frequency_without_unresolved_names_and_duplicates(
 
 
 @pytest.mark.parametrize(
-    "cleaned_df_params,cleaned_df_params_without_min_freq",
+    "cleaned_df_params_retaining_unresolved_names_and_duplicates,cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq",
     (
         pytest.param(
             *double_list([False, False, 5, 5, 2, 3, 0, 0, 15, False]),
@@ -720,17 +778,27 @@ def test_frequency_without_unresolved_names_and_duplicates(
     ),
     indirect=True,
 )
-def test_frequency_with_unresolved_names_and_duplicates(
-    cleaned_df_params: Tuple[pd.DataFrame, List[Any]],
-    cleaned_df_params_without_min_freq: Tuple[pd.DataFrame, List[Any]],
+def test_frequency_retaining_unresolved_names_and_duplicates(
+    cleaned_df_params_retaining_unresolved_names_and_duplicates: Tuple[
+        pd.DataFrame, List[Any]
+    ],
+    cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq: Tuple[
+        pd.DataFrame, List[Any]
+    ],
 ) -> None:
     """
-    this test checks if enough data is being removed, it is possible too much data is removed but this is covered by other tests
+    Test that there are no rare molecules left in the dataset after the cleaning process. There may be molecules appearing less often than the minimum frequency of occurrence, even after the cleaning, but this is because when deleting rows with rare values we may cause new molecules to become rare; this is why we check for the intersection of the two dfs at the very end of the test.
+
+    In this test we retain duplicate reactions and unresolved names (e.g. english names for molecules that aren't in our manual mapping).
     """
     import copy
 
-    cleaned_df, params = copy.copy(cleaned_df_params)
-    uncleaned_df, unclean_params = copy.copy(cleaned_df_params_without_min_freq)
+    cleaned_df, params = copy.copy(
+        cleaned_df_params_retaining_unresolved_names_and_duplicates
+    )
+    uncleaned_df, unclean_params = copy.copy(
+        cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
+    )
 
     assert len(params) == len(unclean_params)
     assert unclean_params[-2] == 0
@@ -767,6 +835,8 @@ def test_frequency_with_unresolved_names_and_duplicates(
     uncleaned_value_counts = get_value_counts(df=uncleaned_df.copy())
 
     assert min_frequency_of_occurrence > 0  # sanity check the copying worked
+    assert "" not in cleaned_value_counts.keys()  # check there are no empty strings
+    assert "" not in uncleaned_value_counts.keys()  # check there are no empty strings
 
     cleaned_rare = cleaned_value_counts[
         cleaned_value_counts < min_frequency_of_occurrence

@@ -31,14 +31,20 @@
 ( 25.6 )
 ( 26
 ( 26.3 )
+( 27 )
 ( 3 )
 ( 32 )
+( 4 )
+( 41 )
 ( 5
+( 5 )
 ( 5.0 )
 ( 50
+( 50 )
 ( 50.25 )
 ( 52 )
 ( 53 )
+( 66 )
 ( 67
 ( 67.5 )
 ( 7
@@ -55,6 +61,7 @@
 ( I )
 ( II )
 ( III )
+( K )
 ( M )
 ( R )-configuration
 ( S )-configuration
@@ -63,10 +70,16 @@
 ( b )
 ( c )
 ( d )
+( e )
+( g )
 ( q )
 ( s )
 ( t )
+( δ )
 (+)-camphorsulfonyloxaziridine
+(C2H5O)2C6H5Si(CH2)3O(CH2)3NH2
+(C2H5O)2CH3Si(CH2)3NH2
+(C6H5)3P(CN)Cl
 (NH4)6Mo7O24
 "(S)-6-chloro-1,2,3,11a-tetrahydro-5H-pyrrolo[2,1-c][1,4]benzodiazepine-5,11(10)"
 "(S)-N,N-dimethyl"
@@ -74,24 +87,25 @@
 "(±)-4-(3,4-dichlorophenyl)-4-butanoic acid"
 -butylate
 "-butylhydrazo-4-cyano-2,6-dimethylheptane"
-0
 0 )
 0.4-N
-0.76
-0.8
-0.94
+0.5-M solution
 04/074168-A
 0]undec-7-ene
-1
+0g
 1 )
 1 ]
 1(b)
 "1,1'-carboxyldiimidazole"
 "1,1-carbonyldiimidazole"
+"1,1-dichloro-3-[3(R)-vinyl-4(S)-piperidinyl]propan-2ε"
+"1,1-dichloro-3-[3(R)-vinyl-4(S)-piperidinyl]propan-2ξ-ol hydrochlorides"
 "1,3-bis(dimethylphosphoro)propan-2-one"
+"1,3-dichloro C15H20Cl2O2"
 "1,4-bis-(4', 4""-dihydroxy-triphenyl-methyl)-benzene"
 "1,5-dihydrodecamethylpentasiloxane"
 "1,6-dihydroxylamine hexane"
+"1,7- and 1,8-dinitroanthraquinone"
 "1,8-diazobicyclo[5"
 "1,8-diazobicyclo[5.4.0]undec-7-ene"
 "1-(2,4-dichlorobenzyl)-1H-imidazo[2,1-a]isoquinolinium chloride"
@@ -105,71 +119,49 @@
 1-N
 1-cycloprpanecarbonyl-4-hydroxypiperidine
 "1-ethyl-1,2,3,4-tetracarbazole-1-propionic acid methyl ester"
+"1-hydrazino-2-hexanol,3-(3,4 dichlorobenzoyl)-propionic acid"
+1-hydroxy-phosphindoline 1-oxide
 1-l
 "1-methyl-2,4-diisocyanate"
 "1-oxo-3-[(2-thienylmethyl)amino]propylhydrazide, monohydrochloride"
-1.009
+1-vinylphosphindoline 1-oxide
 1.16-g
-1.20
-1.22
 1.63-g
 1/1
-10
-10.5
-10.57
-10.6
-10.7
-100
-102
-103
-106
-11
-11.82
-111
-12
-12.17
-12.2
-12.65
-127
-127.5
-128
-13
-13.5
-14
+107.8g
+115g
+125.1g
+126g
+12g
 14(a)
-14.5
-14.7
-15
+144.0g
+14N potassium hydroxide
 15 )
-15.0
-153
-155
-156
-16
 16-g
-16.47
-17
-17.0
 "17α,21-Dihydroxy-16α-methylpregna-1,4,9(11)-triene-3,20-dione 21-acetate"
 "17α,21-dihydroxy-16-methylenepregna-1,4,9(11)-triene-3,20-dione 21-acetate"
 "17α,21-dihydroxy-16α-methylpregna-1,4,9(11)-triene-3,20-dione 21-acetate"
-18.9
-180
-181
-19
-19.6
-190
 1H-imdazol-1-propanamine
 "1]hept-2-yl]-5-heptenoic acid, methyl ester"
 1a
+1c
 1e
+1g
 1h
-2
 2 )
 "2'-chloro-3,4-dimethoxybenzoin methanesulfonate ester"
 "2,2-bis-[4,4-(4,4'-di-hydroxydiphenyl)-cyclohexy]-propane"
+"2,2-dimethyl-1,3-propanediol ketal"
+"2,2-dimethyltrimethylene ketal(p)"
+"2,2-dimethyltrimethylene ketal(q)"
+"2,3 cis-5,6,7,8-tetrahydro-1,6,7-naphthalenetriol"
 "2,3-dehydro-1-(3-acetylthio-1-oxopropyl)-5-methoxypipecolic acid"
+"2,4-"
+"2,6- isomers"
 2-(2-aminothiazol-4-yl)-2-(syn)-methoxyiminothioacetic acid-S-methyl ester
+"2-(3'-hydroxyphenyl)-1-oxa-4-azospiro[4,5]decane hydrochloride"
+2-(5-Isopropoxy-3- methyl-2-pentenylthio) C17H24O3S
+2-(7-hydroxyhoptyl)-5-methyl-3-(3-oxo-1-octenyl)cyclopentanol
 2-(di-ethoxy)ethylamine
 2-Cl-4-CH3OC6H3
 2-N
@@ -179,157 +171,116 @@
 2-hydroxy-3-morpholino-6-methopxypyrazine
 2-lithio
 "2-mercapto-4-methylthiazolo[5,4-b]pyridinium trifluoroacetate"
+2-methoxy-5-chlorobenzamido
+2-methoxy-benzyl
+2-methoxybenzyl
 2-oxide
 2-propane
 "2-t-butyl-2-hyddroxymethylpropan-1,3-diol"
 2-thienyl α-hydroxy(2-chlorophenyl)ketone
-20
-20.5
-207
-21
+204.6g
 21-alcohol
-21.2
-21.5
-21.6
-218
-22
-22.3
-222
 23 )
-235
-24
-25
 25 )
-250
-26
-27.8
-275
-28
-28.4
-282
-29
-29.1
-29.6
+25g
 2B
 2L
 2[1-(4-bromobutyl)]furan
 2d
-3
 3 )
+"3',4',5'-trimethoxy benzyl-2-phenyl-3-keto piperazine"
+"3',4'-dihydrospiro"
+3'-nitrobenzylidene-acetoacetic acid methyl ester
 3(a)
+"3,5-Dimethoxy propiophenone"
+3-(3-chloro-4-hydroxybenzoyl)propionic acids
 3-aminophenylboronic acid ethylene glycol ester
 "3-chloropenta-2,4-dione"
+3-ethoxythionocarbonylthiomethyl-7-amino-Δ3 cephem-4-carboxylic acid
 3-l
+3-methoxy-methoxy-thiophen-2-carbonamido
 3-methyl-2-pentanoic acid
 3-methyl-3-cephem-4-carboxylic acids
 3-substituted phthalide
 3-t-butoxy-1-iodo-4-cis-octene
 3-t-butoxy-4-cis-octenyl magnesium iodide
-3.12
-30
+30-g
+300g
 3092g
-31
-31.5
-32
 33 )
-33.7
-34
-34.8
-35
 35(Na2O)
-36
-36.29
-37
-375.5
-39
-39.8
 3A
-4
+"4,5-erythro-5-ethylquinuclidine-2ε-carboxaldehydes"
+"4,5-erythro-5-ethylquinuclidine-2ξ-carboxaldehydes"
+4-(ethylene ketal)
 4-L
 4-N
 "4-N,N-dimethylaminopyridine"
 4-aryl 2-unsubstituted nipecotic acids
 4-iodo
+"4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"
 4-tert
 "4-tert.-butylhydrazo-4-cyano-2,6-dimethylheptane"
-4.09
-4.67
-4.9
-40
-40.4
-400
-41.4
-41.82
-43
-43.5
-44
-44.5
-445
-45
 46g
-48
-48.8
-49
 49 )
 4A
 4L
-5
+4g
 5 )
+"5'-methyl-spiro(cyclohexane-1,2'-indan)-1',4-dione 4-ethylene ketal-[9]"
 5(6)-butyryl-benzimidazole-2-carboxylic acid
 5(c)
 "5,7-Dimethyl-3-methoxyoxalylamino-4-oxo-4H-1-benzopyrane"
+"5-(1,1-dimethyl-2-methylenylheptyl)resorcinol dimethyl ether"
+5-(1-methylenyl-2-methyldecyl)resorcinol dimethyl ether
+5-Isopropoxy-3-methyl C15H21ClOS
+5-Isopropoxy-3-methyl C16H24O2S
+5-Isopropoxy-3-methyl C16H24O3
+5-Isopropoxy-3-methyl-2
+5-Isopropoxy-3-methyl-2 C15H21NO4
+5-Isopropoxy-3-methyl-2 C17H26O2
+5-M solution
 5-N
 "5-[spiro(cyclopentane-1,1'-indene)-3'-yl]ethanol"
 5-benzyl-oxyindole
 5-methyl-2-thienyl-α-hydroxybenzyl ketone methanesulfonate ester
 5-pH
-50
 50/50
 500g
 50w
-52.9
-555
 5H2O
 5]decane-6-propanol
+5g
 6 )
 6-bromine 1-hexen
 6-fluoro octatrienoate
 6.65-N
-62.3
-63
 63-g
-65
 65-N
-67
-67.5
-68
 6H2O
+6g
+"6α,7α-dimethanesulfonate ester"
+"6β,7β-dimethanesulfonyloxy-16β-methyl-16α,17α-oxido-4-pregnene-3,20-dione"
 7(A)
 7.5-pH
-70
-74
-75
 7G
 7β-[D-2-Amino-2-(4-hydroxyphenyl)acetamido]-7α-methoxy-3-(1-methyl-5-tetrazolyl)thiomethyl-3-cephem-4-carboxylic acid trifluoroacetic acid salt
-8
 8 )
 8(a)
 8(b)
-80
 81A
 81B
-84
-86
-88
+81g
+88-g
 8816A
-91
-93
-94
-96
-96.0
-96.5
-99
+8g
+9-ethoxy
+94g
+"9b-(p-tolyl)-1,2,3,9b-tetrahydro-1-(p-tolylsulfonyl)-1H-imidazo[2,1-a]isoindol-5-one"
 A4
+A9
+Ag (NH3)2
+Ag NO3
 Al
 AlPO4
 Amino Acid
@@ -345,6 +296,7 @@ Bi(NO3)3
 Bi(NO3)3.5H2O
 Bis-triphenylphosphine palladium dichloride
 Boc-Gly-p-nitrophenyl ester
+Br Cl
 Br-
 Bunte salt
 C12H18N4O5S3
@@ -354,14 +306,17 @@ C8 - C18 -fatty acids
 CaH2
 Ca[AlH2 (OCH2CH2OCH3)2 ]2
 Cl 16.8
+Cl(EtO)2PO
 Co(NO3)2
 Compound 3
 Compound 4
 Compound 47
+Compound 8
 Compound 92
 Compound [ 18 ]
 Congo Red
 CrO3
+CuCl2
 D3D'CH2CHMeCH2Cl
 Epoxides
 Evolved DERA-Rd3BB
@@ -390,13 +345,16 @@ Formula XVI
 Girard Reagent P
 Grignard reagent
 Grignard reagents
+H-Gln-Asp (OtBu)-Phe-OCH3
 H2N--C(NH)
 H2O
 H2O-
+HCl ice
 HCl ice water
 HCl-
 Hexamethylenetetramine molybdate
 II
+III
 IMS
 IR(KBr)
 IV
@@ -404,6 +362,7 @@ Ice
 Ice water
 KHCO3
 Ketal
+L-Lysine-2
 L-pyroglutamyl-L-histidyl-L-tryptophanyl hydrazide
 La
 M2D'CH2CHMeCH2Cl
@@ -417,6 +376,10 @@ MgCl2
 MgCl2.6H2O
 Molecular Oxygen
 "N,1-adamantyl-p-nitroaniline"
+"N,N' -Carbonyldiimidazole"
+"N,N' -carbonyldiimidazole"
+"N,N'-Carbonyldiimidazole"
+"N,N'-carbonyl diimidazole"
 "N,N'-carbonyldiimidazole"
 "N,N'-dimethylacetamide"
 "N,N'-methanetetraylbis[cyclohexamine]"
@@ -429,12 +392,14 @@ Molecular Oxygen
 "N,N1 -dicyclohexylcarbodiimide"
 N--CH3
 N-NaOH
+N-[3β-hydroxy-11-oxo-18β-olean-12-en-30-oyl]aspartic acid
 N-benzylidine-2-aminocrotonic acid methyl ester
 N-benzyloxycarbonyl-L-seryl-L-tyrosyl hydrazide
 N-butyl lithium
 N-formyl-p (1-adamentyloxy)aniline
 N-hydrochloric acid
 N-hydroxysuccinimide ester
+N-sulphuric acid
 NCO
 NH4HF2
 NH4OAc
@@ -448,7 +413,9 @@ Nacetyl-2-(triphenylmethylthio) acetamide
 Nafion
 Ni(NO3)2
 Ni[NH3 ]4
+Opiate
 PEG-400
+POLYPHOSPHORIC ACID
 Peptide
 Peptides
 Pluronic F-68
@@ -478,6 +445,7 @@ ZrO2
 [ 1
 [ 1.1 ]
 [ 1956 ]
+[ 3 ]
 "[1β,2β(5Z),3α,4β]-7-[3-formyl-7-oxabicyclo[2"
 "[1β,2β(5Z),3α,4β]-7-[3-formyl-7-oxabicyclo[2.2.1]hept-2-yl]-5-heptenoic acid, methyl ester"
 "[2,2,2]bicyclo-1-octanol"
@@ -489,21 +457,31 @@ acetal
 acetate ester
 acetate kinase AcK
 acetate salt
+acetic ester petroleum
+acetone-25 ethanol
+acetyl
 acetylenic
+acetylenic carbinol
 acetylenic hydrogen
+acetylenic ketone
 acid
 acid chloride
+acid fluoride
 acyl isothiocyanate
 acyl urea
 acyloxybutadiene
 alcohol
+alcohol DMF
 alcoholate
 alcohols
 aldehyde
 aliphatic or aromatic amine
 alkali metal
+alkali metal alkoxide
 alkali metal borohydrides
+alkali metal hydride
 alkali metal hydroxide
+alkali metal salt
 alkaline earth metal
 alkanes
 alkanol
@@ -512,10 +490,12 @@ alkyl
 alkyl 9-oxo-15-t-butoxy-8ξ-prostanoates
 alkyl chloroformate
 alkyl phenols
+alkylene glycol
 alkylene oxide
 alkylhalide
 alkyne
 alkynyl zinc
+alphaolefin oxide
 aluminum halide
 amalgam
 amide
@@ -528,10 +508,13 @@ amine hydrochloride
 amino acid
 amino ester
 aminophenyl-β-sulfatoethylsulfone
+ammonia ice
 "androsta-1,3,5,9(11)-tetraene-17-one 3-diethylenamine"
 anhydride
 aqueous solution
 aromatic aldehyde
+aromatic amine
+aromatic carboxylic acid
 aromatic nitriles
 aryl
 asymmetric acid anhydride
@@ -540,21 +523,25 @@ azido
 azodye-phenoxide
 azoisobutyronitrile
 base
+"benzhydroxy 4,6-dimethylpyrimidyl-2-thiolcarbonate"
 benzoin methanesulfonate esters
 benzoyl halides
 "benzyl-4,4,6-tetramethyl- 4,5-dihydro-1,3-oxazine"
 benzyloxycarbonyl-L-prolyl-p-nitrophenyl ester
 bicyclic azetidinone
+bicyclic compound
 bicyclic ketone
 bis oxalate
 bis perchlorate
 bis(triphenyliphosphine)palladium (II) chloride
+bis-(4-hydroxyphenyl)-methane(bisphenol-F)
 bis-mesylate
 bis-phenols
 bis-tetrazolmethyl thiol
 bisoxalate
 bisphenol
 bistriethanolamine
+borax
 bovine catalase
 bromoacetophenones
 bromoacetyl
@@ -567,14 +554,20 @@ carboxylic acid
 catalyst
 ceric ammonium nitrate
 ceric sulfate
+chloroform-ether
 chloroform-petroleum ether
 chlorosulphonic acid leads
+chromic anhydride
 chromic oxide
 cis-cyclopropane lactone
 cobalt polysulfide
+colored solid
+colorless crystals
 colorless liquid
+colorless needles
 colorless oil
 colorless powder
+complex
 compound
 compound ( XV )
 compound 3
@@ -584,14 +577,19 @@ conc
 conc. aqueous solution
 concentrated aqueous solution
 copolymer
+copper-I chloride
 crude base
 crude dark brown foam
 crude material
+crude mixture
 crude orange solid
 crude product
 crystals
 cupric
+cupric acetate
+cupric acetate monohydrate
 cupric chloride
+cupric chloride dihydrate
 cuprous
 cuprous bromide
 cuprous chloride
@@ -599,6 +597,9 @@ cuprous chloride dihydrate
 cuprous cyanide
 cuprous iodide
 cuprous oxide
+"cyclohexane 1,2'-indan-4-ol methanesulfonate"
+cyclohexyl ester
+cyclohexyl mustard oil
 cyclohexylaldehyde
 cyclopentenones
 cyclopropyl hydrogens
@@ -613,19 +614,26 @@ diacid chloride
 diazo
 diazonium
 diazonium salt
+diazonium sulphate
 dibenzoyl-L( +)tartarates
 dibenzoyl-L(+)tartarates
 dibromo
+dicarboxylic acid
 dichloromethane-ether
 dicyclohexylamine molybdate
 diethyl (N-cyanoimido)carbonate
 diethyl 2-(2'-propnynyl)-3-oxoglutarate
+diethyl acetal
 diethyl acetate
+diethyl ester
 diethyl ether(250 cc)
 diethyl ketal
+dihydro
 dihydrobenzothiophenes
 dihydrobromide
+diisocyanate
 diketone
+dilute aqueous solution
 dimethyl
 dimethyl (cyanoimido)dithiocarbonate
 dimethyl 2-(2'-propynyl)-3-oxoglutarate
@@ -633,24 +641,30 @@ dimethyl acetal
 dimethyl ester
 dimethyl ketal
 dimethyl(cyanoimido)dithiocarbonate
+diol
 dioxide
 dioxo osmate(VI)
 dipotassium
 dry ice acetone
 enol ether
+epoxide
 ester
 ester (ethylhexadecadienoate)
 esters
 ethanol petroleum ether
 ethanol-dioxane
+ethanol-ether
 ethanolic solution
 ether petrol
 ether-hexane
 ether-methylene chloride
+ether-pentane
 ethereal solution
 ethereal suspension
+ethoxylated n-butanol
 ethyl 4-(3'-methoxyphenyl)-2-piperidone-5-carboxylate
 ethyl acetate hexanes
+ethyl acetate petrol
 ethyl acetate petroleum ether
 ethyl acetate-ether
 ethyl ester
@@ -667,6 +681,11 @@ fatty alcohols
 fatty amines
 ferric ammonium sulfate dodecahydrate
 ferric chloride
+ferrous sulfate
+ferrous sulphate
+ferrous sulphate heptahydrate
+final mixture
+fluoroalkylsulfonyl methane
 formic acids
 formula 3
 formula 4
@@ -680,7 +699,10 @@ fused zinc chloride
 glass
 glycol dimethylether
 glycol morpholinamide
+glycolmonomethyl-ether
+gold crystals
 halide
+haloalkylpyridine
 hemi-ethanolate
 hemihydrate
 hexanes
@@ -688,13 +710,18 @@ hexanoic solution
 horseradish peroxidase
 hydrate
 hydrazide
+hydrazo
 hydrazone
+hydrobromide salt
 hydrocarbon
 hydrochloride salt
+hydrogen halide
+"hydrogenated N,N-dimethylformamide"
 hydrogens
 hydroxyethyl tetraphthalyl acrylate
 ice
 ice H2O
+ice HCl
 ice MeOH
 ice methanol
 ice sodium chloride
@@ -714,13 +741,16 @@ ketal
 ketal alcohol
 ketone
 lactam
+lactone
 light petroleum
 light petroleum ether
 ligroin
 liquid
 lithio
+lithium aluminum hydride LiAlH4
 lithium enolate
 lower alkylene oxide
+maleate salt
 material
 mercaptans
 mercuric acetate
@@ -739,17 +769,22 @@ methyl 9-pentadecanoate
 methyl N-(triethylamoniosulphonyl)carbamate
 methyl and ethyl esters
 methyl ester
+methyl perfluoromethylsulfone
 methyl β-methyl-sulfonyloxyethyl ketone
+methylene chloride petroleum ether
 microbead suspension
 mineral oil
 mineral spirits water
 mixture
 mono-Schiff's base
+mono-hydrochloride
 monocarboxylic acid
 monocarboxylic acid ester
 monocarboxylic acid esters
+monochlorobutenes
 monohydrate
 monotrimethylsilylacetamide
+morpholine enamine
 n-butyroyl chloride
 n-tetrabutylammonium bromide
 "naphthalene-1,5-diisocyanate"
@@ -762,15 +797,26 @@ nitrovinyl
 normal aqueous solution
 o-Toluoyl chlorides
 octamolybdate
+off-white crystals
+off-white solid
 oil
+oily nitrated product
 olefin
 one
+orange crystals
 orange liquid
 organo metallic
+overhydrogenated product
 oxide
 oxime
+oxybismethylene isobutyrate
+oxychlorinating catalyst
+p-chloro
 p-dichlorobenzenes
+pale yellow crystals
+pale yellow oil
 palladium-on-barium sulfate
+palladium-on-calcium carbonate
 paraffin
 peach-colored solid
 peptide
@@ -778,7 +824,9 @@ perchloryl fluoride
 peroxide
 petrol ether
 petroleum ether
+phenol benzol__________________________________________________________________________
 phenols
+phenyl ester
 phenylalkyl
 "pivaloyloxymethyl 7-amino-3-[2-(5-methyl-1,2,3,4-tetrazolyl)]methyl-Δ3 cephem-4-carboxylate"
 poly-(lower alkenoxy)
@@ -787,13 +835,16 @@ polycarbonates
 polyethylene glycol
 polyethylene glycol-400
 polyethyleneglycol monomethylether
+polyisobutylene
 polyisocyanate
 polyisocyanates
 polyols
 polyphosphate ester
 polyphosphoric acid
+polypropylene glycol
 potassium iodide starch
 potassium osmate dihydrate
+potassium t-butylate
 potassium terbutylate
 potassium tert
 potassium tert. butylate
@@ -804,14 +855,21 @@ preceding product
 previous compound
 primary alcohol
 primary amine
+prisms
 product
+products
 prostenoates
 pure product
+pure product m
 pyridinium bromide perbromide
 pyridinium salts
+pyrroles
+quartz
 quaternary ammonium hydroxide
 "racemic cis-(1S) (4S)-N-methyl-4-(3,4-dichlorophenyl)-1,2,3,4-tetrahydro -1-naphthaleneamine"
+racemic cis-2-hydroxy-4-cyclopentene-1-acetic acid lactone
 raw material
+raw product
 reaction product
 reaction substrate solution
 reagent
@@ -820,31 +878,40 @@ red phosphorus
 red-orange liquid
 reduced iron
 residue
+resinous yellow product
 resultant mixture
 resultant residue
 resultant solution
 resultant suspension
 resultant two-phase
+said solution
+salicycilic acid
 salt
 same solvent
+sapogenin
 saturated aqueous solution
 "saturated ester (3S,7R)-Ethyl-8-tert"
 "saturated ester (3S,7R)-Ethyl-8-tert. butoxy-3,7-dimethyloctanoate"
 saturated fatty acids
 saturated solution
+secondary phosphine oxide
 semi-solid
 silver ion
 "silylated 2-acetonyl-3,4-dihydroxy-5-(5-hydroxy-2,3-epoxy-4-methylhexyl)-2,3,5,6-tetrahydropyran"
 "silylated 2-acetonyl-3,4-dihydroxy5-(5-hydroxy-2,3-epoxy-4-methylhexyl)-2,3,5,6-tetrahydropyran"
+sodium 6-(1-aminocyclohexanecarboxamido)penicillanate
 sodium alcoholate
 sodium bis-(2-methoxyethoxy)-dihydroaluminate
 sodium enolate
 sodium hydride-paraffin
+sodium isobutylate
 sodium tert
 sodium tert.butylate
 solid
 solids
 solution
+solution 1
+solution 1.25
 solution 101
 solution f
 solvent
@@ -860,40 +927,61 @@ steroid
 subject product
 substituted aniline
 substituted benzoylacrylic acid
+substituted phenylthioacetonitrile
 substituted pyrimidone
 succinyl CS-045
+sulfate salt
+sulfates
+sulfochromic mixture
+sulfonamide
+sulfonate
 suspension
 syrup
+"t-butyl 4,6-dimethyl-pyrimidyl-2-thiolcarbonate"
 t-butyl ester
+t-butylhydrazone
 talc
+tan crystals
 tan solid
+tertbutoxycarbonyl hydrazide
 tertiary alcohol
 tetra-n-butyl
 tetrakis (triphenylphosphine)palladium(O)
 tetrakis(tri-phenylphosphine)palladium
 tetrakistriphenylphosphine Pd(O)
 tetrakistriphenylphosphine palladium
+thiolcarbonate
 thiophene-2-carboxyaldehyde
 three
+tin-II-chloride
 titania silica
 title compound
+title compounds
 tri(C1 -C6 alkyl)silane
 tri-(4-hydroxphenyl)phenylmethane
+triethyl amide
 triethyl phosphono fluoroacetate
 trihydrochloride
 trimethyl(ethoxypolyoxypropyl)ammonium chloride
+trioxide
 tripeptide
 "triphenylmethane-4,4',4""-triisocyanate"
 two
 unsaturated alcohol 3-methyl-2-nonen-1-ol
 vanadium(IV) oxide acetylacetonate
 vinyl hydrogens
+viscous oil
 viscous residue
+water ice
+white crystals
+white solid
 wild type sucrose phosphorylase
 "xylylene-2,2'-diisocyanate"
 y-methyl-DL-ornithine
+yellow crystals
 yellow liquid
 yellow needles
+yellow oil
 "α,α-diphenyl-6-propyl-1,6-dioxaspiro[4"
 "α,α-diphenyl-6-propyl-1,6-dioxaspiro[4.5]decane-6-propanol"
 α-chlorinated chloroformate
@@ -904,8 +992,10 @@ yellow needles
 α-t-butylamino-3-chloro-4-(3-hydroxypropyl)propiophenone hydrochloride
 α-t-butylamino-3-chloro-4-γ-hydroxypropylpropiophenone hemisuccinate
 "αα-bis(chlorodifluoromethyl)2,3-dihydro-1H-indole-5-methanol"
+β-Lactam
 γ-Methyl-DL-thiocitrulline
 δ(CDCl3)
 δ[(CD3)2SO]
 μ-alanine
+ψ-acid chloride
 "⟦2,3-dihydroxanthotoxin⟧"
