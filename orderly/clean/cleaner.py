@@ -167,9 +167,9 @@ class Cleaner:
         # Helper function to remove reactions with no reactants or products (hence why we're only looking at the first column)
         # Replace 'none' with np.nan in 'products_000' column
         column_name = col + "_000"
-        df[column_name] = df[column_name].replace({None: np.nan})
+        # df[column_name] = df[column_name].replace({None: np.nan})
         # Get indices where col is NaN
-        nan_indices = df.index[df[column_name].replace({None: np.nan}).isna()]
+        nan_indices = df.index[df[column_name].isna()]
 
         # Create a mask for all columns that start with 'products_'
         mask = df.columns.str.startswith(col)
