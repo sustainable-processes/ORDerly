@@ -277,8 +277,18 @@ data.reactions[i]
 # ##  ψ-acid chloride
 
 # %%
+import pandas as pd
+
 path = "/Users/dsw46/Library/CloudStorage/OneDrive-UniversityofCambridge/Datasets/orderly/orderly_data/18_4/uspto_no_trust/extracted_ords/uspto-grants-1976_01.parquet"
 df = pd.read_parquet(path)
 i = 412
 
 # %%
+df
+
+# %%
+path = "/Users/dsw46/Projects_local/ORDerly/orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/extracted_ords/ord_dataset-0c75d67751634f0594b24b9f498b77c2.parquet"
+df = pd.read_parquet(path)
+type(df["procedure_details"][0])
+# %%
+None.isna()

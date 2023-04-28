@@ -164,9 +164,10 @@ class Cleaner:
 
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        # Helper function to remove reactions with no reactants or products (hence why we're only looking at the first column)
         # Replace 'none' with np.nan in 'products_000' column
         column_name = col + "_000"
-        df[column_name] = df[column_name].replace({None: np.nan})
+        # df[column_name] = df[column_name].replace({None: np.nan})
         # Get indices where col is NaN
         nan_indices = df.index[df[column_name].isna()]
 
@@ -343,6 +344,8 @@ class Cleaner:
             _ = rdkit_BlockLogs()
             if rxn_str is None:
                 return False
+            if rxn_str is np.nan:  # type: ignore
+                return False
             reactants_from_rxn, _, _ = rxn_str.split(">")
             reactants = reactants_from_rxn.split(".")
             for r in reactants:
@@ -356,7 +359,6 @@ class Cleaner:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
-
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
