@@ -1013,33 +1013,33 @@ class OrdExtractor:
         dfs = []
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"])
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(
@@ -1053,8 +1053,8 @@ class OrdExtractor:
         )  # TODO do we extract multiple rxn times?
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["product"], base_string="product")
-            .astype("string").fillna("<empty>").astype(object)
-            # .astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["yield"], base_string="yield").astype(
@@ -1065,7 +1065,8 @@ class OrdExtractor:
             OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
             )
-            .astype("string").fillna("<empty>").astype(object)
+            .astype("string")#.fillna("<empty>").astype(object)
+            .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(

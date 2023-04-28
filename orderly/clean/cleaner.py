@@ -168,7 +168,7 @@ class Cleaner:
         column_name = col + "_000"
         df[column_name] = df[column_name].replace({None: np.nan})
         # Get indices where col is NaN
-        nan_indices = df.index[df[column_name].isna()]
+        nan_indices = df.index[df[column_name].replace({None: np.nan}).isna()]
 
         # Create a mask for all columns that start with 'products_'
         mask = df.columns.str.startswith(col)
