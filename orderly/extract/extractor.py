@@ -449,9 +449,8 @@ class OrdExtractor:
         else:  # we trust that it is a string that is convertible to a pd.Timestamp
             date_of_experiment = pd.to_datetime(_date_of_experiment, format="%m/%d/%Y", errors='coerce')
             if date_of_experiment is pd.NaT:
-                LOG.info(f"{date_of_experiment=} {_date_of_experiment=}")
+                LOG.debug(f"Failed to parse date: {date_of_experiment=} {_date_of_experiment=}")
                 date_of_experiment = None
-                breakpoint()
         return date_of_experiment
 
     @staticmethod
