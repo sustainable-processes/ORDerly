@@ -288,5 +288,6 @@ df
 # %%
 path = "/Users/dsw46/Projects_local/ORDerly/orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/extracted_ords/ord_dataset-0c75d67751634f0594b24b9f498b77c2.parquet"
 df = pd.read_parquet(path)
-df['']
+type(df['procedure_details'][0])
 # %%
+None.isna()

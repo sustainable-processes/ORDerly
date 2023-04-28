@@ -164,6 +164,7 @@ class Cleaner:
 
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        # Helper function to remove reactions with no reactants or products (hence why we're only looking at the first column)
         # Replace 'none' with np.nan in 'products_000' column
         column_name = col + "_000"
         df[column_name] = df[column_name].replace({None: np.nan})
