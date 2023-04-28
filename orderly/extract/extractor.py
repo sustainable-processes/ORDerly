@@ -445,9 +445,16 @@ class OrdExtractor:
     ) -> Optional[pd.Timestamp]:
         _date_of_experiment = rxn.provenance.experiment_start.value
         if len(_date_of_experiment) == 0:
-            date_of_experiment = None
+            return None
         else:  # we trust that it is a string that is convertible to a pd.Timestamp
-            date_of_experiment = pd.to_datetime(_date_of_experiment, format="%m/%d/%Y")
+            date_of_experiment = pd.to_datetime(
+                _date_of_experiment, format="%m/%d/%Y", errors="coerce"
+            )
+            if date_of_experiment is pd.NaT:
+                LOG.warn(
+                    f"Failed to parse date: {date_of_experiment=} {_date_of_experiment=}"
+                )
+                return None
         return date_of_experiment
 
     @staticmethod
@@ -1013,32 +1020,32 @@ class OrdExtractor:
         dfs = []
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"])
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
@@ -1053,7 +1060,7 @@ class OrdExtractor:
         )  # TODO do we extract multiple rxn times?
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["product"], base_string="product")
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
@@ -1065,7 +1072,7 @@ class OrdExtractor:
             OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
             )
-            .astype("string")  # .fillna("<empty>").astype(object)
+            .astype("string")
             .astype(object)
         )
         dfs.append(
