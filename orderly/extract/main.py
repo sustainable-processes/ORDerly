@@ -33,6 +33,11 @@ def get_file_names(
 ) -> List[pathlib.Path]:
     """
     Goes into the ord data directory and for each folder extracts the file path of all sub data files with the file ending
+    
+    The reason for include_cleaned_USPTO_file:
+        This file: ord_dataset-de0979205c84441190feef587fef8d6d is a cleaned version of USPTO from https://pubs.rsc.org/en/content/articlelanding/2019/SC/C8SC04228D
+
+        So it doesn't include new information, and extraction from this file is pretty slow because it's 10x bigger than the second largest dataset in ORD (400k reactions vs 40k). So default behaviour is to ignore it.
     """
 
     files = []
