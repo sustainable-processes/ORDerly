@@ -29,6 +29,7 @@ import orderly.data.util
 def get_file_names(
     directory: pathlib.Path,
     file_ending: str = ".pb.gz",
+    include_cleaned_USPTO_file: bool = False
 ) -> List[pathlib.Path]:
     """
     Goes into the ord data directory and for each folder extracts the file path of all sub data files with the file ending
@@ -37,8 +38,12 @@ def get_file_names(
     files = []
     for i in directory.glob("./*"):
         for j in i.glob(f"./*{file_ending}"):
-            files.append(j)
+            if 'ord_dataset-de0979205c84441190feef587fef8d6d' not in j:
+                files.append(j)
+            elif include_cleaned_USPTO_file:
+                files.append(j)
 
+    
     return sorted(
         files
     )  # sort just so that there is no randomness in order of processing
