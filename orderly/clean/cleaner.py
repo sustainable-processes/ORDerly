@@ -359,6 +359,7 @@ class Cleaner:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
+            breakpoint()
             try:
                 mask_is_mapped = df["rxn_str"].apply(is_mapped)
             except AttributeError:
