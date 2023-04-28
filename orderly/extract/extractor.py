@@ -728,7 +728,6 @@ class OrdExtractor:
                 LOG.error(e)
                 raise e
 
-
         # remove molecules that are integers
         reactants = [x for x in reactants if not is_number(x)]
         agents = [x for x in agents if not is_number(x)]
@@ -736,7 +735,9 @@ class OrdExtractor:
         solvents = [x for x in solvents if not is_number(x)]
         catalysts = [x for x in catalysts if not is_number(x)]
         products = [x for x in products if not is_number(x)]
-        rxn_non_smiles_names_list = [x for x in rxn_non_smiles_names_list if not is_number(x)]
+        rxn_non_smiles_names_list = [
+            x for x in rxn_non_smiles_names_list if not is_number(x)
+        ]
 
         def canonicalise_and_get_non_smiles_names(
             mole_id_list: REACTANTS

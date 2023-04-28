@@ -1,72 +1,34 @@
 # %%
 set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool = True
-    remove_rxn_with_unresolved_names: bool = False
-    set_unresolved_names_to_none: bool = False
+remove_rxn_with_unresolved_names: bool = False
+set_unresolved_names_to_none: bool = False
 
 
 # %%
 from rdkit import Chem as rdkit_Chem
 
+
 def is_mapped(rxn_str):
     """
     Check if a reaction string is mapped using RDKit.
     """
-    reactants, _, _ = rxn_str.split('>')
-    reactants = reactants.split('.')
+    reactants, _, _ = rxn_str.split(">")
+    reactants = reactants.split(".")
     for r in reactants:
         mol = rdkit_Chem.MolFromSmiles(r)
         if mol != None:
-            if any(
-                atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
-                    return True
+            if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
+                return True
     return False
 
-# %%
-is_mapped("[S:1](=[O:4])(=[O:3])=[O:2].[S:5](=[O:9])(=[O:8])([OH:7])[OH:6]>>[OH:8][S:5]([OH:9])(=[O:7])=[O:6].[O:2]=[S:1](=[O:4])=[O:3]")
 
 # %%
-is_mapped('CCC.C>O>CCC')
+is_mapped(
+    "[S:1](=[O:4])(=[O:3])=[O:2].[S:5](=[O:9])(=[O:8])([OH:7])[OH:6]>>[OH:8][S:5]([OH:9])(=[O:7])=[O:6].[O:2]=[S:1](=[O:4])=[O:3]"
+)
 
 # %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
-
-
-# %%
+is_mapped("CCC.C>O>CCC")
 
 
 # %% [markdown]
@@ -75,69 +37,76 @@ is_mapped('CCC.C>O>CCC')
 # %%
 from rdkit import Chem
 
-# %%
-def _merge_ions_to_salt(
-            mole_id_list):
 
-            """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
-            
-            
-            mole_id_list_with_ions_merged = []
-            for smiles in mole_id_list:
-                mol = Chem.MolFromSmiles(smiles)
-                # Identify the anions and cations in the molecule
-                anions = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() < 0]
-                cations = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() > 0]
-                # If there is exactly one anion and one cation, merge them to form a salt
-                if len(anions) == 1 and len(cations) == 1:
-                    anion_idx = anions[0]
-                    cation_idx = cations[0]
-                    # Create a new molecule with the anion and cation bonded together
-                    new_mol = Chem.RWMol(mol)
-                    new_mol.AddBond(anion_idx, cation_idx, order=Chem.rdchem.BondType.SINGLE)
-                    # Set the formal charge of the new molecule to zero
-                    new_mol.GetAtomWithIdx(anion_idx).SetFormalCharge(0)
-                    new_mol.GetAtomWithIdx(cation_idx).SetFormalCharge(0)
-                    # Convert the new molecule back to a SMILES string and add it to the list
-                    new_smiles = Chem.MolToSmiles(new_mol.GetMol())
-                    mole_id_list_with_ions_merged.append(new_smiles)
-                else:
-                    mole_id_list_with_ions_merged.append(smiles)
-            return mole_id_list_with_ions_merged
+# %%
+def _merge_ions_to_salt(mole_id_list):
+    """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
+
+    mole_id_list_with_ions_merged = []
+    for smiles in mole_id_list:
+        mol = Chem.MolFromSmiles(smiles)
+        # Identify the anions and cations in the molecule
+        anions = [
+            atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() < 0
+        ]
+        cations = [
+            atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() > 0
+        ]
+        # If there is exactly one anion and one cation, merge them to form a salt
+        if len(anions) == 1 and len(cations) == 1:
+            anion_idx = anions[0]
+            cation_idx = cations[0]
+            # Create a new molecule with the anion and cation bonded together
+            new_mol = Chem.RWMol(mol)
+            new_mol.AddBond(anion_idx, cation_idx, order=Chem.rdchem.BondType.SINGLE)
+            # Set the formal charge of the new molecule to zero
+            new_mol.GetAtomWithIdx(anion_idx).SetFormalCharge(0)
+            new_mol.GetAtomWithIdx(cation_idx).SetFormalCharge(0)
+            # Convert the new molecule back to a SMILES string and add it to the list
+            new_smiles = Chem.MolToSmiles(new_mol.GetMol())
+            mole_id_list_with_ions_merged.append(new_smiles)
+        else:
+            mole_id_list_with_ions_merged.append(smiles)
+    return mole_id_list_with_ions_merged
+
 
 # %%
 def merge_ions_to_salt_func(
-            mole_id_list: REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-        ) -> REACTANTS |AGENTS| REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
+    mole_id_list: REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
+    """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
+    assert isinstance(mole_id_list, list)
 
-            """If there's just 1 positive and 1 negative ion, merge these to a salt. E.g. [Na+].[OH-] becomes O[Na]"""
-            assert isinstance(mole_id_list, list)
-            
-            mole_id_list_with_ions_merged = []
-            for smiles in mole_id_list:
-                mol = Chem.MolFromSmiles(smiles)
-                # Identify the anions and cations in the molecule
-                anions = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() < 0]
-                cations = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() > 0]
-                # If there is exactly one anion and one cation, merge them to form a salt
-                if len(anions) == 1 and len(cations) == 1:
-                    anion_idx = anions[0]
-                    cation_idx = cations[0]
-                    # Create a new molecule with the anion and cation bonded together
-                    new_mol = Chem.RWMol(mol)
-                    new_mol.AddBond(anion_idx, cation_idx, order=Chem.rdchem.BondType.SINGLE)
-                    # Set the formal charge of the new molecule to zero
-                    new_mol.GetAtomWithIdx(anion_idx).SetFormalCharge(0)
-                    new_mol.GetAtomWithIdx(cation_idx).SetFormalCharge(0)
-                    # Convert the new molecule back to a SMILES string and add it to the list
-                    new_smiles = Chem.MolToSmiles(new_mol.GetMol())
-                    mole_id_list_with_ions_merged.append(new_smiles)
-                else:
-                    mole_id_list_with_ions_merged.append(smiles)
-            return mole_id_list_with_ions_merged
+    mole_id_list_with_ions_merged = []
+    for smiles in mole_id_list:
+        mol = Chem.MolFromSmiles(smiles)
+        # Identify the anions and cations in the molecule
+        anions = [
+            atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() < 0
+        ]
+        cations = [
+            atom.GetIdx() for atom in mol.GetAtoms() if atom.GetFormalCharge() > 0
+        ]
+        # If there is exactly one anion and one cation, merge them to form a salt
+        if len(anions) == 1 and len(cations) == 1:
+            anion_idx = anions[0]
+            cation_idx = cations[0]
+            # Create a new molecule with the anion and cation bonded together
+            new_mol = Chem.RWMol(mol)
+            new_mol.AddBond(anion_idx, cation_idx, order=Chem.rdchem.BondType.SINGLE)
+            # Set the formal charge of the new molecule to zero
+            new_mol.GetAtomWithIdx(anion_idx).SetFormalCharge(0)
+            new_mol.GetAtomWithIdx(cation_idx).SetFormalCharge(0)
+            # Convert the new molecule back to a SMILES string and add it to the list
+            new_smiles = Chem.MolToSmiles(new_mol.GetMol())
+            mole_id_list_with_ions_merged.append(new_smiles)
+        else:
+            mole_id_list_with_ions_merged.append(smiles)
+    return mole_id_list_with_ions_merged
+
 
 # %%
-_merge_ions_to_salt(['[Na+].[OH-].C', 'CC', '[Pd+]'])
+_merge_ions_to_salt(["[Na+].[OH-].C", "CC", "[Pd+]"])
 
 # %%
 
@@ -155,26 +124,27 @@ _merge_ions_to_salt(['[Na+].[OH-].C', 'CC', '[Pd+]'])
 # # inspect df
 
 # %%
-import orderly 
-train, val, test = orderly.get_uspto_rxn_class_split() 
+import orderly
+
+train, val, test = orderly.get_uspto_rxn_class_split()
 
 # %%
-            "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
-            0,
-            "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1"
-            
-            ["C1CCNC1","CC1(C)C2CCC(=O)C1C2",],
-            
-            ["Cc1ccc(S(=O)(=O)O)cc1", "O", "c1ccccc1"],
-            
-            ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
-            
-            
+# "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
+# 0,
+# "[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH2:5][C:6]2=O.[NH:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1.C1(C)C=CC(S(O)(=O)=O)=CC=1.O>C1C=CC=CC=1>[CH3:1][C:2]1([CH3:10])[CH:8]2[CH2:9][CH:3]1[CH2:4][CH:5]=[C:6]2[N:11]1[CH2:15][CH2:14][CH2:13][CH2:12]1"
+
+# ["C1CCNC1","CC1(C)C2CCC(=O)C1C2",],
+
+# ["Cc1ccc(S(=O)(=O)O)cc1", "O", "c1ccccc1"],
+
+# ["CC1(C)C2CC=C(N3CCCC3)C1C2"],
+
 
 # %%
 import pandas as pd
+
 # read in data
-path = '/Users/dsw46/Library/CloudStorage/OneDrive-UniversityofCambridge/Datasets/orderly_defaults_data.parquet'
+path = "/Users/dsw46/Library/CloudStorage/OneDrive-UniversityofCambridge/Datasets/orderly_defaults_data.parquet"
 
 df = pd.read_parquet(path)
 
@@ -182,10 +152,23 @@ df = pd.read_parquet(path)
 df.columns
 
 # %%
-df2 = df[['reactant_0', 'product_0', 'solvent_0', 'agent_0', 'temperature_0', 'rxn_time_0']].iloc[1:6].copy()
+df2 = (
+    df[
+        [
+            "reactant_0",
+            "product_0",
+            "solvent_0",
+            "agent_0",
+            "temperature_0",
+            "rxn_time_0",
+        ]
+    ]
+    .iloc[1:6]
+    .copy()
+)
 
 # %%
-df2['agent_0'].iloc[0] = 'other'
+df2["agent_0"].iloc[0] = "other"
 
 # %%
 df2
@@ -200,80 +183,80 @@ from ord_schema import message_helpers, validations
 from ord_schema.proto import dataset_pb2
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
+
 # %%
 def find_smiles(
-        identifiers,
-    ):
-        """
-        Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
-        """
-        non_smiles_names_list = (
-            []
-        )  # we dont require information on state of this object so can create a new one
-        _ = rdkit_BlockLogs()
-        for i in identifiers:
-            if i.type == 2:
-                canon_smi = i.value
-                return canon_smi, non_smiles_names_list
-        for ii in identifiers:  # if there's no smiles, return the name
-            if ii.type == 6:
-                name = ii.value
-                non_smiles_names_list.append(name)
-                return name, non_smiles_names_list
-        return None, non_smiles_names_list
+    identifiers,
+):
+    """
+    Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
+    """
+    non_smiles_names_list = (
+        []
+    )  # we dont require information on state of this object so can create a new one
+    _ = rdkit_BlockLogs()
+    for i in identifiers:
+        if i.type == 2:
+            canon_smi = i.value
+            return canon_smi, non_smiles_names_list
+    for ii in identifiers:  # if there's no smiles, return the name
+        if ii.type == 6:
+            name = ii.value
+            non_smiles_names_list.append(name)
+            return name, non_smiles_names_list
+    return None, non_smiles_names_list
 
 
 def rxn_input_extractor(rxn):
-        """
-        Extract reaction information from ORD input object (ord_reaction_pb2.Reaction.inputs)
-        """
-        # loop through the keys (components) in the 'dict' style data struct. One key may contain multiple components/molecules.
-        non_smiles_names_list = (
-            []
-        )  # we dont require information on state of this object so can create a new one
-        # initialise lists
-        reactants = []
-        reagents = []
-        solvents = []
-        catalysts = []
-        products = []
+    """
+    Extract reaction information from ORD input object (ord_reaction_pb2.Reaction.inputs)
+    """
+    # loop through the keys (components) in the 'dict' style data struct. One key may contain multiple components/molecules.
+    non_smiles_names_list = (
+        []
+    )  # we dont require information on state of this object so can create a new one
+    # initialise lists
+    reactants = []
+    reagents = []
+    solvents = []
+    catalysts = []
+    products = []
 
-        for key in rxn.inputs:
-            components = rxn.inputs[key].components
-            for component in components:
-                rxn_role = component.reaction_role  # rxn role
-                identifiers = component.identifiers
-                smiles, non_smiles_names_list_additions = find_smiles(
-                    identifiers
-                )
-                non_smiles_names_list += non_smiles_names_list_additions
-                if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
-                    reactants += [r for r in smiles.split(".")]
-                elif rxn_role == 2:  # reagent
-                    reagents += [r for r in smiles.split(".")]
-                elif rxn_role == 3:  # solvent
-                    solvents += [r for r in smiles.split(".")]
-                elif rxn_role == 4:  # catalyst
-                    catalysts += [r for r in smiles.split(".")]
-                elif rxn_role in [5, 6, 7]:
-                    # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
-                    continue
-                elif rxn_role == 8:  # product
-                    # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
-                    products += [r for r in smiles.split(".")]
-        return (
-            reactants,
-            reagents,
-            solvents,
-            catalysts,
-            products,
-            non_smiles_names_list,
-        )
+    for key in rxn.inputs:
+        components = rxn.inputs[key].components
+        for component in components:
+            rxn_role = component.reaction_role  # rxn role
+            identifiers = component.identifiers
+            smiles, non_smiles_names_list_additions = find_smiles(identifiers)
+            non_smiles_names_list += non_smiles_names_list_additions
+            if rxn_role == 1:  # NB: Reagents may be misclassified as reactants
+                reactants += [r for r in smiles.split(".")]
+            elif rxn_role == 2:  # reagent
+                reagents += [r for r in smiles.split(".")]
+            elif rxn_role == 3:  # solvent
+                solvents += [r for r in smiles.split(".")]
+            elif rxn_role == 4:  # catalyst
+                catalysts += [r for r in smiles.split(".")]
+            elif rxn_role in [5, 6, 7]:
+                # 5=workup, 6=internal standard, 7=authentic standard. don't care about these
+                continue
+            elif rxn_role == 8:  # product
+                # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
+                products += [r for r in smiles.split(".")]
+    return (
+        reactants,
+        reagents,
+        solvents,
+        catalysts,
+        products,
+        non_smiles_names_list,
+    )
+
 
 # %%
 # Load Dataset message
-pb = 'data/ord//02/ord_dataset-02ee2261663048188cf6d85d2cc96e3f.pb.gz'
-pb = 'orderly/data/ord_test_data/00/ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz'
+pb = "data/ord//02/ord_dataset-02ee2261663048188cf6d85d2cc96e3f.pb.gz"
+pb = "orderly/data/ord_test_data/00/ord_dataset-00005539a1e04c809a9a78647bea649c.pb.gz"
 data = message_helpers.load_message(pb, dataset_pb2.Dataset)
 
 # %%
@@ -298,10 +281,10 @@ type(pd.to_datetime(d, format="%m/%d/%Y"))
 # %%
 import pandas as pd
 
-df = pd.DataFrame({'a': [1, 2, 3], 'b': [None, None, None]})
+df = pd.DataFrame({"a": [1, 2, 3], "b": [None, None, None]})
 
 # %%
-df['b'].dropna()
+df["b"].dropna()
 
 # %%
 pd.Timestamp(data.reactions[0].provenance.experiment_start.value)
@@ -368,9 +351,8 @@ for product in products_obj:
     # We'll resolve this by moving the longest smiles string to the front of the list, then appending the yield to the front of the list, and padding with None to ensure that the lists are the same length
 
     # split the product string by dot and sort by descending length
-    #ASSUMPTION: The largest product is the one with the yield
+    # ASSUMPTION: The largest product is the one with the yield
     product_list = sorted(product_smiles.split("."), key=len, reverse=True)
-    
 
     # create a list of the same length as product_list with y as the first value and None as the other values
     y_list = [y] + [None] * (len(product_list) - 1)
@@ -381,7 +363,7 @@ for product in products_obj:
 
 # %%
 a = [1]
-a += [1,2,3]
+a += [1, 2, 3]
 a
 
 # %% [markdown]
@@ -390,18 +372,26 @@ a
 # %%
 import pandas as pd
 
-df = pd.read_parquet('data/orderly/orderly_ord.parquet')
+df = pd.read_parquet("data/orderly/orderly_ord.parquet")
 
 # %%
 # Define the list of columns to check
-columns_to_check = [col for col in df.columns if col.startswith(('agent', 'solvent', 'reagent', 'catalyst'))]
+columns_to_check = [
+    col
+    for col in df.columns
+    if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+]
 
-value_counts = df.value_counts(subset = columns_to_check)
+value_counts = df.value_counts(subset=columns_to_check)
 
 # %%
 cutoff = 5
 # Define the list of columns to check
-columns_to_check = [col for col in df.columns if col.startswith(('agent', 'solvent', 'reagent', 'catalyst'))]
+columns_to_check = [
+    col
+    for col in df.columns
+    if col.startswith(("agent", "solvent", "reagent", "catalyst"))
+]
 
 # Initialize a list to store the results
 results = []
@@ -410,16 +400,17 @@ results = []
 for col in columns_to_check:
     # Get the value counts for the column
     results += [df[col].value_counts()]
-    
+
 total_value_counts = pd.concat(results, axis=0, sort=True).groupby(level=0).sum()
-total_value_counts = total_value_counts.drop('other')
+total_value_counts = total_value_counts.drop("other")
 total_value_counts = total_value_counts.sort_values(ascending=True)
 
 # %%
 total_value_counts[0]
 
 # %%
-pd.DataFrame({
+pd.DataFrame(
+    {
         "reactant_0": ["B", "A", "F", "A"],
         "reactant_1": ["D", "A", "G", "B"],
         "product_0": ["C", "A", "E", "A"],
@@ -429,7 +420,8 @@ pd.DataFrame({
         "solvent_0": ["E", "B", "G", "C"],
         "solvent_1": ["C", "D", "B", "G"],
         "solvent_2": ["D", "B", "F", "G"],
-            })
+    }
+)
 
 {
     "reactant_0": ["B", "F"],
@@ -440,30 +432,32 @@ pd.DataFrame({
     "agent_1": ["C", "G"],
     "solvent_0": ["E", "G"],
     "solvent_1": ["C", "B"],
-    "solvent_2": ["D", "F"]
+    "solvent_2": ["D", "F"],
 }
 
 
 # %%
 def _remove_rare_molecules(
-        df, columns_to_transform, value_counts, min_frequency_of_occurrence
-    ):
-        """
-        Removes rows with rare values in specified columns.
-        """
-        # Get the indices of rows where the column contains a rare value
-        rare_values = value_counts[value_counts < min_frequency_of_occurrence].index
-        index_union = None
-        
-        for col in columns_to_transform:
-            mask = df[col].isin(rare_values)
-            rare_indices = df.loc[mask].index
-            # Remove the rows with rare values
-            df = df.drop(rare_indices)
-        return df
+    df, columns_to_transform, value_counts, min_frequency_of_occurrence
+):
+    """
+    Removes rows with rare values in specified columns.
+    """
+    # Get the indices of rows where the column contains a rare value
+    rare_values = value_counts[value_counts < min_frequency_of_occurrence].index
+    index_union = None
+
+    for col in columns_to_transform:
+        mask = df[col].isin(rare_values)
+        rare_indices = df.loc[mask].index
+        # Remove the rows with rare values
+        df = df.drop(rare_indices)
+    return df
+
 
 # %%
-df = pd.DataFrame({
+df = pd.DataFrame(
+    {
         "reactant_0": ["B", "A", "F", "A"],
         "reactant_1": ["D", "A", "G", "B"],
         "product_0": ["C", "A", "E", "A"],
@@ -473,24 +467,25 @@ df = pd.DataFrame({
         "solvent_0": ["E", "B", "G", "C"],
         "solvent_1": ["C", "D", "B", "G"],
         "solvent_2": ["D", "B", "F", "G"],
-    })
+    }
+)
 
 columns_to_transform = ["agent_0", "agent_1", "solvent_0", "solvent_1", "solvent_2"]
 value_counts = pd.Series({"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4})
 min_frequency_of_occurrence = 2
 
 _remove_rare_molecules(
-        df, columns_to_transform, value_counts, min_frequency_of_occurrence
-    )
+    df, columns_to_transform, value_counts, min_frequency_of_occurrence
+)
 
 # %%
-rare_values = ['A']
+rare_values = ["A"]
 
-mask = df['reactant_1'].isin(rare_values)
+mask = df["reactant_1"].isin(rare_values)
 rare_indices = df.loc[mask].index
 
 # %%
-mask2 = df['reactant_0'].isin(rare_values)
+mask2 = df["reactant_0"].isin(rare_values)
 rare_indices2 = df.loc[mask2].index
 
 # %%
@@ -521,41 +516,47 @@ A = typing.NewType("A", str)
 A("asd") == "asd"
 
 # %%
-{'abc': 3}['abc']
+{"abc": 3}["abc"]
 
 # %%
-{'abc': 3}[A('abc')]
+{"abc": 3}[A("abc")]
 
 # %%
-{A('asd'): 3}['asd']
+{A("asd"): 3}["asd"]
 
 # %% [markdown]
 # rare_indices
 
 # %%
 {
-                "reactant_0": ["A"],
-                "reactant_1": ["B"],
-                "product_0": ["A"],
-                "product_1": ["H"],
-                "agent_0": ["B"],
-                "agent_1": ["A"],
-                "solvent_0": ["C"],
-                "solvent_1": ["G"],
-                "solvent_2": [ "G"],
-            },
+    "reactant_0": ["A"],
+    "reactant_1": ["B"],
+    "product_0": ["A"],
+    "product_1": ["H"],
+    "agent_0": ["B"],
+    "agent_1": ["A"],
+    "solvent_0": ["C"],
+    "solvent_1": ["G"],
+    "solvent_2": ["G"],
+},
 
 # %%
-'rxn_str_0'.endswith('0')
+"rxn_str_0".endswith("0")
 
 # %%
-'reagent'.startswith(("agent", "solvent", "reagent", "catalyst"))
+"reagent".startswith(("agent", "solvent", "reagent", "catalyst"))
+
 
 # %%
-def check_frequency_of_occurrence(series, min_frequency_of_occurrence, include_other_category, map_rare_to_other_threshold):
+def check_frequency_of_occurrence(
+    series,
+    min_frequency_of_occurrence,
+    include_other_category,
+    map_rare_to_other_threshold,
+):
     # series could be df['agent_0'], df['reagent_1'], df['solvent_0'], etc.
-    item_frequencies = series[series != 'other'].value_counts()
-    
+    item_frequencies = series[series != "other"].value_counts()
+
     # Check that the item with the lowest frequency appears at least `min_frequency_of_occurrence` times
     if len(item_frequencies) > 0:
         least_common_frequency = item_frequencies.iloc[-1]
@@ -569,8 +570,9 @@ def check_frequency_of_occurrence(series, min_frequency_of_occurrence, include_o
         # If there are no items other than 'other', the test passes
         pass
 
+
 # %%
-series = df['agent_0']
+series = df["agent_0"]
 item_frequencies = series.value_counts()
 
 # %% [markdown]
@@ -603,7 +605,7 @@ from tqdm import tqdm
 
 # %%
 # Load Dataset message
-pb = 'data/ord//02/ord_dataset-02ee2261663048188cf6d85d2cc96e3f.pb.gz'
+pb = "data/ord//02/ord_dataset-02ee2261663048188cf6d85d2cc96e3f.pb.gz"
 data = message_helpers.load_message(pb, dataset_pb2.Dataset)
 
 # %%
@@ -677,24 +679,29 @@ from rdkit import Chem
 
 # %%
 from rdkit import Chem
-mol = Chem.MolFromSmiles('CCCCC')
+
+mol = Chem.MolFromSmiles("CCCCC")
 
 # %%
 mol
 
+
 # %%
 def merge_extracted_ords_mol_names():
-    #create one big list of all the pickled names
-    folder_path = '/Users/dsw46/Projects/chemical-parameter-sharing/data/USPTO/molecule_names/'
+    # create one big list of all the pickled names
+    folder_path = (
+        "/Users/dsw46/Projects/chemical-parameter-sharing/data/USPTO/molecule_names/"
+    )
     onlyfiles = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
     full_lst = []
     for file in tqdm(onlyfiles):
-        if file[0] != '.': #We don't want to try to unpickle .DS_Store
-            filepath = folder_path+file 
+        if file[0] != ".":  # We don't want to try to unpickle .DS_Store
+            filepath = folder_path + file
             unpickled_lst = pd.read_pickle(filepath)
             full_lst = full_lst + unpickled_lst
-            
+
     return full_lst
+
 
 # %%
 names_list = merge_extracted_ords_mol_names()
@@ -703,7 +710,7 @@ names_list = merge_extracted_ords_mol_names()
 len(names_list)
 
 # %%
-'same catalyst' in names_list
+"same catalyst" in names_list
 
 # %%
 
@@ -728,29 +735,29 @@ import pandas as pd
 
 # %%
 # read in data
-data_df = pd.read_pickle('data/USPTO/clean_test_split_cat.pkl')
+data_df = pd.read_pickle("data/USPTO/clean_test_split_cat.pkl")
 
 # %%
 value_counts = df[columns[0]].value_counts()
-        for i in range(1, len(columns)):
-            value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
+for i in range(1, len(columns)):
+    value_counts = value_counts.add(df[columns[i]].value_counts(), fill_value=0)
 
 # %%
 # Get list of catalysts
-catalysts = list(set(list(data_df['catalyst_0'])))
+catalysts = list(set(list(data_df["catalyst_0"])))
 print(len(catalysts))
 catalysts
 
 # %%
 # Get list of solvents
-solvents = list(set(list(data_df['solvent_0'])+list(data_df['solvent_1'])))
+solvents = list(set(list(data_df["solvent_0"]) + list(data_df["solvent_1"])))
 print(len(solvents))
 solvents
 # O is not a solvent or a catalyst?? Is it a fair reagent to include?? There's also Pd as a solvent lol
 
 # %%
 # Get list of reagents
-reagents = list(set(list(data_df['reagent_0'])+list(data_df['reagent_1'])))
+reagents = list(set(list(data_df["reagent_0"]) + list(data_df["reagent_1"])))
 print(len(reagents))
 reagents
 
@@ -761,39 +768,41 @@ reagents
 # # Check out the solvents csv
 
 # %%
-solvents = pd.read_csv('data/USPTO/solvents.csv', index_col=0)
-solvents.loc[375, 'smiles'] = 'ClP(Cl)Cl'
-solvents.loc[405, 'smiles'] = 'ClS(Cl)=O'
-methanol = {'cosmo_name': 'methanol', 'stenutz_name': 'methanol', 'smiles': 'CO'}
+solvents = pd.read_csv("data/USPTO/solvents.csv", index_col=0)
+solvents.loc[375, "smiles"] = "ClP(Cl)Cl"
+solvents.loc[405, "smiles"] = "ClS(Cl)=O"
+methanol = {"cosmo_name": "methanol", "stenutz_name": "methanol", "smiles": "CO"}
 solvents = solvents.append(methanol, ignore_index=True)
 
 # %%
 solvents
 
 # %%
-has_nan_1 = solvents['stenutz_name'].isnull().any()
-has_nan_2 = solvents['cosmo_name'].isnull().any()
+has_nan_1 = solvents["stenutz_name"].isnull().any()
+has_nan_2 = solvents["cosmo_name"].isnull().any()
 
 # Print the result
 print(f"The Series has NaN values: {has_nan_1}, {has_nan_2}")
+
 
 # %%
 def canonicalize_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
     return Chem.MolToSmiles(mol, isomericSmiles=True)
 
+
 # apply the function to the 'smiles' column of the dataframe
-solvents['canonical_smiles'] = solvents['smiles'].apply(canonicalize_smiles)
+solvents["canonical_smiles"] = solvents["smiles"].apply(canonicalize_smiles)
 
 # %%
 for i in range(len(solvents)):
-    if solvents['smiles'][i] == 'O':
+    if solvents["smiles"][i] == "O":
         print(i)
 
 # %%
 ## Check how many of the solvents in the data are actually solvents
-s = data_df['solvent_0']
-my_list = solvents['canonical_smiles']
+s = data_df["solvent_0"]
+my_list = solvents["canonical_smiles"]
 
 # Count the number of values in the pd.series that are in my_list
 in_list = s.isin(my_list).sum()
@@ -804,7 +813,9 @@ not_in_list = (~s.isin(my_list)).sum()
 # Count the number of values in the pd.series that are None or NaN
 null_values = s.isnull().sum()
 
-print(f"{in_list} values are in the list, {len(s)-in_list-null_values} values are not in the list, and {null_values} values are None or NaN")
+print(
+    f"{in_list} values are in the list, {len(s)-in_list-null_values} values are not in the list, and {null_values} values are None or NaN"
+)
 
 # %%
 not_in_list = s[~s.isin(my_list)]
@@ -825,20 +836,22 @@ len(s)
 # %%
 len(s.dropna())
 
+
 # %%
 # Inspect pickled data
 def merge_extracted_ords():
-    #create one big df of all the pickled data
-    folder_path = 'data/USPTO/extracted_ords/'
+    # create one big df of all the pickled data
+    folder_path = "data/USPTO/extracted_ords/"
     onlyfiles = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
     full_df = pd.DataFrame()
     for file in tqdm(onlyfiles[:100]):
-        if file[0] != '.': #We don't want to try to unpickle .DS_Store
-            filepath = folder_path+file 
+        if file[0] != ".":  # We don't want to try to unpickle .DS_Store
+            filepath = folder_path + file
             unpickled_df = pd.read_pickle(filepath)
             full_df = pd.concat([full_df, unpickled_df], ignore_index=True)
-            
+
     return full_df
+
 
 # %%
 df = merge_extracted_ords()
@@ -850,8 +863,8 @@ list(df.columns)
 import pandas as pd
 
 # Example Series and dictionary
-reagents = pd.Series(['reagent1', 'reagent2', 'reagent3', 'reagent4'])
-replace_dict = {'reagent2': 'a.b', 'reagent4': 'new_reagent4'}
+reagents = pd.Series(["reagent1", "reagent2", "reagent3", "reagent4"])
+replace_dict = {"reagent2": "a.b", "reagent4": "new_reagent4"}
 
 # Apply the dictionary replacement to the Series in-place
 reagents.replace(replace_dict, inplace=True)
@@ -862,85 +875,113 @@ print(list(reagents))
 
 # %%
 # Example list of reagents
-reagents = ['reagent1', 'a.b', 'reagent3', 'new_reagent4']
+reagents = ["reagent1", "a.b", "reagent3", "new_reagent4"]
 
 # Separate strings with a '.' character into two items and sort alphabetically
-reagents_new = [substring for reagent in reagents for substring in reagent.split('.')]
+reagents_new = [substring for reagent in reagents for substring in reagent.split(".")]
 
 # Print the resulting list
 print(reagents_new)
 
 
-
 # %%
-reag = pd.Series(['reagent1', 'reagent2', 'reagent3', 'reagent4'])
-replace_dict = {'reagent2': 'a.b', 'reagent4': 'new_reagent4'}
+reag = pd.Series(["reagent1", "reagent2", "reagent3", "reagent4"])
+replace_dict = {"reagent2": "a.b", "reagent4": "new_reagent4"}
 
 list((pd.Series(reag)).map(replace_dict))
 
 # %%
 reagents_new
 
+
 # %%
 def canonicalize_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
     return Chem.MolToSmiles(mol)
 
+
 # %%
 def build_replacements():
     molecule_replacements = {}
-     
+
     # Add a catalyst to the molecule_replacements dict (Done by Alexander)
-    molecule_replacements['CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3].[Rh+3]'] = 'CC(=O)[O-].[Rh+2]'
-    molecule_replacements['[CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3]]'] = 'CC(=O)[O-].[Rh+2]'
-    molecule_replacements['[CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C]'] = 'CC(C)(C)[PH]([Pd][PH](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C'
-    molecule_replacements['CCCC[N+](CCCC)(CCCC)CCCC.CCCC[N+](CCCC)(CCCC)CCCC.CCCC[N+](CCCC)(CCCC)CCCC.[Br-].[Br-].[Br-]'] = 'CCCC[N+](CCCC)(CCCC)CCCC.[Br-]'
-    molecule_replacements['[CCO.CCO.CCO.CCO.[Ti]]'] = 'CCO[Ti](OCC)(OCC)OCC'
-    molecule_replacements['[CC[O-].CC[O-].CC[O-].CC[O-].[Ti+4]]'] = 'CCO[Ti](OCC)(OCC)OCC'
-    molecule_replacements['[Cl[Ni]Cl.c1ccc(P(CCCP(c2ccccc2)c2ccccc2)c2ccccc2)cc1]'] = 'Cl[Ni]1(Cl)[P](c2ccccc2)(c2ccccc2)CCC[P]1(c1ccccc1)c1ccccc1'
-    molecule_replacements['[Cl[Pd](Cl)([P](c1ccccc1)(c1ccccc1)c1ccccc1)[P](c1ccccc1)(c1ccccc1)c1ccccc1]'] = 'Cl[Pd](Cl)([PH](c1ccccc1)(c1ccccc1)c1ccccc1)[PH](c1ccccc1)(c1ccccc1)c1ccccc1'
-    molecule_replacements['[Cl[Pd+2](Cl)(Cl)Cl.[Na+].[Na+]]'] = 'Cl[Pd]Cl'
-    molecule_replacements['Karstedt catalyst'] =   'C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]'
-    molecule_replacements["Karstedt's catalyst"] = 'C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]'
-    molecule_replacements['[O=C([O-])[O-].[Ag+2]]'] = 'O=C([O-])[O-].[Ag+]'
-    molecule_replacements['[O=S(=O)([O-])[O-].[Ag+2]]'] = 'O=S(=O)([O-])[O-].[Ag+]'
-    molecule_replacements['[O=[Ag-]]'] = 'O=[Ag]'
-    molecule_replacements['[O=[Cu-]]'] = 'O=[Cu]'
-    molecule_replacements['[Pd on-carbon]'] = '[C].[Pd]'
-    molecule_replacements['[TEA]'] = 'OCCN(CCO)CCO'
-    molecule_replacements['[Ti-superoxide]'] = 'O=[O-].[Ti]'
-    molecule_replacements['[[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1]'] = '[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['[c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd-4]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]'] = 'c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['[c1ccc([P]([Pd][P](c2ccccc2)(c2ccccc2)c2ccccc2)(c2ccccc2)c2ccccc2)cc1]'] = 'c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['[c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]'] = 'c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['[sulfated tin oxide]'] = 'O=S(O[Sn])(O[Sn])O[Sn]'
-    molecule_replacements['[tereakis(triphenylphosphine)palladium(0)]'] = 'c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['tetrakistriphenylphosphine palladium'] = 'c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1'
-    molecule_replacements['[zeolite]'] = 'O=[Al]O[Al]=O.O=[Si]=O'
-    
+    molecule_replacements[
+        "CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3].[Rh+3]"
+    ] = "CC(=O)[O-].[Rh+2]"
+    molecule_replacements[
+        "[CC(=O)[O-].CC(=O)[O-].CC(=O)[O-].[Rh+3]]"
+    ] = "CC(=O)[O-].[Rh+2]"
+    molecule_replacements[
+        "[CC(C)(C)[P]([Pd][P](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C]"
+    ] = "CC(C)(C)[PH]([Pd][PH](C(C)(C)C)(C(C)(C)C)C(C)(C)C)(C(C)(C)C)C(C)(C)C"
+    molecule_replacements[
+        "CCCC[N+](CCCC)(CCCC)CCCC.CCCC[N+](CCCC)(CCCC)CCCC.CCCC[N+](CCCC)(CCCC)CCCC.[Br-].[Br-].[Br-]"
+    ] = "CCCC[N+](CCCC)(CCCC)CCCC.[Br-]"
+    molecule_replacements["[CCO.CCO.CCO.CCO.[Ti]]"] = "CCO[Ti](OCC)(OCC)OCC"
+    molecule_replacements[
+        "[CC[O-].CC[O-].CC[O-].CC[O-].[Ti+4]]"
+    ] = "CCO[Ti](OCC)(OCC)OCC"
+    molecule_replacements[
+        "[Cl[Ni]Cl.c1ccc(P(CCCP(c2ccccc2)c2ccccc2)c2ccccc2)cc1]"
+    ] = "Cl[Ni]1(Cl)[P](c2ccccc2)(c2ccccc2)CCC[P]1(c1ccccc1)c1ccccc1"
+    molecule_replacements[
+        "[Cl[Pd](Cl)([P](c1ccccc1)(c1ccccc1)c1ccccc1)[P](c1ccccc1)(c1ccccc1)c1ccccc1]"
+    ] = "Cl[Pd](Cl)([PH](c1ccccc1)(c1ccccc1)c1ccccc1)[PH](c1ccccc1)(c1ccccc1)c1ccccc1"
+    molecule_replacements["[Cl[Pd+2](Cl)(Cl)Cl.[Na+].[Na+]]"] = "Cl[Pd]Cl"
+    molecule_replacements["Karstedt catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
+    molecule_replacements["Karstedt's catalyst"] = "C[Si](C)(C=C)O[Si](C)(C)C=C.[Pt]"
+    molecule_replacements["[O=C([O-])[O-].[Ag+2]]"] = "O=C([O-])[O-].[Ag+]"
+    molecule_replacements["[O=S(=O)([O-])[O-].[Ag+2]]"] = "O=S(=O)([O-])[O-].[Ag+]"
+    molecule_replacements["[O=[Ag-]]"] = "O=[Ag]"
+    molecule_replacements["[O=[Cu-]]"] = "O=[Cu]"
+    molecule_replacements["[Pd on-carbon]"] = "[C].[Pd]"
+    molecule_replacements["[TEA]"] = "OCCN(CCO)CCO"
+    molecule_replacements["[Ti-superoxide]"] = "O=[O-].[Ti]"
+    molecule_replacements[
+        "[[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1]"
+    ] = "[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements[
+        "[c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd-4]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
+    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements[
+        "[c1ccc([P]([Pd][P](c2ccccc2)(c2ccccc2)c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
+    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements[
+        "[c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1]"
+    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements["[sulfated tin oxide]"] = "O=S(O[Sn])(O[Sn])O[Sn]"
+    molecule_replacements[
+        "[tereakis(triphenylphosphine)palladium(0)]"
+    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements[
+        "tetrakistriphenylphosphine palladium"
+    ] = "c1ccc([PH](c2ccccc2)(c2ccccc2)[Pd]([PH](c2ccccc2)(c2ccccc2)c2ccccc2)([PH](c2ccccc2)(c2ccccc2)c2ccccc2)[PH](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+    molecule_replacements["[zeolite]"] = "O=[Al]O[Al]=O.O=[Si]=O"
+
     # Molecules found among the most common names in molecule_names
-    molecule_replacements['TEA'] = 'OCCN(CCO)CCO'
-    molecule_replacements['hexanes'] = 'CCCCCC'
-    molecule_replacements['Hexanes'] = 'CCCCCC'
-    molecule_replacements['hexanes ethyl acetate'] = 'CCCCCC.CCOC(=O)C'
-    molecule_replacements['EtOAc hexanes'] = 'CCCCCC.CCOC(=O)C'
-    molecule_replacements['EtOAc-hexanes'] = 'CCCCCC.CCOC(=O)C'
-    molecule_replacements['ethyl acetate hexanes'] = 'CCCCCC.CCOC(=O)C'
-    molecule_replacements['cuprous iodide'] = '[Cu]I'
-    molecule_replacements['N,N-dimethylaminopyridine'] = 'n1ccc(N(C)C)cc1'
-    molecule_replacements['dimethyl acetal'] = 'CN(C)C(OC)OC'
-    molecule_replacements['cuprous chloride'] = 'Cl[Cu]'
-    molecule_replacements["N,N'-carbonyldiimidazole"] = 'O=C(n1cncc1)n2ccnc2'
+    molecule_replacements["TEA"] = "OCCN(CCO)CCO"
+    molecule_replacements["hexanes"] = "CCCCCC"
+    molecule_replacements["Hexanes"] = "CCCCCC"
+    molecule_replacements["hexanes ethyl acetate"] = "CCCCCC.CCOC(=O)C"
+    molecule_replacements["EtOAc hexanes"] = "CCCCCC.CCOC(=O)C"
+    molecule_replacements["EtOAc-hexanes"] = "CCCCCC.CCOC(=O)C"
+    molecule_replacements["ethyl acetate hexanes"] = "CCCCCC.CCOC(=O)C"
+    molecule_replacements["cuprous iodide"] = "[Cu]I"
+    molecule_replacements["N,N-dimethylaminopyridine"] = "n1ccc(N(C)C)cc1"
+    molecule_replacements["dimethyl acetal"] = "CN(C)C(OC)OC"
+    molecule_replacements["cuprous chloride"] = "Cl[Cu]"
+    molecule_replacements["N,N'-carbonyldiimidazole"] = "O=C(n1cncc1)n2ccnc2"
     # SiO2
     # Went down the list of molecule_names until frequency was 806
 
     # Iterate over the dictionary and canonicalize each SMILES string
     for key, value in molecule_replacements.items():
         mol = Chem.MolFromSmiles(value)
-        
+
         if mol is not None:
             molecule_replacements[key] = Chem.MolToSmiles(mol)
     return molecule_replacements
+
 
 # %%
 molecule_replacements = build_replacements()
@@ -953,11 +994,104 @@ for value in values:
     print(value)
 
 # %%
-agents = ['carbon', 'Al' ,'Pd', 'c', 'Al']
+agents = ["carbon", "Al", "Pd", "c", "Al"]
 metals = [
-    'Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv'
+    "Li",
+    "Be",
+    "Na",
+    "Mg",
+    "Al",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Po",
+    "Fr",
+    "Ra",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+    "Am",
+    "Cm",
+    "Bk",
+    "Cf",
+    "Es",
+    "Fm",
+    "Md",
+    "No",
+    "Lr",
+    "Rf",
+    "Db",
+    "Sg",
+    "Bh",
+    "Hs",
+    "Mt",
+    "Ds",
+    "Rg",
+    "Cn",
+    "Nh",
+    "Fl",
+    "Mc",
+    "Lv",
 ]
-agents = [agent for agent in agents if any(metal in agent for metal in metals)] + [agent for agent in agents if not any(metal in agent for metal in metals)]
+agents = [agent for agent in agents if any(metal in agent for metal in metals)] + [
+    agent for agent in agents if not any(metal in agent for metal in metals)
+]
 
 # %%
 agents
@@ -969,11 +1103,11 @@ agents
 import pandas as pd
 
 # %%
-ucb_solvents = pd.read_csv('data/ucb_solvents.csv')
-solvents = pd.read_csv('data/solvents.csv')
+ucb_solvents = pd.read_csv("data/ucb_solvents.csv")
+solvents = pd.read_csv("data/solvents.csv")
 
-cas1 = ucb_solvents['cas_number'].tolist()
-cas2 = solvents['cas_number'].tolist()
+cas1 = ucb_solvents["cas_number"].tolist()
+cas2 = solvents["cas_number"].tolist()
 
 # %%
 cas1[-1]
@@ -983,10 +1117,10 @@ count = -1
 for cas in cas1:
     count += 1
     if cas not in cas2:
-        print(ucb_solvents['solvent_name'][count])
+        print(ucb_solvents["solvent_name"][count])
 
 # %%
-solvents.loc[solvents['cas_number'] == '7732-18-5']
+solvents.loc[solvents["cas_number"] == "7732-18-5"]
 
 # %% [markdown]
 # # Docs
@@ -994,7 +1128,7 @@ solvents.loc[solvents['cas_number'] == '7732-18-5']
 # %%
 # USPTO Cleaning docs
 
-    """
+"""
 After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
 
 Example: python USPTO_cleaning.py --clean_data_file_name=USPTO_data.csv --consistent_yield=True --num_reactant=1 --num_product=1 --num_solv=1 --num_agent=1 --num_cat=1 --num_reag=1 --min_frequency_of_occurrence=100
@@ -1007,10 +1141,10 @@ Example: python USPTO_cleaning.py --clean_data_file_name=USPTO_data.csv --consis
     
     
     
-    """
+"""
 
 # %%
-    """
+"""
 After running USPTO_extraction.py, this script will merge and apply further cleaning to the data.
 
     Example: 
@@ -1037,7 +1171,7 @@ python USPTO_cleaning.py --clean_data_file_name=cleaned_USPTO --consistent_yield
     Output:
 
 1) A pickle file containing the cleaned data
-    """
+"""
 
 # %% [markdown]
 # # Inspect rows with weird names
@@ -1051,21 +1185,23 @@ from tqdm import tqdm
 
 # %%
 # import cleaned_USPTO.pkl
-df = pd.read_pickle('data/USPTO/cleaned_USPTO.pkl')
+df = pd.read_pickle("data/USPTO/cleaned_USPTO.pkl")
+
 
 # %%
 def merge_extracted_ords():
-    #create one big df of all the pickled data
-    folder_path = 'data/USPTO/extracted_ords/'
+    # create one big df of all the pickled data
+    folder_path = "data/USPTO/extracted_ords/"
     onlyfiles = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
     full_df = pd.DataFrame()
     for file in tqdm(onlyfiles):
-        if file[0] != '.': #We don't want to try to unpickle .DS_Store
-            filepath = folder_path+file 
+        if file[0] != ".":  # We don't want to try to unpickle .DS_Store
+            filepath = folder_path + file
             unpickled_df = pd.read_pickle(filepath)
             full_df = pd.concat([full_df, unpickled_df], ignore_index=True)
-            
+
     return full_df
+
 
 # %%
 df = merge_extracted_ords()
@@ -1075,7 +1211,9 @@ smaller_df = df.iloc[:1000].copy()
 
 # %%
 # Assuming your dataframe is named df
-solution_rows = smaller_df[smaller_df.apply(lambda row: row.astype(str).str.contains('solution').any(), axis=1)].head(5)
+solution_rows = smaller_df[
+    smaller_df.apply(lambda row: row.astype(str).str.contains("solution").any(), axis=1)
+].head(5)
 
 # Print the first 5 rows that contain 'solution'
 solution_rows
@@ -1087,12 +1225,12 @@ smaller_df.columns
 smaller_df.iloc[246].dropna()
 
 # %%
-smaller_df.iloc[198]['mapped_rxn_0']
+smaller_df.iloc[198]["mapped_rxn_0"]
 
 # %%
 count = -1
-for x in df['agent_0']:
-    count +=1
+for x in df["agent_0"]:
+    count += 1
     if x != None and len(x) > 0:
         if x.isdigit():
             print(x)
@@ -1100,10 +1238,10 @@ for x in df['agent_0']:
             break
 
 # %%
-df['solvent_2'].dropna()
+df["solvent_2"].dropna()
 
 # %%
-len(df['agent_3'].dropna())
+len(df["agent_3"].dropna())
 
 # %% [markdown]
 # # Inspect the clean data
@@ -1113,26 +1251,37 @@ import pandas as pd
 
 # %%
 # import cleaned_USPTO.pkl
-df = pd.read_pickle('data/USPTO/cleaned_USPTO.pkl')
+df = pd.read_pickle("data/USPTO/cleaned_USPTO.pkl")
 
 # %%
-len(set(list(df['solvent_0'].dropna())))
+len(set(list(df["solvent_0"].dropna())))
 
 # %%
 import matplotlib.pyplot as plt
 
 # Count the frequency of each unique value
-counts = pd.Series.value_counts(df['agent_0'].dropna())
+counts = pd.Series.value_counts(df["agent_0"].dropna())
 
 # Create a list of bins for the histogram
-bins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ]
+bins = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+]
 
 # Plot the histogram
 plt.hist(counts, bins=bins)
 
 # Set the x-axis and y-axis labels
-plt.xlabel('Frequency Count')
-plt.ylabel('Number of Items')
+plt.xlabel("Frequency Count")
+plt.ylabel("Number of Items")
 
 # Show the plot
 plt.show()
@@ -1155,13 +1304,10 @@ print(count_of_ones)
 
 
 # %%
-df['temperature_0'].dropna()
+df["temperature_0"].dropna()
 
 # %%
-a,b,c = 1,2,3
-assert a<c, b<c: "error"
+# a,b,c = 1,2,3
+# assert a<c b<c, "error"
 
 # %%
-
-
-
