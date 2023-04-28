@@ -1,3 +1,4 @@
+# type: ignore
 # %% [markdown]
 # # Inspect extracted data (USPTO, trust = False)
 

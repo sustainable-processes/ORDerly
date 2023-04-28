@@ -1,3 +1,4 @@
+# type: ignore
 # %%
 set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool = True
 remove_rxn_with_unresolved_names: bool = False

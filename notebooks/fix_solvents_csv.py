@@ -1,3 +1,4 @@
+# type: ignore
 # %% [markdown]
 # # Check that solvents.csv is well set up
 
