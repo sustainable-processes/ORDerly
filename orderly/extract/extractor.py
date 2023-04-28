@@ -994,6 +994,7 @@ class OrdExtractor:
 
     @staticmethod
     def _to_dataframe(cols: List[Any], base_string: str | List[str]) -> pd.DataFrame:
+        breakpoint()
         df = pd.DataFrame(cols)
         if isinstance(base_string, str):
             df.columns = OrdExtractor._create_column_headers(

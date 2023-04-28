@@ -343,6 +343,9 @@ class Cleaner:
             _ = rdkit_BlockLogs()
             if rxn_str is None:
                 return False
+            if not isinstance(rxn_str, str):
+                print(rxn_str)
+                print(type(rxn_str))
             reactants_from_rxn, _, _ = rxn_str.split(">")
             reactants = reactants_from_rxn.split(".")
             for r in reactants:
@@ -356,8 +359,10 @@ class Cleaner:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
-
-            mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            try:
+                mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            except AttributeError:
+                breakpoint()
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
             # set unresolved names to none

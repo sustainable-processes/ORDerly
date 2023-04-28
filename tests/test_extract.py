@@ -1114,6 +1114,7 @@ def test_canonicalisation(
 @pytest.mark.parametrize(
     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
+        [True, False, "uspto", True],
         [False, True, "uspto", True],
         [
             False,
@@ -1121,7 +1122,6 @@ def test_canonicalisation(
             "uspto",
             False,
         ],
-        [True, False, "uspto", True],
         [True, True, None, True],
     ),
 )
