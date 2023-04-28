@@ -487,20 +487,6 @@ class Cleaner:
     help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
 )
 @click.option(
-    "--consistent_yield",
-    type=bool,
-    default=True,
-    show_default=True,
-    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
-)
-@click.option(
-    "--consistent_yield",
-    type=bool,
-    default=True,
-    show_default=True,
-    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
-)
-@click.option(
     "--num_reactant",
     type=int,
     default=5,
