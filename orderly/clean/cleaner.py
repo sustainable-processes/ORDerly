@@ -480,6 +480,20 @@ class Cleaner:
     help="The path to the file than contains the molecules_names",
 )
 @click.option(
+    "--remove_reactions_with_no_reactants",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with no reactants",
+)
+@click.option(
+    "--remove_reactions_with_no_products",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with no products",
+)
+@click.option(
     "--consistent_yield",
     type=bool,
     default=True,
