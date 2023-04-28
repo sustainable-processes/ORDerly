@@ -344,7 +344,7 @@ class Cleaner:
             _ = rdkit_BlockLogs()
             if rxn_str is None:
                 return False
-            if rxn_str is np.nan:
+            if rxn_str is np.nan:  # type: ignore
                 return False
             reactants_from_rxn, _, _ = rxn_str.split(">")
             reactants = reactants_from_rxn.split(".")
