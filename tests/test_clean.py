@@ -616,10 +616,9 @@ def test_number_of_columns_and_order_of_None(
     assert ("date_of_experiment" in datetime_coumns.columns) or (
         len(cleaned_df["date_of_experiment"].dropna()) == 0
     )
-    
-    
+
     # Also check that there are no instances of None before data in the cleaned df
-    
+
     def _get_columns_beginning_with_str(
         columns: List[str], target_strings: Optional[Tuple[str, ...]] = None
     ) -> List[str]:
@@ -635,16 +634,16 @@ def test_number_of_columns_and_order_of_None(
             )
 
         return [col for col in columns if col.startswith(target_strings)]
-    
-    target_strings=(
-            "agent",
-            "solvent",
-            "reagent",
-            "catalyst",
-            "product",
-            "reactant",
-        )
-    
+
+    target_strings = (
+        "agent",
+        "solvent",
+        "reagent",
+        "catalyst",
+        "product",
+        "reactant",
+    )
+
     def no_strings_after_none(row: pd.Series) -> bool:
         found_none = False
         for value in row:
@@ -654,17 +653,17 @@ def test_number_of_columns_and_order_of_None(
                 return False
         return True
 
-    
     for target_string in target_strings:
         target_columns = _get_columns_beginning_with_str(
             columns=cleaned_df.columns,
             target_strings=(target_string,),
         )
         # check that there are no instances of None before data in the cleaned df
-        df_subset = cleaned_df.loc[:,target_columns].copy()
+        df_subset = cleaned_df.loc[:, target_columns].copy()
         for index, row in df_subset.iterrows():
-            assert no_strings_after_none(row), f"Row {index} has a string after a None value: {row}"
-        
+            assert no_strings_after_none(
+                row
+            ), f"Row {index} has a string after a None value: {row}"
 
 
 def double_list(
@@ -897,6 +896,3 @@ def test_frequency_retaining_unresolved_names_and_duplicates(
     if not cleaned_rare.empty:
         # if there is stuff that is rare now, we want to make sure it wasnt rare previously
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
-        
-    
-    
