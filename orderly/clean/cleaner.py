@@ -415,7 +415,7 @@ class Cleaner:
             
             return reordered_df
         
-        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List()) -> pd.DataFrame:
+        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List[str]) -> pd.DataFrame:
             # Apply the move_none_to_after_data function to each set of ordering_target_columns
             for ordering_target in target_strings:
                 ordering_target_columns = self._get_columns_beginning_with_str(
