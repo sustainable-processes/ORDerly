@@ -695,7 +695,7 @@ def main_click(
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
 
-    _log_file = pathlib.Path(ord_extraction_path) / ".." / "clean.log"
+    _log_file = pathlib.Path(output_path).parent / "clean.log"
     if log_file != "default_path_clean.log":
         _log_file = pathlib.Path(log_file)
 
