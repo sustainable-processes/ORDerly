@@ -362,14 +362,31 @@ class Cleaner:
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
-            # set unresolved names to none
-            mapped_rxn_df = mapped_rxn_df.replace(self.molecules_to_remove, None)
+
+
+            # TODO we should do this per column and only allow it to be on approved columns
+
+            skippable_columms = ['rxn_str', 'temperature', 'rxn_time', 'yield', 'procedure_details', 'date_of_experiment', 'grant_date']
+            for col in tqdm.tqdm(mapped_rxn_df.columns, disable=self.disable_tqdm):
+                if any(col.startswith(i) for i in skippable_columms):
+                    continue
+                # set unresolved names to none
+                mapped_rxn_df[col] = mapped_rxn_df[col].replace(self.molecules_to_remove, None)
+
+                LOG.info(
+                    f"Set unresolved names to none for {col}: {df.shape[0]}"
+                )
 
             # remove reactions with unresolved names
             for col in tqdm.tqdm(not_mapped_rxn_df.columns, disable=self.disable_tqdm):
+                if any(col.startswith(i) for i in skippable_columms):
+                    continue
                 not_mapped_rxn_df = not_mapped_rxn_df[
                     ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
                 ]
+                LOG.info(
+                    f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
+                )
 
             # concat the dfs again
             df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
