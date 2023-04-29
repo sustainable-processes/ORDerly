@@ -499,7 +499,21 @@ class Cleaner:
 
         # Replace np.nan with None
         LOG.info("Map np.nan to None")
-        df = df.applymap(lambda x: None if pd.isna(x) else x)
+        nan_to_none_target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=(
+                "rxn_str" "reactant",
+                "agent",
+                "reagent",
+                "solvent",
+                "catalyst",
+                "product",
+                "procedure_details",
+            ),
+        )
+        df.loc[:, nan_to_none_target_columns] = df.loc[
+            :, nan_to_none_target_columns
+        ].applymap(lambda x: None if pd.isna(x) else x)
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
@@ -507,6 +521,7 @@ class Cleaner:
             LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
+        df = df.sort_index(axis=1)
         return df
 
 
