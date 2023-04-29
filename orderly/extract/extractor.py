@@ -658,7 +658,6 @@ class OrdExtractor:
             solvents = labelled_solvents
             reagents = labelled_reagents
             catalysts = labelled_catalysts
-            is_mapped = False
 
         elif rxn_str is not None:
             # extract info from the reaction string
