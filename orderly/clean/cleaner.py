@@ -390,6 +390,22 @@ class Cleaner:
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
         )
+        LOG.info(
+            f"{self.remove_rxn_with_unresolved_names=}"
+        )
+        LOG.info(
+            f"{self.set_unresolved_names_to_none=}"
+        )
+        
+        # Handling unresolvable names:
+        ### This is not straight forward, because there can be many different reasons for unresolable names
+        ### There are two sources of molecules the reaction string, and the ORD reaction.input object; the reaction.input object is more likely to contain unresolvable names (such as '5' or 'Ester' etc.). The two obvious approaches to handling these:
+            ### 1. Remove the entire reactions/row with unresolvable names
+            ### 2. Set the unresolvable names to None (thus maintaining the reaction/row)
+        ### Option 1 may delete reactions that are actually useful, and option 2 may result in keeping reactions that don't make sense because a component is missing.
+        ### Our compromise is to set unresolvable names to none when we have a mapped reaction string, and delete the reaction if we don't have a mapped reaction string (since the presence of a mapped rxn string makes the reaction much more trustworthy).
+        ### If you don't want to use this compromise, you can also set the unresolvable names to none for all reactions, or delete all reactions with unresolvable names, or retain all the unresolvable names (by setting all 3 bools to False).
+        
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
@@ -408,9 +424,8 @@ class Cleaner:
                 )  # equivalent to series = series.replace(self.molecules_to_remove, None)
 
 
-            # check that for each of the component columns, there is not a None before any data
-
-            
+            # Check that for each of the component columns, there is not a None before any data
+            # This is necessary because the above code will set some strings None
             for ordering_target in target_strings:
                 ordering_target_columns = self._get_columns_beginning_with_str(
                     columns=target_columns,

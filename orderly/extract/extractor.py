@@ -596,7 +596,6 @@ class OrdExtractor:
         reagents: REAGENTS = []
         solvents: SOLVENTS = []
         catalysts: CATALYSTS = []
-        rxn_str_products: PRODUCTS = []
         labelled_products: PRODUCTS = []
         rxn_non_smiles_names_list = []
 

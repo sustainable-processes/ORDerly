@@ -57,7 +57,7 @@ extract_uspto_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_trust"
 
 clean_uspto_trust:
-	poetry run python -m orderly.clean --output_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
+	poetry run python -m orderly.clean --output_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag) 
 
 gen_uspto_trust: extract_uspto_trust clean_uspto_trust
 	
