@@ -99,14 +99,11 @@ class Cleaner:
         LOG.info("Getting merged dataframe from extracted ord files")
 
         dfs = []
-        with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
-            for file in tqdm.tqdm(
-                self.ord_extraction_path.glob("*.parquet"), disable=self.disable_tqdm
-            ):
-                LOG.debug(f"Reading {file=}")
-                extracted_df = pd.read_parquet(file)
-                dfs.append(extracted_df)
-                LOG.debug(f"Read {file=}")
+        for file in self.ord_extraction_path.glob("*.parquet"):
+            LOG.debug(f"Reading {file=}")
+            extracted_df = pd.read_parquet(file)
+            dfs.append(extracted_df)
+            LOG.debug(f"Read {file=}")
         LOG.info("Successfully read all data")
         return pd.concat(dfs, ignore_index=True)
 
@@ -295,6 +292,19 @@ class Cleaner:
         df = df.drop(index_union)
         return df
 
+    @staticmethod
+    def _get_target_columns(df, skippable_columms=None):
+        """ goes through the column and skips columns that start with the string in the skippable columns """
+        if skippable_columms is None:
+            skippable_columms = ['rxn_str', 'temperature', 'rxn_time', 'yield', 'procedure_details', 'date_of_experiment', 'grant_date']
+        target_columns = []
+        for col in df.columns:
+            if any(col.startswith(i) for i in skippable_columms):
+                continue
+            target_columns.append(col)
+        return target_columns
+
+
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
         # Merge all the extracted data into one big df
@@ -360,26 +370,31 @@ class Cleaner:
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            LOG.info("Got mask for if reactions are mapped")
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
 
             # TODO we should do this per column and only allow it to be on approved columns
-
+            
             skippable_columms = ['rxn_str', 'temperature', 'rxn_time', 'yield', 'procedure_details', 'date_of_experiment', 'grant_date']
-            for col in tqdm.tqdm(mapped_rxn_df.columns, disable=self.disable_tqdm):
-                if any(col.startswith(i) for i in skippable_columms):
-                    continue
-                # set unresolved names to none
-                mapped_rxn_df[col] = mapped_rxn_df[col].replace(self.molecules_to_remove, None)
+            target_columns = self._get_target_columns(df=mapped_rxn_df, skippable_columms=skippable_columms)
 
-                LOG.info(
-                    f"Set unresolved names to none for {col}: {df.shape[0]}"
-                )
+            # set unresolved names to none
+            mapped_rxn_df[target_columns] = mapped_rxn_df[target_columns].replace(self.molecules_to_remove, None)
+
+            LOG.info(
+                f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
+            )
 
             # remove reactions with unresolved names
-            for col in tqdm.tqdm(not_mapped_rxn_df.columns, disable=self.disable_tqdm):
+            for col in tqdm.tqdm(
+                target_columns,
+                disable=self.disable_tqdm,
+            ):
+                LOG.info(f"Attempting to remove reactions for {col}")
                 if any(col.startswith(i) for i in skippable_columms):
+                    LOG.info(f"DONT EXPECT TO SEE THIS CALLED {col}")
                     continue
                 not_mapped_rxn_df = not_mapped_rxn_df[
                     ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
