@@ -424,7 +424,7 @@ class Cleaner:
                 )
 
                 # Apply the move_none_to_after_data function to the subset of columns
-                df[ordering_target_columns] = self.move_none_to_after_data(df[ordering_target_columns])
+                df[ordering_target_columns] = move_none_to_after_data(df[ordering_target_columns])
             return df
             
         
@@ -471,7 +471,7 @@ class Cleaner:
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
-            )  # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
+            )
 
         elif self.remove_rxn_with_unresolved_names:
             LOG.info(
