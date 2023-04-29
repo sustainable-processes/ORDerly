@@ -266,8 +266,6 @@ class Cleaner:
             df[col] = df[col].map(
                 lambda x: rare_values.get(x,x)
             ) # equivalent to series = series.replace(rare_values)
-
-            # df[col] = df[col].apply(lambda x: "other" if x in rare_values else x)
         return df
 
     @staticmethod
