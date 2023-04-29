@@ -403,7 +403,7 @@ class Cleaner:
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df[col] = mapped_rxn_df[col].map(
+                mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, None)
 
@@ -470,7 +470,7 @@ class Cleaner:
             # Define the list of columns to check
 
             columns_to_count_from = self._get_columns_beginning_with_str(
-                columns=mapped_rxn_df.columns,
+                columns=df.columns,
                 target_strings=("agent", "solvent", "reagent", "catalyst"),
             )
             value_counts = Cleaner._get_value_counts(
