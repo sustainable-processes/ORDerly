@@ -313,6 +313,23 @@ class Cleaner:
 
         return [col for col in columns if col.startswith(target_strings)]
 
+    @staticmethod
+    def _move_none_to_after_data(
+        df: pd.DataFrame, target_strings: Tuple[str, ...]
+    ) -> pd.DataFrame:
+        for molecule_type in target_strings:  # i.e. reactant
+            ordering_target_columns = Cleaner._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=(molecule_type,),
+            )
+            if len(ordering_target_columns) == 0:
+                continue
+            # Apply a lambda function to sort the elements within each row, placing None values last
+            df.loc[:, ordering_target_columns] = df.loc[:, ordering_target_columns].apply(
+            lambda row: pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index), axis=1)
+
+        return df
+
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
         # Merge all the extracted data into one big df
@@ -538,34 +555,17 @@ class Cleaner:
         # Move any instances of none to end end of the columns, such that there is never data after a none
         # e.g. if the reactant columns are [None, None, None, 'benzene', 'toluene', None] this becomes ['benzene', 'toluene', None, None, None, None]
 
-        def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
-            # Sort the columns by the number of Nones, in ascending order
-            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
-
-            # Reorder the DataFrame using the sorted columns
-            reordered_df = df[sorted_columns]
-
-            return reordered_df
-
-        def reorder_to_put_none_after_data(
-            df: pd.DataFrame, target_strings: Tuple[str, ...]
-        ) -> pd.DataFrame:
-            # Apply the move_none_to_after_data function to each set of ordering_target_columns
-            for ordering_target in target_strings:
-                ordering_target_columns = self._get_columns_beginning_with_str(
-                    columns=target_columns,
-                    target_strings=(ordering_target,),
-                )
-
-                # Apply the move_none_to_after_data function to the subset of columns
-                df[ordering_target_columns] = move_none_to_after_data(
-                    df[ordering_target_columns]
-                )
-            return df
-
         # Check that for each of the component columns, there is not a None before any data
         # This is necessary because the above code will set some strings None
-        df = reorder_to_put_none_after_data(df, target_strings)
+        target_strings = (
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+        df = Cleaner._move_none_to_after_data(df, target_strings)
 
         return df
 

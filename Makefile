@@ -27,7 +27,7 @@ test_data:
 	poetry run python -m pytest -vv tests/test_data.py
 
 pytest:
-	poetry run python -m pytest -vv
+	poetry run python -m pytest -vv --exitfirst
 
 extract_all_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="" --trust_labelling=False --output_path="data/orderly/all_no_trust"

@@ -374,6 +374,104 @@ def test_map_rare_molecules_to_other(
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
 
 
+########################################################################################################################################################################
+
+
+@pytest.mark.parametrize(
+    "toy_dict, target_strings, expected_dict,",
+    (
+        pytest.param(
+            {
+                "reactant_000": [
+                    "a",
+                    None,
+                    None,
+                    "a",
+                ],
+                "reactant_001": [
+                    None,
+                    "a",
+                    None,
+                    "b",
+                ],
+                "reactant_002": [
+                    "b",
+                    "b",
+                    "a",
+                    "c",
+                ],
+                "product_000": [
+                    "a",
+                    "a",
+                    None,
+                    None,
+                ],
+                "product_001": [
+                    None,
+                    'b',
+                    "a",
+                    None,
+                ],
+            },
+            ("reactant", "product", "agent", "solvent"),
+            {
+                "reactant_000": [
+                    "a",
+                    "a",
+                    "a",
+                    "a",
+                ],
+                "reactant_001": [
+                    "b",
+                    "b",
+                    None,
+                    "b",
+                ],
+                "reactant_002": [
+                    None,
+                    None,
+                    None,
+                    "c",
+                ],
+                "product_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "product_001": [
+                    None,
+                    "b",
+                    None,
+                    None,
+                ],
+            },
+        ),
+    ),
+)
+def test_move_none_to_after_data(
+    toy_dict: Dict[str, List[str]],
+    target_strings: Tuple[str, ...],
+    expected_dict: Dict[str, List[str]],
+) -> None:
+    import pandas as pd
+    import orderly.clean.cleaner
+    import copy
+
+    toy_dict = copy.copy(toy_dict)
+
+    df = pd.DataFrame(toy_dict)
+
+    df = orderly.clean.cleaner.Cleaner._move_none_to_after_data(df, target_strings)
+
+    expected_df = pd.DataFrame(expected_dict)
+
+    assert df.equals(expected_df), f"Got: \n{df}, expected: \n{expected_df},"
+
+
+##########################################
+
+
 @pytest.mark.parametrize(
     "columns_to_transform, value_counts_dict, min_frequency_of_occurrence, expected_dict,",
     (
