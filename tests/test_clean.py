@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 import pathlib
 import pytest
 
@@ -645,35 +645,26 @@ def test_number_of_columns_and_order_of_None(
             "reactant",
         )
     
-    target_columns = _get_columns_beginning_with_str(
-            columns=cleaned_df.columns,
-            target_strings=target_strings,
-        )
-    
-    def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
-            # Sort the columns by the number of Nones, in ascending order
-            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
-            
-            # Reorder the DataFrame using the sorted columns
-            reordered_df = df[sorted_columns]
-            
-            return reordered_df
-        
-    def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List[str]) -> pd.DataFrame:
-        # Apply the move_none_to_after_data function to each set of ordering_target_columns
-        for ordering_target in target_strings:
-            ordering_target_columns = _get_columns_beginning_with_str(
-                columns=target_columns,
-                target_strings=(ordering_target,),
-            )
+    def no_strings_after_none(row: pd.Series) -> bool:
+        found_none = False
+        for value in row:
+            if value is None:
+                found_none = True
+            elif found_none:
+                return False
+        return True
 
-            # Apply the move_none_to_after_data function to the subset of columns
-            df[ordering_target_columns] = move_none_to_after_data(df[ordering_target_columns])
-        return df
     
-    reordered_df = reorder_to_put_none_after_data(cleaned_df, target_strings=target_strings)
-    
-    assert reordered_df == cleaned_df
+    for target_string in target_strings:
+        target_columns = _get_columns_beginning_with_str(
+            columns=cleaned_df.columns,
+            target_strings=(target_string,),
+        )
+        # check that there are no instances of None before data in the cleaned df
+        df_subset = cleaned_df.loc[:,target_columns].copy()
+        for index, row in df_subset.iterrows():
+            assert no_strings_after_none(row), f"Row {index} has a string after a None value: {row}"
+        
 
 
 def double_list(

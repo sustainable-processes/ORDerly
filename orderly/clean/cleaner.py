@@ -415,7 +415,7 @@ class Cleaner:
             
             return reordered_df
         
-        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List[str]) -> pd.DataFrame:
+        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: Tuple[str, ...]) -> pd.DataFrame:
             # Apply the move_none_to_after_data function to each set of ordering_target_columns
             for ordering_target in target_strings:
                 ordering_target_columns = self._get_columns_beginning_with_str(
@@ -448,7 +448,6 @@ class Cleaner:
             # Check that for each of the component columns, there is not a None before any data
             # This is necessary because the above code will set some strings None
             mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
-            ...
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
@@ -492,7 +491,7 @@ class Cleaner:
             
             # Check that for each of the component columns, there is not a None before any data
             # This is necessary because the above code will set some strings None
-            mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
+            df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
 
         # Ensure consistent yield
         if self.consistent_yield:
