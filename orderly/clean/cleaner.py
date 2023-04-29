@@ -419,7 +419,7 @@ class Cleaner:
 
                 def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
                     
-                    
+                df[ordering_target_columns] = df[ordering_target_columns].apply(move_none_to_after_data)
 
 
 
