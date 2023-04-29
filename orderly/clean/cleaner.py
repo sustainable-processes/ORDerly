@@ -406,9 +406,31 @@ class Cleaner:
         ### Our compromise is to set unresolvable names to none when we have a mapped reaction string, and delete the reaction if we don't have a mapped reaction string (since the presence of a mapped rxn string makes the reaction much more trustworthy).
         ### If you don't want to use this compromise, you can also set the unresolvable names to none for all reactions, or delete all reactions with unresolvable names, or retain all the unresolvable names (by setting all 3 bools to False).
         
+        def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
+            # Sort the columns by the number of Nones, in ascending order
+            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
+            
+            # Reorder the DataFrame using the sorted columns
+            reordered_df = df[sorted_columns]
+            
+            return reordered_df
+        
+        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List()) -> pd.DataFrame:
+            # Apply the move_none_to_after_data function to each set of ordering_target_columns
+            for ordering_target in target_strings:
+                ordering_target_columns = self._get_columns_beginning_with_str(
+                    columns=target_columns,
+                    target_strings=(ordering_target,),
+                )
+
+                # Apply the move_none_to_after_data function to the subset of columns
+                df[ordering_target_columns] = self.move_none_to_after_data(df[ordering_target_columns])
+            return df
+            
+        
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
             LOG.info("Got mask for if reactions are mapped")
@@ -422,22 +444,10 @@ class Cleaner:
                 mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, None)
-
-
+                
             # Check that for each of the component columns, there is not a None before any data
             # This is necessary because the above code will set some strings None
-            for ordering_target in target_strings:
-                ordering_target_columns = self._get_columns_beginning_with_str(
-                    columns=target_columns,
-                    target_strings=(ordering_target,),
-                )
-
-                def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
-                    
-                df[ordering_target_columns] = df[ordering_target_columns].apply(move_none_to_after_data)
-
-
-
+            mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
@@ -460,17 +470,17 @@ class Cleaner:
             df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
 
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
+                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )  # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
 
         elif self.remove_rxn_with_unresolved_names:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
+                f"Before removing reactions with unresolvable names: {df.shape[0]}"
             )
             for col in tqdm.tqdm(target_columns, disable=self.disable_tqdm):
                 df = df[~df[col].isin(self.molecules_to_remove)]
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
+                f"After removing reactions with unresolvable names: {df.shape[0]}"
             )
 
         elif self.set_unresolved_names_to_none:
@@ -478,6 +488,10 @@ class Cleaner:
                 f"Setting unresolvable names to None (without removing any reactions)"
             )
             df = df.replace(self.molecules_to_remove, None)
+            
+            # Check that for each of the component columns, there is not a None before any data
+            # This is necessary because the above code will set some strings None
+            mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
 
         # Ensure consistent yield
         if self.consistent_yield:
