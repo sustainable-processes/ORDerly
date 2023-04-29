@@ -1107,6 +1107,13 @@ class OrdExtractor:
                 data_lists["date_of_experiment"], base_string=["date_of_experiment"]
             ).apply(pd.to_datetime, errors="coerce")
         )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["is_mapped"], base_string=["is_mapped"]
+            ).astype(
+                "bool"
+            )
+        )
         LOG.info("Constructed dict of dfs")
 
         full_df = pd.concat(dfs, axis=1)

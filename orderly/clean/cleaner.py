@@ -429,7 +429,7 @@ class Cleaner:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
             )
-            mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            mask_is_mapped = df["is_mapped"]
             LOG.info("Got mask for if reactions are mapped")
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
