@@ -1163,6 +1163,8 @@ def test_extraction_pipeline(
     for extraction in (tmp_path / extracted_ord_data_folder).glob("*"):
         df = pd.read_parquet(extraction)
 
+        df = df.sort_index(axis=1)
+
         assert df is not None
 
         check_none_order_cols = [
@@ -1175,13 +1177,15 @@ def test_extraction_pipeline(
             # "yield",  we are ok with this having nones in bad order
         ]
         for check_col in check_none_order_cols:
-            valid_cols = [col for col in df.columns if col.startswith(check_col)]
+            valid_cols = sorted(
+                [col for col in df.columns if col.startswith(check_col)]
+            )
             tmp_df = df[valid_cols]
 
             def check_valid_order(row: pd.Series) -> pd.Series:
                 seen_none = False
                 for idx, a in enumerate(row):
-                    current_isna = pd.isna(a)
+                    current_isna = pd.isna(a) or (a == "")
                     if seen_none:
                         if not current_isna:
                             raise ValueError(
