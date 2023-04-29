@@ -293,16 +293,16 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _get_target_columns(df, skippable_columms=None):
-        """ goes through the column and skips columns that start with the string in the skippable columns """
-        if skippable_columms is None:
-            skippable_columms = ['rxn_str', 'temperature', 'rxn_time', 'yield', 'procedure_details', 'date_of_experiment', 'grant_date']
-        target_columns = []
-        for col in df.columns:
-            if any(col.startswith(i) for i in skippable_columms):
-                continue
-            target_columns.append(col)
-        return target_columns
+    def _get_columns_beginning_with_str(df: pd.DataFrame, target_strings: Optional[List[str]]=None) -> List[str]:
+        """ goes through the column in a dataframe and adds columns that start with a string in the target strings """
+        if target_strings is None:
+            target_strings = ("agent", "solvent", "reagent", "catalyst", "product", "reactant")
+
+        return [
+            col
+            for col in df.columns
+            if col.startswith(target_strings)
+        ]
 
 
     def _get_dataframe(self) -> pd.DataFrame:
@@ -364,10 +364,14 @@ class Cleaner:
                     if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
                         return True
             return False
+        
+        target_strings = ("agent", "solvent", "reagent", "catalyst", "product", "reactant")
+        target_columns = self._get_columns_beginning_with_str(df=mapped_rxn_df, target_strings=target_strings)
 
+        LOG.info(f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}")
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
             )
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
             LOG.info("Got mask for if reactions are mapped")
@@ -377,9 +381,6 @@ class Cleaner:
 
             # TODO we should do this per column and only allow it to be on approved columns
             
-            skippable_columms = ['rxn_str', 'temperature', 'rxn_time', 'yield', 'procedure_details', 'date_of_experiment', 'grant_date']
-            target_columns = self._get_target_columns(df=mapped_rxn_df, skippable_columms=skippable_columms)
-
             # set unresolved names to none
             mapped_rxn_df[target_columns] = mapped_rxn_df[target_columns].replace(self.molecules_to_remove, None)
 
@@ -393,9 +394,6 @@ class Cleaner:
                 disable=self.disable_tqdm,
             ):
                 LOG.info(f"Attempting to remove reactions for {col}")
-                if any(col.startswith(i) for i in skippable_columms):
-                    LOG.info(f"DONT EXPECT TO SEE THIS CALLED {col}")
-                    continue
                 not_mapped_rxn_df = not_mapped_rxn_df[
                     ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
                 ]
@@ -407,17 +405,17 @@ class Cleaner:
             df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
 
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
-            )
+                f"After removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
+            ) # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
 
         elif self.remove_rxn_with_unresolved_names:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
             )
-            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+            for col in tqdm.tqdm(target_columns, disable=self.disable_tqdm):
                 df = df[~df[col].isin(self.molecules_to_remove)]
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"After removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
             )
 
         elif self.set_unresolved_names_to_none:
@@ -447,11 +445,8 @@ class Cleaner:
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
-            columns_to_count_from = [
-                col
-                for col in df.columns
-                if col.startswith(("agent", "solvent", "reagent", "catalyst"))
-            ]
+            target_strings = ("agent", "solvent", "reagent", "catalyst")
+            columns_to_count_from = self._get_columns_beginning_with_str(df=mapped_rxn_df, target_strings=target_strings)
             value_counts = Cleaner._get_value_counts(
                 df, columns_to_count_from
             )  # Get the value counts for the subset df[columns_to_check_for_rare_molecules]
