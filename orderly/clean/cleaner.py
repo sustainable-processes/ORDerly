@@ -256,12 +256,18 @@ class Cleaner:
             f"Mapping rare molecules to 'other' for {columns_to_transform=} with {min_frequency_of_occurrence=}"
         )
         for col in columns_to_transform:
+            LOG.info(f"map rare molecules to other for {col=}")
             # Find the values that occur less frequently than the minimum frequency threshold
-            rare_values = value_counts[
+            rare_values = {i: "other" for i in value_counts[
                 value_counts < min_frequency_of_occurrence
-            ].index.tolist()
+            ].index.tolist()}
+
             # Map the rare values to 'other'
-            df[col] = df[col].apply(lambda x: "other" if x in rare_values else x)
+            df[col] = df[col].map(
+                lambda x: rare_values.get(x,x)
+            ) # equivalent to series = series.replace(rare_values)
+
+            # df[col] = df[col].apply(lambda x: "other" if x in rare_values else x)
         return df
 
     @staticmethod
@@ -293,17 +299,21 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _get_columns_beginning_with_str(df: pd.DataFrame, target_strings: Optional[List[str]]=None) -> List[str]:
-        """ goes through the column in a dataframe and adds columns that start with a string in the target strings """
+    def _get_columns_beginning_with_str(
+        columns: List[str], target_strings: Optional[List[str]] = None
+    ) -> List[str]:
+        """goes through the column in a dataframe and adds columns that start with a string in the target strings"""
         if target_strings is None:
-            target_strings = ("agent", "solvent", "reagent", "catalyst", "product", "reactant")
+            target_strings = (
+                "agent",
+                "solvent",
+                "reagent",
+                "catalyst",
+                "product",
+                "reactant",
+            )
 
-        return [
-            col
-            for col in df.columns
-            if col.startswith(target_strings)
-        ]
-
+        return [col for col in columns if col.startswith(target_strings)]
 
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
@@ -364,11 +374,22 @@ class Cleaner:
                     if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
                         return True
             return False
-        
-        target_strings = ("agent", "solvent", "reagent", "catalyst", "product", "reactant")
-        target_columns = self._get_columns_beginning_with_str(df=mapped_rxn_df, target_strings=target_strings)
 
-        LOG.info(f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}")
+        target_strings = (
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+        target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns, target_strings=target_strings
+        )
+
+        LOG.info(
+            f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
+        )
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
@@ -378,11 +399,13 @@ class Cleaner:
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
-
-            # TODO we should do this per column and only allow it to be on approved columns
-            
             # set unresolved names to none
-            mapped_rxn_df[target_columns] = mapped_rxn_df[target_columns].replace(self.molecules_to_remove, None)
+            mtr = {i: None for i in self.molecules_to_remove}
+            for col in target_columns:
+                LOG.info(f"Applying nones to {col=}")
+                mapped_rxn_df[col] = mapped_rxn_df[col].map(
+                    lambda x: mtr.get(x,x)
+                ) # equivalent to series = series.replace(self.molecules_to_remove, None)
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
@@ -406,7 +429,7 @@ class Cleaner:
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
-            ) # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
+            )  # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
 
         elif self.remove_rxn_with_unresolved_names:
             LOG.info(
@@ -446,7 +469,9 @@ class Cleaner:
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
             target_strings = ("agent", "solvent", "reagent", "catalyst")
-            columns_to_count_from = self._get_columns_beginning_with_str(df=mapped_rxn_df, target_strings=target_strings)
+            columns_to_count_from = self._get_columns_beginning_with_str(
+                columns=mapped_rxn_df.columns, target_strings=target_strings
+            )
             value_counts = Cleaner._get_value_counts(
                 df, columns_to_count_from
             )  # Get the value counts for the subset df[columns_to_check_for_rare_molecules]
