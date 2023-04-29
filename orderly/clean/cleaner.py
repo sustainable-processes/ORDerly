@@ -128,12 +128,14 @@ class Cleaner:
             return df
 
         # Filter the columns that start with component_name
-        component_columns = [col for col in df.columns if col.startswith(component_name)]
+        component_columns = [
+            col for col in df.columns if col.startswith(component_name)
+        ]
 
         # If there are more columns than the threshold, remove the excess ones
         if len(component_columns) > number_of_columns_to_keep:
             columns_to_remove = component_columns[number_of_columns_to_keep:]
-            
+
             # Create a boolean mask for rows with missing values in the columns to remove
             mask = df[columns_to_remove].isnull().all(axis=1)
 
@@ -141,7 +143,6 @@ class Cleaner:
             df = df.loc[mask].drop(columns_to_remove, axis=1)
 
         return df
-
 
     @staticmethod
     def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
