@@ -373,16 +373,18 @@ class Cleaner:
                         return True
             return False
 
+        target_strings=(
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+
         target_columns = self._get_columns_beginning_with_str(
             columns=df.columns,
-            target_strings=(
-                "agent",
-                "solvent",
-                "reagent",
-                "catalyst",
-                "product",
-                "reactant",
-            ),
+            target_strings=target_strings,
         )
 
         LOG.info(
@@ -404,6 +406,23 @@ class Cleaner:
                 mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+
+
+            # check that for each of the component columns, there is not a None before any data
+
+            
+            for ordering_target in target_strings:
+                ordering_target_columns = self._get_columns_beginning_with_str(
+                    columns=target_columns,
+                    target_strings=(ordering_target,),
+                )
+
+                def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
+                    
+                    
+
+
+
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
