@@ -850,20 +850,41 @@ class OrdExtractor:
             | SOLVENTS
             | CATALYSTS
             | PRODUCTS,
-        ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
+            list_to_keep_order: Optional[YIELDS] = None,
+        ) -> Tuple[
+            REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+            Optional[YIELDS],
+        ]:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mole_id_list, list)
 
-            mole_id_list_without_none = [x for x in mole_id_list if x not in ["", None] and (not pd.isna(x))]
+            if list_to_keep_order is None:
+                mole_id_list_without_none = [
+                    x
+                    for x in mole_id_list
+                    if (x not in ["", None]) and (not pd.isna(x))
+                ]
+                return mole_id_list_without_none, None
+            else:
+                mole_id_list_without_none, _list_to_keep_order = list(  # type: ignore
+                    zip(
+                        *[
+                            (x, j)
+                            for x, j in zip(mole_id_list, list_to_keep_order)
+                            if (x not in ["", None]) and (not pd.isna(x))
+                        ]
+                    )
+                )
+                return list(mole_id_list_without_none), list(_list_to_keep_order)
 
-            return mole_id_list_without_none
-
-        reactants = remove_none_and_empty_str(reactants)
-        agents = remove_none_and_empty_str(agents)
-        reagents = remove_none_and_empty_str(reagents)
-        solvents = remove_none_and_empty_str(solvents)
-        catalysts = remove_none_and_empty_str(catalysts)
-        products = remove_none_and_empty_str(products)
+        reactants, _ = remove_none_and_empty_str(reactants)
+        agents, _ = remove_none_and_empty_str(agents)
+        reagents, _ = remove_none_and_empty_str(reagents)
+        solvents, _ = remove_none_and_empty_str(solvents)
+        catalysts, _ = remove_none_and_empty_str(catalysts)
+        products, yields = remove_none_and_empty_str(  # type: ignore
+            products, list_to_keep_order=yields
+        )
 
         #### Secondary reaction participation checks before returning
         # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, and apply the manual_replacements_dict, so we need to do another check here

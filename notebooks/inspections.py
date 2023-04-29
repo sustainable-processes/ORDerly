@@ -1312,3 +1312,12 @@ df["temperature_0"].dropna()
 # assert a<c b<c, "error"
 
 # %%
+
+import pandas as pd
+
+a = [None,"ased","as",""]
+b = [1,None,3,4]
+
+p,q = list(zip(*[(x,j) for x,j in zip(a,b) if (x not in ["", None]) and (not pd.isna(x))]))
+
+# %%
