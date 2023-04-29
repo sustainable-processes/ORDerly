@@ -378,24 +378,6 @@ class Cleaner:
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
 
-        def is_mapped(rxn_str: Optional[RXN_STR]) -> bool:
-            """
-            Check if a reaction string is mapped using RDKit.
-            """
-            _ = rdkit_BlockLogs()
-            if rxn_str is None:
-                return False
-            if rxn_str is np.nan:  # type: ignore
-                return False
-            reactants_from_rxn, _, _ = rxn_str.split(">")
-            reactants = reactants_from_rxn.split(".")
-            for r in reactants:
-                mol = rdkit_Chem.MolFromSmiles(r)
-                if mol != None:
-                    if any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()):
-                        return True
-            return False
-
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
         )
