@@ -448,6 +448,7 @@ class Cleaner:
             # Check that for each of the component columns, there is not a None before any data
             # This is necessary because the above code will set some strings None
             mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
+            ...
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"

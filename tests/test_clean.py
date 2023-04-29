@@ -542,7 +542,7 @@ def test_get_cleaned_df(
     ),
     indirect=True,
 )
-def test_number_of_columns(
+def test_number_of_columns_and_order_of_None(
     cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
 ) -> None:
     import copy
@@ -616,6 +616,64 @@ def test_number_of_columns(
     assert ("date_of_experiment" in datetime_coumns.columns) or (
         len(cleaned_df["date_of_experiment"].dropna()) == 0
     )
+    
+    
+    # Also check that there are no instances of None before data in the cleaned df
+    
+    def _get_columns_beginning_with_str(
+        columns: List[str], target_strings: Optional[Tuple[str, ...]] = None
+    ) -> List[str]:
+        """goes through the column in a dataframe and adds columns that start with a string in the target strings"""
+        if target_strings is None:
+            target_strings = (
+                "agent",
+                "solvent",
+                "reagent",
+                "catalyst",
+                "product",
+                "reactant",
+            )
+
+        return [col for col in columns if col.startswith(target_strings)]
+    
+    target_strings=(
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+    
+    target_columns = _get_columns_beginning_with_str(
+            columns=cleaned_df.columns,
+            target_strings=target_strings,
+        )
+    
+    def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
+            # Sort the columns by the number of Nones, in ascending order
+            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
+            
+            # Reorder the DataFrame using the sorted columns
+            reordered_df = df[sorted_columns]
+            
+            return reordered_df
+        
+    def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: List()) -> pd.DataFrame:
+        # Apply the move_none_to_after_data function to each set of ordering_target_columns
+        for ordering_target in target_strings:
+            ordering_target_columns = _get_columns_beginning_with_str(
+                columns=target_columns,
+                target_strings=(ordering_target,),
+            )
+
+            # Apply the move_none_to_after_data function to the subset of columns
+            df[ordering_target_columns] = move_none_to_after_data(df[ordering_target_columns])
+        return df
+    
+    reordered_df = reorder_to_put_none_after_data(cleaned_df, target_strings=target_strings)
+    
+    assert reordered_df == cleaned_df
 
 
 def double_list(
@@ -848,3 +906,6 @@ def test_frequency_retaining_unresolved_names_and_duplicates(
     if not cleaned_rare.empty:
         # if there is stuff that is rare now, we want to make sure it wasnt rare previously
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
+        
+    
+    
