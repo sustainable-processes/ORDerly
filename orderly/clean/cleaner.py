@@ -373,19 +373,7 @@ class Cleaner:
                         return True
             return False
 
-        target_strings=(
-            "agent",
-            "solvent",
-            "reagent",
-            "catalyst",
-            "product",
-            "reactant",
-        )
-
-        target_columns = self._get_columns_beginning_with_str(
-            columns=df.columns,
-            target_strings=target_strings,
-        )
+        
 
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
@@ -406,28 +394,7 @@ class Cleaner:
         ### Our compromise is to set unresolvable names to none when we have a mapped reaction string, and delete the reaction if we don't have a mapped reaction string (since the presence of a mapped rxn string makes the reaction much more trustworthy).
         ### If you don't want to use this compromise, you can also set the unresolvable names to none for all reactions, or delete all reactions with unresolvable names, or retain all the unresolvable names (by setting all 3 bools to False).
         
-        def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
-            # Sort the columns by the number of Nones, in ascending order
-            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
-            
-            # Reorder the DataFrame using the sorted columns
-            reordered_df = df[sorted_columns]
-            
-            return reordered_df
-        
-        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: Tuple[str, ...]) -> pd.DataFrame:
-            # Apply the move_none_to_after_data function to each set of ordering_target_columns
-            for ordering_target in target_strings:
-                ordering_target_columns = self._get_columns_beginning_with_str(
-                    columns=target_columns,
-                    target_strings=(ordering_target,),
-                )
 
-                # Apply the move_none_to_after_data function to the subset of columns
-                df[ordering_target_columns] = move_none_to_after_data(df[ordering_target_columns])
-            return df
-            
-        
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
                 f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
@@ -445,9 +412,6 @@ class Cleaner:
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, None)
                 
-            # Check that for each of the component columns, there is not a None before any data
-            # This is necessary because the above code will set some strings None
-            mapped_rxn_df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
@@ -488,10 +452,6 @@ class Cleaner:
                 f"Setting unresolvable names to None (without removing any reactions)"
             )
             df = df.replace(self.molecules_to_remove, None)
-            
-            # Check that for each of the component columns, there is not a None before any data
-            # This is necessary because the above code will set some strings None
-            df = reorder_to_put_none_after_data(mapped_rxn_df, target_strings)
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -570,6 +530,55 @@ class Cleaner:
 
         df.reset_index(inplace=True, drop=True)
         df = df.sort_index(axis=1)
+        
+        # Move any instances of none to end end of the columns, such that there is never data after a none
+        # e.g. if the reactant columns are [None, None, None, 'benzene', 'toluene', None] this becomes ['benzene', 'toluene', None, None, None, None]
+        
+        def move_none_to_after_data(df: pd.DataFrame) -> pd.DataFrame:
+            # Sort the columns by the number of Nones, in ascending order
+            sorted_columns = sorted(df.columns, key=lambda col: df[col].isna().sum())
+            
+            # Reorder the DataFrame using the sorted columns
+            reordered_df = df[sorted_columns]
+            
+            return reordered_df
+        
+        def reorder_to_put_none_after_data(df: pd.DataFrame, target_strings: Tuple[str, ...]) -> pd.DataFrame:
+            # Apply the move_none_to_after_data function to each set of ordering_target_columns
+            for ordering_target in target_strings:
+                ordering_target_columns = self._get_columns_beginning_with_str(
+                    columns=target_columns,
+                    target_strings=(ordering_target,),
+                )
+
+                # Apply the move_none_to_after_data function to the subset of columns
+                df[ordering_target_columns] = move_none_to_after_data(df[ordering_target_columns])
+            return df
+        
+        target_strings=(
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+
+        target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=target_strings,
+        )
+        
+        
+        
+        
+        
+        # Check that for each of the component columns, there is not a None before any data
+        # This is necessary because the above code will set some strings None
+        df = reorder_to_put_none_after_data(df, target_strings)
+        
+        
+        
         return df
 
 
