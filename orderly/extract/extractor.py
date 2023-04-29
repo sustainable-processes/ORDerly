@@ -854,7 +854,7 @@ class OrdExtractor:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mole_id_list, list)
 
-            mole_id_list_without_none = [x for x in mole_id_list if x not in ["", None]]
+            mole_id_list_without_none = [x for x in mole_id_list if x not in ["", None] and (not pd.isna(x))]
 
             return mole_id_list_without_none
 
