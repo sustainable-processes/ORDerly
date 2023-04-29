@@ -408,7 +408,7 @@ def test_map_rare_molecules_to_other(
                 ],
                 "product_001": [
                     None,
-                    'b',
+                    "b",
                     "a",
                     None,
                 ],

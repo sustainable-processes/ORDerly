@@ -684,7 +684,7 @@ def test_match_yield_with_product(
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,manual_replacements_dict,trust_labelling,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_date_of_experiment, expected_names_list",
+    "file_name,rxn_idx,manual_replacements_dict,trust_labelling,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_date_of_experiment, expected_names_list, expected_is_mapped",
     (
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
@@ -710,6 +710,7 @@ def test_match_yield_with_product(
             "To a solution of ethyl 6-bromo-4-(2,4-difluorophenylamino)-7-ethoxyquinoline-3-carboxylate (400 mg, 0.89 mmol) and 1-(Isopropyl)piperazine (254 µl, 1.77 mmol) in dioxane was added cesium carbonate (722 mg, 2.22 mmol), tris(dibenzylideneacetone)dipalladium(0) (40.6 mg, 0.04 mmol) and rac-2,2'-Bis(diphenylphosphino)-1,1'-binaphthyl (55.2 mg, 0.09 mmol). Reaction vessel in oil bath set to 110 °C. 11am  After 5 hours, MS shows product (major peak 499), and SM (minor peak 453).  o/n, MS shows product peak. Reaction cooled, concentrated onto silica, and purified on ISCO. 40g column, 1:1 EA:Hex, then 100% EA.  289mg yellow solid. NMR (EN00180-62-1) supports product, but some oxidised BINAP impurity (LCMS 655).  ",
             "07/01/2008",
             [],
+            [False],
         ],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
@@ -732,6 +733,7 @@ def test_match_yield_with_product(
             "1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.",
             None,
             [],
+            [True],
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -751,6 +753,7 @@ def test_match_yield_with_product(
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             None,
             ["35(Na2O)"],
+            [True],
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -792,6 +795,7 @@ def test_match_yield_with_product(
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             None,
             ["35(Na2O)"],
+            [True],
         ],
         [
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -819,6 +823,7 @@ def test_match_yield_with_product(
             "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             None,
             [],
+            [True],
         ],
         [
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -843,6 +848,7 @@ def test_match_yield_with_product(
             "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             None,
             [],
+            [True],
         ],
         # Test: one of the input reactants = 'liquid'; trust_labelling = True
         [
@@ -863,6 +869,7 @@ def test_match_yield_with_product(
             "A solution of 300 g (1.63 mol) of cyanuric chloride in 1 liter THF and 0.24 liter diglyme was cooled to 0\302\260 C. and 81.6 mL (3.36 mol) of liquid ammonia added dropwise over 90 min. keeping the temperature between 10\302\260-15\302\260. The mixture was stirred for one hour at -10\302\260 to 0\302\260 and then allowed to warm to ambient temperature over one hour. The resulting suspension was filtered, the solid washed with THF, the filtrate reduced to 1/2 its original volume, and poured over 1 liter of ice water to give a white solid which was collected, washed with water, and dried in vacuo to give 244.3 g of 2-amino-4,6-dichloro-1,3,5-triazine with m.p. 221\302\260-223.5\302\260 (dec).",
             None,
             ["liquid"],
+            [True],
         ],
         # Test: one of the input reactants = 'liquid'; trust_labelling = False
         [
@@ -883,6 +890,7 @@ def test_match_yield_with_product(
             "A solution of 300 g (1.63 mol) of cyanuric chloride in 1 liter THF and 0.24 liter diglyme was cooled to 0\302\260 C. and 81.6 mL (3.36 mol) of liquid ammonia added dropwise over 90 min. keeping the temperature between 10\302\260-15\302\260. The mixture was stirred for one hour at -10\302\260 to 0\302\260 and then allowed to warm to ambient temperature over one hour. The resulting suspension was filtered, the solid washed with THF, the filtrate reduced to 1/2 its original volume, and poured over 1 liter of ice water to give a white solid which was collected, washed with water, and dried in vacuo to give 244.3 g of 2-amino-4,6-dichloro-1,3,5-triazine with m.p. 221\302\260-223.5\302\260 (dec).",
             None,
             ["liquid"],
+            [True],
         ],
         # synthesis of islatravir by biocatalytic cascade
         # We put trust_labelling = False to test that the inputs are extracted instead, since I know that there's no rxn string
@@ -918,6 +926,7 @@ def test_match_yield_with_product(
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
             ],
+            [False],
         ],
         # An example where we need the manual_replacements_dict
         [
@@ -943,6 +952,7 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             None,
             ["CrO3"],
+            [True],
         ],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
@@ -966,6 +976,7 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             None,
             ["CrO3"],
+            [True],
         ],
     ),
 )
@@ -989,6 +1000,7 @@ def test_handle_reaction_object(
     expected_procedure_details: str,
     expected_date_of_experiment: Optional[str],
     expected_names_list: List[str],
+    expected_is_mapped: bool,
 ) -> None:
     import orderly.extract.extractor
     import orderly.extract.main
@@ -1024,6 +1036,7 @@ def test_handle_reaction_object(
         rxn_str,
         procedure_details,
         date_of_experiment,
+        is_mapped,
         names_list,
     ) = rnx_object
 
@@ -1069,6 +1082,9 @@ def test_handle_reaction_object(
     assert date_of_experiment == pd.to_datetime(
         expected_date_of_experiment, format="%m/%d/%Y"
     ), f"failure for {expected_date_of_experiment=} got {date_of_experiment}"
+    assert (
+        is_mapped == expected_is_mapped
+    ), f"failure for {expected_is_mapped=} got {is_mapped}"
 
 
 @pytest.mark.parametrize(

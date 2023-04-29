@@ -579,6 +579,7 @@ class OrdExtractor:
             Optional[RXN_STR],
             str,
             Optional[pd.Timestamp],
+            bool,
             List[MOLECULE_IDENTIFIER],
         ]
     ]:
@@ -922,6 +923,7 @@ class OrdExtractor:
             rxn_str,
             procedure_details,
             date_of_experiment,
+            is_mapped,
             rxn_non_smiles_names_list,
         )
 
@@ -943,6 +945,7 @@ class OrdExtractor:
                 List[YIELDS],
                 List[str],
                 List[Optional[pd.Timestamp]],
+                List[bool],
             ],
         ],
         List[MOLECULE_IDENTIFIER],
@@ -963,6 +966,7 @@ class OrdExtractor:
             "yield": [],
             "procedure_details": [],
             "date_of_experiment": [],
+            "is_mapped": [],
         }
 
         assert self.solvents_set is not None
@@ -989,6 +993,7 @@ class OrdExtractor:
                 rxn_str,
                 procedure_details,
                 date_of_experiment,
+                is_mapped,
                 rxn_non_smiles_names_list_additions,
             ) = extracted_reaction
 
@@ -1009,6 +1014,7 @@ class OrdExtractor:
                 rxn_lists["yield"].append(yields)
                 rxn_lists["procedure_details"].append(procedure_details)
                 rxn_lists["date_of_experiment"].append(date_of_experiment)
+                rxn_lists["is_mapped"].append(is_mapped)
 
         return rxn_lists, rxn_non_smiles_names_list
 

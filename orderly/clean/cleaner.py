@@ -325,8 +325,14 @@ class Cleaner:
             if len(ordering_target_columns) == 0:
                 continue
             # Apply a lambda function to sort the elements within each row, placing None values last
-            df.loc[:, ordering_target_columns] = df.loc[:, ordering_target_columns].apply(
-            lambda row: pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index), axis=1)
+            df.loc[:, ordering_target_columns] = df.loc[
+                :, ordering_target_columns
+            ].apply(
+                lambda row: pd.Series(
+                    sorted(row, key=lambda x: pd.isna(x)), index=row.index
+                ),
+                axis=1,
+            )
 
         return df
 
