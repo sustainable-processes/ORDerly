@@ -1090,4 +1090,7 @@ class OrdExtractor:
         full_df = full_df.assign(grant_date=self.grant_date)
         full_df.grant_date = pd.to_datetime(full_df.grant_date)
 
+        full_df.reset_index(inplace=True, drop=True)
+        full_df = full_df.sort_index(axis=1)
+
         return full_df, rxn_non_smiles_names_list
