@@ -64,10 +64,10 @@ gen_uspto_trust: extract_uspto_trust clean_uspto_trust
 gen_datasets: gen_uspto_no_trust gen_uspto_trust gen_all_no_trust gen_all_trust
 
 clean_unfiltered_uspto_no_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/unfiltered/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --remove_with_unresolved_names=True --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=100 --num_cat=0 --num_reag=0 --consistent_yield=False
+	poetry run python -m orderly.clean --output_path="data/orderly/unfiltered/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=100 --num_cat=0 --num_reag=0 --consistent_yield=False	
 
 clean_unfiltered_uspto_trust:
-	poetry run python -m orderly.clean --clean_data_path="data/orderly/unfiltered/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --remove_with_unresolved_names=True --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=0 --num_cat=100 --num_reag=100 --consistent_yield=False
+	poetry run python -m orderly.clean --output_path="data/orderly/unfiltered/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=0 --num_cat=100 --num_reag=100 --consistent_yield=False
 
 clean_unfiltered_uspto: clean_unfiltered_uspto_no_trust clean_unfiltered_uspto_trust
 
