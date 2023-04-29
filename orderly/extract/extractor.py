@@ -69,6 +69,10 @@ class OrdExtractor:
                 )
                 self.filename = str(self.data.dataset_id)
 
+            self.dataset_id = self.data.dataset_id
+            if self.dataset_id is None:
+                self.dataset_id = self.filename
+
         # Get the date of the grant (proxy for when the data was collected)
         _grant_date = self.filename.split("uspto-grants-")
         grant_date: Optional[pd.Timestamp] = None
@@ -1084,4 +1088,5 @@ class OrdExtractor:
 
         full_df = pd.concat(dfs, axis=1)
         LOG.info("Constructed df")
+        full_df = full_df.assign(extracted_from_file=self.dataset_id)
         return full_df, rxn_non_smiles_names_list
