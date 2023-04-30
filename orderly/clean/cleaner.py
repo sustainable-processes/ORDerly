@@ -361,6 +361,7 @@ class Cleaner:
                     Cleaner._sort_row,
                     axis=1,
                 )
+
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
