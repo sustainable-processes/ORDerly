@@ -400,16 +400,22 @@ def test_map_rare_molecules_to_other(
                     "a",
                     "c",
                 ],
-                "product_000": [
+                "agent_000": [
                     "a",
                     "a",
                     None,
                     None,
                 ],
-                "product_001": [
+                "agent_001": [
                     None,
                     "b",
                     "a",
+                    None,
+                ],
+                "agent_002": [
+                    "b",
+                    "c",
+                    "b",
                     None,
                 ],
             },
@@ -433,6 +439,67 @@ def test_map_rare_molecules_to_other(
                     None,
                     "c",
                 ],
+                "agent_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "agent_001": [
+                    "b",
+                    "b",
+                    "b",
+                    None,
+                ],
+                "agent_002": [
+                    None,
+                    "c",
+                    None,
+                    None,
+                ],
+            },
+        ),
+        pytest.param(
+            {
+                "product_000": [
+                    "a",
+                    "a",
+                    None,
+                    None,
+                ],
+                "product_001": [
+                    None,
+                    "b",
+                    "a",
+                    None,
+                ],
+                "product_002": [
+                    "b",
+                    "c",
+                    "b",
+                    None,
+                ],
+                "yield_000": [
+                    "a",
+                    "a",
+                    "c",
+                    None,
+                ],
+                "yield_001": [
+                    None,
+                    "b",
+                    "a",
+                    None,
+                ],
+                "yield_002": [
+                    "b",
+                    "c",
+                    "b",
+                    None,
+                ],
+            },
+            ("product",),
+            {
                 "product_000": [
                     "a",
                     "a",
@@ -440,9 +507,33 @@ def test_map_rare_molecules_to_other(
                     None,
                 ],
                 "product_001": [
-                    None,
+                    "b",
+                    "b",
                     "b",
                     None,
+                ],
+                "product_002": [
+                    None,
+                    "c",
+                    None,
+                    None,
+                ],
+                "yield_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "yield_001": [
+                    "b",
+                    "b",
+                    "b",
+                    None,
+                ],
+                "yield_002": [
+                    None,
+                    "c",
+                    "c",
                     None,
                 ],
             },

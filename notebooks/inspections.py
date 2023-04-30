@@ -1321,3 +1321,259 @@ b = [1,None,3,4]
 p,q = list(zip(*[(x,j) for x,j in zip(a,b) if (x not in ["", None]) and (not pd.isna(x))]))
 
 # %%
+
+import pandas as pd
+
+df = pd.DataFrame(
+    {
+        "yield_000": [
+            "a",
+            "a",
+            "a",
+            "a",
+        ],
+        "yield_001": [
+            "b",
+            "b",
+            None,
+            "b",
+        ],
+        "yield_002": [
+            None,
+            None,
+            None,
+            "c",
+        ],
+        "reactant_001": [
+            "b",
+            "b",
+            "b",
+            None,
+        ],
+        "reactant_000": [
+            None,
+            None,
+            None,
+            "a",
+        ],
+        "product_000": [
+            "a",
+            None,
+            "a",
+            None,
+        ],
+        "product_001": [
+            None,
+            "b",
+            None,
+            None,
+        ],
+        "product_002": [
+            "c",
+            None,
+            "c",
+            "c",
+        ],
+    }
+)
+# %%
+
+molecule_type = "reactant"
+
+from orderly.clean.cleaner import Cleaner
+
+_product = Cleaner._get_columns_beginning_with_str(
+    columns=df.columns,
+    target_strings=("product",),
+)
+
+_yield = Cleaner._get_columns_beginning_with_str(
+    columns=df.columns,
+    target_strings=("yield",),
+)
+
+ordering_target_columns = sorted(ordering_target_columns)
+
+print(ordering_target_columns)
+
+def sort_row_old(row):
+    return pd.Series(
+        sorted(row, key=lambda x: pd.isna(x)), index=row.index
+    )
+
+def sort_row(row):
+    return pd.Series(
+        sorted(row, key=lambda x: pd.isna(x)), index=row.index
+    )
+
+def sort_row(row):
+    idx = row.index
+    row = row.sort_values(na_position="last")
+    row.index = idx
+    return row
+
+print(
+    df.loc[
+        :, ordering_target_columns
+    ].apply(
+        sort_row, axis=1
+    )
+)
+
+print(
+df.loc[
+    :, ordering_target_columns
+].apply(
+    lambda x: sort_row(x), axis=1
+)
+)
+# %%
+
+def sort_row_relative(row, to_sort, to_keep_ordered):
+
+    target_row = row[to_sort].reset_index(drop=True).sort_values(na_position="last")
+    rel_row = row[to_keep_ordered].reset_index(drop=True)
+
+    rel_row = rel_row[target_row.index]
+    rel_row.index = to_keep_ordered
+    target_row.index = to_sort
+
+    row = pd.concat([target_row, rel_row])
+    
+    return row
+
+print("Before")
+print(
+    df.loc[
+        :, _product+_yield
+    ]
+)
+print("After")
+print(
+    df.loc[
+        :, _product+_yield
+    ].apply(
+        lambda x: sort_row_relative(x, _product, _yield), axis=1
+    )
+)
+
+# %%
+
+%%timeit
+
+df.loc[
+        :, _product+_yield
+    ].apply(
+        lambda x: sort_row_relative(x, _product, _yield), axis=1
+    )
+
+# %%
+
+%%timeit
+
+df.loc[
+    :, ordering_target_columns
+].apply(
+    sort_row, axis=1
+)
+# %%
+%%timeit
+df.loc[
+    :, ordering_target_columns
+].apply(
+    lambda x: sort_row(x), axis=1
+)
+# %%
+%%timeit
+
+df.loc[
+    :, ordering_target_columns
+].apply(
+    sort_row_old, axis=1
+)
+# %%
+import pandas as pd
+
+pd.DataFrame(
+    {
+        "product_000": [
+            "a",
+            "a",
+            "a",
+            None,
+        ],
+        "product_001": [
+            "b",
+            "b",
+            "b",
+            None,
+        ],
+        "product_002": [
+            None,
+            "c",
+            None,
+            None,
+        ],
+        "yield_000": [
+            "a",
+            "a",
+            "a",
+            None,
+        ],
+        "yield_001": [
+            "b",
+            "b",
+            "b",
+            None,
+        ],
+        "yield_002": [
+            None,
+            "b",
+            "c",
+            None,
+        ],
+    }
+)
+# %%
+
+pd.DataFrame(
+    {
+        "product_000": [
+            "a",
+            "a",
+            None,
+            None,
+        ],
+        "product_001": [
+            None,
+            "b",
+            "a",
+            None,
+        ],
+        "product_002": [
+            "b",
+            "c",
+            "b",
+            None,
+        ],
+        "yield_000": [
+            "a",
+            "a",
+            "c",
+            None,
+        ],
+        "yield_001": [
+            None,
+            "b",
+            "a",
+            None,
+        ],
+        "yield_002": [
+            "b",
+            "c",
+            "b",
+            None,
+        ],
+    }
+)
+# %%

@@ -1114,7 +1114,6 @@ class OrdExtractor:
         LOG.info("Constructed dict of dfs")
 
         full_df = pd.concat(dfs, axis=1)
-        LOG.info("Constructed df")
         full_df = full_df.assign(extracted_from_file=self.dataset_id)
 
         full_df = full_df.assign(grant_date=self.grant_date)
@@ -1122,5 +1121,6 @@ class OrdExtractor:
 
         full_df.reset_index(inplace=True, drop=True)
         full_df = full_df.sort_index(axis=1)
+        LOG.info("Constructed df")
 
         return full_df, rxn_non_smiles_names_list

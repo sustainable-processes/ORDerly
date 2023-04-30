@@ -311,7 +311,19 @@ class Cleaner:
                 "reactant",
             )
 
-        return [col for col in columns if col.startswith(target_strings)]
+        return sorted([col for col in columns if col.startswith(target_strings)])
+
+    def _sort_row(row):
+        return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)
+
+    def _sort_row_relative(row, to_sort, to_keep_ordered):
+        target_row = row[to_sort].reset_index(drop=True).sort_values(na_position="last")
+        rel_row = row[to_keep_ordered].reset_index(drop=True)
+        rel_row = rel_row[target_row.index]
+        rel_row.index = to_keep_ordered
+        target_row.index = to_sort
+        row = pd.concat([target_row, rel_row])
+        return row
 
     @staticmethod
     def _move_none_to_after_data(
@@ -324,16 +336,31 @@ class Cleaner:
             )
             if len(ordering_target_columns) == 0:
                 continue
-            # Apply a lambda function to sort the elements within each row, placing None values last
-            df.loc[:, ordering_target_columns] = df.loc[
-                :, ordering_target_columns
-            ].apply(
-                lambda row: pd.Series(
-                    sorted(row, key=lambda x: pd.isna(x)), index=row.index
-                ),
-                axis=1,
-            )
-
+            if molecule_type == "product":
+                yield_columns = Cleaner._get_columns_beginning_with_str(
+                    columns=df.columns,
+                    target_strings=("yield",),
+                )
+                if len(yield_columns) != len(ordering_target_columns):
+                    raise ValueError(
+                        f"{len(yield_columns)=} must be the same as {len(ordering_target_columns)=}"
+                    )
+                df.loc[:, ordering_target_columns + yield_columns] = df.loc[
+                    :, ordering_target_columns + yield_columns
+                ].apply(
+                    lambda x: Cleaner._sort_row_relative(
+                        x, ordering_target_columns, yield_columns
+                    ),
+                    axis=1,
+                )
+            else:
+                # Apply a lambda function to sort the elements within each row, placing None values last
+                df.loc[:, ordering_target_columns] = df.loc[
+                    :, ordering_target_columns
+                ].apply(
+                    Cleaner._sort_row,
+                    axis=1,
+                )
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
