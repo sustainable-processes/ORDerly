@@ -1109,9 +1109,7 @@ class OrdExtractor:
         dfs.append(
             OrdExtractor._to_dataframe(
                 data_lists["is_mapped"], base_string=["is_mapped"]
-            ).astype(
-                "bool"
-            )
+            ).astype("bool")
         )
         LOG.info("Constructed dict of dfs")
 
