@@ -812,7 +812,7 @@ def test_number_of_columns_and_order_of_None(
                 "reactant",
             )
 
-        return [col for col in columns if col.startswith(target_strings)]
+        return sorted([col for col in columns if col.startswith(target_strings)])
 
     target_strings = (
         "agent",

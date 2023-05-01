@@ -27,6 +27,9 @@ test_data:
 	poetry run python -m pytest -vv tests/test_data.py
 
 pytest:
+	poetry run python -m pytest -vv
+
+pytestx:
 	poetry run python -m pytest -vv --exitfirst
 
 extract_all_no_trust:

@@ -468,7 +468,7 @@ class Cleaner:
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
             # set unresolved names to <unresolved>
-            mtr = {i: "<unresolved>" for i in self.molecules_to_remove}
+            mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
                 mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
@@ -512,7 +512,7 @@ class Cleaner:
                 f"Setting unresolvable names to None (without removing any reactions)"
             )
             # set unresolved names to none
-            mtr = {i: "<unresolved>" for i in self.molecules_to_remove}
+            mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
                 df.loc[:, col] = df.loc[:, col].map(
