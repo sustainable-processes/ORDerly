@@ -823,14 +823,18 @@ def test_number_of_columns_and_order_of_None(
         "reactant",
     )
 
-    def no_strings_after_none(row: pd.Series) -> bool:
-        found_none = False
-        for value in row:
-            if value is None:
-                found_none = True
-            elif found_none:
-                return False
-        return True
+    def check_valid_order(row: pd.Series) -> pd.Series:
+        seen_none = False
+        for idx, a in enumerate(row):
+            current_isna = pd.isna(a) or (a == "")
+            if seen_none:
+                if not current_isna:
+                    raise ValueError(
+                        f"Unexpected order at {idx=} for {row.tolist()=}"
+                    )
+            if current_isna:
+                seen_none = True
+        return row
 
     for target_string in target_strings:
         target_columns = _get_columns_beginning_with_str(
@@ -838,14 +842,8 @@ def test_number_of_columns_and_order_of_None(
             target_strings=(target_string,),
         )
         # check that there are no instances of None before data in the cleaned df
-        df_subset = cleaned_df.loc[:, target_columns].copy()
-        for index, row in df_subset.iterrows():
-            try:
-                assert no_strings_after_none(
-                    row
-                ), f"Row {index} has a string after a None value: {row}"
-            except AssertionError:
-                breakpoint()
+
+        cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
 
 
 def double_list(
