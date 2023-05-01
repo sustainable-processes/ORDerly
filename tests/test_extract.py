@@ -126,7 +126,8 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             [],
             False,
             ["4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
-        ]
+        ],
+    
         
     ),
 )
@@ -381,6 +382,23 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            1932,
+            None,
+            ["C=C(C)Br","C=C1CC(=O)CCC2=C(C)CCC12"],
+            [
+                "C1CCOC1",
+                "II",
+                "[Mg]",
+            ],
+            ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
+            '[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1',
+            [],
+            False,
+        ],
+        
+        
         # Test case where reaction with only 1 >
         pytest.param(
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
