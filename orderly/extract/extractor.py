@@ -300,9 +300,10 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
-                if component.lower() in ["ice", "ice water"]:
-                    ice_present = True
-
+                breakpoint()
+                for identifier in identifiers:
+                    if identifier.value.lower() in ['ice', 'ice water']:
+                        ice_present = True
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
                 )
@@ -951,6 +952,8 @@ class OrdExtractor:
             temperature = TEMPERATURE_CELCIUS(0.0)
 
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
+        if 'II' in rxn_non_smiles_names_list:
+            breakpoint()
 
         return (
             reactants,
