@@ -97,7 +97,7 @@ class Cleaner:
         LOG.info("Getting merged dataframe from extracted ord files")
 
         dfs = []
-        for file in self.ord_extraction_path.glob("*.parquet"):
+        for file in sorted(self.ord_extraction_path.glob("*.parquet")):
             LOG.debug(f"Reading {file=}")
             extracted_df = pd.read_parquet(file)
             dfs.append(extracted_df)
