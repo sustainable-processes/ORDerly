@@ -300,7 +300,7 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
-                if component in ["ice", "ice water"]:
+                if component.lower() in ["ice", "ice water"]:
                     ice_present = True
 
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
