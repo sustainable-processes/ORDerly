@@ -27,6 +27,7 @@ compound
 "N,N'-carbonyldiimidazole"
 -butylate
 potassium tert
+potassium tert.-butylate
 ice
 ( 1 )
 ( VII )
@@ -88,6 +89,7 @@ ice water
 paraffin
 -butylate
 potassium tert
+potassium tert.-butylate
 saturated solution
 glycol dimethylether
 ester
@@ -173,6 +175,7 @@ solution
 solution
 -butylate
 potassium tert
+potassium tert.-butylate
 ice
 ice sodium chloride
 5(6)-butyryl-benzimidazole-2-carboxylic acid
@@ -395,6 +398,7 @@ dihydrobromide
 ( 123 )
 6H2O
 MgCl2
+MgCl2.6H2O
 cuprous chloride
 ice
 ice
@@ -410,8 +414,10 @@ solution
 solution
 6H2O
 MgCl2
+MgCl2.6H2O
 6H2O
 MgCl2
+MgCl2.6H2O
 resultant mixture
 resultant mixture
 aluminum halide

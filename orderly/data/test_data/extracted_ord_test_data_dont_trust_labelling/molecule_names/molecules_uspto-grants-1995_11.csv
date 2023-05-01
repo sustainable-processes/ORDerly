@@ -108,11 +108,11 @@ XXVI
 reagents
 H2O
 NaH2PO4
+NaH2PO4.H2O
 XXVI
 solid
 ice
 81A
-81B
 product
 solids
 diacid
@@ -143,6 +143,7 @@ succinyl CS-045
 5H2O
 7G
 Bi(NO3)3
+Bi(NO3)3.5H2O
 Co(NO3)2
 Fe(NO3)2
 Ni(NO3)2
@@ -203,14 +204,15 @@ methyl N-(triethylamoniosulphonyl)carbamate
 solution
 IV
 ester
-Br-
 ice water
 specified solvent
 Epoxides
 A4
 04/074168-A
 Methanolic solution
+1.16-g
 16-g
+1.63-g
 63-g
 2-(di-ethoxy)ethylamine
 Nafion
@@ -236,6 +238,7 @@ raw material
 trimethyl(ethoxypolyoxypropyl)ammonium chloride
 aqueous solution
 ( 0
+( 0.15 )
 15 )
 "(±)-4-(3,4-dichlorophenyl)-4-butanoic acid"
 ketone
@@ -358,7 +361,6 @@ solution
 talc
 talc
 resultant two-phase
-Na
 5(c)
 5(c)
 8(a)

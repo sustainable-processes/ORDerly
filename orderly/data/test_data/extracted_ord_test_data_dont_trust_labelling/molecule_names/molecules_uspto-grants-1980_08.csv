@@ -6,9 +6,13 @@ product
 Compound 4
 Material I
 ( 16
+( 16.23 )
 ( 50
+( 50.25 )
 ( 7
+( 7.33 )
 ( 9
+( 9.49 )
 23 )
 25 )
 33 )
@@ -46,7 +50,6 @@ ice water
 methanethiol ester
 2-acetamidoethanethiol ester
 ketone
-2B
 Solution 1
 Solution 2
 Starch
@@ -105,6 +108,7 @@ solution
 solution
  aqueous solution
 conc
+conc. aqueous solution
 product
 Ice water
 petroleum ether
@@ -153,8 +157,10 @@ product
 Congo Red
 preceding product
 ( 5
+( 5.0 )
 0 )
 ( 5
+( 5.0 )
 0 )
 ice water
 N-hydrochloric acid
@@ -201,7 +207,6 @@ vinyl hydrogens
 mercuric chloride
 acyloxybutadiene
 intermediate 2
-CaH2
 "1,4-bis-(4', 4""-dihydroxy-triphenyl-methyl)-benzene"
 "2,2-bis-[4,4-(4,4'-di-hydroxydiphenyl)-cyclohexy]-propane"
 Polycarbonates
@@ -210,11 +215,11 @@ polycarbonates
 tri-(4-hydroxphenyl)phenylmethane
 ( s )
 aqueous solution
-2B
 ferric ammonium sulfate dodecahydrate
 aromatic aldehyde
 "-butylhydrazo-4-cyano-2,6-dimethylheptane"
 4-tert
+"4-tert.-butylhydrazo-4-cyano-2,6-dimethylheptane"
 crude material
 liquid
 yellow liquid
@@ -226,8 +231,6 @@ halide
 saturated solution
 mixture
 alcohol
-Al
-La
 ice water
 isomeric mixture
 amine
