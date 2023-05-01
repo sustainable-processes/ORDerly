@@ -906,16 +906,14 @@ class OrdExtractor:
             | SOLVENTS
             | CATALYSTS
             | PRODUCTS,
-            non_smiles_names_list_additions: List[str],
+            non_smiles_names_set: Set[str],
         ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
             """
-            non_smiles_names_list_additions: Unresolvable names that might be replaced with None in the cleaning script
+            rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
             """
             assert isinstance(mole_id_list, list)
             resolvable_names = []
             unresolvable_names = []
-
-            non_smiles_names_set = set(non_smiles_names_list_additions)
 
             for x in mole_id_list:
                 if x in non_smiles_names_set:
@@ -925,23 +923,24 @@ class OrdExtractor:
 
             return resolvable_names + unresolvable_names
 
+        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
         reactants = move_unresolvable_names_to_end_of_list(
-            reactants, rxn_non_smiles_names_list
+            reactants, rxn_non_smiles_names_set
         )
         products = move_unresolvable_names_to_end_of_list(
-            products, rxn_non_smiles_names_list
+            products, rxn_non_smiles_names_set
         )
         agents = move_unresolvable_names_to_end_of_list(
-            agents, rxn_non_smiles_names_list
+            agents, rxn_non_smiles_names_set
         )
         reagents = move_unresolvable_names_to_end_of_list(
-            reagents, rxn_non_smiles_names_list
+            reagents, rxn_non_smiles_names_set
         )
         solvents = move_unresolvable_names_to_end_of_list(
-            solvents, rxn_non_smiles_names_list
+            solvents, rxn_non_smiles_names_set
         )
         catalysts = move_unresolvable_names_to_end_of_list(
-            catalysts, rxn_non_smiles_names_list
+            catalysts, rxn_non_smiles_names_set
         )
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
