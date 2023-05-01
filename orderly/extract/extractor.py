@@ -898,7 +898,6 @@ class OrdExtractor:
             solvents = [s for s in solvents if s not in reactants_and_products]
             catalysts = [c for c in catalysts if c not in reactants_and_products]
 
-
         # Move unresolvable names to the back of the list - this is necessary due to the handling of unresolvable names in the cleaning scrip: one of the options is to replace the unresolvable name with None. When this happens, we might introduce a None before the data (e.g. agents = ["O", None, "H2O2"]); this is not ideal for the downstream processing, e.g. if we want to predict the agents using ML - the Nones should be last! Moving unresolvable names to the end of the list here, will mean that we don't need to do any reordering in the clean script when we replace unresolvable names with None
         def move_unresolvable_names_to_end_of_list(
             mole_id_list: REACTANTS
@@ -907,9 +906,8 @@ class OrdExtractor:
             | SOLVENTS
             | CATALYSTS
             | PRODUCTS,
-            non_smiles_names_list_additions: List[str], 
+            non_smiles_names_list_additions: List[str],
         ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
-            
             """
             non_smiles_names_list_additions: Unresolvable names that might be replaced with None in the cleaning script
             """
@@ -926,14 +924,25 @@ class OrdExtractor:
                     resolvable_names.append(x)
 
             return resolvable_names + unresolvable_names
-        
-        reactants = move_unresolvable_names_to_end_of_list(reactants,non_smiles_names_list_additions)
-        products = move_unresolvable_names_to_end_of_list(products,non_smiles_names_list_additions)
-        agents = move_unresolvable_names_to_end_of_list(agents,non_smiles_names_list_additions)
-        reagents = move_unresolvable_names_to_end_of_list(reagents,non_smiles_names_list_additions)
-        solvents = move_unresolvable_names_to_end_of_list(solvents,non_smiles_names_list_additions)
-        catalysts = move_unresolvable_names_to_end_of_list(catalysts,non_smiles_names_list_additions)
-        
+
+        reactants = move_unresolvable_names_to_end_of_list(
+            reactants, non_smiles_names_list_additions
+        )
+        products = move_unresolvable_names_to_end_of_list(
+            products, non_smiles_names_list_additions
+        )
+        agents = move_unresolvable_names_to_end_of_list(
+            agents, non_smiles_names_list_additions
+        )
+        reagents = move_unresolvable_names_to_end_of_list(
+            reagents, non_smiles_names_list_additions
+        )
+        solvents = move_unresolvable_names_to_end_of_list(
+            solvents, non_smiles_names_list_additions
+        )
+        catalysts = move_unresolvable_names_to_end_of_list(
+            catalysts, non_smiles_names_list_additions
+        )
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
