@@ -952,7 +952,7 @@ class OrdExtractor:
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
 
-        rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
+        rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
 
         return (
             reactants,
