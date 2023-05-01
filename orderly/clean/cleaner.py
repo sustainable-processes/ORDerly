@@ -576,49 +576,49 @@ class Cleaner:
         # Move any instances of none to end end of the columns, such that there is never data after a none
         # e.g. if the reactant columns are [None, None, None, 'benzene', 'toluene', None] this becomes ['benzene', 'toluene', None, None, None, None]
 
-        LOG.info("Getting mask to check the order")
+        # LOG.info("Getting mask to check the order")
 
-        # to_check_order = (df == "<unresolved>").any(axis=1)
-        # breakpoint()
+        # # to_check_order = (df == "<unresolved>").any(axis=1)
+        # # breakpoint()
 
-        to_check_order = {
-            "reactant": None,
-            "agent": None,
-            "reagent": None,
-            "solvent": None,
-            "catalyst": None,
-            "product": None,
-        }
-        for target_string in to_check_order:
-            invalid_to_none_target_columns = self._get_columns_beginning_with_str(
-                columns=df.columns,
-                target_strings=(target_string,),
-            )
-            to_check_order[target_string] = (
-                df[invalid_to_none_target_columns] == "<unresolved>"
-            ).any(axis=1)
-            LOG.info(
-                f"Unresolved names in {target_string}: {to_check_order[target_string].sum()}"  # type: ignore [attr-defined]
-            )
+        # to_check_order = {
+        #     "reactant": None,
+        #     "agent": None,
+        #     "reagent": None,
+        #     "solvent": None,
+        #     "catalyst": None,
+        #     "product": None,
+        # }
+        # for target_string in to_check_order:
+        #     invalid_to_none_target_columns = self._get_columns_beginning_with_str(
+        #         columns=df.columns,
+        #         target_strings=(target_string,),
+        #     )
+        #     to_check_order[target_string] = (
+        #         df[invalid_to_none_target_columns] == "<unresolved>"
+        #     ).any(axis=1)
+        #     LOG.info(
+        #         f"Unresolved names in {target_string}: {to_check_order[target_string].sum()}"  # type: ignore [attr-defined]
+        #     )
 
-        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype(
-            "string"
-        )
-        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace(
-            "<unresolved>", None
-        )
+        # df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype(
+        #     "string"
+        # )
+        # df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace(
+        #     "<unresolved>", None
+        # )
 
-        LOG.info("Set values to none")
+        # LOG.info("Set values to none")
 
-        # Check that for each of the component columns we modified, there is not a None before any data
-        # This is necessary because the above code will set unresolved strings to None
+        # # Check that for each of the component columns we modified, there is not a None before any data
+        # # This is necessary because the above code will set unresolved strings to None
 
-        for target_string, to_check in to_check_order.items():
-            LOG.info(f"Reordering for {target_string}")
-            df[to_check] = Cleaner._move_none_to_after_data(
-                df[to_check], (target_string,)
-            )
-        LOG.info("Corrected order for mask")
+        # for target_string, to_check in to_check_order.items():
+        #     LOG.info(f"Reordering for {target_string}")
+        #     df[to_check] = Cleaner._move_none_to_after_data(
+        #         df[to_check], (target_string,)
+        #     )
+        # LOG.info("Corrected order for mask")
 
         return df
 
