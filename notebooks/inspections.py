@@ -1459,7 +1459,7 @@ print(
 
 # %%
 
-%%timeit
+# %%timeit
 
 df.loc[
         :, _product+_yield
@@ -1469,7 +1469,7 @@ df.loc[
 
 # %%
 
-%%timeit
+# %%timeit
 
 df.loc[
     :, ordering_target_columns
@@ -1477,14 +1477,14 @@ df.loc[
     sort_row, axis=1
 )
 # %%
-%%timeit
+# %%timeit
 df.loc[
     :, ordering_target_columns
 ].apply(
     lambda x: sort_row(x), axis=1
 )
 # %%
-%%timeit
+# %%timeit
 
 df.loc[
     :, ordering_target_columns
@@ -1542,7 +1542,7 @@ df
 
 # %%
 
-%%timeit
+# %%timeit
 
 df.iloc[[0,1],[0,1]]=None
 

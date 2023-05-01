@@ -333,10 +333,12 @@ class Cleaner:
 
         return sorted([col for col in columns if col.startswith(target_strings)])
 
-    def _sort_row(row):
-        return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)
+    def _sort_row(row: pd.Series) -> pd.Series:
+        return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)  # type: ignore [no-any-return]
 
-    def _sort_row_relative(row, to_sort, to_keep_ordered):
+    def _sort_row_relative(
+        row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
+    ) -> pd.Series:
         target_row = row[to_sort].reset_index(drop=True).sort_values(na_position="last")
         rel_row = row[to_keep_ordered].reset_index(drop=True)
         rel_row = rel_row[target_row.index]
@@ -562,8 +564,6 @@ class Cleaner:
                 )
                 LOG.info(f"After removing rare molecules: {df.shape[0]}")
 
-        
-
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
@@ -581,7 +581,7 @@ class Cleaner:
         # to_check_order = (df == "<unresolved>").any(axis=1)
         # breakpoint()
 
-        to_check_order={
+        to_check_order = {
             "reactant": None,
             "agent": None,
             "reagent": None,
@@ -594,11 +594,19 @@ class Cleaner:
                 columns=df.columns,
                 target_strings=(target_string,),
             )
-            to_check_order[target_string] = (df[invalid_to_none_target_columns] == "<unresolved>").any(axis=1)
-            LOG.info(f"Unresolved names in {target_string}: {to_check_order[target_string].sum()}")
+            to_check_order[target_string] = (
+                df[invalid_to_none_target_columns] == "<unresolved>"
+            ).any(axis=1)
+            LOG.info(
+                f"Unresolved names in {target_string}: {to_check_order[target_string].sum()}"  # type: ignore [attr-defined]
+            )
 
-        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype("string")
-        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace("<unresolved>", None)
+        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype(
+            "string"
+        )
+        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace(
+            "<unresolved>", None
+        )
 
         LOG.info("Set values to none")
 
@@ -607,7 +615,9 @@ class Cleaner:
 
         for target_string, to_check in to_check_order.items():
             LOG.info(f"Reordering for {target_string}")
-            df[to_check] = Cleaner._move_none_to_after_data(df[to_check], (target_string,))
+            df[to_check] = Cleaner._move_none_to_after_data(
+                df[to_check], (target_string,)
+            )
         LOG.info("Corrected order for mask")
 
         return df

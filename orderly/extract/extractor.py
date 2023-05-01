@@ -1045,32 +1045,38 @@ class OrdExtractor:
 
         dfs = []
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"]).fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"])
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
@@ -1085,7 +1091,8 @@ class OrdExtractor:
             ).astype("float")
         )  # TODO do we extract multiple rxn times?
         dfs.append(
-            OrdExtractor._to_dataframe(data_lists["product"], base_string="product").fillna("<missing>")
+            OrdExtractor._to_dataframe(data_lists["product"], base_string="product")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
