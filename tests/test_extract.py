@@ -116,6 +116,18 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             False,
             [],
         ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            38,
+            ["BrBr", "CC1CC(C)(C)CC(C#N)(NNC(C)(C)C)C1", "4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
+            [],
+            [],
+            [],
+            [],
+            False,
+            ["4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
+        ]
+        
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
