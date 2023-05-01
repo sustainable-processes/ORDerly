@@ -844,8 +844,11 @@ def test_number_of_columns_and_order_of_None(
         # check that there are no instances of None before data in the cleaned df
 
         try:
-            cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
+            # cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
+            for idx, row in cleaned_df.loc[:, target_columns].iterrows():
+                check_valid_order(row)
         except ValueError:
+            print("HERE")
             breakpoint()
 
 
