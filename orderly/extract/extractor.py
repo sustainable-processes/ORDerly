@@ -625,9 +625,6 @@ class OrdExtractor:
             non_smiles_names_list_additions,
         ) = OrdExtractor.rxn_input_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
-        if "II" in rxn_non_smiles_names_list:
-            point = 1
-            breakpoint()
 
         (
             labelled_products,
@@ -677,7 +674,7 @@ class OrdExtractor:
             reagents = labelled_reagents
             catalysts = labelled_catalysts
 
-        elif rxn_str is not None:
+        elif rxn_str is not None: #Trust_labelling = False
             # extract info from the reaction string
             rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
             (
@@ -911,7 +908,7 @@ class OrdExtractor:
             # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
             assert set(reactants).isdisjoint(
                 products
-            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}."
+            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]

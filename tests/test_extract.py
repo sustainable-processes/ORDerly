@@ -1063,6 +1063,30 @@ def test_match_yield_with_product(
             [],
             True,
         ],
+        [
+            "ord_dataset-85c00026681b46f89ef8634d2b8618c3",
+            3948,
+            {},
+            False,
+            [
+                '[Co]','O=S(=O)(O)O',
+            ],
+            ['CCCCCC=N', 'O=S(=O)([O-])[O-]', '[NH4+]', '[Co+3]'],
+            [],
+            [
+            ],
+            [],
+            [],
+            [],
+            None,
+            None,
+            "[Co:1].[S:2]([OH:6])([OH:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[NH4+].[NH4+].[Co+3]>>[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[Co+3:1].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[Co+3:1]",
+            "In a process for producing cobalt metal powder from nickel-cobalt sulphides comprising leaching said nickel-cobalt sulphides in an ammoniacal ammonium sulphate solution under an elevated pressure of an oxygen bearing gas, at a temperature of at least 80\302\260 C., with an effective ammonia to metals mole ratio in the range of 5:1 to 6.5:1 to oxidize the nickel and cobalt sulphides to sulphates, and to produce an ammoniacal ammonium sulphate leach liquor in which dissolved cobalt is predominantly in the (III) oxidation state, and an ammoniacal ammonium sulphate leach residue containing a cobalt (III) hexannmine sulphate-calcium sulphate double salt, separating the ammoniacal ammonium sulphate leach liquor from the ammoniacal ammonium sulphate leach residue, saturating the ammoniacal ammonium sulphate leach liquor with an effective amount of anydrous ammonia and cooling the ammoniated leach liquor to below 50\302\260 C. to precipitate the triple salt of cobalt (III) hexammine supbate, nickel (II) hexammine sulphate and ammonium sulphate, recovering the precipitated triple salt from the leach liquor, repulping the triple salt with an effective amount of water to selectively leach nickel(II) hexammine sulphate and to produce a crystalline cobalt (III) hexammine sulphate with a Co:Ni ratio of at least 100:1 and a nickel enriched leach liquor, dissolving the cobalt (III) hexammine sulphate in hot ammonium sulphate solution, and cooling the solution to precipitate recrystallized cobalt (III) hexammine sulphate having a Co:Ni ratio of at least about 1000:1 and treating the recrystallized cobalt (III) hexammine sulphate to produce cobalt metal therefrom, the improvement comprising:",
+            None,
+            [],
+            True,
+        ]
+        
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
