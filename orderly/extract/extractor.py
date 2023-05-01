@@ -910,7 +910,7 @@ class OrdExtractor:
         if not trust_labelling:
             assert set(reactants).isdisjoint(
                 products
-            ), "The intersection between reactants and products is not None."
+            ), f"The intersection between reactants and products is not None. {reactants=} and {products=}"
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
