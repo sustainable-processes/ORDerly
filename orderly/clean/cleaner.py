@@ -76,7 +76,6 @@ class Cleaner:
     remove_rxn_with_unresolved_names: bool = False
     set_unresolved_names_to_none: bool = False
 
-    replace_empty_with_none: bool = True
     drop_duplicates: bool = True
     disable_tqdm: bool = False
 
@@ -104,7 +103,28 @@ class Cleaner:
             dfs.append(extracted_df)
             LOG.debug(f"Read {file=}")
         LOG.info("Successfully read all data")
-        return pd.concat(dfs, ignore_index=True)
+        df = pd.concat(dfs, ignore_index=True)
+
+        # the columns below have an unstandardised length so we fill the nan values with a specific string to avoid ambiguity of none / nan
+        target_strings = (
+            "agent",
+            "solvent",
+            "reagent",
+            "catalyst",
+            "product",
+            "reactant",
+        )
+        target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=target_strings,
+        )
+        df[target_columns] = df[target_columns].fillna("<missing>")
+        df[target_columns] = df[target_columns].astype("string")
+
+        LOG.debug("Unifying missing data to None")
+        df = df.replace("<missing>", None)
+        LOG.debug("Unified missing data to None")
+        return df
 
     def _get_number_of_columns_to_keep(self) -> Dict[str, int]:
         return {
@@ -370,6 +390,7 @@ class Cleaner:
 
         LOG.info("Getting dataframe from extracted ORDs")
         df = self._merge_extracted_ords()
+
         LOG.info(f"All data length: {df.shape[0]}")
         # Remove reactions with too many of a certain component
         for col in [
@@ -444,13 +465,13 @@ class Cleaner:
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
-            # set unresolved names to none
-            mtr = {i: None for i in self.molecules_to_remove}
+            # set unresolved names to <unresolved>
+            mtr = {i: "<unresolved>" for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
                 mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
-                )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
 
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
@@ -488,7 +509,13 @@ class Cleaner:
             LOG.info(
                 f"Setting unresolvable names to None (without removing any reactions)"
             )
-            df = df.replace(self.molecules_to_remove, None)
+            # set unresolved names to none
+            mtr = {i: "<unresolved>" for i in self.molecules_to_remove}
+            for col in target_columns:
+                LOG.info(f"Applying nones to {col=}")
+                df.loc[:, col] = df.loc[:, col].map(
+                    lambda x: mtr.get(x, x)
+                )  # equivalent to series = series.replace(self.molecules_to_remove, None)
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -535,30 +562,18 @@ class Cleaner:
                 )
                 LOG.info(f"After removing rare molecules: {df.shape[0]}")
 
-        if self.replace_empty_with_none:
-            # Replace any instances of an empty string with None
-            LOG.info("Replacing empty strings with None")
-            df = df.applymap(
-                lambda x: None if (isinstance(x, str) and x.strip() == "") else x
-            )
-
-        # Replace np.nan with None
-        LOG.info("Map np.nan to None")
-        nan_to_none_target_columns = self._get_columns_beginning_with_str(
+        invalid_to_none_target_columns = self._get_columns_beginning_with_str(
             columns=df.columns,
             target_strings=(
-                "rxn_str" "reactant",
+                "reactant",
                 "agent",
                 "reagent",
                 "solvent",
                 "catalyst",
                 "product",
-                "procedure_details",
             ),
         )
-        df.loc[:, nan_to_none_target_columns] = df.loc[
-            :, nan_to_none_target_columns
-        ].applymap(lambda x: None if pd.isna(x) else x)
+
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
@@ -571,6 +586,16 @@ class Cleaner:
         # Move any instances of none to end end of the columns, such that there is never data after a none
         # e.g. if the reactant columns are [None, None, None, 'benzene', 'toluene', None] this becomes ['benzene', 'toluene', None, None, None, None]
 
+        LOG.info("Getting mask to check the order")
+
+        to_check_order = (df == "<unresolved>").any(axis=1)
+        # breakpoint()
+        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype("string")
+        df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace("<unresolved>", None)
+
+        LOG.info("Set values to none")
+
+
         # Check that for each of the component columns, there is not a None before any data
         # This is necessary because the above code will set some strings None
         target_strings = (
@@ -581,7 +606,8 @@ class Cleaner:
             "product",
             "reactant",
         )
-        df = Cleaner._move_none_to_after_data(df, target_strings)
+        df[to_check_order] = Cleaner._move_none_to_after_data(df[to_check_order], target_strings)
+        LOG.info("Corrected order for mask")
 
         return df
 
@@ -698,11 +724,6 @@ class Cleaner:
     default=False,
 )
 @click.option(
-    "--replace_empty_with_none",
-    type=bool,
-    default=True,
-)
-@click.option(
     "--drop_duplicates",
     type=bool,
     default=True,
@@ -741,7 +762,6 @@ def main_click(
     set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
-    replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -793,7 +813,6 @@ def main_click(
         set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
-        replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
@@ -820,7 +839,6 @@ def main(
     set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
-    replace_empty_with_none: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -916,7 +934,6 @@ def main(
         "set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn": set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
         "remove_rxn_with_unresolved_names": remove_rxn_with_unresolved_names,
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
-        "replace_empty_with_none": replace_empty_with_none,
         "drop_duplicates": drop_duplicates,
     }
 
@@ -953,7 +970,6 @@ def main(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         molecules_to_remove=molecules_to_remove,
-        replace_empty_with_none=replace_empty_with_none,
         drop_duplicates=drop_duplicates,
         disable_tqdm=disable_tqdm,
     )

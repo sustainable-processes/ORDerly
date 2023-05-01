@@ -1494,7 +1494,7 @@ df.loc[
 # %%
 import pandas as pd
 
-pd.DataFrame(
+df = pd.DataFrame(
     {
         "product_000": [
             "a",
@@ -1530,50 +1530,146 @@ pd.DataFrame(
             None,
             "b",
             "c",
+            None,
+        ],
+    }
+)
+
+# df.iloc[(0,0),(1,1)]=None
+# df.iloc[[0,1],[0,1]]=None
+
+df
+
+# %%
+
+%%timeit
+
+df.iloc[[0,1],[0,1]]=None
+
+
+# %%
+
+import numpy as np
+
+mask = np.zeros(df.shape, dtype=bool)
+mask[[0,1],[0,1]]=True
+df[mask] = "pineapple"
+
+
+
+# %%
+
+
+
+# %%
+
+import pandas as pd
+
+df = pd.DataFrame(
+    {
+        "product_000": [
+            "a",
+            "a",
+            None,
+            None,
+        ],
+        "product_001": [
+            None,
+            "b",
+            "a",
+            None,
+        ],
+        "product_002": [
+            "d",
+            "c",
+            "b",
+            None,
+        ],
+        "yield_000": [
+            "a",
+            "a",
+            "c",
+            None,
+        ],
+        "yield_001": [
+            None,
+            "b",
+            "a",
+            None,
+        ],
+        "yield_002": [
+            "b",
+            "c",
+            "b",
             None,
         ],
     }
 )
 # %%
 
-pd.DataFrame(
-    {
-        "product_000": [
-            "a",
-            "a",
-            None,
-            None,
-        ],
-        "product_001": [
-            None,
-            "b",
-            "a",
-            None,
-        ],
-        "product_002": [
-            "b",
-            "c",
-            "b",
-            None,
-        ],
-        "yield_000": [
-            "a",
-            "a",
-            "c",
-            None,
-        ],
-        "yield_001": [
-            None,
-            "b",
-            "a",
-            None,
-        ],
-        "yield_002": [
-            "b",
-            "c",
-            "b",
-            None,
-        ],
-    }
-)
+molecules_to_remove = {
+    "a": "A",
+    "c": "C",
+}
+
+target_columns = ["yield_001", "yield_002"]
+
+# set unresolved names to none
+mtr = {i: "<missing>" for i in molecules_to_remove}
+for col in target_columns:
+
+    df.loc[:, col] = df.loc[:, col].map(
+        lambda x: mtr.get(x, x)
+    )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+
+# %%
+
+df
+# %%
+
+
+
+(df == "<missing>").any(axis=1)
+# %%
+
+molecules_to_remove = {
+    "d": "A",
+}
+
+target_columns = ["yield_001", "product_002"]
+
+# set unresolved names to none
+mtr = {i: "<missing2>" for i in molecules_to_remove}
+for col in target_columns:
+
+    df.loc[:, col] = df.loc[:, col].map(
+        lambda x: mtr.get(x, x)
+    )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+
+
+# %%
+df
+# %%
+
+(df == "<missing>").any(axis=1)
+
+# %%
+(df == "<missing2>").any(axis=1)
+# %%
+
+to_check_order = (df == "<missing>").any(axis=1) | (df == "<missing2>").any(axis=1)
+
+# %%
+
+
+df[(df == "<missing>")] = None
+# %%
+
+df
+# %%
+
+import pandas as pd
+import numpy as np
+
+np.NaN is pd.NA
 # %%
