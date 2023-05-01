@@ -119,7 +119,11 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
         [
             "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
             38,
-            ["BrBr", "CC1CC(C)(C)CC(C#N)(NNC(C)(C)C)C1", "4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
+            [
+                "BrBr",
+                "CC1CC(C)(C)CC(C#N)(NNC(C)(C)C)C1",
+                "4-t-butylhydrazo-4-cyano-2,6-dimethylheptane",
+            ],
             [],
             [],
             [],
@@ -127,8 +131,6 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             False,
             ["4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
         ],
-    
-        
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -386,19 +388,17 @@ def test_rxn_string_and_is_mapped(
             "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
             1932,
             None,
-            ["C=C(C)Br","C=C1CC(=O)CCC2=C(C)CCC12"],
+            ["C=C(C)Br", "C=C1CC(=O)CCC2=C(C)CCC12"],
             [
                 "C1CCOC1",
                 "II",
                 "[Mg]",
             ],
             ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
-            '[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1',
+            "[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1",
             [],
             False,
         ],
-        
-        
         # Test case where reaction with only 1 >
         pytest.param(
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -771,7 +771,10 @@ def test_match_yield_with_product(
             {},
             False,
             ["[O-]B([O-])[O-]"],
-            ["35(Na2O)", "[Na+]"],
+            [
+                "[Na+]",
+                "35(Na2O)",
+            ],
             [],
             ["O"],
             [],
@@ -932,10 +935,10 @@ def test_match_yield_with_product(
             ["C#CC(O)(CO)CO"],
             [
                 "[Cu+2]",
-                "Antifoam 204",
                 "O=S(=O)([O-])CCN1CCN(CCS(=O)(=O)[O-])CC1",
                 "O=S(=O)([O-])[O-]",
                 "[K+]",
+                "Antifoam 204",
                 "bovine catalase",
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
@@ -1006,6 +1009,31 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             None,
             ["CrO3"],
+            True,
+        ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            1932,
+            {},
+            False,
+            ["C=C(C)Br", "C=C1CC(=O)CCC2=C(C)CCC12"],
+            [
+                "II",
+                "[Mg]",
+            ],
+            [],
+            [
+                "C1CCOC1",
+            ],
+            [],
+            ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
+            [76.0],
+            None,
+            0.5,
+            "[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1",
+            "To a Grignard solution, prepared from 1 g of magnesium chips activated with 1 g of iodine, 5 ml of 2-bromopropene and about 100 ml of tetrahydrofuran, were added over 10 minutes 1.76 g of 1-methyl-4-methylen-6-oxo-2,3,3a,4,5,6,7,8-octahydroazulene. The mixture was stirred vigorously for 30 minutes, cooled to 0\302\260 and treated with excess ice-cold ammonium chloride solution. The mixture was then extracted with ether, the organic extract washed with carbonate solution and water, dried over magnesium sulphate and concentrated under reduced pressure. The crude product (2.6 g), which was obtained in the form of a yellow oil, was distilled under high vacuum and yielded 1.6 g (yield 76%) of pure 6-hydroxy-6-isopropenyl-1-methyl-4-methylen-2,3,3a,4,5,6,7,8-octahydroazulene; b.p.0.1 ca 100\302\260 IR(film):\316\275max = 3550, 3090, 1640, 1450/40, 1378, 1330, 1220, 1165, 1105, 1065, 1038, 900/895, 780 cm-1. The compound has a woody, slightly camphorous, somewhat spicy odour.",
+            None,
+            [],
             True,
         ],
     ),
