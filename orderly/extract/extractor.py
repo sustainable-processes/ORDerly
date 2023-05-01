@@ -312,7 +312,7 @@ class OrdExtractor:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
                 for identifier in identifiers:
-                    if identifier.value.lower() in ['ice', 'ice water']:
+                    if identifier.value.lower() in ["ice", "ice water"]:
                         ice_present = True
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
@@ -335,8 +335,8 @@ class OrdExtractor:
                 elif rxn_role == 8:  # product
                     # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
                     products += [r for r in smiles.split(".")]
-                    
-        if 'II' in non_smiles_names_list:
+
+        if "II" in non_smiles_names_list:
             point = 3
             breakpoint()
 
@@ -625,7 +625,7 @@ class OrdExtractor:
             non_smiles_names_list_additions,
         ) = OrdExtractor.rxn_input_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
-        if 'II' in rxn_non_smiles_names_list:
+        if "II" in rxn_non_smiles_names_list:
             point = 1
             breakpoint()
 
@@ -908,9 +908,10 @@ class OrdExtractor:
         # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, and apply the manual_replacements_dict, so we need to do another check here
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
+            # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
             assert set(reactants).isdisjoint(
                 products
-            ), f"The intersection between reactants and products is not None. {reactants=} and {products=}"
+            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}."
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
@@ -969,7 +970,7 @@ class OrdExtractor:
             temperature = TEMPERATURE_CELCIUS(0.0)
 
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
-        if 'II' in rxn_non_smiles_names_list:
+        if "II" in rxn_non_smiles_names_list:
             point = 5
             breakpoint()
 

@@ -137,7 +137,7 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["Ice"] = "O"
     molecule_replacements["ice"] = "O"
     molecule_replacements["H2O"] = "O"
-    
+
     return molecule_replacements
 
 
