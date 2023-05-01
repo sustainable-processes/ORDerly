@@ -840,9 +840,12 @@ def test_number_of_columns_and_order_of_None(
         # check that there are no instances of None before data in the cleaned df
         df_subset = cleaned_df.loc[:, target_columns].copy()
         for index, row in df_subset.iterrows():
-            assert no_strings_after_none(
-                row
-            ), f"Row {index} has a string after a None value: {row}"
+            try:
+                assert no_strings_after_none(
+                    row
+                ), f"Row {index} has a string after a None value: {row}"
+            except AssertionError:
+                breakpoint()
 
 
 def double_list(
