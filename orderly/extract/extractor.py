@@ -926,22 +926,22 @@ class OrdExtractor:
             return resolvable_names + unresolvable_names
 
         reactants = move_unresolvable_names_to_end_of_list(
-            reactants, non_smiles_names_list_additions
+            reactants, rxn_non_smiles_names_list
         )
         products = move_unresolvable_names_to_end_of_list(
-            products, non_smiles_names_list_additions
+            products, rxn_non_smiles_names_list
         )
         agents = move_unresolvable_names_to_end_of_list(
-            agents, non_smiles_names_list_additions
+            agents, rxn_non_smiles_names_list
         )
         reagents = move_unresolvable_names_to_end_of_list(
-            reagents, non_smiles_names_list_additions
+            reagents, rxn_non_smiles_names_list
         )
         solvents = move_unresolvable_names_to_end_of_list(
-            solvents, non_smiles_names_list_additions
+            solvents, rxn_non_smiles_names_list
         )
         catalysts = move_unresolvable_names_to_end_of_list(
-            catalysts, non_smiles_names_list_additions
+            catalysts, rxn_non_smiles_names_list
         )
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
