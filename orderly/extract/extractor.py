@@ -900,14 +900,11 @@ class OrdExtractor:
 
         # Move unresolvable names to the back of the list - this is necessary due to the handling of unresolvable names in the cleaning scrip: one of the options is to replace the unresolvable name with None. When this happens, we might introduce a None before the data (e.g. agents = ["O", None, "H2O2"]); this is not ideal for the downstream processing, e.g. if we want to predict the agents using ML - the Nones should be last! Moving unresolvable names to the end of the list here, will mean that we don't need to do any reordering in the clean script when we replace unresolvable names with None
         def move_unresolvable_names_to_end_of_list(
-            mole_id_list: REACTANTS
-            | AGENTS
-            | REAGENTS
-            | SOLVENTS
-            | CATALYSTS
-            | PRODUCTS,
+            mole_id_list: Union[
+                REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
+            ],
             non_smiles_names_set: Set[str],
-        ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
+        ) -> Union[REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS]:
             """
             rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
             """

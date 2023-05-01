@@ -1210,7 +1210,7 @@ def test_extraction_pipeline(
                     if current_isna:
                         seen_none = True
                 return row
-            
+
             tmp_df.apply(check_valid_order, axis=1)
 
             def no_strings_after_none(row: pd.Series) -> bool:
@@ -1226,8 +1226,6 @@ def test_extraction_pipeline(
                 assert no_strings_after_none(
                     row
                 ), f"Row {index} has a string after a None value: {row}"
-
-            
 
         # Columns: ['rxn_str', 'reactant_000', 'reactant_001', 'reactant_002', 'reactant_003', 'agent_000', 'agent_001', 'agent_002', 'agent_003', 'agent_004', 'agent_005', 'solvent_000', 'solvent_001', 'solvent_002', 'temperature', 'rxn_time', 'product_000', 'yield_000', 'grant_date'],
         # They're allowed to be strings or floats (depending on the col) or None
