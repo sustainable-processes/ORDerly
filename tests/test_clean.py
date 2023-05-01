@@ -829,9 +829,7 @@ def test_number_of_columns_and_order_of_None(
             current_isna = pd.isna(a) or (a == "")
             if seen_none:
                 if not current_isna:
-                    raise ValueError(
-                        f"Unexpected order at {idx=} for {row.tolist()=}"
-                    )
+                    raise ValueError(f"Unexpected order at {idx=} for {row.tolist()=}")
             if current_isna:
                 seen_none = True
         return row
