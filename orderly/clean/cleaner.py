@@ -562,17 +562,7 @@ class Cleaner:
                 )
                 LOG.info(f"After removing rare molecules: {df.shape[0]}")
 
-        invalid_to_none_target_columns = self._get_columns_beginning_with_str(
-            columns=df.columns,
-            target_strings=(
-                "reactant",
-                "agent",
-                "reagent",
-                "solvent",
-                "catalyst",
-                "product",
-            ),
-        )
+        
 
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
@@ -588,25 +578,36 @@ class Cleaner:
 
         LOG.info("Getting mask to check the order")
 
-        to_check_order = (df == "<unresolved>").any(axis=1)
+        # to_check_order = (df == "<unresolved>").any(axis=1)
         # breakpoint()
+
+        to_check_order={
+            "reactant": None,
+            "agent": None,
+            "reagent": None,
+            "solvent": None,
+            "catalyst": None,
+            "product": None,
+        }
+        for target_string in to_check_order:
+            invalid_to_none_target_columns = self._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=(target_string,),
+            )
+            to_check_order[target_string] = (df[invalid_to_none_target_columns] == "<unresolved>").any(axis=1)
+            LOG.info(f"Unresolved names in {target_string}: {to_check_order[target_string].sum()}")
+
         df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].astype("string")
         df[invalid_to_none_target_columns] = df[invalid_to_none_target_columns].replace("<unresolved>", None)
 
         LOG.info("Set values to none")
 
+        # Check that for each of the component columns we modified, there is not a None before any data
+        # This is necessary because the above code will set unresolved strings to None
 
-        # Check that for each of the component columns, there is not a None before any data
-        # This is necessary because the above code will set some strings None
-        target_strings = (
-            "agent",
-            "solvent",
-            "reagent",
-            "catalyst",
-            "product",
-            "reactant",
-        )
-        df[to_check_order] = Cleaner._move_none_to_after_data(df[to_check_order], target_strings)
+        for target_string, to_check in to_check_order.items():
+            LOG.info(f"Reordering for {target_string}")
+            df[to_check] = Cleaner._move_none_to_after_data(df[to_check], (target_string,))
         LOG.info("Corrected order for mask")
 
         return df
