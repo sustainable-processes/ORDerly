@@ -123,17 +123,28 @@ class OrdExtractor:
         for i in identifiers:
             if i.type == 2:
                 canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    i.value, is_mapped=True
+                    i.value, is_mapped=False
                 )
                 if canon_smi is None:
                     canon_smi = i.value
                     non_smiles_names_list.append(i.value)
                 return canon_smi, non_smiles_names_list
         for ii in identifiers:  # if there's no smiles, return the name
+            # We need to look for a SMILES before we look for a name, so we can't merge these two loops even though they look identical.
             if ii.type == 6:
-                name = ii.value
-                non_smiles_names_list.append(name)
-                return name, non_smiles_names_list
+                # In theory, we'd just do this:
+                ## name = ii.value
+                ## non_smiles_names_list.append(name)
+                # However, at least once, in the case of "II" (diiodine), the smiles string was recorded as a name, which breaks everything downstream.
+                canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
+                    ii.value, is_mapped=False
+                )
+                if canon_smi is not None:
+                    LOG.info(f"SMILES string found labelled as name: {ii.value}")
+                else:
+                    canon_smi = ii.value
+                    non_smiles_names_list.append(ii.value)
+                return canon_smi, non_smiles_names_list
         return None, non_smiles_names_list
 
     @staticmethod
@@ -300,7 +311,6 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
-                breakpoint()
                 for identifier in identifiers:
                     if identifier.value.lower() in ['ice', 'ice water']:
                         ice_present = True
@@ -325,6 +335,10 @@ class OrdExtractor:
                 elif rxn_role == 8:  # product
                     # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
                     products += [r for r in smiles.split(".")]
+                    
+        if 'II' in non_smiles_names_list:
+            point = 3
+            breakpoint()
 
         return (
             sorted(reactants),
@@ -611,6 +625,9 @@ class OrdExtractor:
             non_smiles_names_list_additions,
         ) = OrdExtractor.rxn_input_extractor(rxn)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
+        if 'II' in rxn_non_smiles_names_list:
+            point = 1
+            breakpoint()
 
         (
             labelled_products,
@@ -953,6 +970,7 @@ class OrdExtractor:
 
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
         if 'II' in rxn_non_smiles_names_list:
+            point = 5
             breakpoint()
 
         return (
