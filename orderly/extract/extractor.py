@@ -667,8 +667,9 @@ class OrdExtractor:
                 agents,
                 _products,
                 rxn_str,
-                rxn_non_smiles_names_list,
+                non_smiles_names_list_additions,
             ) = rxn_info
+            rxn_non_smiles_names_list += non_smiles_names_list_additions
             # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
             products, _yields = OrdExtractor.match_yield_with_product(
                 _products, labelled_products, yields
