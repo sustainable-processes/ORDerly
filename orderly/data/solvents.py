@@ -36,6 +36,7 @@ def get_solvents_dict(
     Builds a dictionary of solvents from the solvents.csv file
     """
     # TODO Check when dict is applied we use .lower()
+    # I'm not sure if we actually want to do this, it can be dangerous since acronyms and metals should be case sensitive: Pc and PC are different
     solvents = get_solvents(path=path)
 
     def get_df(
