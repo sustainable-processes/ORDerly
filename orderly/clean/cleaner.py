@@ -163,14 +163,19 @@ class Cleaner:
             df = df.loc[mask].drop(columns_to_remove, axis=1)
 
         # And if there are fewer than expected, add a column of Nones
-        elif len(component_columns) < number_of_columns_to_keep: 
+        elif len(component_columns) < number_of_columns_to_keep:
             num_columns_to_add = number_of_columns_to_keep - len(component_columns)
-            columns_to_add = [pd.NA] * num_columns_to_add # TODO: change the d type of this line to match other missing str values
+            columns_to_add = [
+                pd.NA
+            ] * num_columns_to_add  # TODO: change the d type of this line to match other missing str values
             column_names_to_add = [
-                f"{component_name}_{i:03d}" for i in range(len(component_columns), len(component_columns) + num_columns_to_add)
+                f"{component_name}_{i:03d}"
+                for i in range(
+                    len(component_columns), len(component_columns) + num_columns_to_add
+                )
             ]
             df = df.assign(**dict(zip(column_names_to_add, columns_to_add)))
-            #breakpoint()
+            # breakpoint()
 
         return df
 

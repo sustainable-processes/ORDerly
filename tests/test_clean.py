@@ -764,7 +764,7 @@ def test_number_of_columns_and_order_of_None(
             num_reag_cols += 1
         elif col.startswith("solv"):
             num_solv_cols += 1
-    
+
     # if num_reactant == -1 we just include all reactant columns (and same for the others)
     assert (num_reactant_cols == num_reactant) or num_reactant == -1
     assert (num_product_cols == num_product) or num_product == -1
@@ -843,7 +843,7 @@ def test_number_of_columns_and_order_of_None(
         )
         # check that there are no instances of None before data in the cleaned df
         for idx, row in cleaned_df.loc[:, target_columns].iterrows():
-                check_valid_order(row)
+            check_valid_order(row)
         # cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
 
 
