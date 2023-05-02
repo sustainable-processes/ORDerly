@@ -909,9 +909,9 @@ class OrdExtractor:
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
             # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
-            # assert set(reactants).isdisjoint(#TODO uncomment this
-            #     products
-            # ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
+            assert set(reactants).isdisjoint(
+                products
+            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
@@ -924,42 +924,73 @@ class OrdExtractor:
                 REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
             ],
             non_smiles_names_set: Set[str],
-        ) -> Union[REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS]:
+            list_to_keep_order: Optional[YIELDS] = None,
+        ) -> Tuple[
+            Union[REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS], 
+            Optional[YIELDS]
+        ]:
             """
             rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
             """
             assert isinstance(mole_id_list, list)
             resolvable_names = []
             unresolvable_names = []
+            
+            if list_to_keep_order is None: # everything but products
 
-            for x in mole_id_list:
-                if x in non_smiles_names_set:
-                    unresolvable_names.append(x)
-                else:
-                    resolvable_names.append(x)
+                for x in mole_id_list:
+                    if x in non_smiles_names_set:
+                        unresolvable_names.append(x)
+                    else:
+                        resolvable_names.append(x)
 
-            return resolvable_names + unresolvable_names
+                return resolvable_names + unresolvable_names, None
+            
+            else: # products
+                if len(mole_id_list) <= 1:
+                    return mole_id_list, list_to_keep_order
+                elif (all(element is None for element in yields)): # This could in principle be merged with the if statement above, but I think separating it makes the code easier to read.
+                    for x in mole_id_list:
+                        if x in non_smiles_names_set:
+                            unresolvable_names.append(x)
+                        else:
+                            resolvable_names.append(x)
 
-        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
-        reactants = move_unresolvable_names_to_end_of_list(
+                    return resolvable_names + unresolvable_names, yields
+                else: # The yields list isn't just length 1, or full of Nones, so we need to keep track of the operations we perform.
+                    unresolvable_names_yields = []
+                    resolvable_names_yields = []
+                    for p, y in zip(mole_id_list, yields):
+                        if p in non_smiles_names_set:
+                            unresolvable_names.append(p)
+                            unresolvable_names_yields.append(y)
+                        else:
+                            resolvable_names.append(p)
+                            resolvable_names_yields.append(y)
+                    
+                return resolvable_names + unresolvable_names, resolvable_names_yields + unresolvable_names_yields
+
+
+        reactants, _ = move_unresolvable_names_to_end_of_list(
             reactants, rxn_non_smiles_names_set
         )
-        products = move_unresolvable_names_to_end_of_list(
-            products, rxn_non_smiles_names_set
-        )
-        agents = move_unresolvable_names_to_end_of_list(
+        products, yields = move_unresolvable_names_to_end_of_list(
+            products, rxn_non_smiles_names_set, yields
+        ) 
+        agents, _ = move_unresolvable_names_to_end_of_list(
             agents, rxn_non_smiles_names_set
         )
-        reagents = move_unresolvable_names_to_end_of_list(
+        reagents, _ = move_unresolvable_names_to_end_of_list(
             reagents, rxn_non_smiles_names_set
         )
-        solvents = move_unresolvable_names_to_end_of_list(
+        solvents, _ = move_unresolvable_names_to_end_of_list(
             solvents, rxn_non_smiles_names_set
         )
-        catalysts = move_unresolvable_names_to_end_of_list(
+        catalysts, _ = move_unresolvable_names_to_end_of_list(
             catalysts, rxn_non_smiles_names_set
         )
-
+        
+        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
