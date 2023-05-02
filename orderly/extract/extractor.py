@@ -893,7 +893,7 @@ class OrdExtractor:
         reagents, _ = remove_none_and_empty_str(reagents)
         solvents, _ = remove_none_and_empty_str(solvents)
         catalysts, _ = remove_none_and_empty_str(catalysts)
-        products, yields = remove_none_and_empty_str(  
+        products, yields = remove_none_and_empty_str(
             products, list_to_keep_order=yields
         )
 
