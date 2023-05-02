@@ -919,13 +919,16 @@ class OrdExtractor:
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
 
         def move_unresolvable_names_to_end_of_list(
-            mol_id_list: Union[
-                REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
-            ],
+            mol_id_list: REACTANTS
+            | AGENTS
+            | REAGENTS
+            | SOLVENTS
+            | CATALYSTS
+            | PRODUCTS,
             non_smiles_names_set: Set[str],
             list_to_keep_order: Optional[YIELDS] = None,
         ) -> Tuple[
-            Union[REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS],
+            REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
             Optional[YIELDS],
         ]:
             """
@@ -934,6 +937,7 @@ class OrdExtractor:
             assert isinstance(mol_id_list, list)
             resolvable_names = []
             unresolvable_names = []
+            
 
             if list_to_keep_order is None:  # everything but products
                 for x in mol_id_list:
@@ -969,14 +973,15 @@ class OrdExtractor:
                             resolvable_names_alt_list.append(y)
 
                 return (
-                    resolvable_names + unresolvable_names,
-                    resolvable_names_alt_list + unresolvable_names_alt_list,
+                    list(resolvable_names + unresolvable_names),
+                    list(resolvable_names_alt_list + unresolvable_names_alt_list),
                 )
 
         reactants, _ = move_unresolvable_names_to_end_of_list(
             reactants, rxn_non_smiles_names_set
         )
-        products, yields = move_unresolvable_names_to_end_of_list(
+        
+        products, _yields = move_unresolvable_names_to_end_of_list(
             products, rxn_non_smiles_names_set, yields
         )
         agents, _ = move_unresolvable_names_to_end_of_list(
@@ -991,6 +996,10 @@ class OrdExtractor:
         catalysts, _ = move_unresolvable_names_to_end_of_list(
             catalysts, rxn_non_smiles_names_set
         )
+        
+        if _yields is None:
+            _yields = [None]*len(products) # TODO: Fix mypy
+        yields = _yields
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
@@ -1000,6 +1009,7 @@ class OrdExtractor:
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
+
 
         return (
             reactants,
