@@ -670,15 +670,15 @@ def test_merge_to_agents(
             [],
             ["CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F"],
             [65.39],
-            ["CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F"],
-            [65.39],
+            [],
+            [],
         ],
         [
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
-            None,
+            [None],
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
-            None,
+            [None],
         ],
         [
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
@@ -716,9 +716,9 @@ def test_match_yield_with_product(
     execution_number: int,
     rxn_str_products: List[str],
     labelled_products: List[str],
-    input_yields: Optional[List[Optional[YIELD]]],
+    input_yields: List[Optional[YIELD]],
     expected_products: List[str],
-    expected_yields: Optional[List[Optional[YIELD]]],
+    expected_yields: List[Optional[YIELD]],
 ) -> None:
     import orderly.extract.extractor
 

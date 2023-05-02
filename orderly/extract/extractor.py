@@ -499,7 +499,7 @@ class OrdExtractor:
         if len(rxn_str_products) == 0:
             return [], []
         elif all(element is None for element in yields):
-            return rxn_str_products, yields[: len(rxn_str_products)]
+            return rxn_str_products, [None]*len(rxn_str_products)
         else:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
@@ -682,12 +682,10 @@ class OrdExtractor:
             ) = rxn_info
             rxn_non_smiles_names_list += non_smiles_names_list_additions
             # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
-            products, _yields = OrdExtractor.match_yield_with_product(
+            products, yields = OrdExtractor.match_yield_with_product(
                 _products, labelled_products, yields
             )
-            if _yields is None:
-                _yields = []
-            yields = _yields
+
 
             if (
                 include_unadded_labelled_molecules_as_agents
@@ -864,13 +862,13 @@ class OrdExtractor:
             list_to_keep_order: Optional[YIELDS] = None,
         ) -> Tuple[
             REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-            Optional[YIELDS],
+            YIELDS,
         ]:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mol_id_list, list)
 
             if len(mol_id_list) == 0 and list_to_keep_order is None:
-                return [], None
+                return [], []
             elif len(mol_id_list) == 0 and list_to_keep_order is not None:
                 return [], []
 
@@ -878,7 +876,7 @@ class OrdExtractor:
                 mol_id_list_without_none = [
                     x for x in mol_id_list if (x not in ["", None]) and (not pd.isna(x))
                 ]
-                return mol_id_list_without_none, None
+                return mol_id_list_without_none, []
             else:
                 mol_id_list_without_none, _list_to_keep_order = list(  # type: ignore
                     zip(
@@ -929,7 +927,7 @@ class OrdExtractor:
             list_to_keep_order: Optional[YIELDS] = None,
         ) -> Tuple[
             REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
-            Optional[YIELDS],
+            YIELDS,
         ]:
             """
             rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
@@ -946,7 +944,7 @@ class OrdExtractor:
                     else:
                         resolvable_names.append(x)
 
-                return resolvable_names + unresolvable_names, None
+                return resolvable_names + unresolvable_names, []
 
             else:  # products
                 if len(mol_id_list) <= 1:
@@ -997,8 +995,8 @@ class OrdExtractor:
             catalysts, rxn_non_smiles_names_set
         )
         
-        if _yields is None:
-            _yields = [None]*len(products) # TODO: Fix mypy
+        if _yields == []:
+            _yields = [None]*len(products) 
         yields = _yields
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
