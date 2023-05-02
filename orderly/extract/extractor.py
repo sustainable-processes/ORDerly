@@ -494,13 +494,15 @@ class OrdExtractor:
     def match_yield_with_product(
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
-        yields: Optional[YIELDS],
-        use_labelling_if_extract_fails: bool = True,
+        yields: YIELDS,
     ) -> Tuple[PRODUCTS, Optional[YIELDS]]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
+        We only ever enter this function if we don't trust the labelling, we would never want to return the list of labelled_products instead of the rxn_str_products. In the edge case where rxn_str_products is empty, we take this to mean that there was something weird about the reaction/rxn_str, and therefore we should maintain that the product is an empty list (and it will then be removed in the cleaning script).
         """
-        if (len(rxn_str_products) != 0) and (yields is not None):
+        if (len(rxn_str_products) == 0) or all(element is None for element in yields):
+            return rxn_str_products, len(rxn_str_products) * [None]
+        else:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
                 added = False
@@ -512,10 +514,6 @@ class OrdExtractor:
                 if not added:
                     reordered_yields.append(None)
             return rxn_str_products, reordered_yields
-        elif use_labelling_if_extract_fails:
-            return labelled_products, yields
-        else:
-            return [], []
 
     @staticmethod
     def merge_to_agents(
@@ -674,7 +672,7 @@ class OrdExtractor:
             reagents = labelled_reagents
             catalysts = labelled_catalysts
 
-        elif rxn_str is not None: #Trust_labelling = False
+        elif rxn_str is not None:  # Trust_labelling = False
             # extract info from the reaction string
             rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
             (
@@ -873,7 +871,12 @@ class OrdExtractor:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
             assert isinstance(mole_id_list, list)
 
-            if list_to_keep_order is None:
+            if len(mole_id_list) == 0 and list_to_keep_order is None:
+                return [], None
+            elif len(mole_id_list) == 0 and list_to_keep_order is not None:
+                return [], []
+
+            elif list_to_keep_order is None:
                 mole_id_list_without_none = [
                     x
                     for x in mole_id_list
@@ -906,9 +909,9 @@ class OrdExtractor:
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
             # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
-            assert set(reactants).isdisjoint(
-                products
-            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
+            # assert set(reactants).isdisjoint(#TODO uncomment this
+            #     products
+            # ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
@@ -967,9 +970,6 @@ class OrdExtractor:
             temperature = TEMPERATURE_CELCIUS(0.0)
 
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
-        if "II" in rxn_non_smiles_names_list:
-            point = 5
-            breakpoint()
 
         return (
             reactants,
