@@ -499,7 +499,7 @@ class OrdExtractor:
         if len(rxn_str_products) == 0:
             return [], []
         elif all(element is None for element in yields):
-            return rxn_str_products, [None]*len(rxn_str_products)
+            return rxn_str_products, [None] * len(rxn_str_products)
         else:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
@@ -685,7 +685,6 @@ class OrdExtractor:
             products, yields = OrdExtractor.match_yield_with_product(
                 _products, labelled_products, yields
             )
-
 
             if (
                 include_unadded_labelled_molecules_as_agents
@@ -935,7 +934,6 @@ class OrdExtractor:
             assert isinstance(mol_id_list, list)
             resolvable_names = []
             unresolvable_names = []
-            
 
             if list_to_keep_order is None:  # everything but products
                 for x in mol_id_list:
@@ -978,7 +976,7 @@ class OrdExtractor:
         reactants, _ = move_unresolvable_names_to_end_of_list(
             reactants, rxn_non_smiles_names_set
         )
-        
+
         products, _yields = move_unresolvable_names_to_end_of_list(
             products, rxn_non_smiles_names_set, yields
         )
@@ -994,9 +992,9 @@ class OrdExtractor:
         catalysts, _ = move_unresolvable_names_to_end_of_list(
             catalysts, rxn_non_smiles_names_set
         )
-        
+
         if _yields == []:
-            _yields = [None]*len(products) 
+            _yields = [None] * len(products)
         yields = _yields
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
@@ -1007,7 +1005,6 @@ class OrdExtractor:
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
-
 
         return (
             reactants,
