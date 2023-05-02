@@ -637,15 +637,15 @@ class OrdExtractor:
                 warnings.warn(
                     "The number of products in rxn.inputs and rxn.outcomes do not match"
                 )
-            for idx, (mole_id_from_input, mole_id_from_outcomes) in enumerate(
+            for idx, (mol_id_from_input, mol_id_from_outcomes) in enumerate(
                 zip(sorted(labelled_products_from_input), sorted(labelled_products))
             ):
                 smi_from_input = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    mole_id_from_input, is_mapped=False
+                    mol_id_from_input, is_mapped=False
                 )
                 smi_from_outcomes = (
                     orderly.extract.canonicalise.get_canonicalised_smiles(
-                        mole_id_from_outcomes, is_mapped=False
+                        mol_id_from_outcomes, is_mapped=False
                     )
                 )
                 if smi_from_input != smi_from_outcomes:
@@ -759,7 +759,7 @@ class OrdExtractor:
         ]
 
         def canonicalise_and_get_non_smiles_names(
-            mole_id_list: REACTANTS
+            mol_id_list: REACTANTS
             | AGENTS
             | REAGENTS
             | SOLVENTS
@@ -771,18 +771,18 @@ class OrdExtractor:
             List[MOLECULE_IDENTIFIER],
         ]:
             """Canonicalise the smiles and return the identifier (either SMILES or non-SMILES) as well as a list of non-SMILES names"""
-            assert isinstance(mole_id_list, list)
+            assert isinstance(mol_id_list, list)
             non_smiles_names_list_additions = []
-            for idx, mole_id in enumerate(mole_id_list):
+            for idx, mol_id in enumerate(mol_id_list):
                 smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    mole_id, is_mapped=is_mapped
+                    mol_id, is_mapped=is_mapped
                 )
                 if smi is None:
-                    non_smiles_names_list_additions.append(mole_id)
-                    mole_id_list[idx] = mole_id
+                    non_smiles_names_list_additions.append(mol_id)
+                    mol_id_list[idx] = mol_id
                 else:
-                    mole_id_list[idx] = smi
-            return mole_id_list, non_smiles_names_list_additions
+                    mol_id_list[idx] = smi
+            return mol_id_list, non_smiles_names_list_additions
 
         # Reactants and products might be mapped, but agents are not
         # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn_str function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
@@ -790,7 +790,7 @@ class OrdExtractor:
             reactants,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=reactants, is_mapped=is_mapped
+            mol_id_list=reactants, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -798,7 +798,7 @@ class OrdExtractor:
             agents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=agents, is_mapped=is_mapped
+            mol_id_list=agents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -806,7 +806,7 @@ class OrdExtractor:
             reagents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=reagents, is_mapped=is_mapped
+            mol_id_list=reagents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -814,7 +814,7 @@ class OrdExtractor:
             solvents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=solvents, is_mapped=is_mapped
+            mol_id_list=solvents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -822,7 +822,7 @@ class OrdExtractor:
             catalysts,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=catalysts, is_mapped=is_mapped
+            mol_id_list=catalysts, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -830,7 +830,7 @@ class OrdExtractor:
             products,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=products, is_mapped=is_mapped
+            mol_id_list=products, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -855,7 +855,7 @@ class OrdExtractor:
         )
 
         def remove_none_and_empty_str(
-            mole_id_list: REACTANTS
+            mol_id_list: REACTANTS
             | AGENTS
             | REAGENTS
             | SOLVENTS
@@ -867,31 +867,31 @@ class OrdExtractor:
             Optional[YIELDS],
         ]:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
-            assert isinstance(mole_id_list, list)
+            assert isinstance(mol_id_list, list)
 
-            if len(mole_id_list) == 0 and list_to_keep_order is None:
+            if len(mol_id_list) == 0 and list_to_keep_order is None:
                 return [], None
-            elif len(mole_id_list) == 0 and list_to_keep_order is not None:
+            elif len(mol_id_list) == 0 and list_to_keep_order is not None:
                 return [], []
 
             elif list_to_keep_order is None:
-                mole_id_list_without_none = [
+                mol_id_list_without_none = [
                     x
-                    for x in mole_id_list
+                    for x in mol_id_list
                     if (x not in ["", None]) and (not pd.isna(x))
                 ]
-                return mole_id_list_without_none, None
+                return mol_id_list_without_none, None
             else:
-                mole_id_list_without_none, _list_to_keep_order = list(  # type: ignore
+                mol_id_list_without_none, _list_to_keep_order = list(  # type: ignore
                     zip(
                         *[
                             (x, j)
-                            for x, j in zip(mole_id_list, list_to_keep_order)
+                            for x, j in zip(mol_id_list, list_to_keep_order)
                             if (x not in ["", None]) and (not pd.isna(x))
                         ]
                     )
                 )
-                return list(mole_id_list_without_none), list(_list_to_keep_order)
+                return list(mol_id_list_without_none), list(_list_to_keep_order)
 
         reactants, _ = remove_none_and_empty_str(reactants)
         agents, _ = remove_none_and_empty_str(agents)
@@ -921,7 +921,7 @@ class OrdExtractor:
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
 
         def move_unresolvable_names_to_end_of_list(
-            mole_id_list: Union[
+            mol_id_list: Union[
                 REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
             ],
             non_smiles_names_set: Set[str],
@@ -933,12 +933,12 @@ class OrdExtractor:
             """
             rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
             """
-            assert isinstance(mole_id_list, list)
+            assert isinstance(mol_id_list, list)
             resolvable_names = []
             unresolvable_names = []
 
             if list_to_keep_order is None:  # everything but products
-                for x in mole_id_list:
+                for x in mol_id_list:
                     if x in non_smiles_names_set:
                         unresolvable_names.append(x)
                     else:
@@ -947,12 +947,12 @@ class OrdExtractor:
                 return resolvable_names + unresolvable_names, None
 
             else:  # products
-                if len(mole_id_list) <= 1:
-                    return mole_id_list, list_to_keep_order
+                if len(mol_id_list) <= 1:
+                    return mol_id_list, list_to_keep_order
                 elif all(
                     element is None for element in list_to_keep_order
                 ):  # This could in principle be merged with the if statement above, but I think separating it makes the code easier to read.
-                    for x in mole_id_list:
+                    for x in mol_id_list:
                         if x in non_smiles_names_set:
                             unresolvable_names.append(x)
                         else:
@@ -962,7 +962,7 @@ class OrdExtractor:
                 else:  # The yields list isn't just length 1, or full of Nones, so we need to keep track of the operations we perform.
                     unresolvable_names_alt_list = []
                     resolvable_names_alt_list = []
-                    for p, y in zip(mole_id_list, list_to_keep_order):
+                    for p, y in zip(mol_id_list, list_to_keep_order):
                         if p in non_smiles_names_set:
                             unresolvable_names.append(p)
                             unresolvable_names_alt_list.append(y)
