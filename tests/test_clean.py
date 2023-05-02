@@ -764,13 +764,15 @@ def test_number_of_columns_and_order_of_None(
             num_reag_cols += 1
         elif col.startswith("solv"):
             num_solv_cols += 1
+    
+    # if num_reactant == -1 we just include all reactant columns (and same for the others)
+    assert (num_reactant_cols == num_reactant) or num_reactant == -1
+    assert (num_product_cols == num_product) or num_product == -1
+    assert (num_agent_cols == num_agent) or num_agent == -1
+    assert (num_cat_cols == num_cat) or num_cat == -1
+    assert (num_reag_cols == num_reag) or num_reag == -1
+    assert (num_solv_cols == num_solv) or num_solv == -1
 
-    assert num_reactant_cols == num_reactant
-    assert num_product_cols == num_product
-    assert num_agent_cols == num_agent
-    assert num_cat_cols == num_cat
-    assert num_reag_cols == num_reag
-    assert num_solv_cols == num_solv
     assert "grant_date" in cols
     assert "date_of_experiment" in cols
 
@@ -840,14 +842,9 @@ def test_number_of_columns_and_order_of_None(
             target_strings=(target_string,),
         )
         # check that there are no instances of None before data in the cleaned df
-
-        try:
-            # cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
-            for idx, row in cleaned_df.loc[:, target_columns].iterrows():
+        for idx, row in cleaned_df.loc[:, target_columns].iterrows():
                 check_valid_order(row)
-        except ValueError:
-            print("HERE")
-            breakpoint()
+        # cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
 
 
 def double_list(
