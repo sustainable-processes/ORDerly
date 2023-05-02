@@ -1091,7 +1091,7 @@ def test_match_yield_with_product(
                 "[Co]",
                 "O=S(=O)(O)O",
             ],
-            ["[Co+3]", "CCCCCC=N", "O=S(=O)([O-])[O-]", "[NH4+]" ],
+            ["[Co+3]", "CCCCCC=N", "O=S(=O)([O-])[O-]", "[NH4+]"],
             [],
             [],
             [],
