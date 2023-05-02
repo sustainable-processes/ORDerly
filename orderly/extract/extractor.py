@@ -876,9 +876,7 @@ class OrdExtractor:
 
             elif list_to_keep_order is None:
                 mol_id_list_without_none = [
-                    x
-                    for x in mol_id_list
-                    if (x not in ["", None]) and (not pd.isna(x))
+                    x for x in mol_id_list if (x not in ["", None]) and (not pd.isna(x))
                 ]
                 return mol_id_list_without_none, None
             else:
