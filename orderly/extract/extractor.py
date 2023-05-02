@@ -336,10 +336,6 @@ class OrdExtractor:
                     # there are typically no products recorded in rxn_role == 8, they're all stored in "outcomes"
                     products += [r for r in smiles.split(".")]
 
-        if "II" in non_smiles_names_list:
-            point = 3
-            breakpoint()
-
         return (
             sorted(reactants),
             sorted(reagents),
@@ -495,13 +491,15 @@ class OrdExtractor:
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
         yields: YIELDS,
-    ) -> Tuple[PRODUCTS, Optional[YIELDS]]:
+    ) -> Tuple[PRODUCTS, YIELDS]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
         We only ever enter this function if we don't trust the labelling, we would never want to return the list of labelled_products instead of the rxn_str_products. In the edge case where rxn_str_products is empty, we take this to mean that there was something weird about the reaction/rxn_str, and therefore we should maintain that the product is an empty list (and it will then be removed in the cleaning script).
         """
-        if (len(rxn_str_products) == 0) or all(element is None for element in yields):
-            return rxn_str_products, len(rxn_str_products) * [None]
+        if len(rxn_str_products) == 0:
+            return [], []
+        elif all(element is None for element in yields):
+            return rxn_str_products, yields[: len(rxn_str_products)]
         else:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
@@ -921,7 +919,7 @@ class OrdExtractor:
         # Move unresolvable names to the back of the list - this is necessary due to the handling of unresolvable names in the cleaning scrip: one of the options is to replace the unresolvable name with None. When this happens, we might introduce a None before the data (e.g. agents = ["O", None, "H2O2"]); this is not ideal for the downstream processing, e.g. if we want to predict the agents using ML - the Nones should be last! Moving unresolvable names to the end of the list here, will mean that we don't need to do any reordering in the clean script when we replace unresolvable names with None
         rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
         rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
-        
+
         def move_unresolvable_names_to_end_of_list(
             mole_id_list: Union[
                 REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
@@ -952,7 +950,7 @@ class OrdExtractor:
                 if len(mole_id_list) <= 1:
                     return mole_id_list, list_to_keep_order
                 elif all(
-                    element is None for element in yields
+                    element is None for element in list_to_keep_order
                 ):  # This could in principle be merged with the if statement above, but I think separating it makes the code easier to read.
                     for x in mole_id_list:
                         if x in non_smiles_names_set:
@@ -960,21 +958,21 @@ class OrdExtractor:
                         else:
                             resolvable_names.append(x)
 
-                    return resolvable_names + unresolvable_names, yields
+                    return resolvable_names + unresolvable_names, list_to_keep_order
                 else:  # The yields list isn't just length 1, or full of Nones, so we need to keep track of the operations we perform.
-                    unresolvable_names_yields = []
-                    resolvable_names_yields = []
-                    for p, y in zip(mole_id_list, yields):
+                    unresolvable_names_alt_list = []
+                    resolvable_names_alt_list = []
+                    for p, y in zip(mole_id_list, list_to_keep_order):
                         if p in non_smiles_names_set:
                             unresolvable_names.append(p)
-                            unresolvable_names_yields.append(y)
+                            unresolvable_names_alt_list.append(y)
                         else:
                             resolvable_names.append(p)
-                            resolvable_names_yields.append(y)
+                            resolvable_names_alt_list.append(y)
 
                 return (
                     resolvable_names + unresolvable_names,
-                    resolvable_names_yields + unresolvable_names_yields,
+                    resolvable_names_alt_list + unresolvable_names_alt_list,
                 )
 
         reactants, _ = move_unresolvable_names_to_end_of_list(
@@ -996,7 +994,6 @@ class OrdExtractor:
             catalysts, rxn_non_smiles_names_set
         )
 
-        
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
