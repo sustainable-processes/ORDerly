@@ -919,6 +919,9 @@ class OrdExtractor:
             catalysts = [c for c in catalysts if c not in reactants_and_products]
 
         # Move unresolvable names to the back of the list - this is necessary due to the handling of unresolvable names in the cleaning scrip: one of the options is to replace the unresolvable name with None. When this happens, we might introduce a None before the data (e.g. agents = ["O", None, "H2O2"]); this is not ideal for the downstream processing, e.g. if we want to predict the agents using ML - the Nones should be last! Moving unresolvable names to the end of the list here, will mean that we don't need to do any reordering in the clean script when we replace unresolvable names with None
+        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
+        rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
+        
         def move_unresolvable_names_to_end_of_list(
             mole_id_list: Union[
                 REACTANTS, AGENTS, REAGENTS, SOLVENTS, CATALYSTS, PRODUCTS
@@ -993,7 +996,7 @@ class OrdExtractor:
             catalysts, rxn_non_smiles_names_set
         )
 
-        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
+        
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
@@ -1002,8 +1005,6 @@ class OrdExtractor:
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
-
-        rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
 
         return (
             reactants,
