@@ -399,6 +399,25 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        [
+            "ord_dataset-85c00026681b46f89ef8634d2b8618c3",
+            3948,
+            None,
+            [
+                "O=S(=O)(O)O",
+                "[Co]",
+            ],
+            [
+                "CCCCCC=N",
+                "O=S(=O)([O-])[O-]",
+                "[Co+3]",
+                "[NH4+]",
+            ],
+            [],
+            "[Co:1].[S:2]([OH:6])([OH:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[NH4+].[NH4+].[Co+3]>>[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[Co+3:1].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[Co+3:1]",
+            [],
+            False,
+        ],
         # Test case where reaction with only 1 >
         pytest.param(
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -1069,12 +1088,12 @@ def test_match_yield_with_product(
             {},
             False,
             [
-                '[Co]','O=S(=O)(O)O',
+                "[Co]",
+                "O=S(=O)(O)O",
             ],
-            ['CCCCCC=N', 'O=S(=O)([O-])[O-]', '[NH4+]', '[Co+3]'],
+            ["CCCCCC=N", "O=S(=O)([O-])[O-]", "[NH4+]", "[Co+3]"],
             [],
-            [
-            ],
+            [],
             [],
             [],
             [],
@@ -1085,8 +1104,7 @@ def test_match_yield_with_product(
             None,
             [],
             True,
-        ]
-        
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
