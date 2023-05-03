@@ -174,8 +174,10 @@ class Cleaner:
                     len(component_columns), len(component_columns) + num_columns_to_add
                 )
             ]
-            df = df.assign(**dict(zip(column_names_to_add, columns_to_add)))
-            # breakpoint()
+            
+            new_columns = pd.DataFrame(columns=column_names_to_add, data=columns_to_add)
+            df = pd.concat([df, new_columns], axis=1)
+            
 
         return df
 
