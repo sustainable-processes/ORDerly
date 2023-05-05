@@ -1,7 +1,7 @@
 import logging
 import os
 import json
-from typing import List, Dict
+from typing import List, Dict, Tuple, Optional
 import dataclasses
 import datetime
 import pathlib
@@ -16,7 +16,6 @@ import numpy as np
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
-from typing import Optional
 from orderly.types import *
 
 LOG = logging.getLogger(__name__)
@@ -99,14 +98,11 @@ class Cleaner:
         LOG.info("Getting merged dataframe from extracted ord files")
 
         dfs = []
-        with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
-            for file in tqdm.tqdm(
-                self.ord_extraction_path.glob("*.parquet"), disable=self.disable_tqdm
-            ):
-                LOG.debug(f"Reading {file=}")
-                extracted_df = pd.read_parquet(file)
-                dfs.append(extracted_df)
-                LOG.debug(f"Read {file=}")
+        for file in self.ord_extraction_path.glob("*.parquet"):
+            LOG.debug(f"Reading {file=}")
+            extracted_df = pd.read_parquet(file)
+            dfs.append(extracted_df)
+            LOG.debug(f"Read {file=}")
         LOG.info("Successfully read all data")
         return pd.concat(dfs, ignore_index=True)
 
@@ -131,23 +127,21 @@ class Cleaner:
         if number_of_columns_to_keep == -1:
             return df
 
-        cols = list(df.columns)
-        count = 0
-        for col in cols:
-            if col.startswith(component_name):
-                count += 1
-        columns_to_remove = []  # columns to remove
-        for i in range(count):
-            if i >= number_of_columns_to_keep:
-                columns_to_remove.append(f"{component_name}_{i:03d}")
-        for col in columns_to_remove:
-            # Create a boolean mask for the rows with missing values in col
-            mask = pd.isnull(df[col])
+        # Filter the columns that start with component_name
+        component_columns = [
+            col for col in df.columns if col.startswith(component_name)
+        ]
 
-            # Create a new DataFrame with the selected rows
-            df = df.loc[mask]
+        # If there are more columns than the threshold, remove the excess ones
+        if len(component_columns) > number_of_columns_to_keep:
+            columns_to_remove = component_columns[number_of_columns_to_keep:]
 
-        df = df.drop(columns_to_remove, axis=1)
+            # Create a boolean mask for rows with missing values in the columns to remove
+            mask = df[columns_to_remove].isnull().all(axis=1)
+
+            # Filter the DataFrame using the mask and drop the columns to remove
+            df = df.loc[mask].drop(columns_to_remove, axis=1)
+
         return df
 
     @staticmethod
@@ -259,12 +253,19 @@ class Cleaner:
             f"Mapping rare molecules to 'other' for {columns_to_transform=} with {min_frequency_of_occurrence=}"
         )
         for col in columns_to_transform:
+            LOG.info(f"map rare molecules to other for {col=}")
             # Find the values that occur less frequently than the minimum frequency threshold
-            rare_values = value_counts[
-                value_counts < min_frequency_of_occurrence
-            ].index.tolist()
+            rare_values = {
+                i: "other"
+                for i in value_counts[
+                    value_counts < min_frequency_of_occurrence
+                ].index.tolist()
+            }
+
             # Map the rare values to 'other'
-            df[col] = df[col].apply(lambda x: "other" if x in rare_values else x)
+            df[col] = df[col].map(
+                lambda x: rare_values.get(x, x)
+            )  # equivalent to series = series.replace(rare_values)
         return df
 
     @staticmethod
@@ -294,6 +295,23 @@ class Cleaner:
         # Remove the rows with rare values
         df = df.drop(index_union)
         return df
+
+    @staticmethod
+    def _get_columns_beginning_with_str(
+        columns: List[str], target_strings: Optional[Tuple[str, ...]] = None
+    ) -> List[str]:
+        """goes through the column in a dataframe and adds columns that start with a string in the target strings"""
+        if target_strings is None:
+            target_strings = (
+                "agent",
+                "solvent",
+                "reagent",
+                "catalyst",
+                "product",
+                "reactant",
+            )
+
+        return [col for col in columns if col.startswith(target_strings)]
 
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
@@ -355,37 +373,70 @@ class Cleaner:
                         return True
             return False
 
+        target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=(
+                "agent",
+                "solvent",
+                "reagent",
+                "catalyst",
+                "product",
+                "reactant",
+            ),
+        )
+
+        LOG.info(
+            f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
+        )
         if self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
             )
             mask_is_mapped = df["rxn_str"].apply(is_mapped)
+            LOG.info("Got mask for if reactions are mapped")
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
+
             # set unresolved names to none
-            mapped_rxn_df = mapped_rxn_df.replace(self.molecules_to_remove, None)
+            mtr = {i: None for i in self.molecules_to_remove}
+            for col in target_columns:
+                LOG.info(f"Applying nones to {col=}")
+                mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
+                    lambda x: mtr.get(x, x)
+                )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+
+            LOG.info(
+                f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
+            )
 
             # remove reactions with unresolved names
-            for col in tqdm.tqdm(not_mapped_rxn_df.columns, disable=self.disable_tqdm):
+            for col in tqdm.tqdm(
+                target_columns,
+                disable=self.disable_tqdm,
+            ):
+                LOG.info(f"Attempting to remove reactions for {col}")
                 not_mapped_rxn_df = not_mapped_rxn_df[
                     ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
                 ]
+                LOG.info(
+                    f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
+                )
 
             # concat the dfs again
             df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
 
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
-            )
+                f"After removing reactions without mapped rxn that also have unresolvable names, case 1: {df.shape[0]}"
+            )  # TODO (DW) please add a better string for these logging messages so it is more clean what is being called
 
         elif self.remove_rxn_with_unresolved_names:
             LOG.info(
-                f"Before removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"Before removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
             )
-            for col in tqdm.tqdm(df.columns, disable=self.disable_tqdm):
+            for col in tqdm.tqdm(target_columns, disable=self.disable_tqdm):
                 df = df[~df[col].isin(self.molecules_to_remove)]
             LOG.info(
-                f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
+                f"After removing reactions without mapped rxn that also have unresolvable names, case 2: {df.shape[0]}"
             )
 
         elif self.set_unresolved_names_to_none:
@@ -415,11 +466,11 @@ class Cleaner:
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # Define the list of columns to check
-            columns_to_count_from = [
-                col
-                for col in df.columns
-                if col.startswith(("agent", "solvent", "reagent", "catalyst"))
-            ]
+
+            columns_to_count_from = self._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=("agent", "solvent", "reagent", "catalyst"),
+            )
             value_counts = Cleaner._get_value_counts(
                 df, columns_to_count_from
             )  # Get the value counts for the subset df[columns_to_check_for_rare_molecules]
@@ -448,7 +499,21 @@ class Cleaner:
 
         # Replace np.nan with None
         LOG.info("Map np.nan to None")
-        df = df.applymap(lambda x: None if pd.isna(x) else x)
+        nan_to_none_target_columns = self._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=(
+                "rxn_str" "reactant",
+                "agent",
+                "reagent",
+                "solvent",
+                "catalyst",
+                "product",
+                "procedure_details",
+            ),
+        )
+        df.loc[:, nan_to_none_target_columns] = df.loc[
+            :, nan_to_none_target_columns
+        ].applymap(lambda x: None if pd.isna(x) else x)
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
             LOG.info(f"Before removing duplicates: {df.shape[0]}")
@@ -456,6 +521,7 @@ class Cleaner:
             LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
+        df = df.sort_index(axis=1)
         return df
 
 
@@ -644,7 +710,7 @@ def main_click(
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
 
-    _log_file = pathlib.Path(ord_extraction_path) / ".." / "clean.log"
+    _log_file = pathlib.Path(output_path).parent / "clean.log"
     if log_file != "default_path_clean.log":
         _log_file = pathlib.Path(log_file)
 
