@@ -131,8 +131,13 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     # Alternative replacements. These words may be more ambiguous than the replacements above. (e.g. does 'ice' mean icebath or ice in the reaction?)
     molecule_replacements["aqueous solution"] = "O"
     molecule_replacements["ice water"] = "O"
+    molecule_replacements["Ice water"] = "O"
     molecule_replacements["water"] = "O"
+    molecule_replacements["Water"] = "O"
+    molecule_replacements["Ice"] = "O"
     molecule_replacements["ice"] = "O"
+    molecule_replacements["H2O"] = "O"
+
     return molecule_replacements
 
 

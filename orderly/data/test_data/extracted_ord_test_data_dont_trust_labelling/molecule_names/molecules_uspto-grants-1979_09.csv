@@ -39,6 +39,7 @@ ice water
 colorless powder
 1 ]
 [ 1
+[ 1.1 ]
 colorless powder
 acid chloride
 crystals
@@ -58,6 +59,7 @@ alcohol
 bis perchlorate
 diacetate ester
 Compound 3
+0.4-N
 4-N
 1-N
 2-N
@@ -89,13 +91,16 @@ ester
 butylate
 resultant suspension
 sodium tert
+sodium tert.butylate
 butylate
 sodium tert
+sodium tert.butylate
 ( 112 )
 Schiff's base
 ( 221 )
 ice water
 potassium tertiary butylate
+6.65-N
 65-N
 ceric ammonium nitrate
 ice water
@@ -106,6 +111,7 @@ suspension
 ice water
  butylate
 potassium tert
+potassium tert. butylate
 5-N
 ice water
 potassium tertiary butylate
@@ -189,8 +195,10 @@ stannous chloride dihydrate
 yellow needles
 crude product
 ( 5
+( 5.0 )
 0 )
 ( 5
+( 5.0 )
 0 )
 hydroxyethyl tetraphthalyl acrylate
 anhydride
@@ -202,6 +210,7 @@ colorless oil
 oil
 " butoxy-3,7-dimethyloctanoate"
 "saturated ester (3S,7R)-Ethyl-8-tert"
+"saturated ester (3S,7R)-Ethyl-8-tert. butoxy-3,7-dimethyloctanoate"
 mercuric oxide
 acetylenic
 ice water

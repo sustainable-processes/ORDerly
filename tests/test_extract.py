@@ -116,6 +116,21 @@ def get_rxn_func() -> Callable[[str, int], ord_reaction_pb2.Reaction]:
             False,
             [],
         ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            38,
+            [
+                "BrBr",
+                "CC1CC(C)(C)CC(C#N)(NNC(C)(C)C)C1",
+                "4-t-butylhydrazo-4-cyano-2,6-dimethylheptane",
+            ],
+            [],
+            [],
+            [],
+            [],
+            False,
+            ["4-t-butylhydrazo-4-cyano-2,6-dimethylheptane"],
+        ],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(REPETITIONS))
@@ -366,6 +381,40 @@ def test_rxn_string_and_is_mapped(
             ],
             [],
             "CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2.Cl.CC1N=CC2C(C=1)=C([N+]([O-])=O)C=CC=2.[IH:44]>>[IH:44].[Cl:15][C:16]1[CH:25]=[CH:24][C:23]([N+:26]([O-:28])=[O:27])=[C:22]2[C:17]=1[CH:18]=[CH:19][N:20]=[CH:21]2",
+            [],
+            False,
+        ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            1932,
+            None,
+            ["C=C(C)Br", "C=C1CC(=O)CCC2=C(C)CCC12"],
+            [
+                "C1CCOC1",
+                "II",
+                "[Mg]",
+            ],
+            ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
+            "[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1",
+            [],
+            False,
+        ],
+        [
+            "ord_dataset-85c00026681b46f89ef8634d2b8618c3",
+            3948,
+            None,
+            [
+                "O=S(=O)(O)O",
+                "[Co]",
+            ],
+            [
+                "CCCCCC=N",
+                "O=S(=O)([O-])[O-]",
+                "[Co+3]",
+                "[NH4+]",
+            ],
+            [],
+            "[Co:1].[S:2]([OH:6])([OH:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[NH4+].[NH4+].[Co+3]>>[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[Co+3:1].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[Co+3:1]",
             [],
             False,
         ],
@@ -621,15 +670,15 @@ def test_merge_to_agents(
             [],
             ["CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F"],
             [65.39],
-            ["CCOC(=O)c1cnc2cc(OCC)c(N3CCN(C(C)C)CC3)cc2c1Nc1ccc(F)cc1F"],
-            [65.39],
+            [],
+            [],
         ],
         [
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
-            None,
+            [None],
             ["O=[N+]([O-])c1ccc(Oc2ccc(C(F)(F)F)cc2Cl)cc1SCc1ccccc1"],
-            None,
+            [None],
         ],
         [
             ["[Na+]", "[Na+]", "[O-]B1OB2OB([O-])OB(O1)O2"],
@@ -667,9 +716,9 @@ def test_match_yield_with_product(
     execution_number: int,
     rxn_str_products: List[str],
     labelled_products: List[str],
-    input_yields: Optional[List[Optional[YIELD]]],
+    input_yields: List[Optional[YIELD]],
     expected_products: List[str],
-    expected_yields: Optional[List[Optional[YIELD]]],
+    expected_yields: List[Optional[YIELD]],
 ) -> None:
     import orderly.extract.extractor
 
@@ -684,7 +733,7 @@ def test_match_yield_with_product(
 
 
 @pytest.mark.parametrize(
-    "file_name,rxn_idx,manual_replacements_dict,trust_labelling,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_date_of_experiment, expected_names_list",
+    "file_name,rxn_idx,manual_replacements_dict,trust_labelling,expected_reactants, expected_agents, expected_reagents,expected_solvents,expected_catalysts,expected_products,expected_yields,expected_temperature,expected_rxn_time,expected_rxn_str, expected_procedure_details, expected_date_of_experiment, expected_names_list, expected_is_mapped",
     (
         [
             "ord_dataset-00005539a1e04c809a9a78647bea649c",
@@ -710,6 +759,7 @@ def test_match_yield_with_product(
             "To a solution of ethyl 6-bromo-4-(2,4-difluorophenylamino)-7-ethoxyquinoline-3-carboxylate (400 mg, 0.89 mmol) and 1-(Isopropyl)piperazine (254 µl, 1.77 mmol) in dioxane was added cesium carbonate (722 mg, 2.22 mmol), tris(dibenzylideneacetone)dipalladium(0) (40.6 mg, 0.04 mmol) and rac-2,2'-Bis(diphenylphosphino)-1,1'-binaphthyl (55.2 mg, 0.09 mmol). Reaction vessel in oil bath set to 110 °C. 11am  After 5 hours, MS shows product (major peak 499), and SM (minor peak 453).  o/n, MS shows product peak. Reaction cooled, concentrated onto silica, and purified on ISCO. 40g column, 1:1 EA:Hex, then 100% EA.  289mg yellow solid. NMR (EN00180-62-1) supports product, but some oxidised BINAP impurity (LCMS 655).  ",
             "07/01/2008",
             [],
+            False,
         ],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
@@ -732,6 +782,7 @@ def test_match_yield_with_product(
             "1.7 g of benzyl mercaptan was dissolved in dry tetrahydrofuran and 0.5 g of sodium hydride added with stirring under dry nitrogen. The reaction mixture was stirred under reflux for 30 minutes, and a solution of 5 g of 1A dissolved in 25 ml of dry tetrahydrofuran was added dropwise. Reaction occurred rapidly, and the product was chromatographically purified to give 2-benzylthio-4-(2-chloro-4-trifluoromethylphenoxy)nitrobenzene (1B) as a yellow oil.",
             None,
             [],
+            True,
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -739,7 +790,10 @@ def test_match_yield_with_product(
             {},
             False,
             ["[O-]B([O-])[O-]"],
-            ["35(Na2O)", "[Na+]"],
+            [
+                "[Na+]",
+                "35(Na2O)",
+            ],
             [],
             ["O"],
             [],
@@ -751,6 +805,7 @@ def test_match_yield_with_product(
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             None,
             ["35(Na2O)"],
+            True,
         ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
@@ -792,6 +847,7 @@ def test_match_yield_with_product(
             "Sodium tetraborate (Na2B4O7.10H2O), analyzed reagent was dried overnight at 150° C, mixed with the appropriate quantity of dopant ions and homogenized in an electric homogenizer (vibrator) during 10 minutes. The material was then transferred to a platinum crucible and heated at 1100° C for at least 30 minutes, until a clear transparent solution was obtained. The glass matrix loses water and the composition of the matrix is after the heating 35(Na2O).65(B2O3). A drop of the hot melt was allowed to fall directly onto a clean white glazed ceramic surface, into the center of a space ring of 1 mm thickness, and pressed with a second ceramic tile to produce a glass disk of 1 mm thickness and an approximate diameter of 12 mm. The glass is transparent in the ultraviolet and in the visible part of the spectrum.",
             None,
             ["35(Na2O)"],
+            True,
         ],
         [
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -819,6 +875,7 @@ def test_match_yield_with_product(
             "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             None,
             [],
+            True,
         ],
         [
             "ord_dataset-0bf72e95d80743729fdbb8b57a4bc0c6",
@@ -843,6 +900,7 @@ def test_match_yield_with_product(
             "A solution of 30 g of nopinone ([α]D20 =+39.90; c=8 in ethanol), 29 of pyrrolidine and 0.4 g of p-toluenesulfonic acid in 150 ml anhydrous benzene was heated at reflux for 40 h under nitrogen atmosphere in a vessel fitted with a water separator. After evaporation of the solvent and distillation of the residue, there were obtained 39.5 g (95% yield) of 1-(6,6-dimethylnorpin-2-en-2-yl)-pyrrolidine having b.p. 117°-118° C./10 Torr.",
             None,
             [],
+            True,
         ],
         # Test: one of the input reactants = 'liquid'; trust_labelling = True
         [
@@ -863,6 +921,7 @@ def test_match_yield_with_product(
             "A solution of 300 g (1.63 mol) of cyanuric chloride in 1 liter THF and 0.24 liter diglyme was cooled to 0\302\260 C. and 81.6 mL (3.36 mol) of liquid ammonia added dropwise over 90 min. keeping the temperature between 10\302\260-15\302\260. The mixture was stirred for one hour at -10\302\260 to 0\302\260 and then allowed to warm to ambient temperature over one hour. The resulting suspension was filtered, the solid washed with THF, the filtrate reduced to 1/2 its original volume, and poured over 1 liter of ice water to give a white solid which was collected, washed with water, and dried in vacuo to give 244.3 g of 2-amino-4,6-dichloro-1,3,5-triazine with m.p. 221\302\260-223.5\302\260 (dec).",
             None,
             ["liquid"],
+            True,
         ],
         # Test: one of the input reactants = 'liquid'; trust_labelling = False
         [
@@ -883,6 +942,7 @@ def test_match_yield_with_product(
             "A solution of 300 g (1.63 mol) of cyanuric chloride in 1 liter THF and 0.24 liter diglyme was cooled to 0\302\260 C. and 81.6 mL (3.36 mol) of liquid ammonia added dropwise over 90 min. keeping the temperature between 10\302\260-15\302\260. The mixture was stirred for one hour at -10\302\260 to 0\302\260 and then allowed to warm to ambient temperature over one hour. The resulting suspension was filtered, the solid washed with THF, the filtrate reduced to 1/2 its original volume, and poured over 1 liter of ice water to give a white solid which was collected, washed with water, and dried in vacuo to give 244.3 g of 2-amino-4,6-dichloro-1,3,5-triazine with m.p. 221\302\260-223.5\302\260 (dec).",
             None,
             ["liquid"],
+            True,
         ],
         # synthesis of islatravir by biocatalytic cascade
         # We put trust_labelling = False to test that the inputs are extracted instead, since I know that there's no rxn string
@@ -894,10 +954,10 @@ def test_match_yield_with_product(
             ["C#CC(O)(CO)CO"],
             [
                 "[Cu+2]",
-                "Antifoam 204",
                 "O=S(=O)([O-])CCN1CCN(CCS(=O)(=O)[O-])CC1",
                 "O=S(=O)([O-])[O-]",
                 "[K+]",
+                "Antifoam 204",
                 "bovine catalase",
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
@@ -918,6 +978,7 @@ def test_match_yield_with_product(
                 "evolved galactose oxidase GOase-Rd13BB",
                 "horseradish peroxidase",
             ],
+            False,
         ],
         # An example where we need the manual_replacements_dict
         [
@@ -943,6 +1004,7 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             None,
             ["CrO3"],
+            True,
         ],
         [
             "ord_dataset-0b70410902ae4139bd5d334881938f69",
@@ -966,6 +1028,82 @@ def test_match_yield_with_product(
             "By the same procedure of Ex. 22, and reacting 3.3 g 6-bromo-\316\261-(2-methoxyphenyl)-2-pyridinemethanol (obtained as in Ex. 19) in 20 ml glacial acetic acid with CrO3 (1 g in 5 ml water), there is obtained 2.17 g title product, m.p. 97\302\260-8\302\260 C. (ethanol:water); UV (ethanol):\316\273max. 278 nm, \316\265: 12,480; Br 27.67 (27.36).",
             None,
             ["CrO3"],
+            True,
+        ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            1932,
+            {},
+            False,
+            ["C=C(C)Br", "C=C1CC(=O)CCC2=C(C)CCC12"],
+            [
+                "II",
+                "[Mg]",
+            ],
+            [],
+            [
+                "C1CCOC1",
+            ],
+            [],
+            ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
+            [76.0],
+            None,
+            0.5,
+            "[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1",
+            "To a Grignard solution, prepared from 1 g of magnesium chips activated with 1 g of iodine, 5 ml of 2-bromopropene and about 100 ml of tetrahydrofuran, were added over 10 minutes 1.76 g of 1-methyl-4-methylen-6-oxo-2,3,3a,4,5,6,7,8-octahydroazulene. The mixture was stirred vigorously for 30 minutes, cooled to 0\302\260 and treated with excess ice-cold ammonium chloride solution. The mixture was then extracted with ether, the organic extract washed with carbonate solution and water, dried over magnesium sulphate and concentrated under reduced pressure. The crude product (2.6 g), which was obtained in the form of a yellow oil, was distilled under high vacuum and yielded 1.6 g (yield 76%) of pure 6-hydroxy-6-isopropenyl-1-methyl-4-methylen-2,3,3a,4,5,6,7,8-octahydroazulene; b.p.0.1 ca 100\302\260 IR(film):\316\275max = 3550, 3090, 1640, 1450/40, 1378, 1330, 1220, 1165, 1105, 1065, 1038, 900/895, 780 cm-1. The compound has a woody, slightly camphorous, somewhat spicy odour.",
+            None,
+            [],
+            True,
+        ],
+        [
+            "ord_dataset-a0eff6fe4b4143f284f0fc5ac503acad",
+            1932,
+            {},
+            True,
+            [
+                "C=C(C)Br",
+                "C=C1CC(=O)CCC2=C(C)CCC12",
+                "II",
+                "[Mg]",
+            ],
+            [],
+            [],
+            [
+                "C1CCOC1",
+            ],
+            [],
+            ["C=C1CC(O)(C(=C)C)CCC2=C(C)CCC12"],
+            [76.0],
+            None,
+            0.5,
+            "[Mg].II.Br[C:5]([CH3:7])=[CH2:6].[CH3:8][C:9]1[CH2:10][CH2:11][CH:12]2[C:18]=1[CH2:17][CH2:16][C:15](=[O:19])[CH2:14][C:13]2=[CH2:20]>O1CCCC1>[OH:19][C:15]1([C:5]([CH3:7])=[CH2:6])[CH2:16][CH2:17][C:18]2[CH:12]([CH2:11][CH2:10][C:9]=2[CH3:8])[C:13](=[CH2:20])[CH2:14]1",
+            "To a Grignard solution, prepared from 1 g of magnesium chips activated with 1 g of iodine, 5 ml of 2-bromopropene and about 100 ml of tetrahydrofuran, were added over 10 minutes 1.76 g of 1-methyl-4-methylen-6-oxo-2,3,3a,4,5,6,7,8-octahydroazulene. The mixture was stirred vigorously for 30 minutes, cooled to 0\302\260 and treated with excess ice-cold ammonium chloride solution. The mixture was then extracted with ether, the organic extract washed with carbonate solution and water, dried over magnesium sulphate and concentrated under reduced pressure. The crude product (2.6 g), which was obtained in the form of a yellow oil, was distilled under high vacuum and yielded 1.6 g (yield 76%) of pure 6-hydroxy-6-isopropenyl-1-methyl-4-methylen-2,3,3a,4,5,6,7,8-octahydroazulene; b.p.0.1 ca 100\302\260 IR(film):\316\275max = 3550, 3090, 1640, 1450/40, 1378, 1330, 1220, 1165, 1105, 1065, 1038, 900/895, 780 cm-1. The compound has a woody, slightly camphorous, somewhat spicy odour.",
+            None,
+            [],
+            True,
+        ],
+        [
+            "ord_dataset-85c00026681b46f89ef8634d2b8618c3",
+            3948,
+            {},
+            False,
+            [
+                "[Co]",
+                "O=S(=O)(O)O",
+            ],
+            ["[Co+3]", "CCCCCC=N", "O=S(=O)([O-])[O-]", "[NH4+]"],
+            [],
+            [],
+            [],
+            [],
+            [],
+            None,
+            None,
+            "[Co:1].[S:2]([OH:6])([OH:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[NH4+].[NH4+].[Co+3]>>[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[CH:7](=[NH:13])[CH2:8][CH2:9][CH2:10][CH2:11][CH3:12].[Co+3:1].[S:14]([O-:18])([O-:17])(=[O:16])=[O:15].[S:2]([O-:6])([O-:5])(=[O:4])=[O:3].[Co+3:1]",
+            "In a process for producing cobalt metal powder from nickel-cobalt sulphides comprising leaching said nickel-cobalt sulphides in an ammoniacal ammonium sulphate solution under an elevated pressure of an oxygen bearing gas, at a temperature of at least 80\302\260 C., with an effective ammonia to metals mole ratio in the range of 5:1 to 6.5:1 to oxidize the nickel and cobalt sulphides to sulphates, and to produce an ammoniacal ammonium sulphate leach liquor in which dissolved cobalt is predominantly in the (III) oxidation state, and an ammoniacal ammonium sulphate leach residue containing a cobalt (III) hexannmine sulphate-calcium sulphate double salt, separating the ammoniacal ammonium sulphate leach liquor from the ammoniacal ammonium sulphate leach residue, saturating the ammoniacal ammonium sulphate leach liquor with an effective amount of anydrous ammonia and cooling the ammoniated leach liquor to below 50\302\260 C. to precipitate the triple salt of cobalt (III) hexammine supbate, nickel (II) hexammine sulphate and ammonium sulphate, recovering the precipitated triple salt from the leach liquor, repulping the triple salt with an effective amount of water to selectively leach nickel(II) hexammine sulphate and to produce a crystalline cobalt (III) hexammine sulphate with a Co:Ni ratio of at least 100:1 and a nickel enriched leach liquor, dissolving the cobalt (III) hexammine sulphate in hot ammonium sulphate solution, and cooling the solution to precipitate recrystallized cobalt (III) hexammine sulphate having a Co:Ni ratio of at least about 1000:1 and treating the recrystallized cobalt (III) hexammine sulphate to produce cobalt metal therefrom, the improvement comprising:",
+            None,
+            [],
+            True,
         ],
     ),
 )
@@ -989,6 +1127,7 @@ def test_handle_reaction_object(
     expected_procedure_details: str,
     expected_date_of_experiment: Optional[str],
     expected_names_list: List[str],
+    expected_is_mapped: bool,
 ) -> None:
     import orderly.extract.extractor
     import orderly.extract.main
@@ -1024,6 +1163,7 @@ def test_handle_reaction_object(
         rxn_str,
         procedure_details,
         date_of_experiment,
+        is_mapped,
         names_list,
     ) = rnx_object
 
@@ -1069,6 +1209,9 @@ def test_handle_reaction_object(
     assert date_of_experiment == pd.to_datetime(
         expected_date_of_experiment, format="%m/%d/%Y"
     ), f"failure for {expected_date_of_experiment=} got {date_of_experiment}"
+    assert (
+        is_mapped == expected_is_mapped
+    ), f"failure for {expected_is_mapped=} got {is_mapped}"
 
 
 @pytest.mark.parametrize(
@@ -1163,6 +1306,8 @@ def test_extraction_pipeline(
     for extraction in (tmp_path / extracted_ord_data_folder).glob("*"):
         df = pd.read_parquet(extraction)
 
+        df = df.sort_index(axis=1)
+
         assert df is not None
 
         check_none_order_cols = [
@@ -1175,13 +1320,15 @@ def test_extraction_pipeline(
             # "yield",  we are ok with this having nones in bad order
         ]
         for check_col in check_none_order_cols:
-            valid_cols = [col for col in df.columns if col.startswith(check_col)]
+            valid_cols = sorted(
+                [col for col in df.columns if col.startswith(check_col)]
+            )
             tmp_df = df[valid_cols]
 
             def check_valid_order(row: pd.Series) -> pd.Series:
                 seen_none = False
                 for idx, a in enumerate(row):
-                    current_isna = pd.isna(a)
+                    current_isna = pd.isna(a) or (a == "")
                     if seen_none:
                         if not current_isna:
                             raise ValueError(
@@ -1205,6 +1352,10 @@ def test_extraction_pipeline(
                 ), f"failure for {col=}: {series.dtype=}"
             elif ("temperature" in col) or ("rxn_time" in col) or ("yield" in col):
                 assert pd.api.types.is_float_dtype(
+                    series
+                ), f"failure for {col=} {series.dtype=}"
+            elif "is_mapped" in col:
+                assert pd.api.types.is_bool_dtype(
                     series
                 ), f"failure for {col=} {series.dtype=}"
             else:

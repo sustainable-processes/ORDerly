@@ -1,8 +1,9 @@
 # misc
 .DS_Store
 *.log
-# inspections.ipynb
+
 notebooks/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

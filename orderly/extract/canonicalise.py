@@ -67,4 +67,6 @@ def get_canonicalised_smiles(
         if molecule_identifier[0] == "[":
             if molecule_identifier[-1] == "]":
                 return canonicalise_smiles(molecule_identifier[1:-1])
+        else:
+            return canonicalise_smiles(f"[{molecule_identifier}]")
         return None

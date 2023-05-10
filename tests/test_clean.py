@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 import pathlib
 import pytest
 
@@ -42,7 +42,6 @@ def get_cleaned_df(
     set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     set_unresolved_names_to_none: bool,
     remove_rxn_with_unresolved_names: bool,
-    replace_empty_with_none: bool,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
     drop_duplicates: bool,
@@ -79,7 +78,6 @@ def get_cleaned_df(
         set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
-        replace_empty_with_none=replace_empty_with_none,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         drop_duplicates=drop_duplicates,
@@ -104,12 +102,10 @@ def cleaned_df_params_default(
         True,
         True,
         True,
-        True,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
-    # replace_empty_with_none: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
     # drop_duplicates: bool
@@ -138,12 +134,10 @@ def cleaned_df_params_default_without_min_freq(
         True,
         True,
         True,
-        True,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
-    # replace_empty_with_none: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
     # drop_duplicates: bool
@@ -169,13 +163,11 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates(
         False,
         True,
         True,
-        True,
         False,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
-    # replace_empty_with_none: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
     # drop_duplicates: bool
@@ -206,13 +198,11 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
         False,
         True,
         True,
-        True,
         False,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
-    # replace_empty_with_none: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
     # drop_duplicates: bool
@@ -372,6 +362,195 @@ def test_map_rare_molecules_to_other(
     expected_df = pd.DataFrame(expected_dict)
 
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
+
+
+########################################################################################################################################################################
+
+
+@pytest.mark.parametrize(
+    "toy_dict, target_strings, expected_dict,",
+    (
+        pytest.param(
+            {
+                "reactant_000": [
+                    "a",
+                    None,
+                    None,
+                    "a",
+                ],
+                "reactant_001": [
+                    None,
+                    "a",
+                    None,
+                    "b",
+                ],
+                "reactant_002": [
+                    "b",
+                    "b",
+                    "a",
+                    "c",
+                ],
+                "agent_000": [
+                    "a",
+                    "a",
+                    None,
+                    None,
+                ],
+                "agent_001": [
+                    None,
+                    "b",
+                    "a",
+                    None,
+                ],
+                "agent_002": [
+                    "b",
+                    "c",
+                    "b",
+                    None,
+                ],
+            },
+            ("reactant", "product", "agent", "solvent"),
+            {
+                "reactant_000": [
+                    "a",
+                    "a",
+                    "a",
+                    "a",
+                ],
+                "reactant_001": [
+                    "b",
+                    "b",
+                    None,
+                    "b",
+                ],
+                "reactant_002": [
+                    None,
+                    None,
+                    None,
+                    "c",
+                ],
+                "agent_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "agent_001": [
+                    "b",
+                    "b",
+                    "b",
+                    None,
+                ],
+                "agent_002": [
+                    None,
+                    "c",
+                    None,
+                    None,
+                ],
+            },
+        ),
+        pytest.param(
+            {
+                "product_000": [
+                    "a",
+                    "a",
+                    None,
+                    None,
+                ],
+                "product_001": [
+                    None,
+                    "b",
+                    "a",
+                    None,
+                ],
+                "product_002": [
+                    "b",
+                    "c",
+                    "b",
+                    None,
+                ],
+                "yield_000": [
+                    "a",
+                    "a",
+                    "c",
+                    None,
+                ],
+                "yield_001": [
+                    None,
+                    "b",
+                    "a",
+                    None,
+                ],
+                "yield_002": [
+                    "b",
+                    "c",
+                    "b",
+                    None,
+                ],
+            },
+            ("product",),
+            {
+                "product_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "product_001": [
+                    "b",
+                    "b",
+                    "b",
+                    None,
+                ],
+                "product_002": [
+                    None,
+                    "c",
+                    None,
+                    None,
+                ],
+                "yield_000": [
+                    "a",
+                    "a",
+                    "a",
+                    None,
+                ],
+                "yield_001": [
+                    "b",
+                    "b",
+                    "b",
+                    None,
+                ],
+                "yield_002": [
+                    None,
+                    "c",
+                    "c",
+                    None,
+                ],
+            },
+        ),
+    ),
+)
+def test_move_none_to_after_data(
+    toy_dict: Dict[str, List[str]],
+    target_strings: Tuple[str, ...],
+    expected_dict: Dict[str, List[str]],
+) -> None:
+    import pandas as pd
+    import orderly.clean.cleaner
+    import copy
+
+    toy_dict = copy.copy(toy_dict)
+
+    df = pd.DataFrame(toy_dict)
+
+    df = orderly.clean.cleaner.Cleaner._move_none_to_after_data(df, target_strings)
+
+    expected_df = pd.DataFrame(expected_dict)
+
+    assert df.equals(expected_df), f"Got: \n{df}, expected: \n{expected_df},"
+
+
+##########################################
 
 
 @pytest.mark.parametrize(
@@ -542,7 +721,7 @@ def test_get_cleaned_df(
     ),
     indirect=True,
 )
-def test_number_of_columns(
+def test_number_of_columns_and_order_of_None(
     cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
 ) -> None:
     import copy
@@ -586,12 +765,14 @@ def test_number_of_columns(
         elif col.startswith("solv"):
             num_solv_cols += 1
 
-    assert num_reactant_cols == num_reactant
-    assert num_product_cols == num_product
-    assert num_agent_cols == num_agent
-    assert num_cat_cols == num_cat
-    assert num_reag_cols == num_reag
-    assert num_solv_cols == num_solv
+    # if num_reactant == -1 we just include all reactant columns (and same for the others)
+    assert (num_reactant_cols == num_reactant) or num_reactant == -1
+    assert (num_product_cols == num_product) or num_product == -1
+    assert (num_agent_cols == num_agent) or num_agent == -1
+    assert (num_cat_cols == num_cat) or num_cat == -1
+    assert (num_reag_cols == num_reag) or num_reag == -1
+    assert (num_solv_cols == num_solv) or num_solv == -1
+
     assert "grant_date" in cols
     assert "date_of_experiment" in cols
 
@@ -616,6 +797,54 @@ def test_number_of_columns(
     assert ("date_of_experiment" in datetime_coumns.columns) or (
         len(cleaned_df["date_of_experiment"].dropna()) == 0
     )
+
+    # Also check that there are no instances of None before data in the cleaned df
+
+    def _get_columns_beginning_with_str(
+        columns: List[str], target_strings: Optional[Tuple[str, ...]] = None
+    ) -> List[str]:
+        """goes through the column in a dataframe and adds columns that start with a string in the target strings"""
+        if target_strings is None:
+            target_strings = (
+                "agent",
+                "solvent",
+                "reagent",
+                "catalyst",
+                "product",
+                "reactant",
+            )
+
+        return sorted([col for col in columns if col.startswith(target_strings)])
+
+    target_strings = (
+        "agent",
+        "solvent",
+        "reagent",
+        "catalyst",
+        "product",
+        "reactant",
+    )
+
+    def check_valid_order(row: pd.Series) -> pd.Series:
+        seen_none = False
+        for idx, a in enumerate(row):
+            current_isna = pd.isna(a) or (a == "")
+            if seen_none:
+                if not current_isna:
+                    raise ValueError(f"Unexpected order at {idx=} for {row.tolist()=}")
+            if current_isna:
+                seen_none = True
+        return row
+
+    for target_string in target_strings:
+        target_columns = _get_columns_beginning_with_str(
+            columns=cleaned_df.columns,
+            target_strings=(target_string,),
+        )
+        # check that there are no instances of None before data in the cleaned df
+        for idx, row in cleaned_df.loc[:, target_columns].iterrows():
+            check_valid_order(row)
+        # cleaned_df.loc[:, target_columns].apply(check_valid_order, axis=1)
 
 
 def double_list(

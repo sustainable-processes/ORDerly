@@ -69,11 +69,15 @@ class OrdExtractor:
                 )
                 self.filename = str(self.data.dataset_id)
 
+            self.dataset_id = self.data.dataset_id
+            if self.dataset_id is None:
+                self.dataset_id = self.filename
+
         # Get the date of the grant (proxy for when the data was collected)
         _grant_date = self.filename.split("uspto-grants-")
-        grant_date: Optional[pd.Timestamp] = None
+        self.grant_date: Optional[pd.Timestamp] = None
         if len(_grant_date) > 1:
-            grant_date = pd.to_datetime(_grant_date[1], format="%Y_%M")
+            self.grant_date = pd.to_datetime(_grant_date[1], format="%Y_%M")
 
         self.non_smiles_names_list = self.full_df = None
         if self.contains_substring is not None:
@@ -92,9 +96,6 @@ class OrdExtractor:
         if self.solvents_set is None:
             self.solvents_set = orderly.extract.defaults.get_solvents_set()
         self.full_df, self.non_smiles_names_list = self.build_full_df()
-
-        self.full_df = self.full_df.assign(grant_date=grant_date)
-        self.full_df.grant_date = pd.to_datetime(self.full_df.grant_date)
 
         LOG.debug(f"Got data from {self.ord_file_path}: {self.filename}")
 
@@ -122,17 +123,28 @@ class OrdExtractor:
         for i in identifiers:
             if i.type == 2:
                 canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    i.value, is_mapped=True
+                    i.value, is_mapped=False
                 )
                 if canon_smi is None:
                     canon_smi = i.value
                     non_smiles_names_list.append(i.value)
                 return canon_smi, non_smiles_names_list
         for ii in identifiers:  # if there's no smiles, return the name
+            # We need to look for a SMILES before we look for a name, so we can't merge these two loops even though they look identical.
             if ii.type == 6:
-                name = ii.value
-                non_smiles_names_list.append(name)
-                return name, non_smiles_names_list
+                # In theory, we'd just do this:
+                ## name = ii.value
+                ## non_smiles_names_list.append(name)
+                # However, at least once, in the case of "II" (diiodine), the smiles string was recorded as a name, which breaks everything downstream.
+                canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
+                    ii.value, is_mapped=False
+                )
+                if canon_smi is not None:
+                    LOG.info(f"SMILES string found labelled as name: {ii.value}")
+                else:
+                    canon_smi = ii.value
+                    non_smiles_names_list.append(ii.value)
+                return canon_smi, non_smiles_names_list
         return None, non_smiles_names_list
 
     @staticmethod
@@ -299,9 +311,9 @@ class OrdExtractor:
             for component in components:
                 rxn_role = component.reaction_role  # rxn role
                 identifiers = component.identifiers
-                if component in ["ice", "ice water"]:
-                    ice_present = True
-
+                for identifier in identifiers:
+                    if identifier.value.lower() in ["ice", "ice water"]:
+                        ice_present = True
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
                     identifiers
                 )
@@ -478,13 +490,17 @@ class OrdExtractor:
     def match_yield_with_product(
         rxn_str_products: PRODUCTS,
         labelled_products: PRODUCTS,
-        yields: Optional[YIELDS],
-        use_labelling_if_extract_fails: bool = True,
-    ) -> Tuple[PRODUCTS, Optional[YIELDS]]:
+        yields: YIELDS,
+    ) -> Tuple[PRODUCTS, YIELDS]:
         """
         Resolve: yields are from rxn_outcomes(labelled_products), but we trust the products from the rxn_string
+        We only ever enter this function if we don't trust the labelling, we would never want to return the list of labelled_products instead of the rxn_str_products. In the edge case where rxn_str_products is empty, we take this to mean that there was something weird about the reaction/rxn_str, and therefore we should maintain that the product is an empty list (and it will then be removed in the cleaning script).
         """
-        if (len(rxn_str_products) != 0) and (yields is not None):
+        if len(rxn_str_products) == 0:
+            return [], []
+        elif all(element is None for element in yields):
+            return rxn_str_products, [None] * len(rxn_str_products)
+        else:
             reordered_yields = []
             for rxn_str_prod in rxn_str_products:
                 added = False
@@ -496,10 +512,6 @@ class OrdExtractor:
                 if not added:
                     reordered_yields.append(None)
             return rxn_str_products, reordered_yields
-        elif use_labelling_if_extract_fails:
-            return labelled_products, yields
-        else:
-            return [], []
 
     @staticmethod
     def merge_to_agents(
@@ -578,6 +590,7 @@ class OrdExtractor:
             Optional[RXN_STR],
             str,
             Optional[pd.Timestamp],
+            bool,
             List[MOLECULE_IDENTIFIER],
         ]
     ]:
@@ -595,7 +608,6 @@ class OrdExtractor:
         reagents: REAGENTS = []
         solvents: SOLVENTS = []
         catalysts: CATALYSTS = []
-        rxn_str_products: PRODUCTS = []
         labelled_products: PRODUCTS = []
         rxn_non_smiles_names_list = []
 
@@ -625,15 +637,15 @@ class OrdExtractor:
                 warnings.warn(
                     "The number of products in rxn.inputs and rxn.outcomes do not match"
                 )
-            for idx, (mole_id_from_input, mole_id_from_outcomes) in enumerate(
+            for idx, (mol_id_from_input, mol_id_from_outcomes) in enumerate(
                 zip(sorted(labelled_products_from_input), sorted(labelled_products))
             ):
                 smi_from_input = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    mole_id_from_input, is_mapped=False
+                    mol_id_from_input, is_mapped=False
                 )
                 smi_from_outcomes = (
                     orderly.extract.canonicalise.get_canonicalised_smiles(
-                        mole_id_from_outcomes, is_mapped=False
+                        mol_id_from_outcomes, is_mapped=False
                     )
                 )
                 if smi_from_input != smi_from_outcomes:
@@ -657,9 +669,8 @@ class OrdExtractor:
             solvents = labelled_solvents
             reagents = labelled_reagents
             catalysts = labelled_catalysts
-            is_mapped = False
 
-        elif rxn_str is not None:
+        elif rxn_str is not None:  # Trust_labelling = False
             # extract info from the reaction string
             rxn_info = OrdExtractor.extract_info_from_rxn_str(rxn_str, is_mapped)
             (
@@ -667,15 +678,13 @@ class OrdExtractor:
                 agents,
                 _products,
                 rxn_str,
-                rxn_non_smiles_names_list,
+                non_smiles_names_list_additions,
             ) = rxn_info
+            rxn_non_smiles_names_list += non_smiles_names_list_additions
             # Resolve: yields are from rxn_outcomes, but we trust the products from the rxn_string
-            products, _yields = OrdExtractor.match_yield_with_product(
+            products, yields = OrdExtractor.match_yield_with_product(
                 _products, labelled_products, yields
             )
-            if _yields is None:
-                _yields = []
-            yields = _yields
 
             if (
                 include_unadded_labelled_molecules_as_agents
@@ -747,7 +756,7 @@ class OrdExtractor:
         ]
 
         def canonicalise_and_get_non_smiles_names(
-            mole_id_list: REACTANTS
+            mol_id_list: REACTANTS
             | AGENTS
             | REAGENTS
             | SOLVENTS
@@ -759,18 +768,18 @@ class OrdExtractor:
             List[MOLECULE_IDENTIFIER],
         ]:
             """Canonicalise the smiles and return the identifier (either SMILES or non-SMILES) as well as a list of non-SMILES names"""
-            assert isinstance(mole_id_list, list)
+            assert isinstance(mol_id_list, list)
             non_smiles_names_list_additions = []
-            for idx, mole_id in enumerate(mole_id_list):
+            for idx, mol_id in enumerate(mol_id_list):
                 smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    mole_id, is_mapped=is_mapped
+                    mol_id, is_mapped=is_mapped
                 )
                 if smi is None:
-                    non_smiles_names_list_additions.append(mole_id)
-                    mole_id_list[idx] = mole_id
+                    non_smiles_names_list_additions.append(mol_id)
+                    mol_id_list[idx] = mol_id
                 else:
-                    mole_id_list[idx] = smi
-            return mole_id_list, non_smiles_names_list_additions
+                    mol_id_list[idx] = smi
+            return mol_id_list, non_smiles_names_list_additions
 
         # Reactants and products might be mapped, but agents are not
         # TODO?: The canonicalisation is repeated! We extract information from rxn_str, and then apply logic to figure out what is a reactant/agent. So we canonicalise inside the extract_info_from_rxn_str function, but not within the input_extraction function, which is why we need to do it again here. This also means we add stuff to the non-smiles names list multiple times, so we need to do list(set()) on that list; all this is slightly inefficient, but shouldn't add that much overhead.
@@ -778,7 +787,7 @@ class OrdExtractor:
             reactants,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=reactants, is_mapped=is_mapped
+            mol_id_list=reactants, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -786,7 +795,7 @@ class OrdExtractor:
             agents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=agents, is_mapped=is_mapped
+            mol_id_list=agents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -794,7 +803,7 @@ class OrdExtractor:
             reagents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=reagents, is_mapped=is_mapped
+            mol_id_list=reagents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -802,7 +811,7 @@ class OrdExtractor:
             solvents,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=solvents, is_mapped=is_mapped
+            mol_id_list=solvents, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -810,7 +819,7 @@ class OrdExtractor:
             catalysts,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=catalysts, is_mapped=is_mapped
+            mol_id_list=catalysts, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -818,7 +827,7 @@ class OrdExtractor:
             products,
             non_smiles_names_list_additions,
         ) = canonicalise_and_get_non_smiles_names(
-            mole_id_list=products, is_mapped=is_mapped
+            mol_id_list=products, is_mapped=is_mapped
         )
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
@@ -843,39 +852,150 @@ class OrdExtractor:
         )
 
         def remove_none_and_empty_str(
-            mole_id_list: REACTANTS
+            mol_id_list: REACTANTS
             | AGENTS
             | REAGENTS
             | SOLVENTS
             | CATALYSTS
             | PRODUCTS,
-        ) -> REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS:
+            list_to_keep_order: Optional[YIELDS] = None,
+        ) -> Tuple[
+            REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+            YIELDS,
+        ]:
             """Remove any empty strings or instances of None from the molecule identifiers list. These may be present due to the apply_replacements_dict mapping certain strings to None (e.g. mol_replacements_dict['solution']=None"""
-            assert isinstance(mole_id_list, list)
+            assert isinstance(mol_id_list, list)
 
-            mole_id_list_without_none = [x for x in mole_id_list if x not in ["", None]]
+            if len(mol_id_list) == 0 and list_to_keep_order is None:
+                return [], []
+            elif len(mol_id_list) == 0 and list_to_keep_order is not None:
+                return [], []
 
-            return mole_id_list_without_none
+            elif list_to_keep_order is None:
+                mol_id_list_without_none = [
+                    x for x in mol_id_list if (x not in ["", None]) and (not pd.isna(x))
+                ]
+                return mol_id_list_without_none, []
+            else:
+                mol_id_list_without_none, _list_to_keep_order = list(  # type: ignore
+                    zip(
+                        *[
+                            (x, j)
+                            for x, j in zip(mol_id_list, list_to_keep_order)
+                            if (x not in ["", None]) and (not pd.isna(x))
+                        ]
+                    )
+                )
+                return list(mol_id_list_without_none), list(_list_to_keep_order)
 
-        reactants = remove_none_and_empty_str(reactants)
-        agents = remove_none_and_empty_str(agents)
-        reagents = remove_none_and_empty_str(reagents)
-        solvents = remove_none_and_empty_str(solvents)
-        catalysts = remove_none_and_empty_str(catalysts)
-        products = remove_none_and_empty_str(products)
+        reactants, _ = remove_none_and_empty_str(reactants)
+        agents, _ = remove_none_and_empty_str(agents)
+        reagents, _ = remove_none_and_empty_str(reagents)
+        solvents, _ = remove_none_and_empty_str(solvents)
+        catalysts, _ = remove_none_and_empty_str(catalysts)
+        products, yields = remove_none_and_empty_str(
+            products, list_to_keep_order=yields
+        )
 
         #### Secondary reaction participation checks before returning
         # The rxn participation logic we perform within extract_info_from_rxn_str is to identify our best guess of the reactants and products given the atom mapping. Following this, we add agents from the inputs, canonicalise, and apply the manual_replacements_dict, so we need to do another check here
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
+            # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
             assert set(reactants).isdisjoint(
                 products
-            ), "The intersection between reactants and products is not None."
+            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
             reactants_and_products = reactants + products
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
             solvents = [s for s in solvents if s not in reactants_and_products]
             catalysts = [c for c in catalysts if c not in reactants_and_products]
+
+        # Move unresolvable names to the back of the list - this is necessary due to the handling of unresolvable names in the cleaning scrip: one of the options is to replace the unresolvable name with None. When this happens, we might introduce a None before the data (e.g. agents = ["O", None, "H2O2"]); this is not ideal for the downstream processing, e.g. if we want to predict the agents using ML - the Nones should be last! Moving unresolvable names to the end of the list here, will mean that we don't need to do any reordering in the clean script when we replace unresolvable names with None
+        rxn_non_smiles_names_set = set(rxn_non_smiles_names_list)
+        rxn_non_smiles_names_list = sorted(list(rxn_non_smiles_names_set))
+
+        def move_unresolvable_names_to_end_of_list(
+            mol_id_list: REACTANTS
+            | AGENTS
+            | REAGENTS
+            | SOLVENTS
+            | CATALYSTS
+            | PRODUCTS,
+            non_smiles_names_set: Set[str],
+            list_to_keep_order: Optional[YIELDS] = None,
+        ) -> Tuple[
+            REACTANTS | AGENTS | REAGENTS | SOLVENTS | CATALYSTS | PRODUCTS,
+            YIELDS,
+        ]:
+            """
+            rxn_non_smiles_names_set: Unresolvable names that might be replaced with None in the cleaning script
+            """
+            assert isinstance(mol_id_list, list)
+            resolvable_names = []
+            unresolvable_names = []
+
+            if list_to_keep_order is None:  # everything but products
+                for x in mol_id_list:
+                    if x in non_smiles_names_set:
+                        unresolvable_names.append(x)
+                    else:
+                        resolvable_names.append(x)
+
+                return resolvable_names + unresolvable_names, []
+
+            else:  # products
+                if len(mol_id_list) <= 1:
+                    return mol_id_list, list_to_keep_order
+                elif all(
+                    element is None for element in list_to_keep_order
+                ):  # This could in principle be merged with the if statement above, but I think separating it makes the code easier to read.
+                    for x in mol_id_list:
+                        if x in non_smiles_names_set:
+                            unresolvable_names.append(x)
+                        else:
+                            resolvable_names.append(x)
+
+                    return resolvable_names + unresolvable_names, list_to_keep_order
+                else:  # The yields list isn't just length 1, or full of Nones, so we need to keep track of the operations we perform.
+                    unresolvable_names_alt_list = []
+                    resolvable_names_alt_list = []
+                    for p, y in zip(mol_id_list, list_to_keep_order):
+                        if p in non_smiles_names_set:
+                            unresolvable_names.append(p)
+                            unresolvable_names_alt_list.append(y)
+                        else:
+                            resolvable_names.append(p)
+                            resolvable_names_alt_list.append(y)
+
+                return (
+                    list(resolvable_names + unresolvable_names),
+                    list(resolvable_names_alt_list + unresolvable_names_alt_list),
+                )
+
+        reactants, _ = move_unresolvable_names_to_end_of_list(
+            reactants, rxn_non_smiles_names_set
+        )
+
+        products, _yields = move_unresolvable_names_to_end_of_list(
+            products, rxn_non_smiles_names_set, yields
+        )
+        agents, _ = move_unresolvable_names_to_end_of_list(
+            agents, rxn_non_smiles_names_set
+        )
+        reagents, _ = move_unresolvable_names_to_end_of_list(
+            reagents, rxn_non_smiles_names_set
+        )
+        solvents, _ = move_unresolvable_names_to_end_of_list(
+            solvents, rxn_non_smiles_names_set
+        )
+        catalysts, _ = move_unresolvable_names_to_end_of_list(
+            catalysts, rxn_non_smiles_names_set
+        )
+
+        if _yields == []:
+            _yields = [None] * len(products)
+        yields = _yields
 
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
@@ -885,8 +1005,6 @@ class OrdExtractor:
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
-
-        rxn_non_smiles_names_list = sorted(list(set(rxn_non_smiles_names_list)))
 
         return (
             reactants,
@@ -901,6 +1019,7 @@ class OrdExtractor:
             rxn_str,
             procedure_details,
             date_of_experiment,
+            is_mapped,
             rxn_non_smiles_names_list,
         )
 
@@ -922,6 +1041,7 @@ class OrdExtractor:
                 List[YIELDS],
                 List[str],
                 List[Optional[pd.Timestamp]],
+                List[bool],
             ],
         ],
         List[MOLECULE_IDENTIFIER],
@@ -942,6 +1062,7 @@ class OrdExtractor:
             "yield": [],
             "procedure_details": [],
             "date_of_experiment": [],
+            "is_mapped": [],
         }
 
         assert self.solvents_set is not None
@@ -968,6 +1089,7 @@ class OrdExtractor:
                 rxn_str,
                 procedure_details,
                 date_of_experiment,
+                is_mapped,
                 rxn_non_smiles_names_list_additions,
             ) = extracted_reaction
 
@@ -988,6 +1110,7 @@ class OrdExtractor:
                 rxn_lists["yield"].append(yields)
                 rxn_lists["procedure_details"].append(procedure_details)
                 rxn_lists["date_of_experiment"].append(date_of_experiment)
+                rxn_lists["is_mapped"].append(is_mapped)
 
         return rxn_lists, rxn_non_smiles_names_list
 
@@ -1020,31 +1143,37 @@ class OrdExtractor:
         dfs = []
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["rxn_str"], base_string=["rxn_str"])
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reactant"], base_string="reactant")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["agent"], base_string="agent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["reagent"], base_string="reagent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["solvent"], base_string="solvent")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["catalyst"], base_string="catalyst")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
@@ -1060,6 +1189,7 @@ class OrdExtractor:
         )  # TODO do we extract multiple rxn times?
         dfs.append(
             OrdExtractor._to_dataframe(data_lists["product"], base_string="product")
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
@@ -1072,6 +1202,7 @@ class OrdExtractor:
             OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
             )
+            .fillna("<missing>")
             .astype("string")
             .astype(object)
         )
@@ -1080,8 +1211,22 @@ class OrdExtractor:
                 data_lists["date_of_experiment"], base_string=["date_of_experiment"]
             ).apply(pd.to_datetime, errors="coerce")
         )
+        dfs.append(
+            OrdExtractor._to_dataframe(
+                data_lists["is_mapped"], base_string=["is_mapped"]
+            ).astype("bool")
+        )
         LOG.info("Constructed dict of dfs")
 
         full_df = pd.concat(dfs, axis=1)
+
+        full_df = full_df.assign(extracted_from_file=self.dataset_id)
+
+        full_df = full_df.assign(grant_date=self.grant_date)
+        full_df.grant_date = pd.to_datetime(full_df.grant_date)
+
+        full_df.reset_index(inplace=True, drop=True)
+        full_df = full_df.sort_index(axis=1)
         LOG.info("Constructed df")
+
         return full_df, rxn_non_smiles_names_list

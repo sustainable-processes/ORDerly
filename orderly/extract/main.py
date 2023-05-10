@@ -584,7 +584,7 @@ def main(
             raise e
     copy_kwargs = kwargs.copy()
     copy_kwargs["output_path"] = str(copy_kwargs["output_path"])
-    copy_kwargs["solvents_set"] = list(copy_kwargs["solvents_set"])  # type: ignore
+    copy_kwargs["solvents_set"] = sorted(list(copy_kwargs["solvents_set"]))  # type: ignore
 
     with open(config_path, "w") as f:
         json.dump(copy_kwargs, f, indent=4, sort_keys=True)
