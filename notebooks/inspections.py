@@ -1315,10 +1315,12 @@ df["temperature_0"].dropna()
 
 import pandas as pd
 
-a = [None,"ased","as",""]
-b = [1,None,3,4]
+a = [None, "ased", "as", ""]
+b = [1, None, 3, 4]
 
-p,q = list(zip(*[(x,j) for x,j in zip(a,b) if (x not in ["", None]) and (not pd.isna(x))]))
+p, q = list(
+    zip(*[(x, j) for x, j in zip(a, b) if (x not in ["", None]) and (not pd.isna(x))])
+)
 
 # %%
 
@@ -1396,15 +1398,14 @@ ordering_target_columns = sorted(ordering_target_columns)
 
 print(ordering_target_columns)
 
+
 def sort_row_old(row):
-    return pd.Series(
-        sorted(row, key=lambda x: pd.isna(x)), index=row.index
-    )
+    return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)
+
 
 def sort_row(row):
-    return pd.Series(
-        sorted(row, key=lambda x: pd.isna(x)), index=row.index
-    )
+    return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)
+
 
 def sort_row(row):
     idx = row.index
@@ -1412,25 +1413,14 @@ def sort_row(row):
     row.index = idx
     return row
 
-print(
-    df.loc[
-        :, ordering_target_columns
-    ].apply(
-        sort_row, axis=1
-    )
-)
 
-print(
-df.loc[
-    :, ordering_target_columns
-].apply(
-    lambda x: sort_row(x), axis=1
-)
-)
+print(df.loc[:, ordering_target_columns].apply(sort_row, axis=1))
+
+print(df.loc[:, ordering_target_columns].apply(lambda x: sort_row(x), axis=1))
 # %%
 
-def sort_row_relative(row, to_sort, to_keep_ordered):
 
+def sort_row_relative(row, to_sort, to_keep_ordered):
     target_row = row[to_sort].reset_index(drop=True).sort_values(na_position="last")
     rel_row = row[to_keep_ordered].reset_index(drop=True)
 
@@ -1439,20 +1429,15 @@ def sort_row_relative(row, to_sort, to_keep_ordered):
     target_row.index = to_sort
 
     row = pd.concat([target_row, rel_row])
-    
+
     return row
 
+
 print("Before")
-print(
-    df.loc[
-        :, _product+_yield
-    ]
-)
+print(df.loc[:, _product + _yield])
 print("After")
 print(
-    df.loc[
-        :, _product+_yield
-    ].apply(
+    df.loc[:, _product + _yield].apply(
         lambda x: sort_row_relative(x, _product, _yield), axis=1
     )
 )
@@ -1461,36 +1446,22 @@ print(
 
 # %%timeit
 
-df.loc[
-        :, _product+_yield
-    ].apply(
-        lambda x: sort_row_relative(x, _product, _yield), axis=1
-    )
+df.loc[:, _product + _yield].apply(
+    lambda x: sort_row_relative(x, _product, _yield), axis=1
+)
 
 # %%
 
 # %%timeit
 
-df.loc[
-    :, ordering_target_columns
-].apply(
-    sort_row, axis=1
-)
+df.loc[:, ordering_target_columns].apply(sort_row, axis=1)
 # %%
 # %%timeit
-df.loc[
-    :, ordering_target_columns
-].apply(
-    lambda x: sort_row(x), axis=1
-)
+df.loc[:, ordering_target_columns].apply(lambda x: sort_row(x), axis=1)
 # %%
 # %%timeit
 
-df.loc[
-    :, ordering_target_columns
-].apply(
-    sort_row_old, axis=1
-)
+df.loc[:, ordering_target_columns].apply(sort_row_old, axis=1)
 # %%
 import pandas as pd
 
@@ -1544,7 +1515,7 @@ df
 
 # %%timeit
 
-df.iloc[[0,1],[0,1]]=None
+df.iloc[[0, 1], [0, 1]] = None
 
 
 # %%
@@ -1552,13 +1523,11 @@ df.iloc[[0,1],[0,1]]=None
 import numpy as np
 
 mask = np.zeros(df.shape, dtype=bool)
-mask[[0,1],[0,1]]=True
+mask[[0, 1], [0, 1]] = True
 df[mask] = "pineapple"
 
 
-
 # %%
-
 
 
 # %%
@@ -1617,7 +1586,6 @@ target_columns = ["yield_001", "yield_002"]
 # set unresolved names to none
 mtr = {i: "<missing>" for i in molecules_to_remove}
 for col in target_columns:
-
     df.loc[:, col] = df.loc[:, col].map(
         lambda x: mtr.get(x, x)
     )  # equivalent to series = series.replace(self.molecules_to_remove, None)
@@ -1626,7 +1594,6 @@ for col in target_columns:
 
 df
 # %%
-
 
 
 (df == "<missing>").any(axis=1)
@@ -1641,7 +1608,6 @@ target_columns = ["yield_001", "product_002"]
 # set unresolved names to none
 mtr = {i: "<missing2>" for i in molecules_to_remove}
 for col in target_columns:
-
     df.loc[:, col] = df.loc[:, col].map(
         lambda x: mtr.get(x, x)
     )  # equivalent to series = series.replace(self.molecules_to_remove, None)
