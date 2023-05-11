@@ -415,7 +415,7 @@ def main_click(
     if name_contains_substring != "":
         _name_contains_substring = name_contains_substring
 
-    file_name = pathlib.Path(output_path).name 
+    file_name = pathlib.Path(output_path).name
     _log_file = pathlib.Path(output_path) / f"{file_name}_extract.log"
     if log_file != "default_path_extract.log":
         _log_file = pathlib.Path(log_file)
