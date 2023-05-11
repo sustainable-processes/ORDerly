@@ -161,8 +161,8 @@ run_python_310:
 # 1. Extract uspto data, trust_labelling = False
 # 2. Clean with set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True, remove reactions with no reactants or products, consistent_yield=True, no filtering
 # 3. Plot histograms of the number of non-empty columns of each type (reactants, products, solvents, agents)
-# 4. Run multiple loops over the cleaning with different values of min_frequency_of_occurrence
-# 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence
+# 4. Run a cleaning with decided upon number of columns to keep
+# 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
 # 6. Generate the four datasets we need for the paper
 # 7. For the flagship dataset, generate a waterfall plot (given the .log file) showing how the dataset size changes with each cleaning step
 ### Note: Below operations are not contained herein, since NameRxn is proprietary software
@@ -175,6 +175,11 @@ run_python_310:
 paper_extract_uspto_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
 
+paper_extract_uspto_with_trust:
+	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_with_trust"
+
+paper_extract: paper_extract_uspto_no_trust paper_extract_uspto_with_trust
+
 # 2.
 
 paper_clean_uspto_no_trust_unfiltered:
@@ -182,8 +187,36 @@ paper_clean_uspto_no_trust_unfiltered:
 
 # 3.
 
-paper_plot_uspto_no_trust_unfiltered:
-	poetry run python -m orderly.plot --input_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --output_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.png" --plot_type="histogram" --plot_column="num_reactant" --plot_column="num_product" --plot_column="num_solv" --plot_column="num_agent"
+paper_plot_uspto_no_trust_unfiltered_num_rxn_components:
+	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/uspto_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False
+
+# 4.
+
+paper_clean_uspto_no_trust_filtered:
+	poetry run python -m orderly.clean --output_path="data/orderly/uspto_no_trust/filtered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False
+
+# 5.
+paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence:
+	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/uspto_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True
+
+
+# 6.
+paper_gen_uspto_no_trust_no_map:
+	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=?? --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True
+
+paper_gen_uspto_no_trust_with_map:
+	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=?? --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True
+
+paper_gen_uspto_with_trust_with_map:
+	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_with_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=?? --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True
+
+paper_gen_uspto_with_trust_no_map:
+	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_with_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=?? --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True
+
+paper_gen_datasets: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
+
+
+
 
 
 

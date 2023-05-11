@@ -70,7 +70,7 @@ class ORDerlyPlotter:
             f'Number of reactions with at least this many {col_starts_with}'
         )
         plt.ylabel(f"Number of reactions")
-        plt.xlabel(f"Number of {col_starts_with}")
+        plt.xlabel(f"Number of {col_starts_with}s")
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
