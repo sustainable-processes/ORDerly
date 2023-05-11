@@ -188,7 +188,7 @@ paper_clean_uspto_no_trust_unfiltered:
 # 3.
 
 paper_plot_uspto_no_trust_unfiltered_num_rxn_components:
-	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/uspto_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
+	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
 
 # 4.
 
@@ -197,7 +197,7 @@ paper_clean_uspto_no_trust_filtered:
 
 # 5.
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence:
-	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/uspto_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False
+	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False
 
 
 # 6.
@@ -216,8 +216,8 @@ paper_gen_uspto_with_trust_no_map:
 paper_gen_datasets: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
 
 # 7.
-paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence:
-	poetry run python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/uspto_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False
+paper_plot_benchmark_dataset_waterfall:
+	poetry run python -m orderly.plot --clean_data_path="data/orderly/datasets/orderly_no_trust_with_map.parquet" --plot_output_path="data/orderly/plots/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=True
 
 
 

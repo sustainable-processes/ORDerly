@@ -39,7 +39,7 @@ class ORDerlyPlotter:
     def __post_init__(self) -> None:
         self.df = pd.read_parquet(self.clean_data_path)
 
-    def plot_num_rxn_components(self)->None:
+    def plot_num_rxn_components(self) -> None:
         for molecule in [
             "reactant",
             "product",
@@ -51,8 +51,12 @@ class ORDerlyPlotter:
             self.plot_num_rxn_component(self.df, molecule, self.plot_output_path)
 
     @staticmethod
-    def plot_num_rxn_component(df: pd.DataFrame, col_starts_with: str, plot_output_path: pathlib.Path, num_columns: int = 10
-    )->None:
+    def plot_num_rxn_component(
+        df: pd.DataFrame,
+        col_starts_with: str,
+        plot_output_path: pathlib.Path,
+        num_columns: int = 10,
+    ) -> None:
         # clear the figure
         plt.clf()
         col_subset = ORDerlyPlotter._get_columns_to_plot(df, col_starts_with)
@@ -77,22 +81,22 @@ class ORDerlyPlotter:
         plt.savefig(figure_file_path, bbox_inches="tight")
 
     @staticmethod
-    def _get_columns_to_plot(df: pd.DataFrame, col_starts_with: str)->List[str]:
+    def _get_columns_to_plot(df: pd.DataFrame, col_starts_with: str) -> List[str]:
         cols = [col for col in df.columns if col.startswith(col_starts_with)]
         return cols
 
     @staticmethod
-    def _count_strings(df: pd.DataFrame)->List[int]:
+    def _count_strings(df: pd.DataFrame) -> List[int]:
         string_counts = []
         for col in tqdm(df.columns):
             count = df[col].apply(lambda x: isinstance(x, str)).sum()
             string_counts.append(count)
         return string_counts
 
-    def plot_frequency_of_occurrence(self)->None:
+    def plot_frequency_of_occurrence(self) -> None:
         pass
-    
-    def plot_waterfall(self)->None:
+
+    def plot_waterfall(self) -> None:
         pass
 
 
