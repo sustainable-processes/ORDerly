@@ -151,3 +151,50 @@ run_rxnmapper:
 
 run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
+
+
+####################################################################################################
+# 									ORDerly make commands for the paper
+####################################################################################################
+
+### Steps:
+# 1. Extract uspto data, trust_labelling = False
+# 2. Clean with set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True, remove reactions with no reactants or products, consistent_yield=True, no filtering
+# 3. Plot histograms of the number of non-empty columns of each type (reactants, products, solvents, agents)
+# 4. Run multiple loops over the cleaning with different values of min_frequency_of_occurrence
+# 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence
+# 6. Generate the four datasets we need for the paper
+# 7. For the flagship dataset, generate a waterfall plot (given the .log file) showing how the dataset size changes with each cleaning step
+### Note: Below operations are not contained herein, since NameRxn is proprietary software
+# 8. Map all 4 datasets with NameRxn
+# 9. Apply a train/val/test split (by rxn sub-class) to all 4 datasets
+
+### Code:
+# 1.
+
+paper_extract_uspto_no_trust:
+	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
+
+# 2.
+
+paper_clean_uspto_no_trust_unfiltered:
+	poetry run python -m orderly.clean --output_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=20 --num_reactant=20 --num_solv=20 --num_agent=20 --num_cat=0 --num_reag=0 --consistent_yield=False
+
+# 3.
+
+paper_plot_uspto_no_trust_unfiltered:
+	poetry run python -m orderly.plot --input_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.parquet" --output_path="data/orderly/uspto_no_trust/unfiltered_orderly_ord.png" --plot_type="histogram" --plot_column="num_reactant" --plot_column="num_product" --plot_column="num_solv" --plot_column="num_agent"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
