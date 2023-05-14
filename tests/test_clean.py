@@ -14,7 +14,7 @@ def test_hello_world() -> None:
 def toy_dict() -> Dict[str, List[str]]:
     toy_dict = {
         "reactant_000": ["B", "A", "F", "A"],
-        "reactant_001": ["D", "A", "G", "B"],
+        "reactant_001": ["D", "A", pd.NA, "B"],
         "product_000": ["C", "A", "E", "A"],
         "product_001": ["E", "G", "C", "H"],
         "agent_000": ["D", "F", "D", "B"],
@@ -254,7 +254,7 @@ def test_molecule_names_not_empty() -> None:
                 "solvent_001",
                 "solvent_002",
             ],
-            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
+            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 5, "H": 1},
             id="all_columns",
         ),
         pytest.param(
@@ -292,35 +292,20 @@ def test_get_value_counts(
 
 @pytest.mark.parametrize(
     "component_name, number_of_columns_to_keep, expected_dict",
-    (
-        # Remove all components
+    (        
+        # Del reactions with too many reactants
         pytest.param(
             "reactant",
             1,
             {
-                "reactant_000": [],
-                "product_000": [],
-                "product_001": [],
-                "agent_000":[],
-                "agent_001":[],
-                "solvent_000":[],
-                "solvent_001": [],
-                "solvent_002": [],
-            },
-        ),
-        # Remove a component
-        pytest.param(
-            "reactant",
-            1,
-            {
-                "reactant_000": ["B", "A", "F", "A"],
-                "product_000": ["C", "A", "E", "A"],
-                "product_001": ["E", "G", "C", "H"],
-                "agent_000": ["D", "F", "D", "B"],
-                "agent_001": ["C", "E", "G", "A"],
-                "solvent_000": ["E", "B", "G", "C"],
-                "solvent_001": ["C", "D", "B", "G"],
-                "solvent_002": ["D", "B", "F", "G"],
+                "reactant_000": ["F"],
+                "product_000": ["E"],
+                "product_001": ["C"],
+                "agent_000": ["D"],
+                "agent_001": ["G"],
+                "solvent_000": ["G"],
+                "solvent_001": ["B"],
+                "solvent_002": ["F"],
             },
         ),
         
@@ -330,7 +315,7 @@ def test_get_value_counts(
             3,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "H"],
@@ -347,7 +332,7 @@ def test_get_value_counts(
             4,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
                 "reactant_003": [pd.NA, pd.NA, pd.NA, pd.NA],
                 "product_000": ["C", "A", "E", "A"],
@@ -365,7 +350,7 @@ def test_get_value_counts(
             2,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "H"],
                 "agent_000": ["D", "F", "D", "B"],
@@ -381,7 +366,7 @@ def test_get_value_counts(
             -1,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "H"],
                 "agent_000": ["D", "F", "D", "B"],
@@ -416,7 +401,6 @@ def test_remove_reactions_with_too_many_of_component(
     )
 
     expected_filtered_df = pd.DataFrame(expected_dict).sort_index(axis=1)
-    breakpoint()
     if filtered_df.empty:
         assert filtered_df.empty == expected_filtered_df.empty
     else:
@@ -439,11 +423,11 @@ def test_remove_reactions_with_too_many_of_component(
                 "solvent_001",
                 "solvent_002",
             ],
-            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
+            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 5, "H": 1},
             4,
             {
                 "reactant_000": ["B", "A", "other", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "other"],
                 "agent_000": ["D", "other", "D", "B"],
@@ -456,11 +440,11 @@ def test_remove_reactions_with_too_many_of_component(
         ),
         pytest.param(
             ["agent_000", "agent_001", "solvent_000", "solvent_001", "solvent_002"],
-            {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4},
+            {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 3},
             3,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "H"],
                 "agent_000": ["D", "other", "D", "B"],
@@ -681,7 +665,6 @@ def test_move_none_to_after_data(
     assert df.equals(expected_df), f"Got: \n{df}, expected: \n{expected_df},"
 
 
-##########################################
 
 
 @pytest.mark.parametrize(
@@ -720,7 +703,7 @@ def test_move_none_to_after_data(
             2,
             {
                 "reactant_000": ["B", "A", "F"],
-                "reactant_001": ["D", "A", "G"],
+                "reactant_001": ["D", "A", pd.NA],
                 "product_000": ["C", "A", "E"],
                 "product_001": ["E", "G", "C"],
                 "agent_000": ["D", "F", "D"],

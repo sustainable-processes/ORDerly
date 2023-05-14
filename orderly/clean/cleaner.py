@@ -145,6 +145,8 @@ class Cleaner:
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
         if number_of_columns_to_keep == -1:
+            df = df.sort_index(axis=1)
+            df = df.reset_index(drop=True)
             return df
 
         # Filter the columns that start with component_name
@@ -178,9 +180,11 @@ class Cleaner:
                     columns=[new_col_name], data=empty_col
                 )  # these columns are all empty
                 df = pd.concat([df, new_columns], axis=1)
-
-        return df.sort_index(axis=1)
-
+                
+        df = df.sort_index(axis=1)
+        df = df.reset_index(drop=True)
+        return df
+    
     @staticmethod
     def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
         LOG.info(f"Removing reactions with no reactants")
