@@ -9,7 +9,7 @@ import click
 
 from click_loglevel import LogLevel
 
-import tqdm
+from tqdm import tqdm
 import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
@@ -55,30 +55,41 @@ class ORDerlyPlotter:
         df: pd.DataFrame,
         col_starts_with: str,
         plot_output_path: pathlib.Path,
-        num_columns: int = 10,
+        num_columns: int = 5,
     ) -> None:
         # clear the figure
         plt.clf()
         col_subset = ORDerlyPlotter._get_columns_to_plot(df, col_starts_with)
+        if len(col_subset) == 0:
+            LOG.info(f"No columns found starting with {col_starts_with}")
+            return
         df_subset = df[col_subset]
         counts = ORDerlyPlotter._count_strings(df_subset)
 
         plotting_subset = counts[:num_columns]
         # create a bar plot of string counts for each column
-        plt.bar(range(len(plotting_subset)), plotting_subset)
+        plt.bar(range(1, num_columns+1), plotting_subset)  # Adjusted to start at index 1
+
 
         # set the x-axis tick labels to the column names
         # plt.xticks(range(len(self.columns_to_plot)), self.columns_to_plot, rotation=90)
 
         # set the plot title and axis labels
-        plt.title(f"Number of reactions with at least this many {col_starts_with}")
+        plt.title(f"Components per reaction")
         plt.ylabel(f"Number of reactions")
         plt.xlabel(f"Number of {col_starts_with}s")
+        
+        # Add a horizontal line at df.shape[0]
+        plt.axhline(y=df.shape[0], color='red', linestyle='--')
+        
+        # Add a legend
+        plt.legend(['Total reactions', f"{col_starts_with} counts".capitalize()])
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
         # save the plot to file
         plt.savefig(figure_file_path, bbox_inches="tight")
+        return
 
     @staticmethod
     def _get_columns_to_plot(df: pd.DataFrame, col_starts_with: str) -> List[str]:
@@ -88,7 +99,7 @@ class ORDerlyPlotter:
     @staticmethod
     def _count_strings(df: pd.DataFrame) -> List[int]:
         string_counts = []
-        for col in tqdm(df.columns):
+        for col in df.columns:
             count = df[col].apply(lambda x: isinstance(x, str)).sum()
             string_counts.append(count)
         return string_counts
@@ -161,7 +172,7 @@ def main_click(
     1) If plot_num_rxn_components_bool: plots the number of reactions with a given number of reactants, products, solvents, agents, catalysts, and reagents
     2) If plot_frequency_of_occurrence_bool: plots the frequency of occurrence of molecules in the dataset
     """
-    _log_file = pathlib.Path(plot_output_path).parent / f"plot.log"
+    _log_file = pathlib.Path(plot_output_path) / f"plot.log"
     if log_file != "default_path_plot.log":
         _log_file = pathlib.Path(log_file)
 
@@ -213,7 +224,7 @@ def main(
         LOG.error(e)
         raise e
 
-    plot_output_path.parent.mkdir(parents=True, exist_ok=True)
+    plot_output_path.mkdir(parents=True, exist_ok=True)
 
     start_time = datetime.datetime.now()
 
