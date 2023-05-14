@@ -151,7 +151,6 @@ class Cleaner:
         component_columns = [
             col for col in df.columns if col.startswith(component_name)
         ]
-
         # If there are more columns than the threshold, remove the excess ones
         if len(component_columns) > number_of_columns_to_keep:
             columns_to_remove = component_columns[number_of_columns_to_keep:]
@@ -165,22 +164,22 @@ class Cleaner:
         # And if there are fewer than expected, add a column of Nones
         elif len(component_columns) < number_of_columns_to_keep:
             num_columns_to_add = number_of_columns_to_keep - len(component_columns)
-            columns_to_add = [
-                pd.NA
-            ] * num_columns_to_add  # TODO: change the d type of this line to match other missing str values
             column_names_to_add = [
-                f"{component_name}_{i:03d}"
-                for i in range(
-                    len(component_columns), len(component_columns) + num_columns_to_add
-                )
-            ]
+                    f"{component_name}_{i:03d}"
+                    for i in range(
+                        len(component_columns), len(component_columns) + num_columns_to_add
+                    )
+                ]
+            for new_col_name in column_names_to_add:
+                empty_col = [
+                    pd.NA
+                ] * df.shape[0] # create a column of Nones the same length as the df
+                new_columns = pd.DataFrame(
+                    columns=[new_col_name], data=empty_col
+                )  # these columns are all empty
+                df = pd.concat([df, new_columns], axis=1)
 
-            new_columns = pd.DataFrame(
-                columns=column_names_to_add, data=columns_to_add
-            )  # these columns are all empty
-            df = pd.concat([df, new_columns], axis=1)
-
-        return df
+        return df.sort_index(axis=1)
 
     @staticmethod
     def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
