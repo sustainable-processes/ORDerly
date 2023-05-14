@@ -291,6 +291,140 @@ def test_get_value_counts(
 
 
 @pytest.mark.parametrize(
+    "component_name, number_of_columns_to_keep, expected_dict",
+    (
+        # Remove all components
+        pytest.param(
+            "reactant",
+            1,
+            {
+                "reactant_000": [],
+                "product_000": [],
+                "product_001": [],
+                "agent_000":[],
+                "agent_001":[],
+                "solvent_000":[],
+                "solvent_001": [],
+                "solvent_002": [],
+            },
+        ),
+        # Remove a component
+        pytest.param(
+            "reactant",
+            1,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        
+        # Add a component
+        pytest.param(
+            "reactant",
+            3,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Add two component
+        pytest.param(
+            "reactant",
+            4,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "reactant_003": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Do nothing
+        pytest.param(
+            "reactant",
+            2,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Do nothing
+        pytest.param(
+            "reactant",
+            -1,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", "G", "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+    ),
+)
+def test_remove_reactions_with_too_many_of_component(
+    toy_dict: Dict[str, List[str]],
+    component_name: str,
+    number_of_columns_to_keep: int,
+    expected_dict: Dict[str, int],
+) -> None:
+    import orderly.clean.cleaner
+    import pandas as pd
+    import copy
+
+    toy_dict = copy.copy(toy_dict)
+
+    df = pd.DataFrame(toy_dict)
+
+    filtered_df = (
+        orderly.clean.cleaner.Cleaner._remove_reactions_with_too_many_of_component(
+            df=df,
+            component_name=component_name,
+            number_of_columns_to_keep=number_of_columns_to_keep,
+        )
+    )
+
+    expected_filtered_df = pd.DataFrame(expected_dict).sort_index(axis=1)
+    breakpoint()
+    if filtered_df.empty:
+        assert filtered_df.empty == expected_filtered_df.empty
+    else:
+        assert filtered_df.equals(expected_filtered_df
+        ), f"Got: {filtered_df}, expected: {expected_filtered_df},"
+
+
+@pytest.mark.parametrize(
     "columns_to_transform, value_counts_dict, min_frequency_of_occurrence, expected_dict,",
     (
         pytest.param(
@@ -362,9 +496,6 @@ def test_map_rare_molecules_to_other(
     expected_df = pd.DataFrame(expected_dict)
 
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
-
-
-########################################################################################################################################################################
 
 
 @pytest.mark.parametrize(
