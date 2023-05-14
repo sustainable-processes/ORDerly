@@ -166,8 +166,8 @@ def main_click(
         _log_file = pathlib.Path(log_file)
 
     main(
-        clean_data_path=clean_data_path,
-        plot_output_path=plot_output_path,
+        clean_data_path=pathlib.Path(clean_data_path),
+        plot_output_path=pathlib.Path(plot_output_path),
         plot_num_rxn_components_bool=plot_num_rxn_components_bool,
         plot_frequency_of_occurrence_bool=plot_frequency_of_occurrence_bool,
         plot_waterfall_bool=plot_waterfall_bool,
