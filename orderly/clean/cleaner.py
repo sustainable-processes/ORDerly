@@ -167,24 +167,24 @@ class Cleaner:
         elif len(component_columns) < number_of_columns_to_keep:
             num_columns_to_add = number_of_columns_to_keep - len(component_columns)
             column_names_to_add = [
-                    f"{component_name}_{i:03d}"
-                    for i in range(
-                        len(component_columns), len(component_columns) + num_columns_to_add
-                    )
-                ]
+                f"{component_name}_{i:03d}"
+                for i in range(
+                    len(component_columns), len(component_columns) + num_columns_to_add
+                )
+            ]
             for new_col_name in column_names_to_add:
-                empty_col = [
-                    pd.NA
-                ] * df.shape[0] # create a column of Nones the same length as the df
+                empty_col = [pd.NA] * df.shape[
+                    0
+                ]  # create a column of Nones the same length as the df
                 new_columns = pd.DataFrame(
                     columns=[new_col_name], data=empty_col
                 )  # these columns are all empty
                 df = pd.concat([df, new_columns], axis=1)
-                
+
         df = df.sort_index(axis=1)
         df = df.reset_index(drop=True)
         return df
-    
+
     @staticmethod
     def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
         LOG.info(f"Removing reactions with no reactants")
@@ -776,6 +776,8 @@ def main_click(
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
     file_name = pathlib.Path(output_path).name
+    if file_name.endswith(".parquet"):
+        file_name = file_name[: -len(".parquet")]
     _log_file = pathlib.Path(output_path).parent / f"{file_name}_clean.log"
     if log_file != "default_path_clean.log":
         _log_file = pathlib.Path(log_file)

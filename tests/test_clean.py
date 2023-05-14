@@ -292,7 +292,7 @@ def test_get_value_counts(
 
 @pytest.mark.parametrize(
     "component_name, number_of_columns_to_keep, expected_dict",
-    (        
+    (
         # Del reactions with too many reactants
         pytest.param(
             "reactant",
@@ -308,7 +308,6 @@ def test_get_value_counts(
                 "solvent_002": ["F"],
             },
         ),
-        
         # Add a component
         pytest.param(
             "reactant",
@@ -404,7 +403,8 @@ def test_remove_reactions_with_too_many_of_component(
     if filtered_df.empty:
         assert filtered_df.empty == expected_filtered_df.empty
     else:
-        assert filtered_df.equals(expected_filtered_df
+        assert filtered_df.equals(
+            expected_filtered_df
         ), f"Got: {filtered_df}, expected: {expected_filtered_df},"
 
 
@@ -663,8 +663,6 @@ def test_move_none_to_after_data(
     expected_df = pd.DataFrame(expected_dict)
 
     assert df.equals(expected_df), f"Got: \n{df}, expected: \n{expected_df},"
-
-
 
 
 @pytest.mark.parametrize(
