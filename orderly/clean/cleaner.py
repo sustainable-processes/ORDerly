@@ -924,7 +924,14 @@ def main(
         "drop_duplicates": drop_duplicates,
     }
 
-    clean_config_path = output_path.parent / "clean_config.json"
+    file_name = pathlib.Path(output_path).name
+    if file_name.endswith(".parquet"):
+        file_name = file_name[: -len(".parquet")]
+    clean_config_path = pathlib.Path(output_path).parent / f"{file_name}_clean_config.json"
+    if clean_config_path != "clean.json":
+        clean_config_path = pathlib.Path(clean_config_path)
+    else:
+        clean_config_path = pathlib.Path(output_path).parent / "clean_config.json"
     if not overwrite:
         if clean_config_path.exists():
             e = FileExistsError(
