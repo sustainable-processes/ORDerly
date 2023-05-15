@@ -497,7 +497,7 @@ class Cleaner:
             LOG.info("Got mask for if reactions are mapped")
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
-            
+
             mapped_rxn_df_2 = pd.DataFrame()
 
             # set unresolved names to <unresolved>

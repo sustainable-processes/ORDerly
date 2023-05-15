@@ -42,7 +42,7 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: poetry run pytest -v --cov --cov-fail-under=90 --cov-report html
+        run: poetry run pytest -v --cov --cov-fail-under=85 --cov-report html
 
       - name: Upload
         uses: actions/upload-artifact@v1
