@@ -497,12 +497,14 @@ class Cleaner:
             LOG.info("Got mask for if reactions are mapped")
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
+            
+            mapped_rxn_df_2 = pd.DataFrame()
 
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
+                mapped_rxn_df_2[col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
 
