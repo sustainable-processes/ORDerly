@@ -77,6 +77,7 @@ class Cleaner:
     set_unresolved_names_to_none: bool = False
 
     drop_duplicates: bool = True
+    scramble: bool = False
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
@@ -356,6 +357,12 @@ class Cleaner:
 
     def _sort_row(row: pd.Series) -> pd.Series:
         return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)  # type: ignore [no-any-return]
+    
+    def _sort_row_with_scramble(row: pd.Series) -> pd.Series:
+        non_na_values = row[row.notna()]  # Extract non-NA values from the row
+        shuffled_values = non_na_values.sample(frac=1)  # Shuffle the non-NA values
+        row[row.notna()] = shuffled_values  # Update the row with the shuffled non-NA values
+        return row
 
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
@@ -405,6 +412,20 @@ class Cleaner:
                     axis=1,
                 )
 
+        return df
+    
+    @staticmethod
+    def _scramble(df: pd.DataFrame) -> pd.DataFrame:
+        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
+        """Scrambles the order of the reactants and other components in the DataFrame."""
+        df = df.copy()  # Create a copy of the DataFrame to avoid modifying the original DataFrame
+        
+        # Scramble reactants
+        
+        
+        # Scramble reaction indices
+        df = df.sample(frac=1).reset_index(drop=True)
+        
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
@@ -593,6 +614,9 @@ class Cleaner:
 
         df.reset_index(inplace=True, drop=True)
         df = df.sort_index(axis=1)
+        
+        if self.scramble:
+            df = Cleaner._scramble(df)
 
         return df
 
@@ -713,6 +737,12 @@ class Cleaner:
     type=bool,
     default=True,
 )
+@click.option(
+    "--scramble",
+    type=bool,
+    default=False,
+    help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
+)
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 @click.option(
     "--overwrite",
@@ -748,6 +778,7 @@ def main_click(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
+    scramble: bool,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -801,6 +832,7 @@ def main_click(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
+        scramble = scramble,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -826,6 +858,7 @@ def main(
     set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
+    scramble: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -965,6 +998,7 @@ def main(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         molecules_to_remove=molecules_to_remove,
         drop_duplicates=drop_duplicates,
+        scramble=scramble,
         disable_tqdm=disable_tqdm,
     )
     LOG.info(f"completed cleaning, saving to {output_path}")
