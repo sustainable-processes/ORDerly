@@ -2,7 +2,7 @@
 .DS_Store
 *.log
 
-notebooks/
+#notebooks/
 
 
 # Byte-compiled / optimized / DLL files
