@@ -357,12 +357,6 @@ class Cleaner:
 
     def _sort_row(row: pd.Series) -> pd.Series:
         return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)  # type: ignore [no-any-return]
-    
-    def _sort_row_with_scramble(row: pd.Series) -> pd.Series:
-        non_na_values = row[row.notna()]  # Extract non-NA values from the row
-        shuffled_values = non_na_values.sample(frac=1)  # Shuffle the non-NA values
-        row[row.notna()] = shuffled_values  # Update the row with the shuffled non-NA values
-        return row
 
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
@@ -413,19 +407,14 @@ class Cleaner:
                 )
 
         return df
-    
+
     @staticmethod
     def _scramble(df: pd.DataFrame) -> pd.DataFrame:
-        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
-        """Scrambles the order of the reactants and other components in the DataFrame."""
-        df = df.copy()  # Create a copy of the DataFrame to avoid modifying the original DataFrame
-        
-        # Scramble reactants
-        
-        
-        # Scramble reaction indices
-        df = df.sample(frac=1).reset_index(drop=True)
-        
+        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
+        shuffled_df = df.copy()
+        for _, series in shuffled_df.iterrows():
+            np.random.shuffle(series.values)
+
         return df
 
     def _get_dataframe(self) -> pd.DataFrame:
@@ -614,9 +603,22 @@ class Cleaner:
 
         df.reset_index(inplace=True, drop=True)
         df = df.sort_index(axis=1)
-        
+
         if self.scramble:
-            df = Cleaner._scramble(df)
+            list_of_dfs = []
+            components = ("agent", "solvent", "reagent", "catalyst")
+            for component_name in components:
+                component_columns = [
+                    col for col in df.columns if col.startswith(component_name)
+                ]
+                sub_df = df[component_columns]
+                if len(sub_df.columns) > 1:
+                    sub_df = Cleaner._scramble(sub_df)
+                list_of_dfs.append(sub_df)
+            df = pd.concat(list_of_dfs, axis=1)
+            df = Cleaner._move_none_to_after_data(sub_df, components)
+            # scramble the indices
+            df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
         return df
 
@@ -743,6 +745,12 @@ class Cleaner:
     default=False,
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
+@click.option(
+    "--apply_random_split",
+    type=bool,
+    default=False,
+    help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
+)
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 @click.option(
     "--overwrite",
@@ -779,6 +787,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
+    apply_random_split: bool,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -832,7 +841,8 @@ def main_click(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
-        scramble = scramble,
+        scramble=scramble,
+        apply_random_split=apply_random_split,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -859,6 +869,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
+    apply_random_split: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -960,7 +971,9 @@ def main(
     file_name = pathlib.Path(output_path).name
     if file_name.endswith(".parquet"):
         file_name = file_name[: -len(".parquet")]
-    clean_config_path = pathlib.Path(output_path).parent / f"{file_name}_clean_config.json"
+    clean_config_path = (
+        pathlib.Path(output_path).parent / f"{file_name}_clean_config.json"
+    )
     if clean_config_path != "clean.json":
         clean_config_path = pathlib.Path(clean_config_path)
     else:
@@ -1002,8 +1015,19 @@ def main(
         disable_tqdm=disable_tqdm,
     )
     LOG.info(f"completed cleaning, saving to {output_path}")
-    instance.cleaned_reactions.to_parquet(output_path)
-    LOG.info("Saved")
+    if apply_random_split:
+        scrambled_index_df = instance.cleaned_reactions.sample(
+            frac=1, random_state=42
+        ).reset_index(drop=True)
+        index_split_point = int(len(scrambled_index_df) * 0.8)
+        train = scrambled_index_df[:index_split_point]
+        test = scrambled_index_df[index_split_point:]
+        train.to_parquet(output_path.parent / f"{file_name}_train.parquet")
+        test.to_parquet(output_path.parent / f"{file_name}_test.parquet")
+        LOG.info("Saved split data")
+    else:
+        instance.cleaned_reactions.to_parquet(output_path)
+        LOG.info("Saved unsplit data")
 
     end_time = datetime.datetime.now()
     LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
