@@ -607,6 +607,7 @@ class Cleaner:
         df = df.sort_index(axis=1)
 
         if self.scramble:
+            LOG.info(f"Scrambling the order of the components")
             list_of_dfs = []
             components = ("agent", "solvent", "reagent", "catalyst")
             for component_name in components:
@@ -618,7 +619,7 @@ class Cleaner:
                     sub_df = Cleaner._scramble(sub_df)
                 list_of_dfs.append(sub_df)
             df = pd.concat(list_of_dfs, axis=1)
-            df = Cleaner._move_none_to_after_data(sub_df, components)
+            df = Cleaner._move_none_to_after_data(df, components)
             # scramble the indices
             df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
