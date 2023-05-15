@@ -44,7 +44,6 @@ def get_cleaned_df(
     remove_rxn_with_unresolved_names: bool,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
-    scramble: bool,
     drop_duplicates: bool,
 ) -> pd.DataFrame:
     import orderly.clean.cleaner
@@ -81,7 +80,7 @@ def get_cleaned_df(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
-        scramble=scramble,
+        scramble=False,
         apply_random_split=False,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
