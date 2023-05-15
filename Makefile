@@ -76,6 +76,12 @@ clean_unfiltered_uspto: clean_unfiltered_uspto_no_trust clean_unfiltered_uspto_t
 
 gen_unfiltered_uspto: extract_uspto_no_trust extract_uspto_trust clean_unfiltered_uspto 
 
+scramble_true:
+	poetry run python -m orderly.clean --output_path="data/orderly/check_scramble/orderly_no_trust_no_map_with_scramble.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=1000 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --apply_random_split=False
+
+scramble_false:
+	poetry run python -m orderly.clean --output_path="data/orderly/check_scramble/orderly_no_trust_no_map_no_scramble.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=1000 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=False --apply_random_split=False
+
 gen_test_data:
 	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False --use_multiprocessing=True
 	poetry run python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling  --trust_labelling=False --name_contains_substring="" --overwrite=False --use_multiprocessing=True
@@ -231,8 +237,3 @@ paper_get_datasets: paper_1 paper_6
 
 paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6
 
-true_scramble:
-	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map.parquet" --ord_extraction_path="orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/extracted_ords" --molecules_to_remove_path="orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/all_molecule_names.csv" --min_frequency_of_occurrence=10 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True
-
-false_scramble:
-	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map.parquet" --ord_extraction_path="orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/extracted_ords" --molecules_to_remove_path="orderly/data/test_data/extracted_ord_test_data_dont_trust_labelling/all_molecule_names.csv" --min_frequency_of_occurrence=10 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=False
