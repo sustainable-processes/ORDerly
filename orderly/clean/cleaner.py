@@ -77,6 +77,7 @@ class Cleaner:
     set_unresolved_names_to_none: bool = False
 
     drop_duplicates: bool = True
+    scramble: bool = False
     disable_tqdm: bool = False
 
     def __post_init__(self) -> None:
@@ -145,13 +146,14 @@ class Cleaner:
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
         if number_of_columns_to_keep == -1:
+            df = df.sort_index(axis=1)
+            df = df.reset_index(drop=True)
             return df
 
         # Filter the columns that start with component_name
         component_columns = [
             col for col in df.columns if col.startswith(component_name)
         ]
-
         # If there are more columns than the threshold, remove the excess ones
         if len(component_columns) > number_of_columns_to_keep:
             columns_to_remove = component_columns[number_of_columns_to_keep:]
@@ -165,21 +167,23 @@ class Cleaner:
         # And if there are fewer than expected, add a column of Nones
         elif len(component_columns) < number_of_columns_to_keep:
             num_columns_to_add = number_of_columns_to_keep - len(component_columns)
-            columns_to_add = [
-                pd.NA
-            ] * num_columns_to_add  # TODO: change the d type of this line to match other missing str values
             column_names_to_add = [
                 f"{component_name}_{i:03d}"
                 for i in range(
                     len(component_columns), len(component_columns) + num_columns_to_add
                 )
             ]
+            for new_col_name in column_names_to_add:
+                empty_col = [pd.NA] * df.shape[
+                    0
+                ]  # create a column of Nones the same length as the df
+                new_columns = pd.DataFrame(
+                    columns=[new_col_name], data=empty_col
+                )  # these columns are all empty
+                df = pd.concat([df, new_columns], axis=1)
 
-            new_columns = pd.DataFrame(
-                columns=column_names_to_add, data=columns_to_add
-            )  # these columns are all empty
-            df = pd.concat([df, new_columns], axis=1)
-
+        df = df.sort_index(axis=1)
+        df = df.reset_index(drop=True)
         return df
 
     @staticmethod
@@ -404,6 +408,32 @@ class Cleaner:
 
         return df
 
+    @staticmethod
+    def _scramble(
+        df: pd.DataFrame,
+        components: Tuple[str, ...] = ("agent", "solvent", "catalyst", "reagent"),
+        seed: int = 42,
+    ) -> pd.DataFrame:
+        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
+        list_of_dfs = []
+        all_component_cols = []
+        np.random.seed(seed)
+        for component_name in components:
+            component_columns = [
+                col for col in df.columns if col.startswith(component_name)
+            ]
+            all_component_cols += component_columns
+            sub_df = df[component_columns]
+            if len(sub_df.columns) > 1:
+                for _, series in sub_df.iterrows():
+                    np.random.shuffle(series.values)
+            list_of_dfs.append(sub_df)
+        shuffled_sub_df = pd.concat(list_of_dfs, axis=1)
+        df = df.drop(all_component_cols, axis=1)
+        df = pd.concat([df, shuffled_sub_df], axis=1)
+
+        return df
+
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
         # Merge all the extracted data into one big df
@@ -485,11 +515,13 @@ class Cleaner:
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
+            mapped_rxn_df_2 = pd.DataFrame()
+
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df.loc[:, col] = mapped_rxn_df.loc[:, col].map(
+                mapped_rxn_df_2[col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
 
@@ -591,6 +623,11 @@ class Cleaner:
         df.reset_index(inplace=True, drop=True)
         df = df.sort_index(axis=1)
 
+        if self.scramble:
+            LOG.info(f"Scrambling the order of the components")
+            components = ("agent", "solvent", "reagent", "catalyst")
+            df = Cleaner._scramble(df)
+            df = Cleaner._move_none_to_after_data(df, components)
         return df
 
 
@@ -710,6 +747,18 @@ class Cleaner:
     type=bool,
     default=True,
 )
+@click.option(
+    "--scramble",
+    type=bool,
+    default=False,
+    help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
+)
+@click.option(
+    "--apply_random_split",
+    type=bool,
+    default=False,
+    help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
+)
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
 @click.option(
     "--overwrite",
@@ -745,6 +794,8 @@ def main_click(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
+    scramble: bool,
+    apply_random_split: bool,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -772,7 +823,9 @@ def main_click(
         NB:
     1) There are lots of places where the code where I use masks to remove rows from a df. These operations could also be done in one line, however, using an operation such as .replace is very slow, and one-liners with dfs can lead to SettingWithCopyWarning. Therefore, I have opted to use masks, which are much faster, and don't give the warning.
     """
-    file_name = pathlib.Path(output_path).name 
+    file_name = pathlib.Path(output_path).name
+    if file_name.endswith(".parquet"):
+        file_name = file_name[: -len(".parquet")]
     _log_file = pathlib.Path(output_path).parent / f"{file_name}_clean.log"
     if log_file != "default_path_clean.log":
         _log_file = pathlib.Path(log_file)
@@ -796,6 +849,8 @@ def main_click(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
+        scramble=scramble,
+        apply_random_split=apply_random_split,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -821,6 +876,8 @@ def main(
     set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
+    scramble: bool,
+    apply_random_split: bool,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -919,7 +976,16 @@ def main(
         "drop_duplicates": drop_duplicates,
     }
 
-    clean_config_path = output_path.parent / "clean_config.json"
+    file_name = pathlib.Path(output_path).name
+    if file_name.endswith(".parquet"):
+        file_name = file_name[: -len(".parquet")]
+    clean_config_path = (
+        pathlib.Path(output_path).parent / f"{file_name}_clean_config.json"
+    )
+    if clean_config_path != "clean.json":
+        clean_config_path = pathlib.Path(clean_config_path)
+    else:
+        clean_config_path = pathlib.Path(output_path).parent / "clean_config.json"
     if not overwrite:
         if clean_config_path.exists():
             e = FileExistsError(
@@ -953,11 +1019,23 @@ def main(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         molecules_to_remove=molecules_to_remove,
         drop_duplicates=drop_duplicates,
+        scramble=scramble,
         disable_tqdm=disable_tqdm,
     )
     LOG.info(f"completed cleaning, saving to {output_path}")
-    instance.cleaned_reactions.to_parquet(output_path)
-    LOG.info("Saved")
+    if apply_random_split:
+        scrambled_index_df = instance.cleaned_reactions.sample(
+            frac=1, random_state=42
+        ).reset_index(drop=True)
+        index_split_point = int(len(scrambled_index_df) * 0.8)
+        train = scrambled_index_df[:index_split_point]
+        test = scrambled_index_df[index_split_point:]
+        train.to_parquet(output_path.parent / f"{file_name}_train.parquet")
+        test.to_parquet(output_path.parent / f"{file_name}_test.parquet")
+        LOG.info("Saved split data")
+    else:
+        instance.cleaned_reactions.to_parquet(output_path)
+        LOG.info("Saved unsplit data")
 
     end_time = datetime.datetime.now()
     LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))

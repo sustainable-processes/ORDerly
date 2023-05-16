@@ -14,7 +14,7 @@ def test_hello_world() -> None:
 def toy_dict() -> Dict[str, List[str]]:
     toy_dict = {
         "reactant_000": ["B", "A", "F", "A"],
-        "reactant_001": ["D", "A", "G", "B"],
+        "reactant_001": ["D", "A", pd.NA, "B"],
         "product_000": ["C", "A", "E", "A"],
         "product_001": ["E", "G", "C", "H"],
         "agent_000": ["D", "F", "D", "B"],
@@ -80,6 +80,8 @@ def get_cleaned_df(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        scramble=False,
+        apply_random_split=False,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
         overwrite=False,
@@ -254,7 +256,7 @@ def test_molecule_names_not_empty() -> None:
                 "solvent_001",
                 "solvent_002",
             ],
-            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
+            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 5, "H": 1},
             id="all_columns",
         ),
         pytest.param(
@@ -290,6 +292,152 @@ def test_get_value_counts(
     ), f"Got: {total_value_counts}, expected: {expected_total_value_counts},"
 
 
+def test_scramble(
+    toy_dict: Dict[str, List[str]],
+) -> None:
+    import orderly.clean.cleaner
+    import pandas as pd
+    import copy
+
+    toy_dict = copy.copy(toy_dict)
+
+    df = pd.DataFrame(toy_dict)
+    components = ("agent", "solvent", "catalyst", "reagent")
+
+    scrambled_df = orderly.clean.cleaner.Cleaner._scramble(df, components)
+
+    assert not scrambled_df.equals(
+        df
+    ), f"Got: {scrambled_df}, expected to be different from: {df},"
+
+    # check that molecules have only been moved around within the same reaction (i.e. the same row)
+    rows_to_check = min(10, len(df))
+    for i in range(rows_to_check):
+        sorted_row_components = set(df.iloc[i])
+        scrambled_row_components = set(scrambled_df.iloc[i])
+        assert (
+            sorted_row_components == scrambled_row_components
+        ), f"Got: {sorted_row_components}, expected: {scrambled_row_components},"
+
+
+@pytest.mark.parametrize(
+    "component_name, number_of_columns_to_keep, expected_dict",
+    (
+        # Del reactions with too many reactants
+        pytest.param(
+            "reactant",
+            1,
+            {
+                "reactant_000": ["F"],
+                "product_000": ["E"],
+                "product_001": ["C"],
+                "agent_000": ["D"],
+                "agent_001": ["G"],
+                "solvent_000": ["G"],
+                "solvent_001": ["B"],
+                "solvent_002": ["F"],
+            },
+        ),
+        # Add a component
+        pytest.param(
+            "reactant",
+            3,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
+                "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Add two component
+        pytest.param(
+            "reactant",
+            4,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
+                "reactant_002": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "reactant_003": [pd.NA, pd.NA, pd.NA, pd.NA],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Do nothing
+        pytest.param(
+            "reactant",
+            2,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+        # Do nothing
+        pytest.param(
+            "reactant",
+            -1,
+            {
+                "reactant_000": ["B", "A", "F", "A"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
+                "product_000": ["C", "A", "E", "A"],
+                "product_001": ["E", "G", "C", "H"],
+                "agent_000": ["D", "F", "D", "B"],
+                "agent_001": ["C", "E", "G", "A"],
+                "solvent_000": ["E", "B", "G", "C"],
+                "solvent_001": ["C", "D", "B", "G"],
+                "solvent_002": ["D", "B", "F", "G"],
+            },
+        ),
+    ),
+)
+def test_remove_reactions_with_too_many_of_component(
+    toy_dict: Dict[str, List[str]],
+    component_name: str,
+    number_of_columns_to_keep: int,
+    expected_dict: Dict[str, int],
+) -> None:
+    import orderly.clean.cleaner
+    import pandas as pd
+    import copy
+
+    toy_dict = copy.copy(toy_dict)
+
+    df = pd.DataFrame(toy_dict)
+
+    filtered_df = (
+        orderly.clean.cleaner.Cleaner._remove_reactions_with_too_many_of_component(
+            df=df,
+            component_name=component_name,
+            number_of_columns_to_keep=number_of_columns_to_keep,
+        )
+    )
+
+    expected_filtered_df = pd.DataFrame(expected_dict).sort_index(axis=1)
+    if filtered_df.empty:
+        assert filtered_df.empty == expected_filtered_df.empty
+    else:
+        assert filtered_df.equals(
+            expected_filtered_df
+        ), f"Got: {filtered_df}, expected: {expected_filtered_df},"
+
+
 @pytest.mark.parametrize(
     "columns_to_transform, value_counts_dict, min_frequency_of_occurrence, expected_dict,",
     (
@@ -305,11 +453,11 @@ def test_get_value_counts(
                 "solvent_001",
                 "solvent_002",
             ],
-            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 6, "H": 1},
+            {"A": 6, "B": 6, "C": 5, "D": 5, "E": 4, "F": 3, "G": 5, "H": 1},
             4,
             {
                 "reactant_000": ["B", "A", "other", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "other"],
                 "agent_000": ["D", "other", "D", "B"],
@@ -322,11 +470,11 @@ def test_get_value_counts(
         ),
         pytest.param(
             ["agent_000", "agent_001", "solvent_000", "solvent_001", "solvent_002"],
-            {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 4},
+            {"A": 1, "B": 4, "C": 3, "D": 4, "E": 2, "F": 2, "G": 3},
             3,
             {
                 "reactant_000": ["B", "A", "F", "A"],
-                "reactant_001": ["D", "A", "G", "B"],
+                "reactant_001": ["D", "A", pd.NA, "B"],
                 "product_000": ["C", "A", "E", "A"],
                 "product_001": ["E", "G", "C", "H"],
                 "agent_000": ["D", "other", "D", "B"],
@@ -362,9 +510,6 @@ def test_map_rare_molecules_to_other(
     expected_df = pd.DataFrame(expected_dict)
 
     assert df.equals(expected_df), f"Got: {df}, expected: {expected_df},"
-
-
-########################################################################################################################################################################
 
 
 @pytest.mark.parametrize(
@@ -550,9 +695,6 @@ def test_move_none_to_after_data(
     assert df.equals(expected_df), f"Got: \n{df}, expected: \n{expected_df},"
 
 
-##########################################
-
-
 @pytest.mark.parametrize(
     "columns_to_transform, value_counts_dict, min_frequency_of_occurrence, expected_dict,",
     (
@@ -589,7 +731,7 @@ def test_move_none_to_after_data(
             2,
             {
                 "reactant_000": ["B", "A", "F"],
-                "reactant_001": ["D", "A", "G"],
+                "reactant_001": ["D", "A", pd.NA],
                 "product_000": ["C", "A", "E"],
                 "product_001": ["E", "G", "C"],
                 "agent_000": ["D", "F", "D"],
