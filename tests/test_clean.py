@@ -294,7 +294,7 @@ def test_get_value_counts(
 
 def test_scramble(
     toy_dict: Dict[str, List[str]],
-):
+) -> None:
     import orderly.clean.cleaner
     import pandas as pd
     import copy
@@ -319,7 +319,6 @@ def test_scramble(
             sorted_row_components == scrambled_row_components
         ), f"Got: {sorted_row_components}, expected: {scrambled_row_components},"
 
-    breakpoint()
 
 
 @pytest.mark.parametrize(
