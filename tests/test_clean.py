@@ -320,7 +320,6 @@ def test_scramble(
         ), f"Got: {sorted_row_components}, expected: {scrambled_row_components},"
 
 
-
 @pytest.mark.parametrize(
     "component_name, number_of_columns_to_keep, expected_dict",
     (
