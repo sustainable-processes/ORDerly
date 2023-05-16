@@ -409,13 +409,28 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _scramble(df: pd.DataFrame) -> pd.DataFrame:
+    def _scramble(df: pd.DataFrame, components: Tuple[str, ...] = ('agent', 'solvent', 'catalyst', 'reagent'), seed: int=42) -> pd.DataFrame:
         """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
-        shuffled_df = df.copy()
-        for _, series in shuffled_df.iterrows():
-            np.random.shuffle(series.values)
-
+        list_of_dfs = []
+        all_component_cols = []
+        np.random.seed(seed)
+        for component_name in components:
+            component_columns = [col for col in df.columns if col.startswith(component_name)]
+            all_component_cols += component_columns
+            sub_df = df[component_columns]
+            if len(sub_df.columns) > 1:
+                for _, series in sub_df.iterrows():
+                    np.random.shuffle(series.values)
+            list_of_dfs.append(sub_df)
+        shuffled_sub_df = pd.concat(list_of_dfs, axis=1)
+        df = df.drop(all_component_cols, axis=1)
+        df = pd.concat([df, shuffled_sub_df], axis=1)
+      
         return df
+    
+    
+    
+    
 
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
@@ -608,21 +623,9 @@ class Cleaner:
 
         if self.scramble:
             LOG.info(f"Scrambling the order of the components")
-            list_of_dfs = []
             components = ("agent", "solvent", "reagent", "catalyst")
-            for component_name in components:
-                component_columns = [
-                    col for col in df.columns if col.startswith(component_name)
-                ]
-                sub_df = df[component_columns]
-                if len(sub_df.columns) > 1:
-                    sub_df = Cleaner._scramble(sub_df)
-                list_of_dfs.append(sub_df)
-            df = pd.concat(list_of_dfs, axis=1)
+            df = Cleaner._scramble(df)
             df = Cleaner._move_none_to_after_data(df, components)
-            # scramble the indices
-            df = df.sample(frac=1, random_state=42).reset_index(drop=True)
-
         return df
 
 
