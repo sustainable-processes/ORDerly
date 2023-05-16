@@ -290,8 +290,8 @@ def test_get_value_counts(
     assert total_value_counts.equals(
         pd.Series(expected_total_value_counts)
     ), f"Got: {total_value_counts}, expected: {expected_total_value_counts},"
-    
-    
+
+
 def test_scramble(
     toy_dict: Dict[str, List[str]],
 ):
@@ -302,19 +302,23 @@ def test_scramble(
     toy_dict = copy.copy(toy_dict)
 
     df = pd.DataFrame(toy_dict)
-    components = ('agent', 'solvent', 'catalyst', 'reagent')
-    
+    components = ("agent", "solvent", "catalyst", "reagent")
+
     scrambled_df = orderly.clean.cleaner.Cleaner._scramble(df, components)
 
-    assert not scrambled_df.equals(df), f"Got: {scrambled_df}, expected to be different from: {df},"
-    
+    assert not scrambled_df.equals(
+        df
+    ), f"Got: {scrambled_df}, expected to be different from: {df},"
+
     # check that molecules have only been moved around within the same reaction (i.e. the same row)
     rows_to_check = min(10, len(df))
     for i in range(rows_to_check):
         sorted_row_components = set(df.iloc[i])
         scrambled_row_components = set(scrambled_df.iloc[i])
-        assert sorted_row_components == scrambled_row_components, f"Got: {sorted_row_components}, expected: {scrambled_row_components},"
-        
+        assert (
+            sorted_row_components == scrambled_row_components
+        ), f"Got: {sorted_row_components}, expected: {scrambled_row_components},"
+
     breakpoint()
 
 
