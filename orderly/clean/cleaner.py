@@ -71,14 +71,12 @@ class Cleaner:
     min_frequency_of_occurrence: int
     map_rare_molecules_to_other: bool
     molecules_to_remove: List[str]
-
-    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool = True
-    remove_rxn_with_unresolved_names: bool = False
-    set_unresolved_names_to_none: bool = False
-
-    drop_duplicates: bool = True
-    scramble: bool = False
-    disable_tqdm: bool = False
+    set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool
+    remove_rxn_with_unresolved_names: bool
+    set_unresolved_names_to_none: bool
+    drop_duplicates: bool
+    scramble: bool
+    disable_tqdm: bool
 
     def __post_init__(self) -> None:
         LOG.info("Entered post_init")
@@ -373,6 +371,7 @@ class Cleaner:
     def _move_none_to_after_data(
         df: pd.DataFrame, target_strings: Tuple[str, ...]
     ) -> pd.DataFrame:
+        LOG.info(f"Moving None to after data for {target_strings=}")
         for molecule_type in target_strings:  # i.e. reactant
             ordering_target_columns = Cleaner._get_columns_beginning_with_str(
                 columns=df.columns,
@@ -425,14 +424,37 @@ class Cleaner:
             all_component_cols += component_columns
             sub_df = df[component_columns]
             if len(sub_df.columns) > 1:
-                for _, series in sub_df.iterrows():
-                    np.random.shuffle(series.values)
+                sub_df = sub_df.apply(lambda row: pd.Series(np.random.permutation(row.values), index=row.index), axis=1)
             list_of_dfs.append(sub_df)
+
         shuffled_sub_df = pd.concat(list_of_dfs, axis=1)
         df = df.drop(all_component_cols, axis=1)
         df = pd.concat([df, shuffled_sub_df], axis=1)
 
         return df
+    
+    @staticmethod
+    def _replace_None_with_NA(
+        df: pd.DataFrame,
+        components: Tuple[str, ...] = ("agent", "solvent", "catalyst", "reagent"),
+    ) -> pd.DataFrame:
+        """The scrambling or move none to end of list functions populate empty values with None. This function replaces those None values with NA, which is the value used by the model to indicate an empty value."""
+        LOG.info("Replacing None with NA")
+        all_component_cols = []
+        for component_name in components:
+            component_columns = [
+                col for col in df.columns if col.startswith(component_name)
+            ]
+            all_component_cols += component_columns
+            
+        sub_df = df[component_columns]
+        sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
+
+        df = df.drop(all_component_cols, axis=1)
+        df = pd.concat([df, sub_df], axis=1)
+
+        return df
+    
 
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
@@ -621,13 +643,16 @@ class Cleaner:
             LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
-        df = df.sort_index(axis=1)
+        
 
         if self.scramble:
             LOG.info(f"Scrambling the order of the components")
             components = ("agent", "solvent", "reagent", "catalyst")
-            df = Cleaner._scramble(df)
+            df = Cleaner._scramble(df, components)
             df = Cleaner._move_none_to_after_data(df, components)
+            df = Cleaner._replace_None_with_NA(df, components)
+        
+        df = df.sort_index(axis=1)
         return df
 
 
@@ -974,6 +999,8 @@ def main(
         "remove_rxn_with_unresolved_names": remove_rxn_with_unresolved_names,
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
+        'scramble': scramble,
+        'apply_random_split': apply_random_split,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1003,9 +1030,9 @@ def main(
     LOG.info(f"Beginning extraction for files in {ord_extraction_path}")
     instance = Cleaner(
         ord_extraction_path=ord_extraction_path,
-        consistent_yield=consistent_yield,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -1022,6 +1049,7 @@ def main(
         scramble=scramble,
         disable_tqdm=disable_tqdm,
     )
+    
     LOG.info(f"completed cleaning, saving to {output_path}")
     if apply_random_split:
         scrambled_index_df = instance.cleaned_reactions.sample(
