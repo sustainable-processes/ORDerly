@@ -11,28 +11,286 @@ import tqdm
 import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from orderly.types import *
+
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+
+import orderly.condition_prediction.reactions.get
+import orderly.condition_prediction.reactions.filters
+import orderly.condition_prediction.learn.ohe
+import orderly.condition_prediction.learn.util
+
+import orderly.condition_prediction.model
+import orderly.condition_prediction.reactions.fingerprint
+
 
 @dataclasses.dataclass(kw_only=True)
 class ConditionPrediction:
     """
     Class for training a condition prediction model.
+    
+    1) Get the data ready for modelling
+    1.1) Inputs: concat([rxn_diff_fp, product_fp])
+    1.2) Targets: OHE
 
     """
 
     train_data_path: pathlib.Path
     test_data_path: pathlib.Path
+    model_save_path: pathlib.Path
 
     def __post_init__(self) -> None:
         self.train_df = pd.read_parquet(self.train_data_path)
         self.test_df = pd.read_parquet(self.test_data_path)
+        
+    def main(train_df: pd.DataFrame, test_df: pd.DataFrame, model_save_path, train_fraction: int = 1,train_val_split: int = 0.8)-> None:
+        """ 
+        catalyst_in_data: bool, to determine whether we're predicting agent_002 or catalyst_000
+        """
+        assert train_df.shape[1] == test_df.shape[1]
+        
+        # Make train data smaller to investigate scaling behaviour
+        train_df = train_df.sample(frac=train_fraction)
+        # Shuffle indices
+        train_df = train_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-    
-
-    
+        
+        df = pd.concat([train_df, test_df])
+        df.reset_index(inplace=True, drop=True)
+        
+        test_idx = df.index[len(train_df):]
+        train_idx = df.index[: int(train_df.shape[0] * train_val_split)]
+        val_idx = df.index[int(train_df.shape[0] * train_val_split) :]
+        
+        # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
+        if 'catalyst_000' in df.columns:
+            df['agent_000'] = df['catalyst_000']
+            df['agent_001'] = df['reagent_000']
+            df['agent_002'] = df['reagent_001']
+            df.drop(columns=['catalyst_000', 'reagent_000', 'reagent_001'], inplace=True)
             
+
+
+        
+        # Get inputs ready for modelling
+        product_fp, rxn_diff_fp = orderly.condition_prediction.reactions.fingerprint.get_fp(df, model_save_path, rxn_diff_fp_size=2048, product_fp_size=2048)
+        
+        train_product_fp = tf.convert_to_tensor(product_fp[train_idx])
+        train_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[train_idx])
+        val_product_fp = tf.convert_to_tensor(product_fp[val_idx])
+        val_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[val_idx])
+        test_product_fp = tf.convert_to_tensor(product_fp[test_idx])
+        test_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[test_idx])
+        
+        # Get target variables ready for modelling
+        train_solvent_0, val_solvent_0, sol0_enc = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["solvent_0"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+        train_solvent_1, val_solvent_1, sol1_enc = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["solvent_1"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+        (
+            train_agent_0,
+            val_agent_0,
+            reag0_enc,
+        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["agent_000"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+        (
+            train_agent_1,
+            val_agent_1,
+            reag1_enc,
+        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["agent_001"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+        (
+            train_agent_2,
+            val_agent_2,
+            reag2_enc,
+        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["agent_001"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+        
+        del df
+        LOG.info("Data ready for modelling")
+                
+        
+        x_train_data = (
+            train_product_fp,
+            train_rxn_diff_fp,
+            train_solvent_0,
+            train_solvent_1,
+            train_agent_0,
+            train_agent_1,
+            train_agent_2,
+        )
+
+        x_train_eval_data = (
+            train_product_fp,
+            train_rxn_diff_fp,
+        )
+
+        y_train_data = (
+            train_solvent_0,
+            train_solvent_1,
+            train_agent_0,
+            train_agent_1,
+            train_agent_2,
+        )
+
+        x_val_data = (
+            val_product_fp,
+            val_rxn_diff_fp,
+            val_solvent_0,
+            val_solvent_1,
+            val_agent_0,
+            val_agent_1,
+            val_agent_2,
+        )
+
+        x_val_eval_data = (
+            val_product_fp,
+            val_rxn_diff_fp,
+        )
+
+        y_val_data = (
+            val_solvent_0,
+            val_solvent_1,
+            val_agent_0,
+            val_agent_1,
+            val_agent_2,
+        )
+        
+
+
     
+        train_mode = orderly.condition_prediction.coley_code.model.HARD_SELECTION
+        
+        
+        model = orderly.condition_prediction.coley_code.model.build_teacher_forcing_model(
+            pfp_len=train_product_fp.shape[-1],
+            rxnfp_len=train_rxn_diff_fp.shape[-1],
+            s1_dim=train_solvent_0.shape[-1],
+            s2_dim=train_solvent_1.shape[-1],
+            a1_dim=train_agent_0.shape[-1],
+            a2_dim=train_agent_1.shape[-1],
+            a3_dim=train_agent_2.shape[-1],
+            N_h1=1024,
+            N_h2=100,
+            l2v=0,  # TODO check what coef they used
+            mode=train_mode,
+            dropout_prob=0.2,
+            use_batchnorm=True,
+        )
+        
+        # we use a separate model for prediction because we use a recurrent setup for prediction
+        # the pred model is only different after the first component (s1)
+        pred_model = orderly.condition_prediction.coley_code.model.build_teacher_forcing_model(
+            pfp_len=train_product_fp.shape[-1],
+            rxnfp_len=train_rxn_diff_fp.shape[-1],
+            s1_dim=train_solvent_0.shape[-1],
+            s2_dim=train_solvent_1.shape[-1],
+            a1_dim=train_agent_0.shape[-1],
+            a2_dim=train_agent_1.shape[-1],
+            a3_dim=train_agent_2.shape[-1],
+            N_h1=1024,
+            N_h2=100,
+            l2v=0,
+            mode=orderly.condition_prediction.coley_code.model.HARD_SELECTION,
+            dropout_prob=0.2,
+            use_batchnorm=True,
+        )
+            
+        model.compile(
+            loss=[
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+            ],
+            loss_weights=[1, 1, 1, 1, 1],
+            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+            metrics={
+                "s1": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
+                "s2": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
+                "a1": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
+                "a2": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
+                "a3": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
+            },
+        )
+        
+        orderly.condition_prediction.coley_code.model.update_teacher_forcing_model_weights(
+            update_model=pred_model, to_copy_model=model
+        )
+        
+        h = model.fit(
+            x=x_train_data
+            if train_mode == orderly.condition_prediction.coley_code.model.TEACHER_FORCE
+            else x_train_eval_data,
+            y=y_train_data,
+            epochs=20,
+            verbose=1,
+            batch_size=1024,
+            validation_data=(
+                x_val_data
+                if train_mode == orderly.condition_prediction.coley_code.model.TEACHER_FORCE
+                else x_val_eval_data,
+                y_val_data,
+            ),
+            callbacks=[
+                tf.keras.callbacks.TensorBoard(
+                    log_dir=orderly.condition_prediction.learn.util.log_dir(
+                        prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
+                    )
+                ),
+            ],
+        )
+        orderly.condition_prediction.coley_code.model.update_teacher_forcing_model_weights(
+           update_model=pred_model, to_copy_model=model
+        )
+        
+        plt.plot(h.history["loss"], label="loss")
+        plt.plot(h.history["val_loss"], label="val_loss")
+        plt.legend()
 
 
 
@@ -123,6 +381,7 @@ def main(
     instance = ConditionPrediction(
         train_data_path = train_data_path,
         test_data_path = test_data_path,
+        model_save_path = model_save_path,
     )
 
 
