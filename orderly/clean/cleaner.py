@@ -433,10 +433,10 @@ class Cleaner:
             list_of_dfs.append(sub_df)
 
         shuffled_sub_df = pd.concat(list_of_dfs, axis=1)
-        df = df.drop(all_component_cols, axis=1)
-        df = pd.concat([df, shuffled_sub_df], axis=1)
-
-        return df
+        non_target_cols_df = df.drop(all_component_cols, axis=1)
+        new_df = pd.concat([non_target_cols_df, shuffled_sub_df], axis=1)
+        assert sorted(new_df.columns.tolist()) == sorted(df.columns.tolist())
+        return new_df
 
     @staticmethod
     def _replace_None_with_NA(
@@ -452,7 +452,7 @@ class Cleaner:
             ]
             all_component_cols += component_columns
 
-        sub_df = df[component_columns]
+        sub_df = df[all_component_cols]
         sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
 
         df = df.drop(all_component_cols, axis=1)
@@ -554,8 +554,10 @@ class Cleaner:
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
             # Add back the non-target columns to the df
             mapped_rxn_df_with_replacements = pd.concat(
-                mapped_rxn_df_with_replacements,
-                mapped_rxn_df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)],
+                [
+                    mapped_rxn_df_with_replacements,
+                    mapped_rxn_df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)],
+                ],
                 axis=1,
             )
 
@@ -606,8 +608,7 @@ class Cleaner:
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
             # Add back the non-target columns to the df
             df = pd.concat(
-                df_with_replacements,
-                df.loc[:, ~df.columns.isin(target_columns)],
+                [df_with_replacements, df.loc[:, ~df.columns.isin(target_columns)]],
                 axis=1,
             )
 
@@ -670,7 +671,6 @@ class Cleaner:
             df = Cleaner._scramble(df, components)
             df = Cleaner._move_none_to_after_data(df, components)
             df = Cleaner._replace_None_with_NA(df, components)
-
         df = df.sort_index(axis=1)
         return df
 
