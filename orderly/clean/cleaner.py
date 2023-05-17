@@ -537,19 +537,19 @@ class Cleaner:
             mapped_rxn_df = df.loc[mask_is_mapped]
             not_mapped_rxn_df = df.loc[~mask_is_mapped]
 
-            mapped_rxn_df_2 = pd.DataFrame()
-
+            LOG.info(
+                f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
+            )
+            mapped_rxn_df_with_replacements = pd.DataFrame()
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df_2[col] = mapped_rxn_df.loc[:, col].map(
+                mapped_rxn_df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
-                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
-
-            LOG.info(
-                f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
-            )
+                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)            
+            # Add back the non-target columns to the df
+            mapped_rxn_df_with_replacements = pd.concat(mapped_rxn_df_with_replacements, mapped_rxn_df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)], axis=1)
 
             # remove reactions with unresolved names
             for col in tqdm.tqdm(
@@ -557,7 +557,7 @@ class Cleaner:
                 disable=self.disable_tqdm,
             ):
                 LOG.info(f"Attempting to remove reactions for {col}")
-                not_mapped_rxn_df = not_mapped_rxn_df[
+                not_mapped_rxn_df_with_del_rows = not_mapped_rxn_df[
                     ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
                 ]
                 LOG.info(
@@ -565,7 +565,7 @@ class Cleaner:
                 )
 
             # concat the dfs again
-            df = pd.concat([mapped_rxn_df, not_mapped_rxn_df])
+            df = pd.concat([mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows])
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
@@ -583,13 +583,20 @@ class Cleaner:
             LOG.info(
                 f"Setting unresolvable names to None (without removing any reactions)"
             )
-            # set unresolved names to none
+            LOG.info(
+                f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
+            )
+            df_with_replacements = pd.DataFrame()
+            # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                df.loc[:, col] = df.loc[:, col].map(
+                df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
-                )  # equivalent to series = series.replace(self.molecules_to_remove, None)
+                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)            
+            # Add back the non-target columns to the df
+            df = pd.concat(df_with_replacements, df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)], axis=1)
+            
 
         # Ensure consistent yield
         if self.consistent_yield:
