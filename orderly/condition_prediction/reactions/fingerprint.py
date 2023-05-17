@@ -8,15 +8,20 @@ import pandas as pd
 import pathlib
 
 
-def get_fp(df: pd.DataFrame, model_save_path: pathlib.Path, rxn_diff_fp_size: int =2048, product_fp_size: int =2048):
-    product_fp = calc_fp(df['product_0'], radius=3, nBits=product_fp_size)
-    reactant_fp_0 = calc_fp(df['reactant_0'], radius=3, nBits=product_fp_size)
-    reactant_fp_1 = calc_fp(df['reactant_1'], radius=3, nBits=product_fp_size)
-    
+def get_fp(
+    df: pd.DataFrame,
+    model_save_path: pathlib.Path,
+    rxn_diff_fp_size: int = 2048,
+    product_fp_size: int = 2048,
+):
+    product_fp = calc_fp(df["product_0"], radius=3, nBits=product_fp_size)
+    reactant_fp_0 = calc_fp(df["reactant_0"], radius=3, nBits=product_fp_size)
+    reactant_fp_1 = calc_fp(df["reactant_1"], radius=3, nBits=product_fp_size)
+
     rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
 
     return product_fp, rxn_diff_fp
-    
+
 
 def calc_fp(lst: list, radius=3, nBits=2048):
     # Usage:

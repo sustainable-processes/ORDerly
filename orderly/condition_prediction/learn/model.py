@@ -49,8 +49,10 @@ class SimpleMLP(torch.nn.Module):
             layers.append(hidden_act())
             if use_batchnorm:
                 layers.append(torch.nn.BatchNorm1d(dim))
+                layers += [bn_layer]
             if dropout_prob > 0:
-                layers.append(torch.nn.Dropout(p=dropout_prob))
+                dropout_layer = torch.nn.Dropout(p=dropout_prob)
+                layers += [dropout_layer]
             prev_dim = dim
         layers.append(torch.nn.Linear(prev_dim, output_dim))
         if output_act is torch.nn.Softmax:

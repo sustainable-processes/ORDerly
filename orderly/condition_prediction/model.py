@@ -139,7 +139,7 @@ def build_teacher_forcing_model(
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
         name="s2_h1",
     )(concat_fp_s1)
-    
+
     s2_h1 = add_dropout_and_batchnorm(
         s2_h1,
         dropout_prob=dropout_prob,
@@ -288,7 +288,6 @@ def build_teacher_forcing_model(
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-
 
     # just for the purpose of shorter print message
     s1 = s1_output
