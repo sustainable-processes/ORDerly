@@ -302,7 +302,7 @@ def test_scramble(
     toy_dict = copy.copy(toy_dict)
 
     df = pd.DataFrame(toy_dict)
-    components = ("reactant","agent", "solvent", "catalyst", "reagent")
+    components = ("reactant", "agent", "solvent", "catalyst", "reagent")
 
     scrambled_df = orderly.clean.cleaner.Cleaner._scramble(df, components)
 

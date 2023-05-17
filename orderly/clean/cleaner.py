@@ -424,7 +424,12 @@ class Cleaner:
             all_component_cols += component_columns
             sub_df = df[component_columns]
             if len(sub_df.columns) > 1:
-                sub_df = sub_df.apply(lambda row: pd.Series(np.random.permutation(row.values), index=row.index), axis=1)
+                sub_df = sub_df.apply(
+                    lambda row: pd.Series(
+                        np.random.permutation(row.values), index=row.index
+                    ),
+                    axis=1,
+                )
             list_of_dfs.append(sub_df)
 
         shuffled_sub_df = pd.concat(list_of_dfs, axis=1)
@@ -432,7 +437,7 @@ class Cleaner:
         df = pd.concat([df, shuffled_sub_df], axis=1)
 
         return df
-    
+
     @staticmethod
     def _replace_None_with_NA(
         df: pd.DataFrame,
@@ -446,7 +451,7 @@ class Cleaner:
                 col for col in df.columns if col.startswith(component_name)
             ]
             all_component_cols += component_columns
-            
+
         sub_df = df[component_columns]
         sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
 
@@ -454,7 +459,6 @@ class Cleaner:
         df = pd.concat([df, sub_df], axis=1)
 
         return df
-    
 
     def _get_dataframe(self) -> pd.DataFrame:
         _ = rdkit_BlockLogs()
@@ -547,9 +551,13 @@ class Cleaner:
                 LOG.info(f"Applying nones to {col=}")
                 mapped_rxn_df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
-                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)            
+                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
             # Add back the non-target columns to the df
-            mapped_rxn_df_with_replacements = pd.concat(mapped_rxn_df_with_replacements, mapped_rxn_df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)], axis=1)
+            mapped_rxn_df_with_replacements = pd.concat(
+                mapped_rxn_df_with_replacements,
+                mapped_rxn_df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)],
+                axis=1,
+            )
 
             # remove reactions with unresolved names
             for col in tqdm.tqdm(
@@ -565,7 +573,9 @@ class Cleaner:
                 )
 
             # concat the dfs again
-            df = pd.concat([mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows])
+            df = pd.concat(
+                [mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows]
+            )
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
@@ -591,12 +601,15 @@ class Cleaner:
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
+                df_with_replacements[col] = df.loc[:, col].map(
                     lambda x: mtr.get(x, x)
-                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)            
+                )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
             # Add back the non-target columns to the df
-            df = pd.concat(df_with_replacements, df.loc[:, ~mapped_rxn_df.columns.isin(target_columns)], axis=1)
-            
+            df = pd.concat(
+                df_with_replacements,
+                df.loc[:, ~df.columns.isin(target_columns)],
+                axis=1,
+            )
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -650,7 +663,6 @@ class Cleaner:
             LOG.info(f"After removing duplicates: {df.shape[0]}")
 
         df.reset_index(inplace=True, drop=True)
-        
 
         if self.scramble:
             LOG.info(f"Scrambling the order of the components")
@@ -658,7 +670,7 @@ class Cleaner:
             df = Cleaner._scramble(df, components)
             df = Cleaner._move_none_to_after_data(df, components)
             df = Cleaner._replace_None_with_NA(df, components)
-        
+
         df = df.sort_index(axis=1)
         return df
 
@@ -1006,8 +1018,8 @@ def main(
         "remove_rxn_with_unresolved_names": remove_rxn_with_unresolved_names,
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
-        'scramble': scramble,
-        'apply_random_split': apply_random_split,
+        "scramble": scramble,
+        "apply_random_split": apply_random_split,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1056,7 +1068,7 @@ def main(
         scramble=scramble,
         disable_tqdm=disable_tqdm,
     )
-    
+
     LOG.info(f"completed cleaning, saving to {output_path}")
     if apply_random_split:
         scrambled_index_df = instance.cleaned_reactions.sample(
