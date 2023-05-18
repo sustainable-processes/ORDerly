@@ -21,7 +21,6 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 import condition_prediction.reactions.get
-import condition_prediction.reactions.filters
 import condition_prediction.learn.ohe
 import condition_prediction.learn.util
 
