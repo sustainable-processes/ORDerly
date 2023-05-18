@@ -20,13 +20,13 @@ from orderly.types import *
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-import orderly.condition_prediction.reactions.get
-import orderly.condition_prediction.reactions.filters
-import orderly.condition_prediction.learn.ohe
-import orderly.condition_prediction.learn.util
+import condition_prediction.reactions.get
+import condition_prediction.reactions.filters
+import condition_prediction.learn.ohe
+import condition_prediction.learn.util
 
-import orderly.condition_prediction.model
-import orderly.condition_prediction.reactions.fingerprint
+import condition_prediction.model
+import condition_prediction.reactions.fingerprint
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -42,16 +42,28 @@ class ConditionPrediction:
 
     train_data_path: pathlib.Path
     test_data_path: pathlib.Path
-    model_save_path: pathlib.Path
+    output_folder_path: pathlib.Path
+    train_fraction: float
+    train_val_split: float
 
     def __post_init__(self) -> None:
         self.train_df = pd.read_parquet(self.train_data_path)
         self.test_df = pd.read_parquet(self.test_data_path)
 
+    def train_model_arguments(self) -> None:
+        ConditionPrediction.train_model(
+            self.train_df,
+            self.test_df,
+            self.output_folder_path,
+            self.train_fraction,
+            self.train_val_split,
+        )
+
+    @staticmethod
     def train_model(
         train_df: pd.DataFrame,
         test_df: pd.DataFrame,
-        model_save_path,
+        output_folder_path,
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
     ) -> None:
@@ -85,8 +97,8 @@ class ConditionPrediction:
         (
             product_fp,
             rxn_diff_fp,
-        ) = orderly.condition_prediction.reactions.fingerprint.get_fp(
-            df, model_save_path, rxn_diff_fp_size=2048, product_fp_size=2048
+        ) = condition_prediction.reactions.fingerprint.get_fp(
+            df, output_folder_path, rxn_diff_fp_size=2048, product_fp_size=2048
         )
 
         train_product_fp = tf.convert_to_tensor(product_fp[train_idx])
@@ -101,7 +113,7 @@ class ConditionPrediction:
             train_solvent_0,
             val_solvent_0,
             sol0_enc,
-        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["solvent_0"]].fillna("NULL"),
             train_idx,
             val_idx,
@@ -111,7 +123,7 @@ class ConditionPrediction:
             train_solvent_1,
             val_solvent_1,
             sol1_enc,
-        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["solvent_1"]].fillna("NULL"),
             train_idx,
             val_idx,
@@ -121,7 +133,7 @@ class ConditionPrediction:
             train_agent_0,
             val_agent_0,
             reag0_enc,
-        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["agent_000"]].fillna("NULL"),
             train_idx,
             val_idx,
@@ -131,7 +143,7 @@ class ConditionPrediction:
             train_agent_1,
             val_agent_1,
             reag1_enc,
-        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["agent_001"]].fillna("NULL"),
             train_idx,
             val_idx,
@@ -141,7 +153,7 @@ class ConditionPrediction:
             train_agent_2,
             val_agent_2,
             reag2_enc,
-        ) = orderly.condition_prediction.learn.ohe.apply_train_ohe_fit(
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["agent_001"]].fillna("NULL"),
             train_idx,
             val_idx,
@@ -197,9 +209,9 @@ class ConditionPrediction:
             val_agent_2,
         )
 
-        train_mode = orderly.condition_prediction.model.HARD_SELECTION
+        train_mode = condition_prediction.model.HARD_SELECTION
 
-        model = orderly.condition_prediction.model.build_teacher_forcing_model(
+        model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
             s1_dim=train_solvent_0.shape[-1],
@@ -217,7 +229,7 @@ class ConditionPrediction:
 
         # we use a separate model for prediction because we use a recurrent setup for prediction
         # the pred model is only different after the first component (s1)
-        pred_model = orderly.condition_prediction.model.build_teacher_forcing_model(
+        pred_model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
             s1_dim=train_solvent_0.shape[-1],
@@ -228,7 +240,7 @@ class ConditionPrediction:
             N_h1=1024,
             N_h2=100,
             l2v=0,
-            mode=orderly.condition_prediction.model.HARD_SELECTION,
+            mode=condition_prediction.model.HARD_SELECTION,
             dropout_prob=0.2,
             use_batchnorm=True,
         )
@@ -272,13 +284,13 @@ class ConditionPrediction:
             },
         )
 
-        orderly.condition_prediction.model.update_teacher_forcing_model_weights(
+        condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
 
         h = model.fit(
             x=x_train_data
-            if train_mode == orderly.condition_prediction.model.TEACHER_FORCE
+            if train_mode == condition_prediction.model.TEACHER_FORCE
             else x_train_eval_data,
             y=y_train_data,
             epochs=20,
@@ -286,19 +298,19 @@ class ConditionPrediction:
             batch_size=1024,
             validation_data=(
                 x_val_data
-                if train_mode == orderly.condition_prediction.model.TEACHER_FORCE
+                if train_mode == condition_prediction.model.TEACHER_FORCE
                 else x_val_eval_data,
                 y_val_data,
             ),
             callbacks=[
                 tf.keras.callbacks.TensorBoard(
-                    log_dir=orderly.condition_prediction.learn.util.log_dir(
+                    log_dir=condition_prediction.learn.util.log_dir(
                         prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
                     )
                 ),
             ],
         )
-        orderly.condition_prediction.model.update_teacher_forcing_model_weights(
+        condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
 
@@ -309,9 +321,41 @@ class ConditionPrediction:
 
 @click.command()
 @click.option(
+    "--train_data_path",
+    type=str,
+    default="/data/orderly/datasets/orderly_no_trust_with_map_train.parquet",
+    show_default=True,
+    help="The filepath where the training data is found",
+)
+@click.option(
+    "--test_data_path",
+    default="no_trust_with_map_model",
+    type=str,
+    help="The filepath where the test data is found",
+)
+@click.option(
+    "--output_folder_path",
+    default="/data/orderly/datasets/orderly_no_trust_with_map_train.parquet",
+    type=str,
+    help="The filepath where the test data is found",
+)
+@click.option(
+    "--train_fraction",
+    default=1.0,
+    type=float,
+    help="The fraction of the train data that will actually be used for training (ignore the rest)",
+)
+@click.option(
+    "--train_val_split",
+    default=0.8,
+    type=float,
+    help="The fraction of the train data that is used for training (the rest is used for validation)",
+)
+
+@click.option(
     "--log_file",
     type=str,
-    default="default_path_plot.log",
+    default="default_path_model.log",
     show_default=True,
     help="path for the log file for model",
 )
@@ -319,20 +363,26 @@ class ConditionPrediction:
 def main_click(
     train_data_path: pathlib.Path,
     test_data_path: pathlib.Path,
+    output_folder_path: pathlib.Path,
+    train_fraction: float,
+    train_val_split: float,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
     """
     After extraction and cleaning of ORD data, this will train a condition prediction model.
-
-
     """
-    _log_file = pathlib.Path(plot_output_path) / f"plot.log"
-    if log_file != "default_path_plot.log":
+    
+    _log_file = pathlib.Path(output_folder_path) / f"model.log"
+    if log_file != "default_path_model.log":
         _log_file = pathlib.Path(log_file)
 
     main(
-        plot_waterfall_bool=plot_waterfall_bool,
+        train_data_path = pathlib.Path(train_data_path),
+        test_data_path = pathlib.Path(test_data_path),
+        output_folder_path = pathlib.Path(output_folder_path),
+        train_fraction =train_fraction,
+        train_val_split = train_val_split,
         log_file=_log_file,
         log_level=log_level,
     )
@@ -341,7 +391,9 @@ def main_click(
 def main(
     train_data_path: pathlib.Path,
     test_data_path: pathlib.Path,
-    model_save_path: pathlib.Path,
+    output_folder_path: pathlib.Path,
+    train_fraction: float,
+    train_val_split: float,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -362,7 +414,8 @@ def main(
     We can then use the model to predict the condition of a reaction.
 
     """
-
+    start_time = datetime.datetime.now()
+    
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
@@ -381,19 +434,28 @@ def main(
         e = ValueError(f"Expect pathlib.Path: got {type(test_data_path)}")
         LOG.error(e)
         raise e
+    if not isinstance(output_folder_path, pathlib.Path):
+        e = ValueError(f"Expect pathlib.Path: got {type(test_data_path)}")
+        LOG.error(e)
+        raise e
+        
+    output_folder_path.mkdir(parents=True, exist_ok=True)
+    
+    # Assert that the output_folder_path is empty
+    assert len(list(output_folder_path.iterdir())) == 0, f"{output_folder_path} is not empty"    
 
-    model_save_path.mkdir(parents=True, exist_ok=True)
-
-    start_time = datetime.datetime.now()
-
-    LOG.info(f"Beginning model training, saving to {model_save_path}")
+    LOG.info(f"Beginning model training, saving to {output_folder_path}")
     instance = ConditionPrediction(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
-        model_save_path=model_save_path,
+        output_folder_path=output_folder_path,
+        train_fraction = train_fraction,
+        train_val_split = train_val_split,
     )
+    
+    instance.train_model_arguments()
 
-    LOG.info(f"Completed model training, saving to {model_save_path}")
+    LOG.info(f"Completed model training, saving to {output_folder_path}")
 
     end_time = datetime.datetime.now()
     LOG.info("Training complete, duration: {}".format(end_time - start_time))
