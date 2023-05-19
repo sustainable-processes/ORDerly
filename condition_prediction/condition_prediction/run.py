@@ -63,9 +63,9 @@ class ConditionPrediction:
 
     @staticmethod
     def train_model(
-        train_df: pd.DataFrame,
+        train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
-        train_fp: np.ndarray,
+        train_val_fp: np.ndarray,
         test_fp: np.ndarray,
         output_folder_path,
         train_fraction: float = 1.0,
@@ -74,30 +74,36 @@ class ConditionPrediction:
         """
         catalyst_in_data: bool, to determine whether we're predicting agent_002 or catalyst_000
         """
-        assert train_df.shape[1] == test_df.shape[1]
-        df = pd.concat([train_df, test_df], axis=0)
+
+        assert train_val_df.shape[1] == test_df.shape[1]
+        assert train_val_fp.shape[0] == train_val_df.shape[0]
+        assert test_fp.shape[0] == test_df.shape[0]
+        
+        #concat train and test df        
+        df = pd.concat([train_val_df, test_df], axis=0)
         df = df.reset_index(drop=True)
-        test_indexes = np.arange(train_df.shape[0], df.shape[0])
+        test_indexes = np.arange(train_val_df.shape[0], df.shape[0])
 
+        # Get indices for train and val
         rng = np.random.default_rng(12345)
+        train_val_indexes = np.arange(train_val_df.shape[0])
+        rng.shuffle(train_val_indexes)
+        train_val_indexes = train_val_indexes[: int(train_val_indexes.shape[0] * train_fraction)]
+        train_val_df = train_val_df.iloc[train_val_indexes]
+        train_idx = train_val_indexes[: int(train_val_indexes.shape[0] * train_val_split)]
+        val_idx = train_val_indexes[int(train_val_indexes.shape[0] * train_val_split) :]
+        
+        # Apply these to the fingerprints
+        train_fp = train_val_fp[train_idx]
+        val_fp = train_val_fp[val_idx]
 
-        train_indexes = np.arange(train_df.shape[0])
-        rng.shuffle(train_indexes)
-        train_indexes = train_indexes[: int(train_indexes.shape[0] * train_fraction)]
-        train_df = train_df.iloc[train_indexes]
-        train_idx = train_indexes[: int(train_indexes.shape[0] * train_val_split)]
-        val_idx = train_indexes[int(train_indexes.shape[0] * train_val_split) :]
+        train_product_fp = train_fp[:, :train_fp.shape[1] // 2]
+        train_rxn_diff_fp = train_fp[:, train_fp.shape[1] // 2:]
+        
+        val_product_fp = val_fp[:, :val_fp.shape[1] // 2]
+        val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2:]
 
-        fp_length = train_fp.shape[1]
-
-        train_product_fp = tf.convert_to_tensor(
-            train_fp[train_idx][: int(fp_length / 2)]
-        )
-        train_rxn_diff_fp = tf.convert_to_tensor(
-            train_fp[train_idx][int(fp_length / 2) :]
-        )
-        val_product_fp = tf.convert_to_tensor(train_fp[val_idx][: int(fp_length / 2)])
-        val_rxn_diff_fp = tf.convert_to_tensor(train_fp[val_idx][int(fp_length / 2) :])
+        
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
@@ -159,7 +165,7 @@ class ConditionPrediction:
             val_idx,
             tensor_func=tf.convert_to_tensor,
         )
-        del train_df
+        del train_val_df
         del test_df
         del df
         LOG.info("Data ready for modelling")
@@ -209,17 +215,16 @@ class ConditionPrediction:
             val_agent_1,
             val_agent_2,
         )
-
         train_mode = condition_prediction.model.HARD_SELECTION
 
         model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
-            s1_dim=train_solvent_0.shape[-1],
-            s2_dim=train_solvent_1.shape[-1],
-            a1_dim=train_agent_0.shape[-1],
-            a2_dim=train_agent_1.shape[-1],
-            a3_dim=train_agent_2.shape[-1],
+            c1_dim=train_solvent_0.shape[-1], # TODO change names from [c1, s1, s2, r1, r2] to [s1, s2, a1, a2, a3]
+            s1_dim=train_solvent_1.shape[-1],
+            s2_dim=train_agent_0.shape[-1],
+            r1_dim=train_agent_1.shape[-1],
+            r2_dim=train_agent_2.shape[-1],
             N_h1=1024,
             N_h2=100,
             l2v=0,  # TODO check what coef they used
@@ -233,11 +238,11 @@ class ConditionPrediction:
         pred_model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
-            s1_dim=train_solvent_0.shape[-1],
-            s2_dim=train_solvent_1.shape[-1],
-            a1_dim=train_agent_0.shape[-1],
-            a2_dim=train_agent_1.shape[-1],
-            a3_dim=train_agent_2.shape[-1],
+            c1_dim=train_solvent_0.shape[-1],
+            s1_dim=train_solvent_1.shape[-1],
+            s2_dim=train_agent_0.shape[-1],
+            r1_dim=train_agent_1.shape[-1],
+            r2_dim=train_agent_2.shape[-1],
             N_h1=1024,
             N_h2=100,
             l2v=0,
@@ -257,6 +262,11 @@ class ConditionPrediction:
             loss_weights=[1, 1, 1, 1, 1],
             optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
             metrics={
+                "c1": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ],
                 "s1": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
@@ -267,17 +277,12 @@ class ConditionPrediction:
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "a1": [
+                "r1": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "a2": [
-                    "acc",
-                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
-                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
-                ],
-                "a3": [
+                "r2": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
