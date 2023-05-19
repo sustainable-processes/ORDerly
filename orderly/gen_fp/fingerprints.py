@@ -88,7 +88,7 @@ class GenerateFingerprints:
         # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
         block = BlockLogs()
         ans = []
-        for smiles in tqdm(lst):
+        for smiles in lst:
             # convert to mol object
             try:
                 mol = Chem.MolFromSmiles(smiles)
@@ -182,7 +182,7 @@ def main(
     start_time = datetime.datetime.now()
     LOG.info("Gen fp for all files in the datasets folder")
 
-    for clean_data_file_path in parquet_file_paths:
+    for clean_data_file_path in tqdm(parquet_file_paths):
         fp_output_path = pathlib.Path(
             fp_output_folder_path / clean_data_file_path.name[:-8]
         )
