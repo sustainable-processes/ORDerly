@@ -162,7 +162,7 @@ run_python_310:
 # Model training
 
 train_model:
-	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="model" --train_fraction=0.001 --train_val_split=0.8
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="model" --train_fraction=1 --train_val_split=0.8 --overwrite=True
 
 
 

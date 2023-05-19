@@ -15,8 +15,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from orderly.types import *
-
 import tensorflow as tf
 
 import condition_prediction.learn.ohe
@@ -86,8 +84,7 @@ class ConditionPrediction:
         train_indexes = np.arange(train_df.shape[0])
         rng.shuffle(train_indexes)
         train_indexes = train_indexes[: int(train_indexes.shape[0] * train_fraction)]
-
-        train_df = train_df[train_indexes]
+        train_df = train_df.iloc[train_indexes]
         train_idx = train_indexes[: int(train_indexes.shape[0] * train_val_split)]
         val_idx = train_indexes[int(train_indexes.shape[0] * train_val_split) :]
 
@@ -117,7 +114,7 @@ class ConditionPrediction:
             val_solvent_0,
             sol0_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_0"]].fillna("NULL"),
+            df[["solvent_000"]].fillna("NULL"),
             train_idx,
             val_idx,
             tensor_func=tf.convert_to_tensor,
@@ -127,7 +124,7 @@ class ConditionPrediction:
             val_solvent_1,
             sol1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_1"]].fillna("NULL"),
+            df[["solvent_001"]].fillna("NULL"),
             train_idx,
             val_idx,
             tensor_func=tf.convert_to_tensor,
@@ -356,6 +353,13 @@ class ConditionPrediction:
     help="The fraction of the train data that is used for training (the rest is used for validation)",
 )
 @click.option(
+    "--overwrite",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="If true, will overwrite the contents in the output folder, else will through an error if the folder is not empty",
+)
+@click.option(
     "--log_file",
     type=str,
     default="default_path_model.log",
@@ -369,6 +373,7 @@ def main_click(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -386,6 +391,7 @@ def main_click(
         output_folder_path=pathlib.Path(output_folder_path),
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        overwrite=overwrite,
         log_file=_log_file,
         log_level=log_level,
     )
@@ -397,6 +403,7 @@ def main(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -418,6 +425,14 @@ def main(
 
     """
     start_time = datetime.datetime.now()
+    
+    output_folder_path.mkdir(parents=True, exist_ok=True)
+
+    if not overwrite:
+        # Assert that the output_folder_path is empty
+        assert (
+            len(list(output_folder_path.iterdir())) == 0
+        ), f"{output_folder_path} is not empty"
 
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -442,14 +457,8 @@ def main(
         LOG.error(e)
         raise e
 
-    output_folder_path.mkdir(parents=True, exist_ok=True)
-
-    # Assert that the output_folder_path is empty
-    assert (
-        len(list(output_folder_path.iterdir())) == 0
-    ), f"{output_folder_path} is not empty"
-
-    fp_directory = train_data_path / "finterprints"
+    
+    fp_directory = train_data_path.parent / "fingerprints"
     fp_directory.mkdir(parents=True, exist_ok=True)
     # Define the train_fp_path
     train_fp_path = fp_directory / (train_data_path.stem + ".npy")
