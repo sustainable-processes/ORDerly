@@ -429,4 +429,4 @@ def main(
     LOG.info(f"completed plots, saving to {plot_output_path}")
 
     end_time = datetime.datetime.now()
-    LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
+    LOG.info("Plotting complete, duration: {}".format(end_time - start_time))
