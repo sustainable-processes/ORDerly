@@ -35,27 +35,30 @@ class GenerateFingerprints:
 
     """
 
-    clean_data_path: pathlib.Path
+    clean_data_file_path: pathlib.Path
     fp_output_path: pathlib.Path
     fp_size: int
 
     def __post_init__(self) -> None:
-        full_df = pd.read_parquet(self.clean_data_path)
-        self.df = full_df[["product_0", "reactant_0", "reactant_1"]]
+        full_df = pd.read_parquet(self.clean_data_file_path)
+        self.df = full_df[["product_000", "reactant_000", "reactant_001"]]
         del full_df
 
     def save_fingerprints(self) -> None:
         """
         Generate fingerprints from a cleaned dataframe to be used for condition prediction.
         """
-        LOG.info(f"Generating fingerprints for {self.clean_data_path=}")
+        LOG.info(f"Generating fingerprints for {self.clean_data_file_path=}")
         product_fp, rxn_diff_fp = GenerateFingerprints.get_fp(
             self.df, fp_size=self.fp_size
         )
 
         fp = np.concatenate([rxn_diff_fp, product_fp], axis=1)
         LOG.info(f"Saving fingerprints to {self.fp_output_path=}")
-        fp.to_parquet(self.fp_output_path)
+
+        # Save the NumPy array as .npy file
+        # breakpoint()
+        np.save(self.fp_output_path, fp)
 
         return
 
@@ -65,15 +68,14 @@ class GenerateFingerprints:
         fp_size: int = 2048,
     ):
         product_fp = GenerateFingerprints.calc_fp(
-            df["product_0"], radius=3, nBits=fp_size
+            df["product_000"], radius=3, nBits=fp_size
         )
         reactant_fp_0 = GenerateFingerprints.calc_fp(
-            df["reactant_0"], radius=3, nBits=fp_size
+            df["reactant_000"], radius=3, nBits=fp_size
         )
         reactant_fp_1 = GenerateFingerprints.calc_fp(
-            df["reactant_1"], radius=3, nBits=fp_size
+            df["reactant_001"], radius=3, nBits=fp_size
         )
-
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
 
         return product_fp, rxn_diff_fp
@@ -94,27 +96,20 @@ class GenerateFingerprints:
                 fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
                 array = np.zeros((0,), dtype=np.int8)
                 DataStructs.ConvertToNumpyArray(fp, array)
-                ans += [array]
+                ans.append(array)
             except:
                 LOG.warning(f"Could not generate fingerprint for {smiles=}")
-                ans += [np.zeros((nBits,), dtype=int)]
-        return ans
+                ans.append(np.zeros((nBits,), dtype=int))
+        return np.vstack(ans)
 
 
 @click.command()
 @click.option(
-    "--clean_data_path",
+    "--clean_data_folder_path",
     type=str,
-    default="data/orderly/datasets/orderly_no_trust_with_map_train.parquet",
+    default="data/orderly/datasets",
     show_default=True,
     help="The filepath where the cleaned data will be loaded from",
-)
-@click.option(
-    "--fp_output_path",
-    type=str,
-    default="data/orderly/datasets/fp_orderly_no_trust_with_map_train.parquet",
-    show_default=True,
-    help="The filepath where the fp will be saved",
 )
 @click.option(
     "--fp_size",
@@ -124,48 +119,57 @@ class GenerateFingerprints:
     help="Number of bits in the product fingerprint",
 )
 @click.option(
-    "--log_file",
-    type=str,
-    default="default_path_fp.log",
+    "--overwrite",
+    type=bool,
+    default=False,
     show_default=True,
-    help="path for the log file for fp generation",
+    help="If true, will overwrite the existing fingerprints folder",
 )
 @click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
-    clean_data_path: pathlib.Path,
-    fp_output_path: pathlib.Path,
+    clean_data_folder_path: pathlib.Path,
     fp_size: int,
-    log_file: pathlib.Path = pathlib.Path("fp.log"),
+    overwrite: bool = False,
     log_level: int = logging.INFO,
 ) -> None:
     """
     After extraction and cleaning, this can generate the fingerprints used in the condition prediction model of the ORDerly paper.
     """
-    _log_file = pathlib.Path(fp_output_path) / f"fp.log"
-    if log_file != "default_path_fp.log":
-        _log_file = pathlib.Path(log_file)
 
     main(
-        clean_data_path=pathlib.Path(clean_data_path),
-        fp_output_path=pathlib.Path(fp_output_path),
+        clean_data_folder_path=pathlib.Path(clean_data_folder_path),
         fp_size=fp_size,
-        log_file=_log_file,
+        overwrite=overwrite,
         log_level=log_level,
     )
 
 
 def main(
-    clean_data_path: pathlib.Path,
-    fp_output_path: pathlib.Path,
+    clean_data_folder_path: pathlib.Path,
     fp_size: int,
-    log_file: pathlib.Path = pathlib.Path("fp.log"),
+    overwrite: bool = False,
     log_level: int = logging.INFO,
 ) -> None:
     """
     After extraction and cleaning, this can generate the fingerprints used in the condition prediction model of the ORDerly paper.
+    Creates a folder inside the clean_data_folder_path called fingerprints, and loops over all the parquet files clean_data_folder_path to create an fp parquet file for each.
     """
+    if not isinstance(clean_data_folder_path, pathlib.Path):
+        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_folder_path)}")
+        LOG.error(e)
+        raise e
 
-    log_file.parent.mkdir(parents=True, exist_ok=True)
+    clean_data_file_paths = list(clean_data_folder_path.glob("**/*"))
+    # Filter the file paths to include only Parquet files
+    parquet_file_paths = [
+        file_path
+        for file_path in clean_data_file_paths
+        if file_path.suffix == ".parquet"
+    ]
+    fp_output_folder_path = pathlib.Path(clean_data_folder_path / "fingerprints")
+    fp_output_folder_path.mkdir(parents=True, exist_ok=overwrite)
+
+    log_file = pathlib.Path(fp_output_folder_path / "fp.log")
 
     logging.basicConfig(
         filename=log_file,
@@ -175,27 +179,21 @@ def main(
         level=log_level,
     )
 
-    if not isinstance(clean_data_path, pathlib.Path):
-        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_path)}")
-        LOG.error(e)
-        raise e
-    if not isinstance(fp_output_path, pathlib.Path):
-        e = ValueError(f"Expect pathlib.Path: got {type(fp_output_path)}")
-        LOG.error(e)
-        raise e
-
-    fp_output_path.mkdir(parents=True, exist_ok=True)
-
     start_time = datetime.datetime.now()
+    LOG.info("Gen fp for all files in the datasets folder")
 
-    LOG.info(f"Beginning generation of fp for file: {clean_data_path}")
-    instance = GenerateFingerprints(
-        clean_data_path=clean_data_path,
-        fp_output_path=fp_output_path,
-        fp_size=fp_size,
-    )
-    instance.save_fingerprints()
-    LOG.info(f"completed generation of fp, saving to {fp_output_path}")
+    for clean_data_file_path in parquet_file_paths:
+        fp_output_path = pathlib.Path(
+            fp_output_folder_path / clean_data_file_path.name[:-8]
+        )
+        LOG.info(f"Beginning generation of fp for file: {clean_data_file_path}")
+        instance = GenerateFingerprints(
+            clean_data_file_path=clean_data_file_path,
+            fp_output_path=fp_output_path,
+            fp_size=fp_size,
+        )
+        instance.save_fingerprints()
+        LOG.info(f"completed generation of fp, saving to {fp_output_path}")
 
     end_time = datetime.datetime.now()
     LOG.info("Gen fp complete, duration: {}".format(end_time - start_time))
