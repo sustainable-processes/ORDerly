@@ -25,7 +25,6 @@ import condition_prediction.learn.ohe
 import condition_prediction.learn.util
 
 import condition_prediction.model
-import condition_prediction.reactions.fingerprint
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -41,18 +40,26 @@ class ConditionPrediction:
 
     train_data_path: pathlib.Path
     test_data_path: pathlib.Path
+    train_fp_path: pathlib.Path
+    test_fp_path: pathlib.Path
     output_folder_path: pathlib.Path
     train_fraction: float
     train_val_split: float
 
     def __post_init__(self) -> None:
-        self.train_df = pd.read_parquet(self.train_data_path)
-        self.test_df = pd.read_parquet(self.test_data_path)
+        pass
 
     def train_model_arguments(self) -> None:
+        train_df = pd.read_parquet(self.train_data_path)
+        test_df = pd.read_parquet(self.test_data_path)
+        train_fp = np.load(self.train_fp_path)
+        test_fp = np.load(self.test_fp_path)
+        # TODO: Drop columns we don't need
         ConditionPrediction.train_model(
-            self.train_df,
-            self.test_df,
+            train_df,
+            test_df,
+            train_fp,
+            test_fp,
             self.output_folder_path,
             self.train_fraction,
             self.train_val_split,
@@ -62,6 +69,8 @@ class ConditionPrediction:
     def train_model(
         train_df: pd.DataFrame,
         test_df: pd.DataFrame,
+        train_fp: np.ndarray,
+        test_fp: np.ndarray,
         output_folder_path,
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
@@ -70,18 +79,30 @@ class ConditionPrediction:
         catalyst_in_data: bool, to determine whether we're predicting agent_002 or catalyst_000
         """
         assert train_df.shape[1] == test_df.shape[1]
+        df = pd.concat([train_df, test_df], axis=0)
+        df = df.reset_index(drop=True)
+        test_indexes = np.arange(train_df.shape[0], df.shape[0])
 
-        # Make train data smaller to investigate scaling behaviour
-        train_df = train_df.sample(frac=train_fraction)
-        # Shuffle indices
-        train_df = train_df.sample(frac=1, random_state=42).reset_index(drop=True)
+        rng = np.random.default_rng(12345)
 
-        df = pd.concat([train_df, test_df])
-        df.reset_index(inplace=True, drop=True)
+        train_indexes = np.arange(train_df.shape[0])
+        rng.shuffle(train_indexes)
+        train_indexes = train_indexes[: int(train_indexes.shape[0] * train_fraction)]
 
-        test_idx = df.index[len(train_df) :]
-        train_idx = df.index[: int(train_df.shape[0] * train_val_split)]
-        val_idx = df.index[int(train_df.shape[0] * train_val_split) :]
+        train_df = train_df[train_indexes]
+        train_idx = train_indexes[: int(train_indexes.shape[0] * train_val_split)]
+        val_idx = train_indexes[int(train_indexes.shape[0] * train_val_split) :]
+
+        fp_length = train_fp.shape[1]
+
+        train_product_fp = tf.convert_to_tensor(
+            train_fp[train_idx][: int(fp_length / 2)]
+        )
+        train_rxn_diff_fp = tf.convert_to_tensor(
+            train_fp[train_idx][int(fp_length / 2) :]
+        )
+        val_product_fp = tf.convert_to_tensor(train_fp[val_idx][: int(fp_length / 2)])
+        val_rxn_diff_fp = tf.convert_to_tensor(train_fp[val_idx][int(fp_length / 2) :])
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
@@ -91,21 +112,6 @@ class ConditionPrediction:
             df.drop(
                 columns=["catalyst_000", "reagent_000", "reagent_001"], inplace=True
             )
-
-        # Get inputs ready for modelling
-        (
-            product_fp,
-            rxn_diff_fp,
-        ) = condition_prediction.reactions.fingerprint.get_fp(
-            df, output_folder_path, rxn_diff_fp_size=2048, product_fp_size=2048
-        )
-
-        train_product_fp = tf.convert_to_tensor(product_fp[train_idx])
-        train_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[train_idx])
-        val_product_fp = tf.convert_to_tensor(product_fp[val_idx])
-        val_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[val_idx])
-        test_product_fp = tf.convert_to_tensor(product_fp[test_idx])
-        test_rxn_diff_fp = tf.convert_to_tensor(rxn_diff_fp[test_idx])
 
         # Get target variables ready for modelling
         (
@@ -158,7 +164,8 @@ class ConditionPrediction:
             val_idx,
             tensor_func=tf.convert_to_tensor,
         )
-
+        del train_df
+        del test_df
         del df
         LOG.info("Data ready for modelling")
 
@@ -350,7 +357,6 @@ class ConditionPrediction:
     type=float,
     help="The fraction of the train data that is used for training (the rest is used for validation)",
 )
-
 @click.option(
     "--log_file",
     type=str,
@@ -371,17 +377,17 @@ def main_click(
     """
     After extraction and cleaning of ORD data, this will train a condition prediction model.
     """
-    
+
     _log_file = pathlib.Path(output_folder_path) / f"model.log"
     if log_file != "default_path_model.log":
         _log_file = pathlib.Path(log_file)
 
     main(
-        train_data_path = pathlib.Path(train_data_path),
-        test_data_path = pathlib.Path(test_data_path),
-        output_folder_path = pathlib.Path(output_folder_path),
-        train_fraction =train_fraction,
-        train_val_split = train_val_split,
+        train_data_path=pathlib.Path(train_data_path),
+        test_data_path=pathlib.Path(test_data_path),
+        output_folder_path=pathlib.Path(output_folder_path),
+        train_fraction=train_fraction,
+        train_val_split=train_val_split,
         log_file=_log_file,
         log_level=log_level,
     )
@@ -414,7 +420,7 @@ def main(
 
     """
     start_time = datetime.datetime.now()
-    
+
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
@@ -437,21 +443,31 @@ def main(
         e = ValueError(f"Expect pathlib.Path: got {type(test_data_path)}")
         LOG.error(e)
         raise e
-        
+
     output_folder_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Assert that the output_folder_path is empty
-    assert len(list(output_folder_path.iterdir())) == 0, f"{output_folder_path} is not empty"    
+    assert (
+        len(list(output_folder_path.iterdir())) == 0
+    ), f"{output_folder_path} is not empty"
+
+    fp_directory = train_data_path / "finterprints"
+    fp_directory.mkdir(parents=True, exist_ok=True)
+    # Define the train_fp_path
+    train_fp_path = fp_directory / (train_data_path.stem + ".npy")
+    test_fp_path = fp_directory / (test_data_path.stem + ".npy")
 
     LOG.info(f"Beginning model training, saving to {output_folder_path}")
     instance = ConditionPrediction(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
+        train_fp_path=train_fp_path,
+        test_fp_path=test_fp_path,
         output_folder_path=output_folder_path,
-        train_fraction = train_fraction,
-        train_val_split = train_val_split,
+        train_fraction=train_fraction,
+        train_val_split=train_val_split,
     )
-    
+
     instance.train_model_arguments()
 
     LOG.info(f"Completed model training, saving to {output_folder_path}")
