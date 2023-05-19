@@ -169,10 +169,8 @@ run_python_310:
 # 3. Plot histograms of the number of non-empty columns of each type (reactants, products, solvents, agents)
 # 4. Run a cleaning with decided upon number of columns to keep
 # 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
-# 6. Generate the four datasets we need for the paper
-### Note: Below operations are not contained herein, since NameRxn is proprietary software
-# 7. Map all 4 datasets with NameRxn
-# 8. Apply a train/val/test split (by rxn sub-class) to all 4 datasets
+# 6. Generate the four datasets we need for the paper (split into train and test set)
+# 7. Generate fingerprints for each dataset
 
 ### Code:
 # 1.
@@ -233,7 +231,12 @@ paper_gen_uspto_with_trust_no_map:
 
 paper_6: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
 
-paper_get_datasets: paper_1 paper_6
+# 7.
 
-paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6
+paper_7:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets" --fp_size=2048 --overwrite=True
+
+paper_get_datasets: paper_1 paper_6 paper_7
+
+paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
 
