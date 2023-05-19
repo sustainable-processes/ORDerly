@@ -288,35 +288,13 @@ def build_teacher_forcing_model(
         force_stochastic=False,
     )
 
-    concat_fp_c1_s1_s2_r1_r2 = tf.keras.layers.Concatenate(
-        axis=-1, name="concat_fp_c1_s1_s2_r1_r2"
-    )([h2, c1_dense, s1_dense, s2_dense, r1_dense, r2_dense])
-
-    T_h1 = tf.keras.layers.Dense(N_h1, activation="relu", name="T_h1")(
-        concat_fp_c1_s1_s2_r1_r2
-    )
-    T_h1 = add_dropout_and_batchnorm(
-        T_h1,
-        dropout_prob=dropout_prob,
-        use_batchnorm=use_batchnorm,
-        force_stochastic=False,
-    )
-    T_output = tf.keras.layers.Dense(1, activation="linear", name="T")(T_h1)
-    T_output = add_dropout_and_batchnorm(
-        T_output,
-        dropout_prob=dropout_prob,
-        use_batchnorm=use_batchnorm,
-        force_stochastic=False,
-    )
-
     # just for the purpose of shorter print message
     c1 = c1_output
     s1 = s1_output
     s2 = s2_output
     r1 = r1_output
     r2 = r2_output
-    Temp = T_output
-    output = [c1, s1, s2, r1, r2, Temp]
+    output = [c1, s1, s2, r1, r2]
     if mode == TEACHER_FORCE:
         model = tf.keras.models.Model(
             [input_pfp, input_rxnfp, input_c1, input_s1, input_s2, input_r1, input_r2],
@@ -349,13 +327,11 @@ def update_teacher_forcing_model_weights(update_model, to_copy_model):
         "s2_h2",
         "r1_h2",
         "r2_h2",
-        "T_h1",
         "c1",
         "s1",
         "s2",
         "r1",
         "r2",
-        "T",
     ]
     layers += [i.name for i in to_copy_model.layers if "batchnorm" in i.name]
 
