@@ -128,70 +128,78 @@ class ConditionPrediction:
         test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
-        if "catalyst_000" in df.columns:
-            df["agent_000"] = df["catalyst_000"]
-            df["agent_001"] = df["reagent_000"]
-            df["agent_002"] = df["reagent_001"]
-            df.drop(
-                columns=["catalyst_000", "reagent_000", "reagent_001"], inplace=True
-            )
+        if "catalyst_000" in df.columns:  # trust_labelling = True
+            trust_labelling = True
+            mol_1_col = "catalyst_000"
+            mol_2_col = "solvent_000"
+            mol_3_col = "solvent_001"
+            mol_4_col = "reagent_000"
+            mol_5_col = "reagent_001"
+
+        else:  # trust_labelling = False
+            trust_labelling = False
+            mol_1_col = "solvent_000"
+            mol_2_col = "solvent_001"
+            mol_3_col = "agent_000"
+            mol_4_col = "agent_001"
+            mol_5_col = "agent_002"
 
         # Get target variables ready for modelling
         (
-            train_solvent_0,
-            val_solvent_0,
-            test_solvent_0,
+            train_mol1,
+            val_mol1,
+            test_mol1,
             sol0_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_000"]].fillna("NULL"),
+            df[[mol_1_col]].fillna("NULL"),
             train_idx,
             val_idx,
             test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
-            train_solvent_1,
-            val_solvent_1,
-            test_solvent_1,
+            train_mol2,
+            val_mol2,
+            test_mol2,
             sol1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_001"]].fillna("NULL"),
+            df[[mol_2_col]].fillna("NULL"),
             train_idx,
             val_idx,
             test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
-            train_agent_0,
-            val_agent_0,
-            test_agent_0,
+            train_mol3,
+            val_mol3,
+            test_mol3,
             ag0_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["agent_000"]].fillna("NULL"),
+            df[[mol_3_col]].fillna("NULL"),
             train_idx,
             val_idx,
             test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
-            train_agent_1,
-            val_agent_1,
-            test_agent_1,
+            train_mol4,
+            val_mol4,
+            test_mol4,
             ag1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["agent_001"]].fillna("NULL"),
+            df[[mol_4_col]].fillna("NULL"),
             train_idx,
             val_idx,
             test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
-            train_agent_2,
-            val_agent_2,
-            test_agent_2,
+            train_mol5,
+            val_mol5,
+            test_mol5,
             ag2_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["agent_002"]].fillna("NULL"),
+            df[[mol_5_col]].fillna("NULL"),
             train_idx,
             val_idx,
             test_idx,
@@ -205,11 +213,11 @@ class ConditionPrediction:
         x_train_data = (
             train_product_fp,
             train_rxn_diff_fp,
-            train_solvent_0,
-            train_solvent_1,
-            train_agent_0,
-            train_agent_1,
-            train_agent_2,
+            train_mol1,
+            train_mol2,
+            train_mol3,
+            train_mol4,
+            train_mol5,
         )
 
         x_train_eval_data = (
@@ -218,21 +226,21 @@ class ConditionPrediction:
         )
 
         y_train_data = (
-            train_solvent_0,
-            train_solvent_1,
-            train_agent_0,
-            train_agent_1,
-            train_agent_2,
+            train_mol1,
+            train_mol2,
+            train_mol3,
+            train_mol4,
+            train_mol5,
         )
 
         x_val_data = (
             val_product_fp,
             val_rxn_diff_fp,
-            val_solvent_0,
-            val_solvent_1,
-            val_agent_0,
-            val_agent_1,
-            val_agent_2,
+            val_mol1,
+            val_mol2,
+            val_mol3,
+            val_mol4,
+            val_mol5,
         )
 
         x_val_eval_data = (
@@ -241,11 +249,11 @@ class ConditionPrediction:
         )
 
         y_val_data = (
-            val_solvent_0,
-            val_solvent_1,
-            val_agent_0,
-            val_agent_1,
-            val_agent_2,
+            val_mol1,
+            val_mol2,
+            val_mol3,
+            val_mol4,
+            val_mol5,
         )
 
         x_test_data = (
@@ -254,11 +262,11 @@ class ConditionPrediction:
         )
 
         y_test_data = (
-            test_solvent_0,
-            test_solvent_1,
-            test_agent_0,
-            test_agent_1,
-            test_agent_2,
+            test_mol1,
+            test_mol2,
+            test_mol3,
+            test_mol4,
+            test_mol5,
         )
 
         train_mode = condition_prediction.model.HARD_SELECTION
@@ -266,13 +274,11 @@ class ConditionPrediction:
         model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
-            c1_dim=train_solvent_0.shape[
-                -1
-            ],  # TODO change names from [c1, s1, s2, r1, r2] to [s1, s2, a1, a2, a3]
-            s1_dim=train_solvent_1.shape[-1],
-            s2_dim=train_agent_0.shape[-1],
-            r1_dim=train_agent_1.shape[-1],
-            r2_dim=train_agent_2.shape[-1],
+            mol1_dim=train_mol1.shape[-1],
+            mol2_dim=train_mol2.shape[-1],
+            mol3_dim=train_mol3.shape[-1],
+            mol4_dim=train_mol4.shape[-1],
+            mol5_dim=train_mol5.shape[-1],
             N_h1=1024,
             N_h2=100,
             l2v=0,  # TODO check what coef they used
@@ -282,15 +288,15 @@ class ConditionPrediction:
         )
 
         # we use a separate model for prediction because we use a recurrent setup for prediction
-        # the pred model is only different after the first component (s1)
+        # the pred model is only different after the first component (mol1)
         pred_model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
-            c1_dim=train_solvent_0.shape[-1],
-            s1_dim=train_solvent_1.shape[-1],
-            s2_dim=train_agent_0.shape[-1],
-            r1_dim=train_agent_1.shape[-1],
-            r2_dim=train_agent_2.shape[-1],
+            mol1_dim=train_mol1.shape[-1],
+            mol2_dim=train_mol2.shape[-1],
+            mol3_dim=train_mol3.shape[-1],
+            mol4_dim=train_mol4.shape[-1],
+            mol5_dim=train_mol5.shape[-1],
             N_h1=1024,
             N_h2=100,
             l2v=0,
@@ -310,27 +316,27 @@ class ConditionPrediction:
             loss_weights=[1, 1, 1, 1, 1],
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
             metrics={
-                "c1": [
+                "mol1": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "s1": [
+                "mol2": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "s2": [
+                "mol3": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "r1": [
+                "mol4": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
                 ],
-                "r2": [
+                "mol5": [
                     "acc",
                     tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
                     tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
@@ -376,11 +382,26 @@ class ConditionPrediction:
 
         # Save the top-3 accuracy plot
         plt.clf()
-        plt.plot(h.history["val_c1_top3"], label="val_c1_top3")
-        plt.plot(h.history["val_s1_top3"], label="val_s1_top3")
-        plt.plot(h.history["val_s2_top3"], label="val_s2_top3")
-        plt.plot(h.history["val_r1_top3"], label="val_r1_top3")
-        plt.plot(h.history["val_r2_top3"], label="val_r2_top3")
+        plt.plot(
+            h.history["val_mol1_top3"],
+            label=f"val_{mol_1_col[:-4]}{str(int(mol_1_col[-1])+1)}_top3",
+        )
+        plt.plot(
+            h.history["val_mol2_top3"],
+            label=f"val_{mol_2_col[:-4]}{str(int(mol_2_col[-1])+1)}_top3",
+        )
+        plt.plot(
+            h.history["val_mol3_top3"],
+            label=f"val_{mol_3_col[:-4]}{str(int(mol_3_col[-1])+1)}_top3",
+        )
+        plt.plot(
+            h.history["val_mol4_top3"],
+            label=f"val_{mol_4_col[:-4]}{str(int(mol_4_col[-1])+1)}_top3",
+        )
+        plt.plot(
+            h.history["val_mol5_top3"],
+            label=f"val_{mol_5_col[:-4]}{str(int(mol_5_col[-1])+1)}_top3",
+        )
         plt.legend()
         output_file_path = output_folder_path / "top3_val_accuracy.png"
         plt.savefig(output_file_path)
@@ -388,6 +409,7 @@ class ConditionPrediction:
         # Save the train and val metrics
         train_val_file_path = output_folder_path / "train_val_metrics.json"
         train_val_metrics_dict = h.history
+        train_val_metrics_dict["trust_labelling"] = trust_labelling
         with open(train_val_file_path, "w") as file:
             json.dump(train_val_metrics_dict, file)
 
@@ -400,6 +422,7 @@ class ConditionPrediction:
             # Evaluate the model on the test set
             test_metrics = model.evaluate(x_test_data, y_test_data)
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
+            test_metrics_dict["trust_labelling"] = trust_labelling
             # save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             # Save the dictionary as a JSON file

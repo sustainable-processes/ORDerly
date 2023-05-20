@@ -38,11 +38,11 @@ def add_dropout_and_batchnorm(
 def build_teacher_forcing_model(
     pfp_len=2048,
     rxnfp_len=2048,
-    c1_dim=100,
-    s1_dim=100,
-    s2_dim=100,
-    r1_dim=100,
-    r2_dim=100,
+    mol1_dim=100,
+    mol2_dim=100,
+    mol3_dim=100,
+    mol4_dim=100,
+    mol5_dim=100,
     N_h1=1024,
     N_h2=100,
     l2v=0,
@@ -55,17 +55,17 @@ def build_teacher_forcing_model(
     input_rxnfp = tf.keras.layers.Input(shape=(rxnfp_len,), name="input_rxnfp")
 
     if mode == TEACHER_FORCE:
-        input_c1 = tf.keras.layers.Input(shape=(c1_dim,), name="input_c1")
-        input_s1 = tf.keras.layers.Input(shape=(s1_dim,), name="input_s1")
-        input_s2 = tf.keras.layers.Input(shape=(s2_dim,), name="input_s2")
-        input_r1 = tf.keras.layers.Input(shape=(r1_dim,), name="input_r1")
-        input_r2 = tf.keras.layers.Input(shape=(r2_dim,), name="input_r2")
+        input_mol1 = tf.keras.layers.Input(shape=(mol1_dim,), name="input_mol1")
+        input_mol2 = tf.keras.layers.Input(shape=(mol2_dim,), name="input_mol2")
+        input_mol3 = tf.keras.layers.Input(shape=(mol3_dim,), name="input_mol3")
+        input_mol4 = tf.keras.layers.Input(shape=(mol4_dim,), name="input_mol4")
+        input_mol5 = tf.keras.layers.Input(shape=(mol5_dim,), name="input_mol5")
     elif (mode == HARD_SELECTION) or (mode == SOFT_SELECTION):
-        input_c1 = None
-        input_s1 = None
-        input_s2 = None
-        input_r1 = None
-        input_r2 = None
+        input_mol1 = None
+        input_mol2 = None
+        input_mol3 = None
+        input_mol4 = None
+        input_mol5 = None
     else:
         raise NotImplementedError(f"unknown for {mode=}")
 
@@ -93,211 +93,239 @@ def build_teacher_forcing_model(
         h2, dropout_prob=0.5, use_batchnorm=use_batchnorm, force_stochastic=True
     )
 
-    c1_h1 = tf.keras.layers.Dense(
+    mol1_h1 = tf.keras.layers.Dense(
         N_h1,
         activation="relu",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="c1_h1",
+        name="mol1_h1",
     )(h2)
-    c1_h1 = add_dropout_and_batchnorm(
-        c1_h1,
+    mol1_h1 = add_dropout_and_batchnorm(
+        mol1_h1,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=True,
     )
-    c1_h2 = tf.keras.layers.Dense(
+    mol1_h2 = tf.keras.layers.Dense(
         N_h1,
         activation="tanh",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="c1_h2",
-    )(c1_h1)
-    c1_h2 = add_dropout_and_batchnorm(
-        c1_h2,
+        name="mol1_h2",
+    )(mol1_h1)
+    mol1_h2 = add_dropout_and_batchnorm(
+        mol1_h2,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    c1_output = tf.keras.layers.Dense(c1_dim, activation="softmax", name="c1")(c1_h2)
-    input_c1 = do_selection(prev_output=c1_output, true_input=input_c1, mode=mode)
+    mol1_output = tf.keras.layers.Dense(mol1_dim, activation="softmax", name="mol1")(
+        mol1_h2
+    )
+    input_mol1 = do_selection(prev_output=mol1_output, true_input=input_mol1, mode=mode)
 
-    c1_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="c1_dense")(input_c1)
-    c1_dense = add_dropout_and_batchnorm(
-        c1_dense,
+    mol1_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="mol1_dense")(
+        input_mol1
+    )
+    mol1_dense = add_dropout_and_batchnorm(
+        mol1_dense,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    concat_fp_c1 = tf.keras.layers.Concatenate(axis=-1, name="concat_fp_c1")(
-        [h2, c1_dense]
+    concat_fp_mol1 = tf.keras.layers.Concatenate(axis=-1, name="concat_fp_mol1")(
+        [h2, mol1_dense]
     )
 
-    s1_h1 = tf.keras.layers.Dense(
+    mol2_h1 = tf.keras.layers.Dense(
         N_h1,
         activation="relu",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="s1_h1",
-    )(concat_fp_c1)
-    s1_h1 = add_dropout_and_batchnorm(
-        s1_h1,
+        name="mol2_h1",
+    )(concat_fp_mol1)
+    mol2_h1 = add_dropout_and_batchnorm(
+        mol2_h1,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-    s1_h2 = tf.keras.layers.Dense(
+    mol2_h2 = tf.keras.layers.Dense(
         N_h1,
         activation="tanh",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="s1_h2",
-    )(s1_h1)
-    s1_h2 = add_dropout_and_batchnorm(
-        s1_h2,
+        name="mol2_h2",
+    )(mol2_h1)
+    mol2_h2 = add_dropout_and_batchnorm(
+        mol2_h2,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    s1_output = tf.keras.layers.Dense(s1_dim, activation="softmax", name="s1")(s1_h2)
-    input_s1 = do_selection(prev_output=s1_output, true_input=input_s1, mode=mode)
+    mol2_output = tf.keras.layers.Dense(mol2_dim, activation="softmax", name="mol2")(
+        mol2_h2
+    )
+    input_mol2 = do_selection(prev_output=mol2_output, true_input=input_mol2, mode=mode)
 
-    s1_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="s1_dense")(input_s1)
-    s1_dense = add_dropout_and_batchnorm(
-        s1_dense,
+    mol2_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="mol2_dense")(
+        input_mol2
+    )
+    mol2_dense = add_dropout_and_batchnorm(
+        mol2_dense,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-    concat_fp_c1_s1 = tf.keras.layers.Concatenate(axis=-1, name="concat_fp_c1_s1")(
-        [h2, c1_dense, s1_dense]
-    )
+    concat_fp_mol1_mol2 = tf.keras.layers.Concatenate(
+        axis=-1, name="concat_fp_mol1_mol2"
+    )([h2, mol1_dense, mol2_dense])
 
-    s2_h1 = tf.keras.layers.Dense(
+    mol3_h1 = tf.keras.layers.Dense(
         N_h1,
         activation="relu",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="s2_h1",
-    )(concat_fp_c1_s1)
-    s2_h1 = add_dropout_and_batchnorm(
-        s2_h1,
+        name="mol3_h1",
+    )(concat_fp_mol1_mol2)
+    mol3_h1 = add_dropout_and_batchnorm(
+        mol3_h1,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-    s2_h2 = tf.keras.layers.Dense(
+    mol3_h2 = tf.keras.layers.Dense(
         N_h1,
         activation="tanh",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="s2_h2",
-    )(s2_h1)
-    s2_h2 = add_dropout_and_batchnorm(
-        s2_h2,
+        name="mol3_h2",
+    )(mol3_h1)
+    mol3_h2 = add_dropout_and_batchnorm(
+        mol3_h2,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    s2_output = tf.keras.layers.Dense(s2_dim, activation="softmax", name="s2")(s2_h2)
-    input_s2 = do_selection(prev_output=s2_output, true_input=input_s2, mode=mode)
+    mol3_output = tf.keras.layers.Dense(mol3_dim, activation="softmax", name="mol3")(
+        mol3_h2
+    )
+    input_mol3 = do_selection(prev_output=mol3_output, true_input=input_mol3, mode=mode)
 
-    s2_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="s2_dense")(input_s2)
-    s2_dense = add_dropout_and_batchnorm(
-        s2_dense,
+    mol3_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="mol3_dense")(
+        input_mol3
+    )
+    mol3_dense = add_dropout_and_batchnorm(
+        mol3_dense,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    concat_fp_c1_s1_s2 = tf.keras.layers.Concatenate(
-        axis=-1, name="concat_fp_c1_s1_s2"
-    )([h2, c1_dense, s1_dense, s2_dense])
+    concat_fp_mol1_mol2_mol3 = tf.keras.layers.Concatenate(
+        axis=-1, name="concat_fp_mol1_mol2_mol3"
+    )([h2, mol1_dense, mol2_dense, mol3_dense])
 
-    r1_h1 = tf.keras.layers.Dense(
+    mol4_h1 = tf.keras.layers.Dense(
         N_h1,
         activation="relu",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="r1_h1",
-    )(concat_fp_c1_s1_s2)
-    r1_h1 = add_dropout_and_batchnorm(
-        r1_h1,
+        name="mol4_h1",
+    )(concat_fp_mol1_mol2_mol3)
+    mol4_h1 = add_dropout_and_batchnorm(
+        mol4_h1,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-    r1_h2 = tf.keras.layers.Dense(
+    mol4_h2 = tf.keras.layers.Dense(
         N_h1,
         activation="tanh",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="r1_h2",
-    )(r1_h1)
-    r1_h2 = add_dropout_and_batchnorm(
-        r1_h2,
+        name="mol4_h2",
+    )(mol4_h1)
+    mol4_h2 = add_dropout_and_batchnorm(
+        mol4_h2,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    r1_output = tf.keras.layers.Dense(r1_dim, activation="softmax", name="r1")(r1_h2)
-    input_r1 = do_selection(prev_output=r1_output, true_input=input_r1, mode=mode)
+    mol4_output = tf.keras.layers.Dense(mol4_dim, activation="softmax", name="mol4")(
+        mol4_h2
+    )
+    input_mol4 = do_selection(prev_output=mol4_output, true_input=input_mol4, mode=mode)
 
-    r1_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="r1_dense")(input_r1)
-    r1_dense = add_dropout_and_batchnorm(
-        r1_dense,
+    mol4_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="mol4_dense")(
+        input_mol4
+    )
+    mol4_dense = add_dropout_and_batchnorm(
+        mol4_dense,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    concat_fp_c1_s1_s2_r1 = tf.keras.layers.Concatenate(
-        axis=-1, name="concat_fp_c1_s1_s2_r1"
-    )([h2, c1_dense, s1_dense, s2_dense, r1_dense])
+    concat_fp_mol1_mol2_mol3_mol4 = tf.keras.layers.Concatenate(
+        axis=-1, name="concat_fp_mol1_mol2_mol3_mol4"
+    )([h2, mol1_dense, mol2_dense, mol3_dense, mol4_dense])
 
-    r2_h1 = tf.keras.layers.Dense(
+    mol5_h1 = tf.keras.layers.Dense(
         N_h1,
         activation="relu",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="r2_h1",
-    )(concat_fp_c1_s1_s2_r1)
-    r2_h1 = add_dropout_and_batchnorm(
-        r2_h1,
+        name="mol5_h1",
+    )(concat_fp_mol1_mol2_mol3_mol4)
+    mol5_h1 = add_dropout_and_batchnorm(
+        mol5_h1,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
-    r2_h2 = tf.keras.layers.Dense(
+    mol5_h2 = tf.keras.layers.Dense(
         N_h1,
         activation="tanh",
         kernel_regularizer=tf.keras.regularizers.l2(l2v),
-        name="r2_h2",
-    )(r2_h1)
-    r2_h2 = add_dropout_and_batchnorm(
-        r2_h2,
+        name="mol5_h2",
+    )(mol5_h1)
+    mol5_h2 = add_dropout_and_batchnorm(
+        mol5_h2,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
-    r2_output = tf.keras.layers.Dense(r2_dim, activation="softmax", name="r2")(r2_h2)
-    input_r2 = do_selection(prev_output=r2_output, true_input=input_r2, mode=mode)
+    mol5_output = tf.keras.layers.Dense(mol5_dim, activation="softmax", name="mol5")(
+        mol5_h2
+    )
+    input_mol5 = do_selection(prev_output=mol5_output, true_input=input_mol5, mode=mode)
 
-    r2_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="r2_dense")(input_r2)
-    r2_dense = add_dropout_and_batchnorm(
-        r2_dense,
+    mol5_dense = tf.keras.layers.Dense(N_h2, activation="relu", name="mol5_dense")(
+        input_mol5
+    )
+    mol5_dense = add_dropout_and_batchnorm(
+        mol5_dense,
         dropout_prob=dropout_prob,
         use_batchnorm=use_batchnorm,
         force_stochastic=False,
     )
 
     # just for the purpose of shorter print message
-    c1 = c1_output
-    s1 = s1_output
-    s2 = s2_output
-    r1 = r1_output
-    r2 = r2_output
-    output = [c1, s1, s2, r1, r2]
+    mol1 = mol1_output
+    mol2 = mol2_output
+    mol3 = mol3_output
+    mol4 = mol4_output
+    mol5 = mol5_output
+    output = [mol1, mol2, mol3, mol4, mol5]
     if mode == TEACHER_FORCE:
         model = tf.keras.models.Model(
-            [input_pfp, input_rxnfp, input_c1, input_s1, input_s2, input_r1, input_r2],
+            [
+                input_pfp,
+                input_rxnfp,
+                input_mol1,
+                input_mol2,
+                input_mol3,
+                input_mol4,
+                input_mol5,
+            ],
             output,
         )
     elif mode == HARD_SELECTION or mode == SOFT_SELECTION:
@@ -312,25 +340,25 @@ def update_teacher_forcing_model_weights(update_model, to_copy_model):
     layers = [
         "fp_transform1",
         "fp_transform2",
-        "c1_dense",
-        "s1_dense",
-        "s2_dense",
-        "r1_dense",
-        "c1_h1",
-        "s1_h1",
-        "s2_h1",
-        "r1_h1",
-        "r2_h1",
-        "c1_h2",
-        "s1_h2",
-        "s2_h2",
-        "r1_h2",
-        "r2_h2",
-        "c1",
-        "s1",
-        "s2",
-        "r1",
-        "r2",
+        "mol1_dense",
+        "mol2_dense",
+        "mol3_dense",
+        "mol4_dense",
+        "mol1_h1",
+        "mol2_h1",
+        "mol3_h1",
+        "mol4_h1",
+        "mol5_h1",
+        "mol1_h2",
+        "mol2_h2",
+        "mol3_h2",
+        "mol4_h2",
+        "mol5_h2",
+        "mol1",
+        "mol2",
+        "mol3",
+        "mol4",
+        "mol5",
     ]
     layers += [i.name for i in to_copy_model.layers if "batchnorm" in i.name]
 
