@@ -41,6 +41,7 @@ class ConditionPrediction:
     output_folder_path: pathlib.Path
     train_fraction: float
     train_val_split: float
+    epochs: int
 
     def __post_init__(self) -> None:
         pass
@@ -64,6 +65,7 @@ class ConditionPrediction:
             self.output_folder_path,
             self.train_fraction,
             self.train_val_split,
+            self.epochs,
         )
 
     @staticmethod
@@ -75,6 +77,7 @@ class ConditionPrediction:
         output_folder_path,
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
+        epochs: int = 20,
     ) -> None:
         """
         catalyst_in_data: bool, to determine whether we're predicting agent_002 or catalyst_000
@@ -108,7 +111,6 @@ class ConditionPrediction:
         val_product_fp = val_fp[:, :val_fp.shape[1] // 2]
         val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2:]
 
-        breakpoint()
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
@@ -124,12 +126,13 @@ class ConditionPrediction:
             train_solvent_0,
             val_solvent_0,
             sol0_enc,
-        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_000"]].fillna("NULL"),
-            train_idx,
-            val_idx,
-            tensor_func=tf.convert_to_tensor,
-        )
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(df[["solvent_000"]].fillna("NULL"),train_idx,val_idx,tensor_func=tf.convert_to_tensor,)
+        
+        
+        
+        condition_prediction.learn.ohe.apply_train_ohe_fit(df[["solvent_000"]].fillna("NULL"),train_idx,val_idx,tensor_func=tf.convert_to_tensor,)
+        
+        
         (
             train_solvent_1,
             val_solvent_1,
@@ -304,7 +307,7 @@ class ConditionPrediction:
             if train_mode == condition_prediction.model.TEACHER_FORCE
             else x_train_eval_data,
             y=y_train_data,
-            epochs=20,
+            epochs=epochs,
             verbose=1,
             batch_size=1024,
             validation_data=(
@@ -325,9 +328,35 @@ class ConditionPrediction:
             update_model=pred_model, to_copy_model=model
         )
 
+        
+        ### Save results
+        breakpoint()
+        
+        # Save the train_val_loss plot
         plt.plot(h.history["loss"], label="loss")
         plt.plot(h.history["val_loss"], label="val_loss")
         plt.legend()
+        output_file_path = output_folder_path / "train_val_loss.png"
+        plt.savefig(output_file_path)
+        
+        # Save the top-3 accuracy plot
+        plt.clf()
+        plt.plot(h.history["val_c1_top3"], label="val_c1_top3")
+        plt.plot(h.history["val_s1_top3"], label="val_s1_top3")
+        plt.plot(h.history["val_s2_top3"], label="val_s2_top3")
+        plt.plot(h.history["val_r1_top3"], label="val_r1_top3")
+        plt.plot(h.history["val_r2_top3"], label="val_r2_top3")
+        plt.legend()
+        output_file_path = output_folder_path / "top3_val_accuracy.png"
+        plt.savefig(output_file_path)
+        
+        # Save the model
+        model_save_file_path = output_folder_path / "model"
+        model.save(model_save_file_path)
+        
+        # Save the final performance on the test set
+        
+        
 
 
 @click.command()
@@ -363,6 +392,12 @@ class ConditionPrediction:
     help="The fraction of the train data that is used for training (the rest is used for validation)",
 )
 @click.option(
+    "--epochs",
+    default=20,
+    type=int,
+    help="The number of epochs used for training",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -383,6 +418,7 @@ def main_click(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    epochs: int,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -401,6 +437,7 @@ def main_click(
         output_folder_path=pathlib.Path(output_folder_path),
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        epochs=epochs,
         overwrite=overwrite,
         log_file=_log_file,
         log_level=log_level,
@@ -413,6 +450,7 @@ def main(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    epochs: int,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
@@ -483,6 +521,7 @@ def main(
         output_folder_path=output_folder_path,
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        epochs=epochs,
     )
 
     instance.train_model_arguments()
