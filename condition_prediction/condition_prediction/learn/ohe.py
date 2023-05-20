@@ -31,16 +31,15 @@ class GetDummies(sklearn.base.TransformerMixin):
         missing = set(self.final_columns) - set(X_columns)
         for c in missing:
             X[c] = False
-        
+
         # If all values in a row are false, then set the column ending in _other to true (example column name: solvent_000_other)
         # This is to ensure that the model can handle unseen values
         X["all_false"] = X.apply(lambda row: row.sum() == 0, axis=1)
-        
+
         # Set columns ending in _other to True where all values in the row are False
         other_columns = [col for col in X.columns if col.endswith("_other")]
         X.loc[X["all_false"], other_columns] = True
-        
-        
+
         # remove any new columns that may have resulted from values in
         # X that were not in the data set when fit
         return X[self.final_columns]
