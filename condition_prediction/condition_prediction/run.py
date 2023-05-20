@@ -42,22 +42,30 @@ class ConditionPrediction:
     train_fraction: float
     train_val_split: float
     epochs: int
+    evaluate_on_test_data: bool
 
     def __post_init__(self) -> None:
         pass
 
-    def train_model_arguments(self) -> None:
+    def run_model_arguments(self) -> None:
         train_df = pd.read_parquet(self.train_data_path)
         test_df = pd.read_parquet(self.test_data_path)
         train_fp = np.load(self.train_fp_path)
         test_fp = np.load(self.test_fp_path)
-        unnecessary_columns = [ 'date_of_experiment',
-       'extracted_from_file', 'grant_date', 'is_mapped', 'procedure_details',
-        'rxn_str', 'rxn_time',
-        'temperature', 'yield_000']
+        unnecessary_columns = [
+            "date_of_experiment",
+            "extracted_from_file",
+            "grant_date",
+            "is_mapped",
+            "procedure_details",
+            "rxn_str",
+            "rxn_time",
+            "temperature",
+            "yield_000",
+        ]
         train_df.drop(columns=unnecessary_columns, inplace=True)
         test_df.drop(columns=unnecessary_columns, inplace=True)
-        ConditionPrediction.train_model(
+        ConditionPrediction.run_model(
             train_df,
             test_df,
             train_fp,
@@ -66,10 +74,11 @@ class ConditionPrediction:
             self.train_fraction,
             self.train_val_split,
             self.epochs,
+            self.evaluate_on_test_data,
         )
 
     @staticmethod
-    def train_model(
+    def run_model(
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
         train_val_fp: np.ndarray,
@@ -78,39 +87,41 @@ class ConditionPrediction:
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
         epochs: int = 20,
+        evaluate_on_test_data: bool = False,
     ) -> None:
-        """
-        catalyst_in_data: bool, to determine whether we're predicting agent_002 or catalyst_000
-        """
+        """ """
 
         assert train_val_df.shape[1] == test_df.shape[1]
         assert train_val_fp.shape[0] == train_val_df.shape[0]
         assert test_fp.shape[0] == test_df.shape[0]
-        
-        #concat train and test df        
+
+        # concat train and test df
         df = pd.concat([train_val_df, test_df], axis=0)
         df = df.reset_index(drop=True)
-        test_indexes = np.arange(train_val_df.shape[0], df.shape[0])
+        test_idx = np.arange(train_val_df.shape[0], df.shape[0])
 
         # Get indices for train and val
         rng = np.random.default_rng(12345)
         train_val_indexes = np.arange(train_val_df.shape[0])
         rng.shuffle(train_val_indexes)
-        train_val_indexes = train_val_indexes[: int(train_val_indexes.shape[0] * train_fraction)]
+        train_val_indexes = train_val_indexes[
+            : int(train_val_indexes.shape[0] * train_fraction)
+        ]
         train_val_df = train_val_df.iloc[train_val_indexes]
-        train_idx = train_val_indexes[: int(train_val_indexes.shape[0] * train_val_split)]
+        train_idx = train_val_indexes[
+            : int(train_val_indexes.shape[0] * train_val_split)
+        ]
         val_idx = train_val_indexes[int(train_val_indexes.shape[0] * train_val_split) :]
-        
+
         # Apply these to the fingerprints
         train_fp = train_val_fp[train_idx]
         val_fp = train_val_fp[val_idx]
 
-        train_product_fp = train_fp[:, :train_fp.shape[1] // 2]
-        train_rxn_diff_fp = train_fp[:, train_fp.shape[1] // 2:]
-        
-        val_product_fp = val_fp[:, :val_fp.shape[1] // 2]
-        val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2:]
+        train_product_fp = train_fp[:, : train_fp.shape[1] // 2]
+        train_rxn_diff_fp = train_fp[:, train_fp.shape[1] // 2 :]
 
+        val_product_fp = val_fp[:, : val_fp.shape[1] // 2]
+        val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2 :]
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
@@ -126,13 +137,20 @@ class ConditionPrediction:
             train_solvent_0,
             val_solvent_0,
             sol0_enc,
-        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(df[["solvent_000"]].fillna("NULL"),train_idx,val_idx,tensor_func=tf.convert_to_tensor,)
-        
-        
-        
-        condition_prediction.learn.ohe.apply_train_ohe_fit(df[["solvent_000"]].fillna("NULL"),train_idx,val_idx,tensor_func=tf.convert_to_tensor,)
-        
-        
+        ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["solvent_000"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+
+        condition_prediction.learn.ohe.apply_train_ohe_fit(
+            df[["solvent_000"]].fillna("NULL"),
+            train_idx,
+            val_idx,
+            tensor_func=tf.convert_to_tensor,
+        )
+
         (
             train_solvent_1,
             val_solvent_1,
@@ -228,7 +246,9 @@ class ConditionPrediction:
         model = condition_prediction.model.build_teacher_forcing_model(
             pfp_len=train_product_fp.shape[-1],
             rxnfp_len=train_rxn_diff_fp.shape[-1],
-            c1_dim=train_solvent_0.shape[-1], # TODO change names from [c1, s1, s2, r1, r2] to [s1, s2, a1, a2, a3]
+            c1_dim=train_solvent_0.shape[
+                -1
+            ],  # TODO change names from [c1, s1, s2, r1, r2] to [s1, s2, a1, a2, a3]
             s1_dim=train_solvent_1.shape[-1],
             s2_dim=train_agent_0.shape[-1],
             r1_dim=train_agent_1.shape[-1],
@@ -328,17 +348,16 @@ class ConditionPrediction:
             update_model=pred_model, to_copy_model=model
         )
 
-        
         ### Save results
         breakpoint()
-        
+
         # Save the train_val_loss plot
         plt.plot(h.history["loss"], label="loss")
         plt.plot(h.history["val_loss"], label="val_loss")
         plt.legend()
         output_file_path = output_folder_path / "train_val_loss.png"
         plt.savefig(output_file_path)
-        
+
         # Save the top-3 accuracy plot
         plt.clf()
         plt.plot(h.history["val_c1_top3"], label="val_c1_top3")
@@ -349,14 +368,36 @@ class ConditionPrediction:
         plt.legend()
         output_file_path = output_folder_path / "top3_val_accuracy.png"
         plt.savefig(output_file_path)
-        
+
         # Save the model
         model_save_file_path = output_folder_path / "model"
         model.save(model_save_file_path)
-        
+
         # Save the final performance on the test set
-        
-        
+        if evaluate_on_test_data:
+            
+            
+            
+            
+            x_test_data = (
+                test_product_fp,
+                test_rxn_diff_fp,
+                test_solvent_0,
+                test_solvent_1,
+                test_agent_0,
+                test_agent_1,
+                test_agent_2,
+            )
+            y_test_data = (
+                test_solvent_0,
+                test_solvent_1,
+                test_agent_0,
+                test_agent_1,
+                test_agent_2,
+            )
+
+            # Evaluate the model on the test set
+            test_loss, test_metrics = model.evaluate(x_test_data, y_test_data)
 
 
 @click.command()
@@ -398,6 +439,12 @@ class ConditionPrediction:
     help="The number of epochs used for training",
 )
 @click.option(
+    "--evaluate_on_test_data",
+    default=False,
+    type=bool,
+    help="If True, will evaluate the model on the test data",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -419,6 +466,7 @@ def main_click(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    evaluate_on_test_data: bool,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -438,6 +486,7 @@ def main_click(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         epochs=epochs,
+        evaluate_on_test_data=evaluate_on_test_data,
         overwrite=overwrite,
         log_file=_log_file,
         log_level=log_level,
@@ -451,6 +500,7 @@ def main(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    evaluate_on_test_data: bool,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
@@ -473,7 +523,7 @@ def main(
 
     """
     start_time = datetime.datetime.now()
-    
+
     output_folder_path.mkdir(parents=True, exist_ok=True)
 
     if not overwrite:
@@ -505,7 +555,6 @@ def main(
         LOG.error(e)
         raise e
 
-    
     fp_directory = train_data_path.parent / "fingerprints"
     fp_directory.mkdir(parents=True, exist_ok=True)
     # Define the train_fp_path
@@ -522,9 +571,10 @@ def main(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         epochs=epochs,
+        evaluate_on_test_data=evaluate_on_test_data,
     )
 
-    instance.train_model_arguments()
+    instance.run_model_arguments()
 
     LOG.info(f"Completed model training, saving to {output_folder_path}")
 
