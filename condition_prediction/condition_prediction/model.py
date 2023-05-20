@@ -316,7 +316,6 @@ def update_teacher_forcing_model_weights(update_model, to_copy_model):
         "s1_dense",
         "s2_dense",
         "r1_dense",
-        # "r2_dense",
         "c1_h1",
         "s1_h1",
         "s2_h1",
