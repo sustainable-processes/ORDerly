@@ -50,7 +50,12 @@ class ConditionPrediction:
         test_df = pd.read_parquet(self.test_data_path)
         train_fp = np.load(self.train_fp_path)
         test_fp = np.load(self.test_fp_path)
-        # TODO: Drop columns we don't need
+        unnecessary_columns = [ 'date_of_experiment',
+       'extracted_from_file', 'grant_date', 'is_mapped', 'procedure_details',
+        'rxn_str', 'rxn_time',
+        'temperature', 'yield_000']
+        train_df.drop(columns=unnecessary_columns, inplace=True)
+        test_df.drop(columns=unnecessary_columns, inplace=True)
         ConditionPrediction.train_model(
             train_df,
             test_df,
@@ -103,7 +108,7 @@ class ConditionPrediction:
         val_product_fp = val_fp[:, :val_fp.shape[1] // 2]
         val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2:]
 
-        
+        breakpoint()
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
