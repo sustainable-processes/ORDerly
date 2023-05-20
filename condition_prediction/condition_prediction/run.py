@@ -123,7 +123,7 @@ class ConditionPrediction:
 
         val_product_fp = val_fp[:, : val_fp.shape[1] // 2]
         val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2 :]
-        
+
         test_product_fp = test_fp[:, : test_fp.shape[1] // 2]
         test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
 
@@ -247,9 +247,12 @@ class ConditionPrediction:
             val_agent_1,
             val_agent_2,
         )
-        
-        x_test_data = (test_product_fp,test_rxn_diff_fp,)
-        
+
+        x_test_data = (
+            test_product_fp,
+            test_rxn_diff_fp,
+        )
+
         y_test_data = (
             test_solvent_0,
             test_solvent_1,
@@ -257,8 +260,7 @@ class ConditionPrediction:
             test_agent_1,
             test_agent_2,
         )
-            
-        
+
         train_mode = condition_prediction.model.HARD_SELECTION
 
         model = condition_prediction.model.build_teacher_forcing_model(
@@ -382,20 +384,17 @@ class ConditionPrediction:
         plt.legend()
         output_file_path = output_folder_path / "top3_val_accuracy.png"
         plt.savefig(output_file_path)
-        
+
         # Save the train and val metrics
         train_val_file_path = output_folder_path / "train_val_metrics.json"
         train_val_metrics_dict = h.history
         with open(train_val_file_path, "w") as file:
-                json.dump(train_val_metrics_dict, file)
-        
+            json.dump(train_val_metrics_dict, file)
 
         # TODO: Save the model
         # model_save_file_path = output_folder_path / "models"
         # model.save(model_save_file_path)
-        
-        
-        
+
         # Save the final performance on the test set
         if evaluate_on_test_data:
             # Evaluate the model on the test set
@@ -406,7 +405,6 @@ class ConditionPrediction:
             # Save the dictionary as a JSON file
             with open(test_metrics_file_path, "w") as file:
                 json.dump(test_metrics_dict, file)
-            
 
 
 @click.command()
