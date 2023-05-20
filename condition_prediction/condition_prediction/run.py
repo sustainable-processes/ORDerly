@@ -4,6 +4,7 @@ import dataclasses
 import datetime
 import pathlib
 import click
+import json
 
 LOG = logging.getLogger(__name__)
 
@@ -122,6 +123,9 @@ class ConditionPrediction:
 
         val_product_fp = val_fp[:, : val_fp.shape[1] // 2]
         val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2 :]
+        
+        test_product_fp = test_fp[:, : test_fp.shape[1] // 2]
+        test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:
@@ -136,59 +140,61 @@ class ConditionPrediction:
         (
             train_solvent_0,
             val_solvent_0,
+            test_solvent_0,
             sol0_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["solvent_000"]].fillna("NULL"),
             train_idx,
             val_idx,
+            test_idx,
             tensor_func=tf.convert_to_tensor,
         )
-
-        condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["solvent_000"]].fillna("NULL"),
-            train_idx,
-            val_idx,
-            tensor_func=tf.convert_to_tensor,
-        )
-
         (
             train_solvent_1,
             val_solvent_1,
+            test_solvent_1,
             sol1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["solvent_001"]].fillna("NULL"),
             train_idx,
             val_idx,
+            test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
             train_agent_0,
             val_agent_0,
-            reag0_enc,
+            test_agent_0,
+            ag0_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["agent_000"]].fillna("NULL"),
             train_idx,
             val_idx,
+            test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
             train_agent_1,
             val_agent_1,
-            reag1_enc,
+            test_agent_1,
+            ag1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[["agent_001"]].fillna("NULL"),
             train_idx,
             val_idx,
+            test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         (
             train_agent_2,
             val_agent_2,
-            reag2_enc,
+            test_agent_2,
+            ag2_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
-            df[["agent_001"]].fillna("NULL"),
+            df[["agent_002"]].fillna("NULL"),
             train_idx,
             val_idx,
+            test_idx,
             tensor_func=tf.convert_to_tensor,
         )
         del train_val_df
@@ -241,6 +247,18 @@ class ConditionPrediction:
             val_agent_1,
             val_agent_2,
         )
+        
+        x_test_data = (test_product_fp,test_rxn_diff_fp,)
+        
+        y_test_data = (
+            test_solvent_0,
+            test_solvent_1,
+            test_agent_0,
+            test_agent_1,
+            test_agent_2,
+        )
+            
+        
         train_mode = condition_prediction.model.HARD_SELECTION
 
         model = condition_prediction.model.build_teacher_forcing_model(
@@ -288,7 +306,7 @@ class ConditionPrediction:
                 tf.keras.losses.CategoricalCrossentropy(from_logits=False),
             ],
             loss_weights=[1, 1, 1, 1, 1],
-            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
             metrics={
                 "c1": [
                     "acc",
@@ -347,10 +365,6 @@ class ConditionPrediction:
         condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
-
-        ### Save results
-        breakpoint()
-
         # Save the train_val_loss plot
         plt.plot(h.history["loss"], label="loss")
         plt.plot(h.history["val_loss"], label="val_loss")
@@ -368,36 +382,31 @@ class ConditionPrediction:
         plt.legend()
         output_file_path = output_folder_path / "top3_val_accuracy.png"
         plt.savefig(output_file_path)
+        
+        # Save the train and val metrics
+        train_val_file_path = output_folder_path / "train_val_metrics.json"
+        train_val_metrics_dict = h.history
+        with open(train_val_file_path, "w") as file:
+                json.dump(train_val_metrics_dict, file)
+        
 
-        # Save the model
-        model_save_file_path = output_folder_path / "model"
-        model.save(model_save_file_path)
-
+        # TODO: Save the model
+        # model_save_file_path = output_folder_path / "models"
+        # model.save(model_save_file_path)
+        
+        
+        
         # Save the final performance on the test set
         if evaluate_on_test_data:
-            
-            
-            
-            
-            x_test_data = (
-                test_product_fp,
-                test_rxn_diff_fp,
-                test_solvent_0,
-                test_solvent_1,
-                test_agent_0,
-                test_agent_1,
-                test_agent_2,
-            )
-            y_test_data = (
-                test_solvent_0,
-                test_solvent_1,
-                test_agent_0,
-                test_agent_1,
-                test_agent_2,
-            )
-
             # Evaluate the model on the test set
-            test_loss, test_metrics = model.evaluate(x_test_data, y_test_data)
+            test_metrics = model.evaluate(x_test_data, y_test_data)
+            test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
+            # save the test metrics
+            test_metrics_file_path = output_folder_path / "test_metrics.json"
+            # Save the dictionary as a JSON file
+            with open(test_metrics_file_path, "w") as file:
+                json.dump(test_metrics_dict, file)
+            
 
 
 @click.command()
