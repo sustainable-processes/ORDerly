@@ -5,6 +5,7 @@ import datetime
 import pathlib
 import click
 import json
+from collections import Counter
 
 LOG = logging.getLogger(__name__)
 
@@ -205,6 +206,57 @@ class ConditionPrediction:
             test_idx,
             tensor_func=tf.convert_to_tensor,
         )
+
+        if evaluate_on_test_data:
+            # Determine accuracy simply by predicting the top3 most likely labels
+            @staticmethod
+            def benchmark_top3_accuracy(y_train, y_test):
+                y_train = y_train.tolist()
+                y_test = y_test.tolist()
+                # find the top 3 most likely labels in train set
+                label_counts = Counter(y_train)
+                top3_train_labels = [
+                    label for label, count in label_counts.most_common(3)
+                ]
+
+                correct_predictions = sum(
+                    test_label in top3_train_labels for test_label in y_test
+                )
+
+                # calculate the naive_top3_accuracy
+                naive_top3_accuracy = correct_predictions / len(y_test)
+
+                return naive_top3_accuracy
+
+            mol1_benchmark = benchmark_top3_accuracy(
+                train_val_df[mol_1_col], test_df[mol_1_col]
+            )
+            mol2_benchmark = benchmark_top3_accuracy(
+                train_val_df[mol_2_col], test_df[mol_2_col]
+            )
+            mol3_benchmark = benchmark_top3_accuracy(
+                train_val_df[mol_3_col], test_df[mol_3_col]
+            )
+            mol4_benchmark = benchmark_top3_accuracy(
+                train_val_df[mol_4_col], test_df[mol_4_col]
+            )
+            mol5_benchmark = benchmark_top3_accuracy(
+                train_val_df[mol_5_col], test_df[mol_5_col]
+            )
+
+            # Save the naive_top_3 benchmark to json
+            benchmark_file_path = output_folder_path / "naive_top_3.json"
+            benchmark_dict = {
+                mol_1_col: mol1_benchmark,
+                mol_2_col: mol2_benchmark,
+                mol_3_col: mol3_benchmark,
+                mol_4_col: mol4_benchmark,
+                mol_5_col: mol5_benchmark,
+            }
+
+            with open(benchmark_file_path, "w") as file:
+                json.dump(benchmark_dict, file)
+
         del train_val_df
         del test_df
         del df
@@ -378,7 +430,7 @@ class ConditionPrediction:
         plt.plot(h.history["val_loss"], label="val_loss")
         plt.legend()
         output_file_path = output_folder_path / "train_val_loss.png"
-        plt.savefig(output_file_path)
+        plt.savefig(output_file_path, bbox_inches="tight", dpi=600)
 
         # Save the top-3 accuracy plot
         plt.clf()
@@ -404,7 +456,7 @@ class ConditionPrediction:
         )
         plt.legend()
         output_file_path = output_folder_path / "top3_val_accuracy.png"
-        plt.savefig(output_file_path)
+        plt.savefig(output_file_path, bbox_inches="tight", dpi=600)
 
         # Save the train and val metrics
         train_val_file_path = output_folder_path / "train_val_metrics.json"
