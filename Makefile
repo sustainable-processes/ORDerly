@@ -159,6 +159,14 @@ run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
 
 
+# Model training
+
+train_model:
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/test_model_100" --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=3 --evaluate_on_test_data=True
+
+
+
+
 ####################################################################################################
 # 									ORDerly make commands for the paper
 ####################################################################################################
@@ -239,4 +247,6 @@ paper_7:
 paper_get_datasets: paper_1 paper_6 paper_7
 
 paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
+
+
 

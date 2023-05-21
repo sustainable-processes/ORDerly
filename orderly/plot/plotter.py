@@ -272,6 +272,7 @@ class ORDerlyPlotter:
     ####################################################################################################
 
     def plot_waterfall(self) -> None:
+        # TODO: Though I'm not sure that a waterfall plot is actually the best way to show how data is filtered out by ORDerly. Perhaps better simply with a table?
         pass
 
 
