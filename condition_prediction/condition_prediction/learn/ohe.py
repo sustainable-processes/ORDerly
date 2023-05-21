@@ -48,9 +48,7 @@ class GetDummies(sklearn.base.TransformerMixin):
         return tuple(self.final_columns)
 
 
-def apply_train_ohe_fit(
-    df, train_idx, val_idx, test_idx=None, tensor_func: typing.Callable = None
-):
+def apply_train_ohe_fit(df, train_idx, val_idx, test_idx=None, tensor_func=None):
     enc = GetDummies()
     _ = enc.fit(df.iloc[train_idx])
     _ohe = enc.transform(df)

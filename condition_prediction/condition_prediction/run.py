@@ -209,7 +209,6 @@ class ConditionPrediction:
 
         if evaluate_on_test_data:
             # Determine accuracy simply by predicting the top3 most likely labels
-            @staticmethod
             def benchmark_top3_accuracy(y_train, y_test):
                 y_train = y_train.tolist()
                 y_test = y_test.tolist()
