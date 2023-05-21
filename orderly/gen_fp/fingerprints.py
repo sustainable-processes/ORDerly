@@ -98,7 +98,8 @@ class GenerateFingerprints:
                 DataStructs.ConvertToNumpyArray(fp, array)
                 ans.append(array)
             except:
-                LOG.warning(f"Could not generate fingerprint for {smiles=}")
+                if smiles is not None:
+                    LOG.warning(f"Could not generate fingerprint for {smiles=}")
                 ans.append(np.zeros((nBits,), dtype=int))
         return np.vstack(ans)
 
