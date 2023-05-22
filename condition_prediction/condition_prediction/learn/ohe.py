@@ -49,16 +49,20 @@ class GetDummies(sklearn.base.TransformerMixin):
 
 
 def apply_train_ohe_fit(df, train_idx, val_idx, test_idx=None, tensor_func=None):
-    enc = GetDummies()
+    # enc = GetDummies()
+    from sklearn.preprocessing import OneHotEncoder
+    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
     _ = enc.fit(df.iloc[train_idx])
     _ohe = enc.transform(df)
-    _tr, _val = _ohe.iloc[train_idx].values, _ohe.iloc[val_idx].values
+    # _tr, _val = _ohe.iloc[train_idx].values, _ohe.iloc[val_idx].values
+    _tr, _val = _ohe[train_idx], _ohe[val_idx]
     _tr, _val = _tr.astype("float32"), _val.astype("float32")
     if tensor_func is not None:
         _tr, _val = tensor_func(_tr), tensor_func(_val)
 
     if test_idx is not None:
-        _test = _ohe.iloc[test_idx].values
+        # _test = _ohe.iloc[test_idx].values
+        _test = _ohe[test_idx]
         _test = _test.astype("float32")
         if tensor_func is not None:
             _test = tensor_func(_test)

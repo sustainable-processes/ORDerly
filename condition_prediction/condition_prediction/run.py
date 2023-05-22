@@ -262,14 +262,15 @@ class ConditionPrediction:
             with open(benchmark_file_path, "w") as file:
                 json.dump(benchmark_dict, file)
 
+
         del train_val_df
         del test_df
         del df
-        del mol1_enc
-        del mol2_enc
-        del mol3_enc
-        del mol4_enc
-        del mol5_enc
+        # del mol1_enc
+        # del mol2_enc
+        # del mol3_enc
+        # del mol4_enc
+        # del mol5_enc
         LOG.info("Data ready for modelling")
 
         x_train_data = (
@@ -485,9 +486,52 @@ class ConditionPrediction:
         # Save the final performance on the test set
         if evaluate_on_test_data:
             # Evaluate the model on the test set
+            
+            def get_grouped_scores(y_true, y_pred, encoders):
+                components_true = []
+                for enc, components in zip(encoders, y_true):
+                    components_true.append(enc.inverse_transform(components))
+                components_true = np.concatenate(components_true, axis=1)
+                
+                components_pred = []
+                for enc, components in zip(encoders, y_pred):
+                    selection_idx = np.argmax(components, axis=1)
+                    component_selection = np.zeros_like(components)
+                    component_selection[:, selection_idx] = 1.0
+                    components_pred.append(enc.inverse_transform(component_selection))
+                components_pred = np.concatenate(components_pred, axis=1)
+                
+                sorted_arr1 = np.sort(components_true, axis=1)
+                sorted_arr2 = np.sort(components_pred, axis=1)
+                return (sorted_arr1 == sorted_arr2).all(axis=1)
+            
             test_metrics = model.evaluate(x_test_data, y_test_data)
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
             test_metrics_dict["trust_labelling"] = trust_labelling
+            
+            ### Grouped scores
+            predictions = model.predict(x_test_data)
+            
+            #Catalyst scores
+            catalyst_scores = get_grouped_scores(y_test_data[[0]], predictions[[0]], [mol1_enc])
+            
+            # Solvent scores
+            solvent_scores = get_grouped_scores(y_test_data[:2], predictions[:2], [mol1_enc, mol2_enc])
+            test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
+
+            # 2 agent scores
+            agent_scores = get_grouped_scores(y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc])
+            test_metrics_dict["two_agents_accuray"] = np.mean(agent_scores)
+            
+            # 3 agents scores
+            agent_scores = get_grouped_scores(y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc])
+            test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
+            
+            # Overall scores
+            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
+            test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
+            
+            
             # save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             # Save the dictionary as a JSON file
