@@ -137,9 +137,9 @@ class ConditionPrediction:
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:  # trust_labelling = True
             trust_labelling = True
-            mol_1_col = "catalyst_000"
-            mol_2_col = "solvent_000"
-            mol_3_col = "solvent_001"
+            mol_1_col = "solvent_000"
+            mol_2_col = "solvent_001"
+            mol_3_col = "catalyst_000"
             mol_4_col = "reagent_000"
             mol_5_col = "reagent_001"
 
