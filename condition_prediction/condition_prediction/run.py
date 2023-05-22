@@ -511,17 +511,12 @@ class ConditionPrediction:
             
             ### Grouped scores
             predictions = model.predict(x_test_data)
-            
-            #Catalyst scores
-            catalyst_scores = get_grouped_scores(y_test_data[[0]], predictions[[0]], [mol1_enc])
+        
             
             # Solvent scores
             solvent_scores = get_grouped_scores(y_test_data[:2], predictions[:2], [mol1_enc, mol2_enc])
             test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
 
-            # 2 agent scores
-            agent_scores = get_grouped_scores(y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc])
-            test_metrics_dict["two_agents_accuray"] = np.mean(agent_scores)
             
             # 3 agents scores
             agent_scores = get_grouped_scores(y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc])
