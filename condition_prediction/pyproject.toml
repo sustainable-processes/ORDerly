@@ -6,7 +6,7 @@ authors = ["joearrowsmith <joearrowsmith98@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-tensorflow = "^2.12.0"
+tensorflow = "^2.12.0" #NB: On mac M1 chips you should install tensorflow via conda or pip, not poetry
 matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
 click = "^8.1.3"
@@ -14,6 +14,7 @@ click-loglevel = "^0.4.0"
 scikit-learn = "^1.2.2"
 pandas = "^1.5.3"
 pyarrow = "^10.0.1"
+Counter = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
