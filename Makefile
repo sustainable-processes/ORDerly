@@ -162,7 +162,7 @@ run_python_310:
 # Model training
 
 train_model:
-	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/test_model_100" --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=3 --evaluate_on_test_data=True
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
 
 
 
@@ -179,9 +179,8 @@ train_model:
 # 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
 # 6. Generate the four datasets we need for the paper (split into train and test set)
 # 7. Generate fingerprints for each dataset
+# 8. Train & evaluate a model on each dataset
 
-### Code:
-# 1.
 
 paper_extract_uspto_no_trust:
 	poetry run python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
@@ -241,12 +240,41 @@ paper_6: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper
 
 # 7.
 
-paper_7:
-	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets" --fp_size=2048 --overwrite=True
+fp_no_trust_no_map_test:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --fp_size=4096 --overwrite=False
+fp_no_trust_no_map_train:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --fp_size=4096 --overwrite=False
+
+fp_no_trust_with_map_test:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --fp_size=4096 --overwrite=False
+fp_no_trust_with_map_train:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --fp_size=4096 --overwrite=False
+
+fp_with_trust_with_map_test:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --fp_size=4096 --overwrite=False
+fp_with_trust_with_map_train:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --fp_size=4096 --overwrite=False
+
+fp_with_trust_no_map_test:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --fp_size=4096 --overwrite=False
+fp_with_trust_no_map_train:
+	poetry run python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --fp_size=4096 --overwrite=False
 
 paper_get_datasets: paper_1 paper_6 paper_7
 
 paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
 
+# 8.
+no_trust_with_map_train:
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
+
+no_trust_with_map_train_20:
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
+
+with_trust_no_map_train:
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
+
+with_trust_no_map_train_20:
+	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
 
 
