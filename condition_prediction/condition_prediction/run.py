@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
+from keras.callbacks import EarlyStopping
 
 import condition_prediction.learn.ohe
 import condition_prediction.learn.util
@@ -45,6 +46,7 @@ class ConditionPrediction:
     train_val_split: float
     epochs: int
     evaluate_on_test_data: bool
+    early_stopping_patience: int
 
     def __post_init__(self) -> None:
         pass
@@ -76,6 +78,7 @@ class ConditionPrediction:
             self.train_fraction,
             self.train_val_split,
             self.epochs,
+            self.early_stopping_patience,
             self.evaluate_on_test_data,
         )
 
@@ -89,6 +92,7 @@ class ConditionPrediction:
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
         epochs: int = 20,
+        early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
     ) -> None:
         """ """
@@ -127,6 +131,8 @@ class ConditionPrediction:
 
         test_product_fp = test_fp[:, : test_fp.shape[1] // 2]
         test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
+        
+        del train_fp, val_fp, test_fp
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:  # trust_labelling = True
@@ -150,7 +156,7 @@ class ConditionPrediction:
             train_mol1,
             val_mol1,
             test_mol1,
-            sol0_enc,
+            mol1_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[[mol_1_col]].fillna("NULL"),
             train_idx,
@@ -162,7 +168,7 @@ class ConditionPrediction:
             train_mol2,
             val_mol2,
             test_mol2,
-            sol1_enc,
+            mol2_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[[mol_2_col]].fillna("NULL"),
             train_idx,
@@ -174,7 +180,7 @@ class ConditionPrediction:
             train_mol3,
             val_mol3,
             test_mol3,
-            ag0_enc,
+            mol3_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[[mol_3_col]].fillna("NULL"),
             train_idx,
@@ -186,7 +192,7 @@ class ConditionPrediction:
             train_mol4,
             val_mol4,
             test_mol4,
-            ag1_enc,
+            mol4_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[[mol_4_col]].fillna("NULL"),
             train_idx,
@@ -198,7 +204,7 @@ class ConditionPrediction:
             train_mol5,
             val_mol5,
             test_mol5,
-            ag2_enc,
+            mol5_enc,
         ) = condition_prediction.learn.ohe.apply_train_ohe_fit(
             df[[mol_5_col]].fillna("NULL"),
             train_idx,
@@ -259,6 +265,11 @@ class ConditionPrediction:
         del train_val_df
         del test_df
         del df
+        del mol1_enc
+        del mol2_enc
+        del mol3_enc
+        del mol4_enc
+        del mol5_enc
         LOG.info("Data ready for modelling")
 
         x_train_data = (
@@ -398,7 +409,16 @@ class ConditionPrediction:
         condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
-
+        callbacks = [tf.keras.callbacks.TensorBoard(
+                    log_dir=condition_prediction.learn.util.log_dir(
+                        prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
+                    )
+                )]
+        # Define the EarlyStopping callback
+        if early_stopping_patience != 0:
+            early_stop = EarlyStopping(monitor='val_loss', patience=early_stopping_patience)
+            callbacks.append(early_stop)
+        
         h = model.fit(
             x=x_train_data
             if train_mode == condition_prediction.model.TEACHER_FORCE
@@ -406,20 +426,14 @@ class ConditionPrediction:
             y=y_train_data,
             epochs=epochs,
             verbose=1,
-            batch_size=1024,
+            batch_size=512,
             validation_data=(
                 x_val_data
                 if train_mode == condition_prediction.model.TEACHER_FORCE
                 else x_val_eval_data,
                 y_val_data,
             ),
-            callbacks=[
-                tf.keras.callbacks.TensorBoard(
-                    log_dir=condition_prediction.learn.util.log_dir(
-                        prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
-                    )
-                ),
-            ],
+            callbacks=callbacks,
         )
         condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
@@ -520,6 +534,12 @@ class ConditionPrediction:
     help="The number of epochs used for training",
 )
 @click.option(
+    "--early_stopping_patience",
+    default=5,
+    type=int,
+    help="Number of epochs with no improvement after which training will be stopped. If 0, then early stopping is disabled.",
+)
+@click.option(
     "--evaluate_on_test_data",
     default=False,
     type=bool,
@@ -547,6 +567,7 @@ def main_click(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    early_stopping_patience: int,
     evaluate_on_test_data: bool,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
@@ -567,6 +588,7 @@ def main_click(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         epochs=epochs,
+        early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
         overwrite=overwrite,
         log_file=_log_file,
@@ -581,6 +603,7 @@ def main(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    early_stopping_patience: int,
     evaluate_on_test_data: bool,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
@@ -652,6 +675,7 @@ def main(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         epochs=epochs,
+        early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
     )
 
