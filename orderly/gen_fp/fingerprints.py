@@ -88,7 +88,7 @@ class GenerateFingerprints:
         # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
         block = BlockLogs()
         ans = []
-        for smiles in lst:
+        for smiles in tqdm(lst):
             # convert to mol object
             try:
                 mol = Chem.MolFromSmiles(smiles)
@@ -138,7 +138,7 @@ def main_click(
     """
 
     main(
-        clean_data_folder_path=pathlib.Path(clean_data_folder_path),
+        clean_data_file_path=pathlib.Path(clean_data_folder_path),
         fp_size=fp_size,
         overwrite=overwrite,
         log_level=log_level,
@@ -146,7 +146,7 @@ def main_click(
 
 
 def main(
-    clean_data_folder_path: pathlib.Path,
+    clean_data_file_path: pathlib.Path,
     fp_size: int,
     overwrite: bool = False,
     log_level: int = logging.INFO,
@@ -155,20 +155,16 @@ def main(
     After extraction and cleaning, this can generate the fingerprints used in the condition prediction model of the ORDerly paper.
     Creates a folder inside the clean_data_folder_path called fingerprints, and loops over all the parquet files clean_data_folder_path to create an fp parquet file for each.
     """
-    if not isinstance(clean_data_folder_path, pathlib.Path):
-        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_folder_path)}")
+    if not isinstance(clean_data_file_path, pathlib.Path):
+        e = ValueError(f"Expect pathlib.Path: got {type(clean_data_file_path)}")
         LOG.error(e)
         raise e
 
-    clean_data_file_paths = list(clean_data_folder_path.glob("**/*"))
+    clean_data_folder_path = clean_data_file_path.parent
     # Filter the file paths to include only Parquet files
-    parquet_file_paths = [
-        file_path
-        for file_path in clean_data_file_paths
-        if file_path.suffix == ".parquet"
-    ]
+
     fp_output_folder_path = pathlib.Path(clean_data_folder_path / "fingerprints")
-    fp_output_folder_path.mkdir(parents=True, exist_ok=overwrite)
+    fp_output_folder_path.mkdir(parents=True, exist_ok=True)
 
     log_file = pathlib.Path(fp_output_folder_path / "fp.log")
 
@@ -183,18 +179,26 @@ def main(
     start_time = datetime.datetime.now()
     LOG.info("Gen fp for all files in the datasets folder")
 
-    for clean_data_file_path in tqdm(parquet_file_paths):
-        fp_output_path = pathlib.Path(
-            fp_output_folder_path / clean_data_file_path.name[:-8]
+    
+    fp_output_path = pathlib.Path(
+        fp_output_folder_path / clean_data_file_path.name[:-8]
+    )
+    # assert that fp_output_path doesn't exist
+    if fp_output_path.exists() and not overwrite:
+        e = ValueError(
+            f"{fp_output_path} already exists. Set overwrite=True to overwrite"
         )
-        LOG.info(f"Beginning generation of fp for file: {clean_data_file_path}")
-        instance = GenerateFingerprints(
-            clean_data_file_path=clean_data_file_path,
-            fp_output_path=fp_output_path,
-            fp_size=fp_size,
-        )
-        instance.save_fingerprints()
-        LOG.info(f"completed generation of fp, saving to {fp_output_path}")
+        LOG.error(e)
+        raise e
+    
+    LOG.info(f"Beginning generation of fp for file: {clean_data_file_path}")
+    instance = GenerateFingerprints(
+        clean_data_file_path=clean_data_file_path,
+        fp_output_path=fp_output_path,
+        fp_size=fp_size,
+    )
+    instance.save_fingerprints()
+    LOG.info(f"completed generation of fp, saving to {fp_output_path}")
 
     end_time = datetime.datetime.now()
     LOG.info("Gen fp complete, duration: {}".format(end_time - start_time))
