@@ -215,13 +215,14 @@ class ConditionPrediction:
 
         if evaluate_on_test_data:
             # Determine accuracy simply by predicting the top3 most likely labels
-            def benchmark_top3_accuracy(y_train, y_test):
+            def benchmark_top_n_accuracy(y_train, y_test, n=3):
+                breakpoint()
                 y_train = y_train.tolist()
                 y_test = y_test.tolist()
                 # find the top 3 most likely labels in train set
                 label_counts = Counter(y_train)
                 top3_train_labels = [
-                    label for label, count in label_counts.most_common(3)
+                    label for label, count in label_counts.most_common(n)
                 ]
 
                 correct_predictions = sum(
@@ -233,30 +234,51 @@ class ConditionPrediction:
 
                 return naive_top3_accuracy
 
-            mol1_benchmark = benchmark_top3_accuracy(
-                train_val_df[mol_1_col], test_df[mol_1_col]
+            mol1_top1_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_1_col], test_df[mol_1_col], 1,
             )
-            mol2_benchmark = benchmark_top3_accuracy(
-                train_val_df[mol_2_col], test_df[mol_2_col]
+            mol2_top1_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_2_col], test_df[mol_2_col], 1,
             )
-            mol3_benchmark = benchmark_top3_accuracy(
-                train_val_df[mol_3_col], test_df[mol_3_col]
+            mol3_top1_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_3_col], test_df[mol_3_col], 1,
             )
-            mol4_benchmark = benchmark_top3_accuracy(
-                train_val_df[mol_4_col], test_df[mol_4_col]
+            mol4_top1_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_4_col], test_df[mol_4_col], 1,
             )
-            mol5_benchmark = benchmark_top3_accuracy(
-                train_val_df[mol_5_col], test_df[mol_5_col]
+            mol5_top1_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_5_col], test_df[mol_5_col], 1,
+            )
+            
+            mol1_top3_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_1_col], test_df[mol_1_col], 3,
+            )
+            mol2_top3_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_2_col], test_df[mol_2_col], 3,
+            )
+            mol3_top3_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_3_col], test_df[mol_3_col], 3,
+            )
+            mol4_top3_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_4_col], test_df[mol_4_col], 3,
+            )
+            mol5_top3_benchmark = benchmark_top_n_accuracy(
+                train_val_df[mol_5_col], test_df[mol_5_col], 3,
             )
 
             # Save the naive_top_3 benchmark to json
             benchmark_file_path = output_folder_path / "naive_top_3.json"
             benchmark_dict = {
-                mol_1_col: mol1_benchmark,
-                mol_2_col: mol2_benchmark,
-                mol_3_col: mol3_benchmark,
-                mol_4_col: mol4_benchmark,
-                mol_5_col: mol5_benchmark,
+                f"{mol_1_col}_top1": mol1_top1_benchmark,
+                f"{mol_2_col}_top1": mol2_top1_benchmark,
+                f"{mol_3_col}_top1": mol3_top1_benchmark,
+                f"{mol_4_col}_top1": mol4_top1_benchmark,
+                f"{mol_5_col}_top1": mol5_top1_benchmark,
+                f"{mol_1_col}_top3": mol1_top3_benchmark,
+                f"{mol_2_col}_top3": mol2_top3_benchmark,
+                f"{mol_3_col}_top3": mol3_top3_benchmark,
+                f"{mol_4_col}_top3": mol4_top3_benchmark,
+                f"{mol_5_col}_top3": mol5_top3_benchmark,
             }
 
             with open(benchmark_file_path, "w") as file:
@@ -500,6 +522,10 @@ class ConditionPrediction:
                     component_selection[:, selection_idx] = 1.0
                     components_pred.append(enc.inverse_transform(component_selection))
                 components_pred = np.concatenate(components_pred, axis=1)
+                # Inverse transform will return None for an unknown label
+                # This will introduce None, where we should only have 'NULL'
+                components_true = np.where(components_true == None, 'NULL', components_true)
+                components_pred = np.where(components_pred == None, 'NULL', components_pred)
                 
                 sorted_arr1 = np.sort(components_true, axis=1)
                 sorted_arr2 = np.sort(components_pred, axis=1)
@@ -645,7 +671,7 @@ def main(
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
     overwrite: bool,
-    log_file: pathlib.Path = pathlib.Path("plots.log"),
+    log_file: pathlib.Path = pathlib.Path("models.log"),
     log_level: int = logging.INFO,
 ) -> None:
     """
