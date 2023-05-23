@@ -142,10 +142,14 @@ class Cleaner:
         component_name: str,
         number_of_columns_to_keep: int,
         num_cat_cols_to_keep: int = 1,
+        recursive_counter: int = 0,
     ) -> pd.DataFrame:
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
+        if recursive_counter > 5:
+            raise ValueError("Too many recursive calls attempting to remap catalyst to reagent columns")
+        
         if number_of_columns_to_keep == -1:
             df = df.sort_index(axis=1)
             df = df.reset_index(drop=True)
@@ -188,6 +192,7 @@ class Cleaner:
                         df=df,
                         component_name="reagent",
                         number_of_columns_to_keep=number_of_columns_to_keep,
+                        recursive_counter=recursive_counter + 1,
                     )
 
             if component_name != "reagent" or not_enough_catalyst_columns:
