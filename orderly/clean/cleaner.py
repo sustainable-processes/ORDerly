@@ -138,7 +138,10 @@ class Cleaner:
 
     @staticmethod
     def _remove_reactions_with_too_many_of_component(
-        df: pd.DataFrame, component_name: str, number_of_columns_to_keep: int
+        df: pd.DataFrame,
+        component_name: str,
+        number_of_columns_to_keep: int,
+        num_cat_cols_to_keep: int = 1,
     ) -> pd.DataFrame:
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
@@ -164,21 +167,46 @@ class Cleaner:
 
         # And if there are fewer than expected, add a column of Nones
         elif len(component_columns) < number_of_columns_to_keep:
-            num_columns_to_add = number_of_columns_to_keep - len(component_columns)
-            column_names_to_add = [
-                f"{component_name}_{i:03d}"
-                for i in range(
-                    len(component_columns), len(component_columns) + num_columns_to_add
-                )
-            ]
-            for new_col_name in column_names_to_add:
-                empty_col = [pd.NA] * df.shape[
-                    0
-                ]  # create a column of Nones the same length as the df
-                new_columns = pd.DataFrame(
-                    columns=[new_col_name], data=empty_col
-                )  # these columns are all empty
-                df = pd.concat([df, new_columns], axis=1)
+            LOG.warning(
+                f"There are only {len(component_columns)} {component_name} columns, but {number_of_columns_to_keep} were requested. Adding empty columns (or replacing reagent with catalyst)."
+            )
+            not_enough_catalyst_columns = False
+            if component_name == "reagent" and len(component_columns) == 0:
+                # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
+                cat_cols = [col for col in df.columns if col.startswith("catalyst")]
+                if number_of_columns_to_keep > len(cat_cols) + num_cat_cols_to_keep:
+                    not_enough_catalyst_columns = True
+                    LOG.warning(
+                        f"There are only {len(cat_cols)} catalyst columns, but {number_of_columns_to_keep} were requested. Adding empty columns instead."
+                    )
+                else:
+                    # If we're dealing with reagents, we can't just add empty columns, so we'll replace the reagent with the catalyst
+                    LOG.warning(f"Replacing reagent with catalyst")
+                    for i, col in enumerate(cat_cols[num_cat_cols_to_keep:]):
+                        df[f"reagent_{i:03d}"] = df[col]
+                    df = Cleaner._remove_reactions_with_too_many_of_component(
+                        df=df,
+                        component_name="reagent",
+                        number_of_columns_to_keep=number_of_columns_to_keep,
+                    )
+
+            if component_name != "reagent" or not_enough_catalyst_columns:
+                num_columns_to_add = number_of_columns_to_keep - len(component_columns)
+                column_names_to_add = [
+                    f"{component_name}_{i:03d}"
+                    for i in range(
+                        len(component_columns),
+                        len(component_columns) + num_columns_to_add,
+                    )
+                ]
+                for new_col_name in column_names_to_add:
+                    empty_col = [pd.NA] * df.shape[
+                        0
+                    ]  # create a column of Nones the same length as the df
+                    new_columns = pd.DataFrame(
+                        columns=[new_col_name], data=empty_col
+                    )  # these columns are all empty
+                    df = pd.concat([df, new_columns], axis=1)
 
         df = df.sort_index(axis=1)
         df = df.reset_index(drop=True)
@@ -469,6 +497,7 @@ class Cleaner:
 
         LOG.info(f"All data length: {df.shape[0]}")
         # Remove reactions with too many of a certain component
+        num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
         for col in [
             "reactant",
             "product",
@@ -489,6 +518,7 @@ class Cleaner:
                 df,
                 component_name=col,
                 number_of_columns_to_keep=number_of_columns_to_keep,
+                num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
 
