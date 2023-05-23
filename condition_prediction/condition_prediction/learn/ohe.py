@@ -51,8 +51,24 @@ class GetDummies(sklearn.base.TransformerMixin):
 def apply_train_ohe_fit(df, train_idx, val_idx, test_idx=None, tensor_func=None):
     # enc = GetDummies()
     from sklearn.preprocessing import OneHotEncoder
+
     enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
     _ = enc.fit(df.iloc[train_idx])
+
+    encoded_names = set(df.iloc[train_idx][df.columns[0]])
+    # When there's a value in `val_idx` or `test_idx` that is not in `encoded_names`, set it to "other", rather than simply having an OHE row of all 0s
+    if "other" in encoded_names:
+        val_idx_values = df.iloc[val_idx][df.columns[0]]
+        test_idx_values = df.iloc[test_idx][df.columns[0]]
+        # Set values in `val_idx` that are not in `encoded_names` to "other"
+        df.iloc[val_idx, df.columns.get_loc(df.columns[0])] = val_idx_values.apply(
+            lambda x: x if x in encoded_names else "other"
+        )
+        # Set values in `test_idx` that are not in `encoded_names` to "other"
+        df.iloc[test_idx, df.columns.get_loc(df.columns[0])] = test_idx_values.apply(
+            lambda x: x if x in encoded_names else "other"
+        )
+
     _ohe = enc.transform(df)
     # _tr, _val = _ohe.iloc[train_idx].values, _ohe.iloc[val_idx].values
     _tr, _val = _ohe[train_idx], _ohe[val_idx]
