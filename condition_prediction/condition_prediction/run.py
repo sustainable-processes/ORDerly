@@ -131,7 +131,7 @@ class ConditionPrediction:
 
         test_product_fp = test_fp[:, : test_fp.shape[1] // 2]
         test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
-        
+
         del train_fp, val_fp, test_fp
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
@@ -234,37 +234,56 @@ class ConditionPrediction:
                 return naive_top_n_accuracy
 
             mol1_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_1_col], test_df[mol_1_col], 1,
+                train_val_df[mol_1_col],
+                test_df[mol_1_col],
+                1,
             )
             mol2_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_2_col], test_df[mol_2_col], 1,
+                train_val_df[mol_2_col],
+                test_df[mol_2_col],
+                1,
             )
             mol3_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_3_col], test_df[mol_3_col], 1,
+                train_val_df[mol_3_col],
+                test_df[mol_3_col],
+                1,
             )
             mol4_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_4_col], test_df[mol_4_col], 1,
+                train_val_df[mol_4_col],
+                test_df[mol_4_col],
+                1,
             )
             mol5_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_5_col], test_df[mol_5_col], 1,
+                train_val_df[mol_5_col],
+                test_df[mol_5_col],
+                1,
             )
-            
+
             mol1_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_1_col], test_df[mol_1_col], 3,
+                train_val_df[mol_1_col],
+                test_df[mol_1_col],
+                3,
             )
             mol2_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_2_col], test_df[mol_2_col], 3,
+                train_val_df[mol_2_col],
+                test_df[mol_2_col],
+                3,
             )
             mol3_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_3_col], test_df[mol_3_col], 3,
+                train_val_df[mol_3_col],
+                test_df[mol_3_col],
+                3,
             )
             mol4_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_4_col], test_df[mol_4_col], 3,
+                train_val_df[mol_4_col],
+                test_df[mol_4_col],
+                3,
             )
             mol5_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_5_col], test_df[mol_5_col], 3,
+                train_val_df[mol_5_col],
+                test_df[mol_5_col],
+                3,
             )
-            breakpoint()
 
             # Save the naive_top_3 benchmark to json
             benchmark_file_path = output_folder_path / "naive_top_3.json"
@@ -283,7 +302,6 @@ class ConditionPrediction:
 
             with open(benchmark_file_path, "w") as file:
                 json.dump(benchmark_dict, file)
-
 
         del train_val_df
         del test_df
@@ -432,16 +450,20 @@ class ConditionPrediction:
         condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
-        callbacks = [tf.keras.callbacks.TensorBoard(
-                    log_dir=condition_prediction.learn.util.log_dir(
-                        prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
-                    )
-                )]
+        callbacks = [
+            tf.keras.callbacks.TensorBoard(
+                log_dir=condition_prediction.learn.util.log_dir(
+                    prefix="TF_", comment="_MOREDATA_REG_HARDSELECT"
+                )
+            )
+        ]
         # Define the EarlyStopping callback
         if early_stopping_patience != 0:
-            early_stop = EarlyStopping(monitor='val_loss', patience=early_stopping_patience)
+            early_stop = EarlyStopping(
+                monitor="val_loss", patience=early_stopping_patience
+            )
             callbacks.append(early_stop)
-        
+
         h = model.fit(
             x=x_train_data
             if train_mode == condition_prediction.model.TEACHER_FORCE
@@ -508,13 +530,13 @@ class ConditionPrediction:
         # Save the final performance on the test set
         if evaluate_on_test_data:
             # Evaluate the model on the test set
-            
+
             def get_grouped_scores(y_true, y_pred, encoders):
                 components_true = []
                 for enc, components in zip(encoders, y_true):
                     components_true.append(enc.inverse_transform(components))
                 components_true = np.concatenate(components_true, axis=1)
-                
+
                 components_pred = []
                 for enc, components in zip(encoders, y_pred):
                     selection_idx = np.argmax(components, axis=1)
@@ -524,35 +546,42 @@ class ConditionPrediction:
                 components_pred = np.concatenate(components_pred, axis=1)
                 # Inverse transform will return None for an unknown label
                 # This will introduce None, where we should only have 'NULL'
-                components_true = np.where(components_true == None, 'NULL', components_true)
-                components_pred = np.where(components_pred == None, 'NULL', components_pred)
-                
+                components_true = np.where(
+                    components_true == None, "NULL", components_true
+                )
+                components_pred = np.where(
+                    components_pred == None, "NULL", components_pred
+                )
+
                 sorted_arr1 = np.sort(components_true, axis=1)
                 sorted_arr2 = np.sort(components_pred, axis=1)
                 return (sorted_arr1 == sorted_arr2).all(axis=1)
-            
+
             test_metrics = model.evaluate(x_test_data, y_test_data)
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
             test_metrics_dict["trust_labelling"] = trust_labelling
-            
+
             ### Grouped scores
             predictions = model.predict(x_test_data)
-        
-            
+
             # Solvent scores
-            solvent_scores = get_grouped_scores(y_test_data[:2], predictions[:2], [mol1_enc, mol2_enc])
+            solvent_scores = get_grouped_scores(
+                y_test_data[:2], predictions[:2], [mol1_enc, mol2_enc]
+            )
             test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
 
-            
             # 3 agents scores
-            agent_scores = get_grouped_scores(y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc])
+            agent_scores = get_grouped_scores(
+                y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc]
+            )
             test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
-            
+
             # Overall scores
-            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
+            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
+                axis=1
+            )
             test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
-            
-            
+
             # save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             # Save the dictionary as a JSON file

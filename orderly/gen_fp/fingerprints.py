@@ -57,7 +57,6 @@ class GenerateFingerprints:
         LOG.info(f"Saving fingerprints to {self.fp_output_path=}")
 
         # Save the NumPy array as .npy file
-        # breakpoint()
         np.save(self.fp_output_path, fp)
 
         return
@@ -179,7 +178,6 @@ def main(
     start_time = datetime.datetime.now()
     LOG.info("Gen fp for all files in the datasets folder")
 
-    
     fp_output_path = pathlib.Path(
         fp_output_folder_path / clean_data_file_path.name[:-8]
     )
@@ -190,7 +188,7 @@ def main(
         )
         LOG.error(e)
         raise e
-    
+
     LOG.info(f"Beginning generation of fp for file: {clean_data_file_path}")
     instance = GenerateFingerprints(
         clean_data_file_path=clean_data_file_path,
