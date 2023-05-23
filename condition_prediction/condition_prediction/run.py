@@ -216,23 +216,22 @@ class ConditionPrediction:
         if evaluate_on_test_data:
             # Determine accuracy simply by predicting the top3 most likely labels
             def benchmark_top_n_accuracy(y_train, y_test, n=3):
-                breakpoint()
                 y_train = y_train.tolist()
                 y_test = y_test.tolist()
                 # find the top 3 most likely labels in train set
                 label_counts = Counter(y_train)
-                top3_train_labels = [
+                top_n_train_labels = [
                     label for label, count in label_counts.most_common(n)
                 ]
 
                 correct_predictions = sum(
-                    test_label in top3_train_labels for test_label in y_test
+                    test_label in top_n_train_labels for test_label in y_test
                 )
 
                 # calculate the naive_top3_accuracy
-                naive_top3_accuracy = correct_predictions / len(y_test)
+                naive_top_n_accuracy = correct_predictions / len(y_test)
 
-                return naive_top3_accuracy
+                return naive_top_n_accuracy
 
             mol1_top1_benchmark = benchmark_top_n_accuracy(
                 train_val_df[mol_1_col], test_df[mol_1_col], 1,
@@ -265,6 +264,7 @@ class ConditionPrediction:
             mol5_top3_benchmark = benchmark_top_n_accuracy(
                 train_val_df[mol_5_col], test_df[mol_5_col], 3,
             )
+            breakpoint()
 
             # Save the naive_top_3 benchmark to json
             benchmark_file_path = output_folder_path / "naive_top_3.json"
