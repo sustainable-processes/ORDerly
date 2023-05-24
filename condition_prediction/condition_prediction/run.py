@@ -1,31 +1,29 @@
-import logging
-from typing import List, Dict, Tuple, Optional
 import dataclasses
 import datetime
-import pathlib
-import click
 import json
+import logging
+import pathlib
 from collections import Counter
+from typing import Dict, List, Optional, Tuple
+
+import click
 
 LOG = logging.getLogger(__name__)
 
-from click_loglevel import LogLevel
-
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 import tqdm
 import tqdm.contrib.logging
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-import tensorflow as tf
+from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
 
 import condition_prediction.learn.ohe
 import condition_prediction.learn.util
-
 import condition_prediction.model
-from condition_prediction.data_generator import FingerprintDataGenerator
 from condition_prediction.constants import *
+from condition_prediction.data_generator import FingerprintDataGenerator
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -116,7 +114,7 @@ class ConditionPrediction:
         train_val_indexes = train_val_indexes[
             : int(train_val_indexes.shape[0] * train_fraction)
         ]
-        train_val_df = train_val_df.iloc[train_val_indexes]
+        # train_val_df = train_val_df.iloc[train_val_indexes]
         train_idx = train_val_indexes[
             : int(train_val_indexes.shape[0] * train_val_split)
         ]
@@ -308,7 +306,7 @@ class ConditionPrediction:
 
         del train_val_df
         del test_df
-        del df
+        # del df
         # del mol1_enc
         # del mol2_enc
         # del mol3_enc
@@ -322,9 +320,10 @@ class ConditionPrediction:
             mol3=train_mol3,
             mol4=train_mol4,
             mol5=train_mol5,
-            fp=train_fp,
+            # fp=train_fp,
+            data=df.iloc[train_idx],
             mode=train_mode,
-            batch_size=512,
+            batch_size=32,
             shuffle=True,
         )
         val_mode = (
@@ -338,9 +337,10 @@ class ConditionPrediction:
             mol3=val_mol3,
             mol4=val_mol4,
             mol5=val_mol5,
-            fp=val_fp,
+            # fp=val_fp,
+            data=df.iloc[val_idx],
             mode=val_mode,
-            batch_size=512,
+            batch_size=32,
             shuffle=True,
         )
 
