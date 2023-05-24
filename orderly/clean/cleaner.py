@@ -180,7 +180,8 @@ class Cleaner:
             if component_name == "reagent" and len(component_columns) == 0:
                 # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
                 cat_cols = [col for col in df.columns if col.startswith("catalyst")]
-                if number_of_columns_to_keep > len(cat_cols) + num_cat_cols_to_keep:
+                # Required number of cols > num cols available
+                if number_of_columns_to_keep > len(cat_cols) - num_cat_cols_to_keep:
                     not_enough_catalyst_columns = True
                     LOG.warning(
                         f"There are only {len(cat_cols)} catalyst columns, but {number_of_columns_to_keep} were requested. Adding empty columns instead."
@@ -511,8 +512,8 @@ class Cleaner:
             "yield",
             "solvent",
             "agent",
-            "catalyst",
             "reagent",
+            "catalyst",
         ]:
             try:
                 number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
@@ -520,15 +521,14 @@ class Cleaner:
                 msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
                 LOG.error(msg)
                 raise KeyError(msg) from exc
-
             df = Cleaner._remove_reactions_with_too_many_of_component(
                 df,
                 component_name=col,
                 number_of_columns_to_keep=number_of_columns_to_keep,
                 num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
+            
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
-
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
