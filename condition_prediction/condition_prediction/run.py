@@ -24,6 +24,8 @@ import condition_prediction.learn.ohe
 import condition_prediction.learn.util
 
 import condition_prediction.model
+from condition_prediction.data_generator import FingerprintDataGenerator
+from condition_prediction.constants import *
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -94,6 +96,7 @@ class ConditionPrediction:
         epochs: int = 20,
         early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
+        train_mode: int = HARD_SELECTION,
     ) -> None:
         """ """
 
@@ -122,17 +125,17 @@ class ConditionPrediction:
         # Apply these to the fingerprints
         train_fp = train_val_fp[train_idx]
         val_fp = train_val_fp[val_idx]
+        fp_shape = train_fp.shape[1] // 2
+        # train_product_fp = train_fp[:, : train_fp.shape[1] // 2]
+        # train_rxn_diff_fp = train_fp[:, train_fp.shape[1] // 2 :]
 
-        train_product_fp = train_fp[:, : train_fp.shape[1] // 2]
-        train_rxn_diff_fp = train_fp[:, train_fp.shape[1] // 2 :]
-
-        val_product_fp = val_fp[:, : val_fp.shape[1] // 2]
-        val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2 :]
+        # val_product_fp = val_fp[:, : val_fp.shape[1] // 2]
+        # val_rxn_diff_fp = val_fp[:, val_fp.shape[1] // 2 :]
 
         test_product_fp = test_fp[:, : test_fp.shape[1] // 2]
         test_rxn_diff_fp = test_fp[:, test_fp.shape[1] // 2 :]
 
-        del train_fp, val_fp, test_fp
+        # del train_fp, val_fp, test_fp
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:  # trust_labelling = True
@@ -313,51 +316,79 @@ class ConditionPrediction:
         # del mol5_enc
         LOG.info("Data ready for modelling")
 
-        x_train_data = (
-            train_product_fp,
-            train_rxn_diff_fp,
-            train_mol1,
-            train_mol2,
-            train_mol3,
-            train_mol4,
-            train_mol5,
+        train_generator = FingerprintDataGenerator(
+            mol1=train_mol1,
+            mol2=train_mol2,
+            mol3=train_mol3,
+            mol4=train_mol4,
+            mol5=train_mol5,
+            fp=train_fp,
+            mode=train_mode,
+            batch_size=512,
+            shuffle=True,
+        )
+        val_mode = (
+            HARD_SELECTION
+            if train_mode == TEACHER_FORCE or train_mode == HARD_SELECTION
+            else SOFT_SELECTION
+        )
+        val_generator = FingerprintDataGenerator(
+            mol1=val_mol1,
+            mol2=val_mol2,
+            mol3=val_mol3,
+            mol4=val_mol4,
+            mol5=val_mol5,
+            fp=val_fp,
+            mode=val_mode,
+            batch_size=512,
+            shuffle=True,
         )
 
-        x_train_eval_data = (
-            train_product_fp,
-            train_rxn_diff_fp,
-        )
+        # x_train_data = (
+        #     train_product_fp,
+        #     train_rxn_diff_fp,
+        #     train_mol1,
+        #     train_mol2,
+        #     train_mol3,
+        #     train_mol4,
+        #     train_mol5,
+        # )
 
-        y_train_data = (
-            train_mol1,
-            train_mol2,
-            train_mol3,
-            train_mol4,
-            train_mol5,
-        )
+        # x_train_eval_data = (
+        #     train_product_fp,
+        #     train_rxn_diff_fp,
+        # )
 
-        x_val_data = (
-            val_product_fp,
-            val_rxn_diff_fp,
-            val_mol1,
-            val_mol2,
-            val_mol3,
-            val_mol4,
-            val_mol5,
-        )
+        # y_train_data = (
+        #     train_mol1,
+        #     train_mol2,
+        #     train_mol3,
+        #     train_mol4,
+        #     train_mol5,
+        # )
 
-        x_val_eval_data = (
-            val_product_fp,
-            val_rxn_diff_fp,
-        )
+        # x_val_data = (
+        #     val_product_fp,
+        #     val_rxn_diff_fp,
+        #     val_mol1,
+        #     val_mol2,
+        #     val_mol3,
+        #     val_mol4,
+        #     val_mol5,
+        # )
 
-        y_val_data = (
-            val_mol1,
-            val_mol2,
-            val_mol3,
-            val_mol4,
-            val_mol5,
-        )
+        # x_val_eval_data = (
+        #     val_product_fp,
+        #     val_rxn_diff_fp,
+        # )
+
+        # y_val_data = (
+        #     val_mol1,
+        #     val_mol2,
+        #     val_mol3,
+        #     val_mol4,
+        #     val_mol5,
+        # )
 
         x_test_data = (
             test_product_fp,
@@ -372,11 +403,9 @@ class ConditionPrediction:
             test_mol5,
         )
 
-        train_mode = condition_prediction.model.HARD_SELECTION
-
         model = condition_prediction.model.build_teacher_forcing_model(
-            pfp_len=train_product_fp.shape[-1],
-            rxnfp_len=train_rxn_diff_fp.shape[-1],
+            pfp_len=fp_shape,
+            rxnfp_len=fp_shape,
             mol1_dim=train_mol1.shape[-1],
             mol2_dim=train_mol2.shape[-1],
             mol3_dim=train_mol3.shape[-1],
@@ -393,8 +422,8 @@ class ConditionPrediction:
         # we use a separate model for prediction because we use a recurrent setup for prediction
         # the pred model is only different after the first component (mol1)
         pred_model = condition_prediction.model.build_teacher_forcing_model(
-            pfp_len=train_product_fp.shape[-1],
-            rxnfp_len=train_rxn_diff_fp.shape[-1],
+            pfp_len=fp_shape,
+            rxnfp_len=fp_shape,
             mol1_dim=train_mol1.shape[-1],
             mol2_dim=train_mol2.shape[-1],
             mol3_dim=train_mol3.shape[-1],
@@ -403,7 +432,7 @@ class ConditionPrediction:
             N_h1=1024,
             N_h2=100,
             l2v=0,
-            mode=condition_prediction.model.HARD_SELECTION,
+            mode=HARD_SELECTION,
             dropout_prob=0.2,
             use_batchnorm=True,
         )
@@ -465,19 +494,10 @@ class ConditionPrediction:
             callbacks.append(early_stop)
 
         h = model.fit(
-            x=x_train_data
-            if train_mode == condition_prediction.model.TEACHER_FORCE
-            else x_train_eval_data,
-            y=y_train_data,
+            train_generator,
             epochs=epochs,
             verbose=1,
-            batch_size=512,
-            validation_data=(
-                x_val_data
-                if train_mode == condition_prediction.model.TEACHER_FORCE
-                else x_val_eval_data,
-                y_val_data,
-            ),
+            validation_data=val_generator,
             callbacks=callbacks,
         )
         condition_prediction.model.update_teacher_forcing_model_weights(

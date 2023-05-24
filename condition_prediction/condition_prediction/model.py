@@ -1,8 +1,5 @@
 import tensorflow as tf
-
-TEACHER_FORCE = 0
-HARD_SELECTION = 1
-SOFT_SELECTION = 2
+from condition_prediction.constants import *
 
 
 def hard_selection(pred):
