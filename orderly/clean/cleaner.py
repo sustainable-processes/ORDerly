@@ -27,7 +27,7 @@ import orderly.data.util
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
     1) Merge the parquet files generated during orderly.extract into a df
-    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products)
+    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products, remove_reactions_with_no_conditions)
     3) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     4) Remove reactions with inconsistent yields (consistent_yield)
     5) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
@@ -44,6 +44,7 @@ class Cleaner:
     Args:
         remove_reactions_with_no_reactants (bool): Remove reactions with no reactants
         remove_reactions_with_no_products (bool): Remove reactions with no products
+        remove_reactions_with_no_conditions (bool): Remove reactions with no conditions (e.g. no solvent, catalyst, reagent, agent)
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
@@ -61,6 +62,7 @@ class Cleaner:
     ord_extraction_path: pathlib.Path
     remove_reactions_with_no_reactants: bool
     remove_reactions_with_no_products: bool
+    remove_reactions_with_no_conditions: bool
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -231,17 +233,19 @@ class Cleaner:
         LOG.info("Removing reactions with no products")
         df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
-    
+
     @staticmethod
-    def _remove_rxn_with_no_conditions(df: pd.DataFrame, components=("catalyst", "solvent", "agent", "reagent")) -> pd.DataFrame:
+    def _remove_rxn_with_no_conditions(
+        df: pd.DataFrame, components=("catalyst", "solvent", "agent", "reagent")
+    ) -> pd.DataFrame:
         LOG.info("Removing reactions with no conditions")
-    
+
         # Check for rows with all None values in the specified columns
         mask = df.loc[:, df.columns.str.startswith(components)].isna().all(axis=1)
-        
+
         # Remove rows with all None values
         filtered_df = df[~mask]
-        
+
         return filtered_df
 
     @staticmethod
@@ -539,7 +543,7 @@ class Cleaner:
                 number_of_columns_to_keep=number_of_columns_to_keep,
                 num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
-            
+
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
@@ -551,9 +555,11 @@ class Cleaner:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
-        if self.remove_reactions_with_no_conditions(df):
+        if self.remove_reactions_with_no_conditions:
             LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_conditions(df, components=("catalyst", "solvent", "agent", "reagent"))
+            df = Cleaner._remove_rxn_with_no_conditions(
+                df, components=("catalyst", "solvent", "agent", "reagent")
+            )
             LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
 
         LOG.info(
@@ -942,7 +948,7 @@ def main_click(
         consistent_yield=consistent_yield,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
-        remove_reactions_with_no_conditions = remove_reactions_with_no_conditions,
+        remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -1115,7 +1121,7 @@ def main(
         ord_extraction_path=ord_extraction_path,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
-        remove_reactions_with_no_conditions = remove_reactions_with_no_conditions,
+        remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
