@@ -864,9 +864,9 @@ class Cleaner:
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
-    "--apply_random_split",
-    type=bool,
-    default=False,
+    "--train_test_split_fration",
+    type=Optional[float],
+    default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
@@ -906,7 +906,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    apply_random_split: bool,
+    train_test_split_fration: Optional[float],
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -962,7 +962,7 @@ def main_click(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
         scramble=scramble,
-        apply_random_split=apply_random_split,
+        train_test_split_fration=train_test_split_fration,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -990,7 +990,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    apply_random_split: bool,
+    train_test_split_fration: Optional[float],
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1089,7 +1089,7 @@ def main(
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
         "scramble": scramble,
-        "apply_random_split": apply_random_split,
+        "train_test_split_fration": train_test_split_fration,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1141,15 +1141,22 @@ def main(
     )
 
     LOG.info(f"completed cleaning, saving to {output_path}")
-    if apply_random_split:
-        scrambled_index_df = instance.cleaned_reactions.sample(
-            frac=1, random_state=42
-        ).reset_index(drop=True)
-        index_split_point = int(len(scrambled_index_df) * 0.8)
-        train = scrambled_index_df[:index_split_point]
-        test = scrambled_index_df[index_split_point:]
-        train.to_parquet(output_path.parent / f"{file_name}_train.parquet")
-        test.to_parquet(output_path.parent / f"{file_name}_test.parquet")
+    if train_test_split_fration is not None:
+        LOG.info("Applying random split")
+        # Get indices for train and val
+        rng = np.random.default_rng(12345)
+        train_test_indices = np.arange(instance.cleaned_reactions.shape[0])
+        rng.shuffle(train_test_indices)
+        train_indices = train_test_indices[
+            : int(train_test_indices.shape[0] * train_test_split_fration)
+        ]
+        test_indices = train_test_indices[
+            int(train_test_indices.shape[0] * train_test_split_fration) :]
+        train_df = instance.cleaned_reactions.iloc[train_indices]
+        test_df = instance.cleaned_reactions.iloc[test_indices]
+        
+        train_df.to_parquet(output_path.parent / f"{file_name}_train.parquet")
+        test_df.to_parquet(output_path.parent / f"{file_name}_test.parquet")
         LOG.info("Saved split data")
     else:
         instance.cleaned_reactions.to_parquet(output_path)

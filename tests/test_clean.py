@@ -83,7 +83,7 @@ def get_cleaned_df(
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         scramble=False,
-        apply_random_split=False,
+        train_test_split_fration=None,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
         overwrite=False,
