@@ -865,7 +865,7 @@ class Cleaner:
 )
 @click.option(
     "--train_test_split_fration",
-    type=Optional[float],
+    type=float,
     default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
 )
@@ -906,7 +906,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    train_test_split_fration: Optional[float],
+    train_test_split_fration: float,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -990,7 +990,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    train_test_split_fration: Optional[float],
+    train_test_split_fration: float,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1141,19 +1141,43 @@ def main(
     )
 
     LOG.info(f"completed cleaning, saving to {output_path}")
-    if train_test_split_fration is not None:
+    if train_test_split_fration not in [0.0, 1.0]:
+        df = instance.cleaned_reactions
         LOG.info("Applying random split")
         # Get indices for train and val
         rng = np.random.default_rng(12345)
-        train_test_indices = np.arange(instance.cleaned_reactions.shape[0])
+        train_test_indices = np.arange(df.shape[0])
         rng.shuffle(train_test_indices)
         train_indices = train_test_indices[
             : int(train_test_indices.shape[0] * train_test_split_fration)
         ]
         test_indices = train_test_indices[
-            int(train_test_indices.shape[0] * train_test_split_fration) :]
-        train_df = instance.cleaned_reactions.iloc[train_indices]
-        test_df = instance.cleaned_reactions.iloc[test_indices]
+            int(train_test_indices.shape[0] * train_test_split_fration) :
+        ]
+        
+        input_columns = df.columns[df.columns.str.startswith(('reactant', 'product'))]
+        train_input_df = df.loc[train_indices, input_columns]
+        test_input_df = df.loc[test_indices, input_columns]
+        
+        train_set_list = [set(row) for _, row in train_input_df.iterrows()]
+        test_set_list = [set(row) for _, row in test_input_df.iterrows()]
+        
+        matching_indices = []  # List to store the indices of matching rows
+
+        for values, index in zip(test_set_list, test_indices):
+            if values in train_set_list:
+                matching_indices.append(index)
+        breakpoint()
+        # drop the matching rows from the test set
+        test_indices = np.delete(test_indices, matching_indices)
+        # Add the matching rows to the train set
+        train_indices = np.append(train_indices, matching_indices)
+        if len(matching_indices) / len(test_indices) > 0.1:
+            LOG.warning(
+                "More than 10% of the test set was moved the training set. This may indicate a non-diverse dataset."
+            )
+        train_df = df.loc[train_indices]
+        test_df = df.loc[test_indices]
         
         train_df.to_parquet(output_path.parent / f"{file_name}_train.parquet")
         test_df.to_parquet(output_path.parent / f"{file_name}_test.parquet")
