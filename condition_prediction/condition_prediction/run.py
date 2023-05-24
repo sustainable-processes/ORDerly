@@ -323,7 +323,7 @@ class ConditionPrediction:
             # fp=train_fp,
             data=df.iloc[train_idx],
             mode=train_mode,
-            batch_size=32,
+            batch_size=512,
             shuffle=True,
         )
         val_mode = (
@@ -340,7 +340,7 @@ class ConditionPrediction:
             # fp=val_fp,
             data=df.iloc[val_idx],
             mode=val_mode,
-            batch_size=32,
+            batch_size=512,
             shuffle=True,
         )
 
