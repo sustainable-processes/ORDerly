@@ -231,6 +231,18 @@ class Cleaner:
         LOG.info("Removing reactions with no products")
         df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
+    
+    @staticmethod
+    def _remove_rxn_with_no_conditions(df: pd.DataFrame, components=("catalyst", "solvent", "agent", "reagent")) -> pd.DataFrame:
+        LOG.info("Removing reactions with no conditions")
+    
+        # Check for rows with all None values in the specified columns
+        mask = df.loc[:, df.columns.str.startswith(components)].isna().all(axis=1)
+        
+        # Remove rows with all None values
+        filtered_df = df[~mask]
+        
+        return filtered_df
 
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
@@ -539,6 +551,10 @@ class Cleaner:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_products(df)
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+        if self.remove_reactions_with_no_conditions(df):
+            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_conditions(df, components=("catalyst", "solvent", "agent", "reagent"))
+            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
 
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
@@ -747,6 +763,13 @@ class Cleaner:
     help="Remove reactions with no products",
 )
 @click.option(
+    "--remove_reactions_with_no_conditions",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with no rxn conditions (i.e. no solvent, reagent, catalyst, or agent)",
+)
+@click.option(
     "--consistent_yield",
     type=bool,
     default=True,
@@ -862,6 +885,7 @@ def main_click(
     molecules_to_remove_path: pathlib.Path,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
+    remove_reactions_with_no_conditions: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -918,6 +942,7 @@ def main_click(
         consistent_yield=consistent_yield,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        remove_reactions_with_no_conditions = remove_reactions_with_no_conditions,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -946,6 +971,7 @@ def main(
     consistent_yield: bool,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
+    remove_reactions_with_no_conditions: bool,
     num_reactant: int,
     num_product: int,
     num_solv: int,
@@ -1043,6 +1069,7 @@ def main(
         "consistent_yield": consistent_yield,
         "remove_reactions_with_no_reactants": remove_reactions_with_no_reactants,
         "remove_reactions_with_no_products": remove_reactions_with_no_products,
+        "remove_reactions_with_no_conditions": remove_reactions_with_no_conditions,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -1088,6 +1115,7 @@ def main(
         ord_extraction_path=ord_extraction_path,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        remove_reactions_with_no_conditions = remove_reactions_with_no_conditions,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
