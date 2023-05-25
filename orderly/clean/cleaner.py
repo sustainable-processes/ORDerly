@@ -524,7 +524,7 @@ class Cleaner:
 
         LOG.info(f"All data length: {df.shape[0]}")
         LOG.info("Handle unresolvable names")
-        
+
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
         )
@@ -633,13 +633,7 @@ class Cleaner:
                 [df_with_replacements, df.loc[:, ~df.columns.isin(target_columns)]],
                 axis=1,
             )
-        
-        
-        
-        
-        
-        
-        
+
         # Remove reactions with too many of a certain component
         num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
         for col in [
@@ -681,8 +675,6 @@ class Cleaner:
                 df, components=("catalyst", "solvent", "agent", "reagent")
             )
             LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
-
-        
 
         # Ensure consistent yield
         if self.consistent_yield:
