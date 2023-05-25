@@ -181,6 +181,7 @@ def main(
     fp_output_path = pathlib.Path(
         fp_output_folder_path / clean_data_file_path.name[:-8]
     )
+    fp_output_path = fp_output_path.with_suffix(".npy")
     # assert that fp_output_path doesn't exist
     if fp_output_path.exists() and not overwrite:
         e = ValueError(
