@@ -1154,14 +1154,14 @@ def main(
         test_indices = train_test_indices[
             int(train_test_indices.shape[0] * train_test_split_fration) :
         ]
-        
-        input_columns = df.columns[df.columns.str.startswith(('reactant', 'product'))]
+
+        input_columns = df.columns[df.columns.str.startswith(("reactant", "product"))]
         train_input_df = df.loc[train_indices, input_columns]
         test_input_df = df.loc[test_indices, input_columns]
-        
+
         train_set_list = [set(row) for _, row in train_input_df.iterrows()]
         test_set_list = [set(row) for _, row in test_input_df.iterrows()]
-        
+
         matching_indices = []  # List to store the indices of matching rows
 
         for values, index in zip(test_set_list, test_indices):
@@ -1178,7 +1178,7 @@ def main(
             )
         train_df = df.loc[train_indices]
         test_df = df.loc[test_indices]
-        
+
         train_df.to_parquet(output_path.parent / f"{file_name}_train.parquet")
         test_df.to_parquet(output_path.parent / f"{file_name}_test.parquet")
         LOG.info("Saved split data")
