@@ -1,17 +1,42 @@
-import numpy as np
-import keras
-import pandas as pd
-from typing import Optional
-from condition_prediction.constants import *
-import tensorflow as tf
+import logging
+from typing import List, Optional
 
-# Things this class should do
-# Take in dataframes and optionally the fingerpints
-# Generate a fingerprint on the lfy
+import keras
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import tqdm
+import tqdm.contrib.logging
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
+from rdkit.rdBase import BlockLogs
+from tqdm import tqdm
+
+from condition_prediction.constants import *
+
+LOG = logging.getLogger(__name__)
 
 
 class FingerprintDataGenerator(keras.utils.Sequence):
-    "Generates data for Keras"
+    """Data generator for reaction condition prediction
+
+    Args:
+        mol1: ground truth solvent 1
+        mol2: ground truth solvent 2
+        mol3: ground truth reagent 1
+        mol4: ground truth reagent 2
+        mol5: ground truth reagent 3
+        data: dataframe containing ground truth solvents and reagents
+        fp: fingerprints if precalculated
+        mode: teacher force or hard/soft selection
+        batch_size: batch size
+        fp_size (int): size of fingerprint if being calcuated on the fly
+        shuffle (bool): shuffle data at the end of each epoch
+
+    Notes:
+        If no fingerprints are provided, they will be calculated on the fly
+
+    """
 
     def __init__(
         self,
@@ -24,6 +49,7 @@ class FingerprintDataGenerator(keras.utils.Sequence):
         fp: Optional[np.ndarray] = None,
         mode: int = TEACHER_FORCE,
         batch_size=32,
+        fp_size=2048,
         shuffle=True,
     ):
         "Initialization"
@@ -39,6 +65,7 @@ class FingerprintDataGenerator(keras.utils.Sequence):
             raise ValueError("Must provide either data or fp")
         self.mode = mode
         self.batch_size = batch_size
+        self.fp_size = fp_size
         self.shuffle = shuffle
         self.on_epoch_end()
 
@@ -46,7 +73,7 @@ class FingerprintDataGenerator(keras.utils.Sequence):
         "Denotes the number of batches per epoch"
         if self.fp is not None:
             return int(np.floor(self.fp.shape[0] / self.batch_size))
-        return int(np.floor(len(self.data.shape[0]) / self.batch_size))
+        return int(np.floor(self.data.shape[0] / self.batch_size))
 
     def __getitem__(self, index):
         "Generate one batch of data"
@@ -57,6 +84,8 @@ class FingerprintDataGenerator(keras.utils.Sequence):
         if self.fp is not None:
             batch_product_fp = self.fp[indexes, : self.fp.shape[1] // 2]
             batch_rxn_diff_fp = self.fp[indexes, self.fp.shape[1] // 2 :]
+        else:
+            batch_product_fp, batch_rxn_diff_fp = self.get_fp(self.data.iloc[indexes])
 
         # Get ground truth solvents and reagents
         batch_mol1 = tf.gather(self.mol1, indexes)
@@ -93,22 +122,37 @@ class FingerprintDataGenerator(keras.utils.Sequence):
 
     def on_epoch_end(self):
         "Updates indexes after each epoch"
-        self.indexes = np.arange(len(self))
+        n_examples = self.fp.shape[0] if self.fp is not None else self.data.shape[0]
+        self.indexes = np.arange(n_examples)
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
-    def __data_generation(self, list_IDs_temp):
-        "Generates data containing batch_size samples"  # X : (n_samples, *dim, n_channels)
-        # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty((self.batch_size), dtype=int)
+    def get_fp(self, df: pd.DataFrame):
+        product_fp = self.calc_fp(df["product_000"], radius=3, nBits=self.fp_size)
+        reactant_fp_0 = self.calc_fp(df["reactant_000"], radius=3, nBits=self.fp_size)
+        reactant_fp_1 = self.calc_fp(df["reactant_001"], radius=3, nBits=self.fp_size)
+        rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
+        return product_fp, rxn_diff_fp
 
-        # Generate data
-        for i, ID in enumerate(list_IDs_temp):
-            # Store sample
-            X[i,] = np.load("data/" + ID + ".npy")
-
-            # Store class
-            y[i] = self.labels[ID]
-
-        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+    @staticmethod
+    def calc_fp(lst: List, radius: int = 3, nBits: int = 2048):
+        # Usage:
+        # radius = 3
+        # nBits = 2048
+        # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
+        block = BlockLogs()
+        ans = []
+        for smiles in lst:
+            # convert to mol object
+            try:
+                mol = Chem.MolFromSmiles(smiles)
+                # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
+                fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
+                array = np.zeros((0,), dtype=np.int8)
+                DataStructs.ConvertToNumpyArray(fp, array)
+                ans.append(array)
+            except:
+                if smiles is not None:
+                    LOG.warning(f"Could not generate fingerprint for {smiles=}")
+                ans.append(np.zeros((nBits,), dtype=int))
+        return np.vstack(ans)

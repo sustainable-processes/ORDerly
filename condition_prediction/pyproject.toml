@@ -15,6 +15,7 @@ scikit-learn = "^1.2.2"
 pandas = "^1.5.3"
 pyarrow = "^10.0.1"
 Counter = "^1.0.0"
+rdkit = "^2023.3.1"
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
