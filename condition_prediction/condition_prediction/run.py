@@ -2,6 +2,7 @@ import dataclasses
 import datetime
 import json
 import logging
+import os
 import pathlib
 from collections import Counter
 from typing import Dict, List, Optional, Tuple
@@ -46,6 +47,8 @@ class ConditionPrediction:
     train_val_split: float
     epochs: int
     generate_fingerprints: bool
+    fp_size: int
+    workers: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
 
@@ -82,6 +85,8 @@ class ConditionPrediction:
             train_fraction=self.train_fraction,
             train_val_split=self.train_val_split,
             epochs=self.epochs,
+            fp_size=self.fp_size,
+            workers=self.workers,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
         )
@@ -99,7 +104,8 @@ class ConditionPrediction:
         early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
         train_mode: int = HARD_SELECTION,
-        fp_shape: int = 2048,
+        fp_size: int = 2048,
+        workers: int = 1,
     ) -> None:
         """ """
 
@@ -130,7 +136,7 @@ class ConditionPrediction:
             assert test_fp.shape[0] == test_df.shape[0]
             train_fp = train_val_fp[train_idx]
             val_fp = train_val_fp[val_idx]
-            fp_shape = train_fp.shape[1] // 2
+            fp_size = train_fp.shape[1] // 2
 
         # If catalyst_000 exists, this means we had trust_labelling = True, and we need to recast the columns to standardise the data
         if "catalyst_000" in df.columns:  # trust_labelling = True
@@ -316,6 +322,7 @@ class ConditionPrediction:
             mode=train_mode,
             batch_size=512,
             shuffle=True,
+            fp_size=fp_size,
         )
         val_mode = (
             HARD_SELECTION
@@ -333,6 +340,7 @@ class ConditionPrediction:
             mode=val_mode,
             batch_size=512,
             shuffle=False,
+            fp_size=fp_size,
         )
         test_generator = FingerprintDataGenerator(
             mol1=test_mol1,
@@ -345,6 +353,7 @@ class ConditionPrediction:
             mode=val_mode,
             batch_size=512,
             shuffle=False,
+            fp_size=fp_size,
         )
         y_test_data = (
             test_mol1,
@@ -355,8 +364,8 @@ class ConditionPrediction:
         )
 
         model = condition_prediction.model.build_teacher_forcing_model(
-            pfp_len=fp_shape,
-            rxnfp_len=fp_shape,
+            pfp_len=fp_size,
+            rxnfp_len=fp_size,
             mol1_dim=train_mol1.shape[-1],
             mol2_dim=train_mol2.shape[-1],
             mol3_dim=train_mol3.shape[-1],
@@ -373,8 +382,8 @@ class ConditionPrediction:
         # we use a separate model for prediction because we use a recurrent setup for prediction
         # the pred model is only different after the first component (mol1)
         pred_model = condition_prediction.model.build_teacher_forcing_model(
-            pfp_len=fp_shape,
-            rxnfp_len=fp_shape,
+            pfp_len=fp_size,
+            rxnfp_len=fp_size,
             mol1_dim=train_mol1.shape[-1],
             mol2_dim=train_mol2.shape[-1],
             mol3_dim=train_mol3.shape[-1],
@@ -444,12 +453,15 @@ class ConditionPrediction:
             )
             callbacks.append(early_stop)
 
+        use_multiprocessing = True if workers > 0 else False
         h = model.fit(
             train_generator,
             epochs=epochs,
             verbose=1,
             validation_data=val_generator,
             callbacks=callbacks,
+            use_multiprocessing=use_multiprocessing,
+            workers=workers,
         )
         condition_prediction.model.update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
@@ -528,12 +540,20 @@ class ConditionPrediction:
                 sorted_arr2 = np.sort(components_pred, axis=1)
                 return np.equal(sorted_arr1.all, sorted_arr2).all(axis=1)
 
-            test_metrics = model.evaluate(test_generator)
+            test_metrics = model.evaluate(
+                test_generator,
+                use_multiprocessing=use_multiprocessing,
+                workers=workers,
+            )
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
             test_metrics_dict["trust_labelling"] = trust_labelling
 
             ### Grouped scores
-            predictions = model.predict(test_generator)
+            predictions = model.predict(
+                test_generator,
+                use_multiprocessing=use_multiprocessing,
+                workers=workers,
+            )
 
             # Solvent scores
             solvent_scores = get_grouped_scores(
@@ -618,6 +638,18 @@ class ConditionPrediction:
     help="If True, will generate fingerprints on the fly instead of loading them from memory",
 )
 @click.option(
+    "--workers",
+    default=0,
+    type=int,
+    help="The number of workers to use for generating fingerprints. Defaults to 75\% of the CPUs on the machine. Defaults to 0",
+)
+@click.option(
+    "--fp_size",
+    default=2048,
+    type=int,
+    help="The size of the fingerprint used in fingerprint generation",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -642,6 +674,8 @@ def main_click(
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
     generate_fingerprints: bool,
+    workers: int,
+    fp_size: int,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -664,6 +698,8 @@ def main_click(
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
         generate_fingerprints=generate_fingerprints,
+        fp_size=fp_size,
+        workers=workers,
         overwrite=overwrite,
         log_file=_log_file,
         log_level=log_level,
@@ -680,6 +716,8 @@ def main(
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
     generate_fingerprints: bool,
+    fp_size: int,
+    workers: int,
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("models.log"),
     log_level: int = logging.INFO,
@@ -750,6 +788,8 @@ def main(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         generate_fingerprints=generate_fingerprints,
+        fp_size=fp_size,
+        workers=workers,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
