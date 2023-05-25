@@ -1170,15 +1170,17 @@ def main(
         for values, index in zip(test_set_list, test_indices):
             if values in train_set_list:
                 matching_indices.append(index)
-                
+
         # drop the matching rows from the test set
         test_indices = test_indices[~np.isin(test_indices, matching_indices)]
         # Add the matching rows to the train set
         train_indices = np.append(train_indices, matching_indices)
-        
-        percentage_of_test_data_moved_to_train = len(matching_indices) / len(test_indices)
+
+        percentage_of_test_data_moved_to_train = len(matching_indices) / len(
+            test_indices
+        )
         LOG.info(f"{percentage_of_test_data_moved_to_train=}")
-        if  percentage_of_test_data_moved_to_train > 0.1:
+        if percentage_of_test_data_moved_to_train > 0.1:
             LOG.warning(
                 "More than 10% of the test set was moved the training set. This may indicate a non-diverse dataset."
             )
@@ -1192,5 +1194,5 @@ def main(
         instance.cleaned_reactions.to_parquet(output_path)
         LOG.info("Saved unsplit data")
 
-    end_time = datetime.datetime.now() 
+    end_time = datetime.datetime.now()
     LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
