@@ -93,9 +93,8 @@ class ConditionPrediction:
             components_pred = []
             for enc, components in zip(encoders, y_pred):
                 selection_idx = np.argmax(components, axis=1)
-                component_selection = np.zeros_like(components)
-                component_selection[:, selection_idx] = 1.0
-                components_pred.append(enc.inverse_transform(component_selection))
+                one_hot_targets = np.eye(components.shape[1])[selection_idx]
+                components_pred.append(enc.inverse_transform(one_hot_targets))
             components_pred = np.concatenate(components_pred, axis=1)
             # Inverse transform will return None for an unknown label
             # This will introduce None, where we should only have 'NULL'
@@ -108,6 +107,7 @@ class ConditionPrediction:
 
         sorted_arr1 = np.sort(components_true, axis=1)
         sorted_arr2 = np.sort(components_pred, axis=1)
+
         return (sorted_arr1 == sorted_arr2).all(axis=1)
 
     @staticmethod
@@ -767,6 +767,7 @@ def main(
     test_fp_path = fp_directory / (test_data_path.stem + ".npy")
 
     LOG.info(f"Beginning model training, saving to {output_folder_path}")
+
     instance = ConditionPrediction(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
