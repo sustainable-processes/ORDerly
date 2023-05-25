@@ -523,48 +523,8 @@ class Cleaner:
         df = self._merge_extracted_ords()
 
         LOG.info(f"All data length: {df.shape[0]}")
-        # Remove reactions with too many of a certain component
-        num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
-        for col in [
-            "reactant",
-            "product",
-            "yield",
-            "solvent",
-            "agent",
-            "reagent",
-            "catalyst",
-        ]:
-            try:
-                number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
-            except KeyError as exc:
-                msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
-                LOG.error(msg)
-                raise KeyError(msg) from exc
-            df = Cleaner._remove_reactions_with_too_many_of_component(
-                df,
-                component_name=col,
-                number_of_columns_to_keep=number_of_columns_to_keep,
-                num_cat_cols_to_keep=num_cat_cols_to_keep,
-            )
-
-            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
-        # Remove reactions with no reactants
-        if self.remove_reactions_with_no_reactants:
-            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_reactants(df)
-            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
-        # Remove reactions with no products
-        if self.remove_reactions_with_no_products:
-            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_products(df)
-            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
-        if self.remove_reactions_with_no_conditions:
-            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_conditions(
-                df, components=("catalyst", "solvent", "agent", "reagent")
-            )
-            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
-
+        LOG.info("Handle unresolvable names")
+        
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
         )
@@ -673,6 +633,56 @@ class Cleaner:
                 [df_with_replacements, df.loc[:, ~df.columns.isin(target_columns)]],
                 axis=1,
             )
+        
+        
+        
+        
+        
+        
+        
+        # Remove reactions with too many of a certain component
+        num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
+        for col in [
+            "reactant",
+            "product",
+            "yield",
+            "solvent",
+            "agent",
+            "reagent",
+            "catalyst",
+        ]:
+            try:
+                number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
+            except KeyError as exc:
+                msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
+                LOG.error(msg)
+                raise KeyError(msg) from exc
+            df = Cleaner._remove_reactions_with_too_many_of_component(
+                df,
+                component_name=col,
+                number_of_columns_to_keep=number_of_columns_to_keep,
+                num_cat_cols_to_keep=num_cat_cols_to_keep,
+            )
+
+            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
+        # Remove reactions with no reactants
+        if self.remove_reactions_with_no_reactants:
+            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_reactants(df)
+            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
+        # Remove reactions with no products
+        if self.remove_reactions_with_no_products:
+            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_products(df)
+            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+        if self.remove_reactions_with_no_conditions:
+            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_conditions(
+                df, components=("catalyst", "solvent", "agent", "reagent")
+            )
+            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
+
+        
 
         # Ensure consistent yield
         if self.consistent_yield:
