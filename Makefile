@@ -310,9 +310,8 @@ train_all: no_trust_no_map_train no_trust_with_map_train with_trust_no_map_train
 
 # Example workflow for running everything: no trust, with map
 # extract, clean, fp
-example_workflow_prep_data:
-	paper_extract_uspto_no_trust, paper_gen_uspto_no_trust_with_map, fp_no_trust_with_map_test, fp_no_trust_with_map_train
+example_workflow_prep_data: paper_extract_uspto_no_trust, paper_gen_uspto_no_trust_with_map, fp_no_trust_with_map_test, fp_no_trust_with_map_train
 
 # change env to have TF
-example_workflow_train_model: 
+example_workflow_train_model: no_trust_with_map_train
 
