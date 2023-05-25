@@ -178,14 +178,18 @@ class Cleaner:
             LOG.warning(
                 f"There are only {len(component_columns)} {component_name} columns, but {number_of_columns_to_keep} were requested. Adding empty columns (or replacing reagent with catalyst)."
             )
-            
+
             # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
-            # If there are enough catalyst columns 
+            # If there are enough catalyst columns
             #   then, rename some of the catalyst columns as reagent columns
-            cat_cols = [col for col in df.columns if col.startswith("catalyst")]    
-            if (component_name == "reagent") and (len(component_columns) == 0) and (len(cat_cols) - num_cat_cols_to_keep > 0): 
-                #TODO: add catch for when the number of reagent columns is not 0? Mix reagent and catalyts columns?
-    
+            cat_cols = [col for col in df.columns if col.startswith("catalyst")]
+            if (
+                (component_name == "reagent")
+                and (len(component_columns) == 0)
+                and (len(cat_cols) - num_cat_cols_to_keep > 0)
+            ):
+                # TODO: add catch for when the number of reagent columns is not 0? Mix reagent and catalyts columns?
+
                 LOG.warning(f"Replacing reagent with catalyst")
                 cols_to_rename = cat_cols[number_of_columns_to_keep:]
                 for i, col in enumerate(cols_to_rename):
