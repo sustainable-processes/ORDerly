@@ -241,44 +241,14 @@ class ConditionPrediction:
             # )
             
             # Evaulate whether the correct set of labels have been predicted, rather than treating them separately
-            def solvent_combination_accuracy(y_train_1, y_train_2, y_test_1, y_test_2)->float:
-                # find the top 2 most likely labels in the test set
-                y_train_1 = y_train_1.tolist()
-                y_train_2 = y_train_2.tolist()
-                y_train = [y_train_1, y_train_2]
-                y_train_counts = Counter(y_train)
-                top_2_train_labels = [
-                    label for label, count in y_train_counts.most_common(2)
-                ]
-                correct_predictions = 0
-                for sovl1, solv2 in zip(y_test_1, y_test_2):
-                    if sovl1 in top_2_train_labels and solv2 in top_2_train_labels:
-                        correct_predictions += 1
-                        
-                return correct_predictions / len(y_test_1)
             
-            def agent_combination_accuracy(y_train_1, y_train_2, y_train_3, y_test_1, y_test_2, y_test_3)->float:
-                y_train_1 = y_train_1.tolist()
-                y_train_2 = y_train_2.tolist()
-                y_train_3 = y_train_3.tolist()
-                y_train = [y_train_1, y_train_2, y_train_3]
-                y_train_counts = Counter(y_train)
-                top_3_train_labels = [
-                    label for label, count in y_train_counts.most_common(3)
-                ]
-                correct_predictions = 0
-                for agnt1, agnt2, agnt3 in zip(y_test_1, y_test_2, y_test_3):
-                    if agnt1 in top_3_train_labels and agnt2 in top_3_train_labels and agnt3 in top_3_train_labels:
-                        correct_predictions += 1
-                        
-                return correct_predictions / len(y_test_1)
-            
-            def combination_accuracy(data_train, data_test, top_labels):
+            def combination_accuracy(data_train, data_test):
+                assert len(data_train) == len(data_test)
                 y_train = [y.tolist() for y in data_train]
                 y_test = [y.tolist() for y in data_test]
                 y_train_counts = Counter(y_train)
                 top_train_labels = [
-                    label for label, count in y_train_counts.most_common(top_labels)
+                    label for label, count in y_train_counts.most_common(len(data_train))
                 ]
                 correct_predictions = 0
                 for y_test_values in zip(*y_test):
@@ -287,28 +257,37 @@ class ConditionPrediction:
                         
                 return correct_predictions / len(y_test[0])
             
-            solvent_accuracy = solvent_combination_accuracy(
-                train_val_df[mol_1_col],
-                train_val_df[mol_2_col],
-                test_df[mol_1_col],
-                test_df[mol_2_col],
+            solvent_accuracy = combination_accuracy(
+                (train_val_df[mol_1_col], train_val_df[mol_2_col]),
+                (test_df[mol_1_col],test_df[mol_2_col]),
             )
-            agent_accuracy = agent_combination_accuracy(
+            agent_accuracy = combination_accuracy(
+                (train_val_df[mol_3_col],
+                train_val_df[mol_4_col],
+                train_val_df[mol_5_col]),
+                (test_df[mol_3_col],
+                test_df[mol_4_col],
+                test_df[mol_5_col])
+            )
+            overall_accuracy = combination_accuracy(
+                (train_val_df[mol_1_col],
+                train_val_df[mol_2_col],
                 train_val_df[mol_3_col],
                 train_val_df[mol_4_col],
-                train_val_df[mol_5_col],
+                train_val_df[mol_5_col]),
+                (test_df[mol_1_col],
+                test_df[mol_2_col],
                 test_df[mol_3_col],
                 test_df[mol_4_col],
-                test_df[mol_5_col],
+                test_df[mol_5_col])
             )
             
-            
-
             # Save the naive_top_3 benchmark to json
             benchmark_file_path = output_folder_path / "freq_informed_acc.json"
             benchmark_dict = {
                 f"solvent_acc": solvent_accuracy,
                 f"agent_acc": agent_accuracy,
+                f"overall_acc": overall_accuracy,
                 
             }
 
