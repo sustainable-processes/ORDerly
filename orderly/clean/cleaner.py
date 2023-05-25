@@ -1170,7 +1170,6 @@ def main(
         for values, index in zip(test_set_list, test_indices):
             if values in train_set_list:
                 matching_indices.append(index)
-        breakpoint()
         # drop the matching rows from the test set
         test_indices = np.delete(test_indices, matching_indices)
         # Add the matching rows to the train set
