@@ -27,7 +27,7 @@ import orderly.data.util
 class Cleaner:
     """Loads in the extracted data and removes invalid/undesired reactions.
     1) Merge the parquet files generated during orderly.extract into a df
-    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products)
+    2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products, remove_reactions_with_no_conditions)
     3) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
     4) Remove reactions with inconsistent yields (consistent_yield)
     5) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
@@ -44,6 +44,7 @@ class Cleaner:
     Args:
         remove_reactions_with_no_reactants (bool): Remove reactions with no reactants
         remove_reactions_with_no_products (bool): Remove reactions with no products
+        remove_reactions_with_no_conditions (bool): Remove reactions with no conditions (e.g. no solvent, catalyst, reagent, agent)
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
@@ -61,6 +62,7 @@ class Cleaner:
     ord_extraction_path: pathlib.Path
     remove_reactions_with_no_reactants: bool
     remove_reactions_with_no_products: bool
+    remove_reactions_with_no_conditions: bool
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -176,29 +178,32 @@ class Cleaner:
             LOG.warning(
                 f"There are only {len(component_columns)} {component_name} columns, but {number_of_columns_to_keep} were requested. Adding empty columns (or replacing reagent with catalyst)."
             )
-            not_enough_catalyst_columns = False
-            if component_name == "reagent" and len(component_columns) == 0:
-                # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
-                cat_cols = [col for col in df.columns if col.startswith("catalyst")]
-                # Required number of cols > num cols available
-                if number_of_columns_to_keep > len(cat_cols) - num_cat_cols_to_keep:
-                    not_enough_catalyst_columns = True
-                    LOG.warning(
-                        f"There are only {len(cat_cols)} catalyst columns, but {number_of_columns_to_keep} were requested. Adding empty columns instead."
-                    )
-                else:
-                    # If we're dealing with reagents, we can't just add empty columns, so we'll replace the reagent with the catalyst
-                    LOG.warning(f"Replacing reagent with catalyst")
-                    for i, col in enumerate(cat_cols[num_cat_cols_to_keep:]):
-                        df[f"reagent_{i:03d}"] = df[col]
-                    df = Cleaner._remove_reactions_with_too_many_of_component(
-                        df=df,
-                        component_name="reagent",
-                        number_of_columns_to_keep=number_of_columns_to_keep,
-                        recursive_counter=recursive_counter + 1,
-                    )
 
-            if component_name != "reagent" or not_enough_catalyst_columns:
+            # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
+            # If there are enough catalyst columns
+            #   then, rename some of the catalyst columns as reagent columns
+            cat_cols = [col for col in df.columns if col.startswith("catalyst")]
+            if (
+                (component_name == "reagent")
+                and (len(component_columns) == 0)
+                and (len(cat_cols) - num_cat_cols_to_keep > 0)
+            ):
+                # TODO: add catch for when the number of reagent columns is not 0? Mix reagent and catalyts columns?
+
+                LOG.warning(f"Replacing reagent with catalyst")
+                cols_to_rename = cat_cols[number_of_columns_to_keep:]
+                for i, col in enumerate(cols_to_rename):
+                    df[f"reagent_{i:03d}"] = df[col]
+                    df = df.drop(columns=col)
+                df = Cleaner._remove_reactions_with_too_many_of_component(
+                    df=df,
+                    component_name="reagent",
+                    number_of_columns_to_keep=number_of_columns_to_keep,
+                    num_cat_cols_to_keep=num_cat_cols_to_keep,
+                    recursive_counter=recursive_counter + 1,
+                )
+
+            else:
                 num_columns_to_add = number_of_columns_to_keep - len(component_columns)
                 column_names_to_add = [
                     f"{component_name}_{i:03d}"
@@ -231,6 +236,20 @@ class Cleaner:
         LOG.info("Removing reactions with no products")
         df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
+
+    @staticmethod
+    def _remove_rxn_with_no_conditions(
+        df: pd.DataFrame, components=("catalyst", "solvent", "agent", "reagent")
+    ) -> pd.DataFrame:
+        LOG.info("Removing reactions with no conditions")
+
+        # Check for rows with all None values in the specified columns
+        mask = df.loc[:, df.columns.str.startswith(components)].isna().all(axis=1)
+
+        # Remove rows with all None values
+        filtered_df = df[~mask]
+
+        return filtered_df
 
     @staticmethod
     def _del_rows_empty_in_this_col(df: pd.DataFrame, col: str) -> pd.DataFrame:
@@ -504,41 +523,7 @@ class Cleaner:
         df = self._merge_extracted_ords()
 
         LOG.info(f"All data length: {df.shape[0]}")
-        # Remove reactions with too many of a certain component
-        num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
-        for col in [
-            "reactant",
-            "product",
-            "yield",
-            "solvent",
-            "agent",
-            "reagent",
-            "catalyst",
-        ]:
-            try:
-                number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
-            except KeyError as exc:
-                msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
-                LOG.error(msg)
-                raise KeyError(msg) from exc
-            df = Cleaner._remove_reactions_with_too_many_of_component(
-                df,
-                component_name=col,
-                number_of_columns_to_keep=number_of_columns_to_keep,
-                num_cat_cols_to_keep=num_cat_cols_to_keep,
-            )
-            
-            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
-        # Remove reactions with no reactants
-        if self.remove_reactions_with_no_reactants:
-            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_reactants(df)
-            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
-        # Remove reactions with no products
-        if self.remove_reactions_with_no_products:
-            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_products(df)
-            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+        LOG.info("Handle unresolvable names")
 
         LOG.info(
             f"{self.set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=}"
@@ -649,6 +634,48 @@ class Cleaner:
                 axis=1,
             )
 
+        # Remove reactions with too many of a certain component
+        num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
+        for col in [
+            "reactant",
+            "product",
+            "yield",
+            "solvent",
+            "agent",
+            "reagent",
+            "catalyst",
+        ]:
+            try:
+                number_of_columns_to_keep = self._get_number_of_columns_to_keep()[col]
+            except KeyError as exc:
+                msg = "KeyError component_name must be one of: reactant, product, yield, solvent, agent, catalyst, reagent"
+                LOG.error(msg)
+                raise KeyError(msg) from exc
+            df = Cleaner._remove_reactions_with_too_many_of_component(
+                df,
+                component_name=col,
+                number_of_columns_to_keep=number_of_columns_to_keep,
+                num_cat_cols_to_keep=num_cat_cols_to_keep,
+            )
+
+            LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
+        # Remove reactions with no reactants
+        if self.remove_reactions_with_no_reactants:
+            LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_reactants(df)
+            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
+        # Remove reactions with no products
+        if self.remove_reactions_with_no_products:
+            LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_products(df)
+            LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+        if self.remove_reactions_with_no_conditions:
+            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
+            df = Cleaner._remove_rxn_with_no_conditions(
+                df, components=("catalyst", "solvent", "agent", "reagent")
+            )
+            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
+
         # Ensure consistent yield
         if self.consistent_yield:
             LOG.info(
@@ -747,6 +774,13 @@ class Cleaner:
     help="Remove reactions with no products",
 )
 @click.option(
+    "--remove_reactions_with_no_conditions",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with no rxn conditions (i.e. no solvent, reagent, catalyst, or agent)",
+)
+@click.option(
     "--consistent_yield",
     type=bool,
     default=True,
@@ -835,9 +869,9 @@ class Cleaner:
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
-    "--apply_random_split",
-    type=bool,
-    default=False,
+    "--train_test_split_fration",
+    type=float,
+    default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
 )
 @click.option("--disable_tqdm", type=bool, default=False, show_default=True)
@@ -862,6 +896,7 @@ def main_click(
     molecules_to_remove_path: pathlib.Path,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
+    remove_reactions_with_no_conditions: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -876,7 +911,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    apply_random_split: bool,
+    train_test_split_fration: float,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -918,6 +953,7 @@ def main_click(
         consistent_yield=consistent_yield,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -931,7 +967,7 @@ def main_click(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
         scramble=scramble,
-        apply_random_split=apply_random_split,
+        train_test_split_fration=train_test_split_fration,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -946,6 +982,7 @@ def main(
     consistent_yield: bool,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
+    remove_reactions_with_no_conditions: bool,
     num_reactant: int,
     num_product: int,
     num_solv: int,
@@ -958,7 +995,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    apply_random_split: bool,
+    train_test_split_fration: float,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1043,6 +1080,7 @@ def main(
         "consistent_yield": consistent_yield,
         "remove_reactions_with_no_reactants": remove_reactions_with_no_reactants,
         "remove_reactions_with_no_products": remove_reactions_with_no_products,
+        "remove_reactions_with_no_conditions": remove_reactions_with_no_conditions,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -1056,7 +1094,7 @@ def main(
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
         "scramble": scramble,
-        "apply_random_split": apply_random_split,
+        "train_test_split_fration": train_test_split_fration,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1088,6 +1126,7 @@ def main(
         ord_extraction_path=ord_extraction_path,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
@@ -1107,15 +1146,51 @@ def main(
     )
 
     LOG.info(f"completed cleaning, saving to {output_path}")
-    if apply_random_split:
-        scrambled_index_df = instance.cleaned_reactions.sample(
-            frac=1, random_state=42
-        ).reset_index(drop=True)
-        index_split_point = int(len(scrambled_index_df) * 0.8)
-        train = scrambled_index_df[:index_split_point]
-        test = scrambled_index_df[index_split_point:]
-        train.to_parquet(output_path.parent / f"{file_name}_train.parquet")
-        test.to_parquet(output_path.parent / f"{file_name}_test.parquet")
+    if train_test_split_fration not in [0.0, 1.0]:
+        df = instance.cleaned_reactions
+        LOG.info("Applying random split")
+        # Get indices for train and val
+        rng = np.random.default_rng(12345)
+        train_test_indices = np.arange(df.shape[0])
+        rng.shuffle(train_test_indices)
+        train_indices = train_test_indices[
+            : int(train_test_indices.shape[0] * train_test_split_fration)
+        ]
+        test_indices = train_test_indices[
+            int(train_test_indices.shape[0] * train_test_split_fration) :
+        ]
+
+        input_columns = df.columns[df.columns.str.startswith(("reactant", "product"))]
+        train_input_df = df.loc[train_indices, input_columns]
+        test_input_df = df.loc[test_indices, input_columns]
+
+        train_set_list = [set(row) for _, row in train_input_df.iterrows()]
+        test_set_list = [set(row) for _, row in test_input_df.iterrows()]
+
+        matching_indices = []  # List to store the indices of matching rows
+
+        for values, index in zip(test_set_list, test_indices):
+            if values in train_set_list:
+                matching_indices.append(index)
+
+        # drop the matching rows from the test set
+        test_indices = test_indices[~np.isin(test_indices, matching_indices)]
+        # Add the matching rows to the train set
+        train_indices = np.append(train_indices, matching_indices)
+
+        percentage_of_test_data_moved_to_train = len(matching_indices) / len(
+            test_indices
+        )
+        LOG.info(f"{percentage_of_test_data_moved_to_train=}")
+        if percentage_of_test_data_moved_to_train > 0.1:
+            LOG.warning(
+                "More than 10% of the test set was moved the training set. This may indicate a non-diverse dataset."
+            )
+        train_df = df.loc[train_indices]
+        test_df = df.loc[test_indices]
+
+        train_df.to_parquet(output_path.parent / f"{file_name}_train.parquet")
+        test_df.to_parquet(output_path.parent / f"{file_name}_test.parquet")
         LOG.info("Saved split data")
     else:
         instance.cleaned_reactions.to_parquet(output_path)

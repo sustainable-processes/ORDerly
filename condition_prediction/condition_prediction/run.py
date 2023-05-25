@@ -92,6 +92,34 @@ class ConditionPrediction:
         )
 
     @staticmethod
+    def get_grouped_scores(y_true, y_pred, encoders=None):
+        components_true = []
+        if encoders is not None:
+            for enc, components in zip(encoders, y_true):
+                components_true.append(enc.inverse_transform(components))
+            components_true = np.concatenate(components_true, axis=1)
+
+            components_pred = []
+            for enc, components in zip(encoders, y_pred):
+                selection_idx = np.argmax(components, axis=1)
+                one_hot_targets = np.eye(components.shape[1])[selection_idx]
+                components_pred.append(enc.inverse_transform(one_hot_targets))
+            components_pred = np.concatenate(components_pred, axis=1)
+            # Inverse transform will return None for an unknown label
+            # This will introduce None, where we should only have 'NULL'
+        else:
+            components_true = y_true
+            components_pred = y_pred
+
+        components_true = np.where(components_true == None, "NULL", components_true)
+        components_pred = np.where(components_pred == None, "NULL", components_pred)
+
+        sorted_arr1 = np.sort(components_true, axis=1)
+        sorted_arr2 = np.sort(components_pred, axis=1)
+
+        return (sorted_arr1 == sorted_arr2).all(axis=1)
+
+    @staticmethod
     def run_model(
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
@@ -219,89 +247,94 @@ class ConditionPrediction:
 
         if evaluate_on_test_data:
             # Determine accuracy simply by predicting the top3 most likely labels
-            def benchmark_top_n_accuracy(y_train, y_test, n=3):
-                y_train = y_train.tolist()
-                y_test = y_test.tolist()
-                # find the top 3 most likely labels in train set
-                label_counts = Counter(y_train)
-                top_n_train_labels = [
-                    label for label, count in label_counts.most_common(n)
-                ]
 
-                correct_predictions = sum(
-                    test_label in top_n_train_labels for test_label in y_test
-                )
+            # def benchmark_top_n_accuracy(y_train, y_test, n=3):
+            #     y_train = y_train.tolist()
+            #     y_test = y_test.tolist()
+            #     # find the top 3 most likely labels in train set
+            #     label_counts = Counter(y_train)
+            #     top_n_train_labels = [
+            #         label for label, count in label_counts.most_common(n)
+            #     ]
 
-                # calculate the naive_top3_accuracy
-                naive_top_n_accuracy = correct_predictions / len(y_test)
+            #     correct_predictions = sum(
+            #         test_label in top_n_train_labels for test_label in y_test
+            #     )
 
-                return naive_top_n_accuracy
+            #     # calculate the naive_top3_accuracy
+            #     naive_top_n_accuracy = correct_predictions / len(y_test)
 
-            mol1_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_1_col],
-                test_df[mol_1_col],
-                1,
-            )
-            mol2_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_2_col],
-                test_df[mol_2_col],
-                1,
-            )
-            mol3_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_3_col],
-                test_df[mol_3_col],
-                1,
-            )
-            mol4_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_4_col],
-                test_df[mol_4_col],
-                1,
-            )
-            mol5_top1_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_5_col],
-                test_df[mol_5_col],
-                1,
-            )
+            #     return naive_top_n_accuracy
 
-            mol1_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_1_col],
-                test_df[mol_1_col],
-                3,
+            # mol1_top1_benchmark = benchmark_top_n_accuracy(
+            #     train_val_df[mol_1_col],
+            #     test_df[mol_1_col],
+            #     1,
+            # )
+
+            # Evaulate whether the correct set of labels have been predicted, rather than treating them separately
+
+            def combination_accuracy(
+                data_train, data_test
+            ):  # TODO: This works, but there MUST be a way to do it more efficiently...
+                data_train_np = np.array(data_train).transpose()
+                data_test_np = np.array(data_test).transpose()
+                data_train_np = np.where(data_train_np == None, "NULL", data_train_np)
+                data_test_np = np.where(data_test_np == None, "NULL", data_test_np)
+                data_train_np = np.sort(data_train_np, axis=1)
+                data_test_np = np.sort(data_test_np, axis=1)
+
+                data_train_list = [tuple(row) for row in data_train_np]
+                data_test_list = [tuple(row) for row in data_test_np]
+
+                row_counts = Counter(data_train_list)
+
+                # Find the most frequent row and its count
+                most_frequent_row, _ = row_counts.most_common(1)[0]
+
+                # Count the occurrences of the most frequent row in data_train_np
+                correct_predictions = data_test_list.count(most_frequent_row)
+
+                return correct_predictions / len(data_test_list), most_frequent_row
+
+            solvent_accuracy, most_common_solvents = combination_accuracy(
+                (train_val_df[mol_1_col], train_val_df[mol_2_col]),
+                (test_df[mol_1_col], test_df[mol_2_col]),
             )
-            mol2_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_2_col],
-                test_df[mol_2_col],
-                3,
+            agent_accuracy, most_common_agents = combination_accuracy(
+                (
+                    train_val_df[mol_3_col],
+                    train_val_df[mol_4_col],
+                    train_val_df[mol_5_col],
+                ),
+                (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
             )
-            mol3_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_3_col],
-                test_df[mol_3_col],
-                3,
-            )
-            mol4_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_4_col],
-                test_df[mol_4_col],
-                3,
-            )
-            mol5_top3_benchmark = benchmark_top_n_accuracy(
-                train_val_df[mol_5_col],
-                test_df[mol_5_col],
-                3,
+            overall_accuracy, most_common_combination = combination_accuracy(
+                (
+                    train_val_df[mol_1_col],
+                    train_val_df[mol_2_col],
+                    train_val_df[mol_3_col],
+                    train_val_df[mol_4_col],
+                    train_val_df[mol_5_col],
+                ),
+                (
+                    test_df[mol_1_col],
+                    test_df[mol_2_col],
+                    test_df[mol_3_col],
+                    test_df[mol_4_col],
+                    test_df[mol_5_col],
+                ),
             )
 
             # Save the naive_top_3 benchmark to json
-            benchmark_file_path = output_folder_path / "naive_top_3.json"
+            benchmark_file_path = output_folder_path / "freq_informed_acc.json"
             benchmark_dict = {
-                f"{mol_1_col}_top1": mol1_top1_benchmark,
-                f"{mol_2_col}_top1": mol2_top1_benchmark,
-                f"{mol_3_col}_top1": mol3_top1_benchmark,
-                f"{mol_4_col}_top1": mol4_top1_benchmark,
-                f"{mol_5_col}_top1": mol5_top1_benchmark,
-                f"{mol_1_col}_top3": mol1_top3_benchmark,
-                f"{mol_2_col}_top3": mol2_top3_benchmark,
-                f"{mol_3_col}_top3": mol3_top3_benchmark,
-                f"{mol_4_col}_top3": mol4_top3_benchmark,
-                f"{mol_5_col}_top3": mol5_top3_benchmark,
+                f"most_common_solvents": most_common_solvents,
+                f"most_common_agents": most_common_agents,
+                f"most_common_combination": most_common_combination,
+                f"solvent_acc": solvent_accuracy,
+                f"agent_acc": agent_accuracy,
+                f"overall_acc": overall_accuracy,
             }
 
             with open(benchmark_file_path, "w") as file:
@@ -514,32 +547,6 @@ class ConditionPrediction:
         if evaluate_on_test_data:
             # Evaluate the model on the test set
 
-            def get_grouped_scores(y_true, y_pred, encoders):
-                components_true = []
-                for enc, components in zip(encoders, y_true):
-                    components_true.append(enc.inverse_transform(components))
-                components_true = np.concatenate(components_true, axis=1)
-
-                components_pred = []
-                for enc, components in zip(encoders, y_pred):
-                    selection_idx = np.argmax(components, axis=1)
-                    component_selection = np.zeros_like(components)
-                    component_selection[:, selection_idx] = 1.0
-                    components_pred.append(enc.inverse_transform(component_selection))
-                components_pred = np.concatenate(components_pred, axis=1)
-                # Inverse transform will return None for an unknown label
-                # This will introduce None, where we should only have 'NULL'
-                components_true = np.where(
-                    components_true == None, "NULL", components_true
-                )
-                components_pred = np.where(
-                    components_pred == None, "NULL", components_pred
-                )
-
-                sorted_arr1 = np.sort(components_true, axis=1)
-                sorted_arr2 = np.sort(components_pred, axis=1)
-                return np.equal(sorted_arr1.all, sorted_arr2).all(axis=1)
-
             test_metrics = model.evaluate(
                 test_generator,
                 use_multiprocessing=use_multiprocessing,
@@ -556,13 +563,13 @@ class ConditionPrediction:
             )
 
             # Solvent scores
-            solvent_scores = get_grouped_scores(
+            solvent_scores = ConditionPrediction.get_grouped_scores(
                 y_test_data[:2], predictions[:2], [mol1_enc, mol2_enc]
             )
             test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
 
             # 3 agents scores
-            agent_scores = get_grouped_scores(
+            agent_scores = ConditionPrediction.get_grouped_scores(
                 y_test_data[2:], predictions[2:], [mol3_enc, mol4_enc, mol5_enc]
             )
             test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
@@ -779,6 +786,7 @@ def main(
     test_fp_path = fp_directory / (test_data_path.stem + ".npy")
 
     LOG.info(f"Beginning model training, saving to {output_folder_path}")
+
     instance = ConditionPrediction(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
