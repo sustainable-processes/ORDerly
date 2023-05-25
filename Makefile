@@ -159,7 +159,6 @@ run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
 
 
-# Model training
 
 train_model:
 	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
@@ -308,3 +307,12 @@ with_trust_with_map_train_20:
 	poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
 
 train_all: no_trust_no_map_train no_trust_with_map_train with_trust_no_map_train with_trust_with_map_train no_trust_no_map_train_20 no_trust_with_map_train_20 with_trust_no_map_train_20 with_trust_with_map_train_20
+
+# Example workflow for running everything: no trust, with map
+# extract, clean, fp
+example_workflow_prep_data:
+	paper_extract_uspto_no_trust, paper_gen_uspto_no_trust_with_map, fp_no_trust_with_map_test, fp_no_trust_with_map_train
+
+# change env to have TF
+example_workflow_train_model: 
+
