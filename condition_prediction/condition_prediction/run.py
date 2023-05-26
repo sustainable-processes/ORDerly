@@ -18,6 +18,7 @@ from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
+import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.data_generator import get_data_generators
 from condition_prediction.model import (
@@ -330,10 +331,10 @@ class ConditionPrediction:
             )
             callbacks.append(early_stop)
         if wandb_logging:
-            wandb_tags = [] or wandb_tags
+            wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
                 wandb_tags.append("Condition Prediction")
-            wandb_run = wandb.init(
+            wandb_run = wandb.init( # type: ignore
                 project=wandb_project,
                 entity=wandb_entity,
                 tags=wandb_tags,
@@ -418,7 +419,7 @@ class ConditionPrediction:
                 json.dump(test_metrics_dict, file)
 
             if wandb_logging:
-                artifact = wandb.Artifact(
+                artifact = wandb.Artifact( # type: ignore
                     name="test_metrics",
                     type="metrics",
                     description="Metrics on the test set",
