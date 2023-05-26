@@ -14,6 +14,7 @@ LOG = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import wandb
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
@@ -57,6 +58,10 @@ class ConditionPrediction:
     workers: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
+    wandb_logging: bool
+    wandb_project: str
+    wandb_entity: Optional[str] = None
+    wandb_tags: Optional[List[str]] = None
 
     def __post_init__(self) -> None:
         pass
@@ -95,6 +100,10 @@ class ConditionPrediction:
             workers=self.workers,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
+            wandb_project=self.wandb_project,
+            wandb_entity=self.wandb_entity,
+            wandb_logging=self.wandb_logging,
+            wandb_tags=self.wandb_tags,
         )
 
     @staticmethod
@@ -169,6 +178,10 @@ class ConditionPrediction:
         train_mode: int = HARD_SELECTION,
         fp_size: int = 2048,
         workers: int = 1,
+        wandb_logging: bool = True,
+        wandb_project: str = "orderly",
+        wandb_entity: Optional[str] = None,
+        wandb_tags: Optional[List[str]] = None,
     ) -> None:
         """
         Run condition prediction training
@@ -304,17 +317,33 @@ class ConditionPrediction:
         )
 
         ### Training ###
-        callbacks = [
-            tf.keras.callbacks.TensorBoard(
-                log_dir=log_dir(prefix="TF_", comment="_MOREDATA_REG_HARDSELECT")
-            )
-        ]
+        # callbacks = [
+        #     tf.keras.callbacks.TensorBoard(
+        #         log_dir=log_dir(prefix="TF_", comment="_MOREDATA_REG_HARDSELECT")
+        #     )
+        # ]
+        callbacks = []
         # Define the EarlyStopping callback
         if early_stopping_patience != 0:
             early_stop = EarlyStopping(
                 monitor="val_loss", patience=early_stopping_patience
             )
             callbacks.append(early_stop)
+        if wandb_logging:
+            wandb_tags = [] or wandb_tags
+            if "Condition Prediction" not in wandb_tags:
+                wandb_tags.append("Condition Prediction")
+            wandb.init(
+                project=wandb_project,
+                entity=wandb_entity,
+                tags=wandb_tags,
+            )
+            callbacks.extend(
+                [
+                    WandbMetricsLogger(),
+                    WandbModelCheckpoint("models", save_best_only=True),
+                ]
+            )
 
         use_multiprocessing = True if workers > 0 else False
         h = model.fit(
@@ -459,6 +488,27 @@ class ConditionPrediction:
     help="The size of the fingerprint used in fingerprint generation",
 )
 @click.option(
+    "--wandb_logging",
+    default=True,
+    type=bool,
+    help="If True, will log to wandb",
+)
+@click.option(
+    "--wandb_entity",
+    default=None,
+    type=str,
+    help="The entity to use for logging to wandb",
+)
+@click.option(
+    "--wandb_project",
+    default="orderly",
+    type=str,
+    help="The project to use for logging to wandb",
+)
+@click.option(
+    "--wandb_tags", multiple=True, default=None, help="Tags for weights and biases run"
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -485,50 +535,12 @@ def main_click(
     generate_fingerprints: bool,
     workers: int,
     fp_size: int,
+    wandb_logging: bool,
+    wandb_project: str,
+    wandb_entity: Optional[str],
+    wandb_tags: List[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
-    log_level: int = logging.INFO,
-) -> None:
-    """
-    After extraction and cleaning of ORD data, this will train a condition prediction model.
-    """
-
-    _log_file = pathlib.Path(output_folder_path) / f"model.log"
-    if log_file != "default_path_model.log":
-        _log_file = pathlib.Path(log_file)
-
-    main(
-        train_data_path=pathlib.Path(train_data_path),
-        test_data_path=pathlib.Path(test_data_path),
-        output_folder_path=pathlib.Path(output_folder_path),
-        train_fraction=train_fraction,
-        train_val_split=train_val_split,
-        epochs=epochs,
-        early_stopping_patience=early_stopping_patience,
-        evaluate_on_test_data=evaluate_on_test_data,
-        generate_fingerprints=generate_fingerprints,
-        fp_size=fp_size,
-        workers=workers,
-        overwrite=overwrite,
-        log_file=_log_file,
-        log_level=log_level,
-    )
-
-
-def main(
-    train_data_path: pathlib.Path,
-    test_data_path: pathlib.Path,
-    output_folder_path: pathlib.Path,
-    train_fraction: float,
-    train_val_split: float,
-    epochs: int,
-    early_stopping_patience: int,
-    evaluate_on_test_data: bool,
-    generate_fingerprints: bool,
-    fp_size: int,
-    workers: int,
-    overwrite: bool,
-    log_file: pathlib.Path = pathlib.Path("models.log"),
     log_level: int = logging.INFO,
 ) -> None:
     """
@@ -548,6 +560,14 @@ def main(
     We can then use the model to predict the condition of a reaction.
 
     """
+    train_data_path = pathlib.Path(train_data_path)
+    test_data_path = pathlib.Path(test_data_path)
+    output_folder_path = pathlib.Path(output_folder_path)
+
+    log_file = pathlib.Path(output_folder_path) / f"model.log"
+    if log_file != "default_path_model.log":
+        log_file = pathlib.Path(log_file)
+
     start_time = datetime.datetime.now()
 
     output_folder_path.mkdir(parents=True, exist_ok=True)
@@ -603,6 +623,10 @@ def main(
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
+        wandb_entity=wandb_entity,
+        wandb_project=wandb_project,
+        wandb_logging=wandb_logging,
+        wandb_tags=list(wandb_tags),
     )
 
     instance.run_model_arguments()
