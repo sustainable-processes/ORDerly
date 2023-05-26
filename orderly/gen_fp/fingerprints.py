@@ -1,27 +1,22 @@
-import logging
-import os
-import json
-from typing import List, Dict, Tuple, Optional
 import dataclasses
 import datetime
+import json
+import logging
+import os
 import pathlib
+from typing import Dict, List, Optional, Tuple, Union
+
 import click
-
-from click_loglevel import LogLevel
-
+import numpy as np
+import pandas as pd
 import tqdm
 import tqdm.contrib.logging
-import pandas as pd
-import numpy as np
-
-from tqdm import tqdm
-import numpy as np
-from rdkit import Chem
-from rdkit import DataStructs
+from click_loglevel import LogLevel
+from numpy.typing import NDArray
+from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
-import pandas as pd
-import pathlib
+from tqdm import tqdm
 
 from orderly.types import *
 
@@ -65,22 +60,24 @@ class GenerateFingerprints:
     def get_fp(
         df: pd.DataFrame,
         fp_size: int = 2048,
-    ):
+    ) -> Tuple[NDArray[np.int64], NDArray[np.int64]]:
         product_fp = GenerateFingerprints.calc_fp(
-            df["product_000"], radius=3, nBits=fp_size
+            df["product_000"].to_numpy(), radius=3, nBits=fp_size
         )
         reactant_fp_0 = GenerateFingerprints.calc_fp(
-            df["reactant_000"], radius=3, nBits=fp_size
+            df["reactant_000"].to_numpy(), radius=3, nBits=fp_size
         )
         reactant_fp_1 = GenerateFingerprints.calc_fp(
-            df["reactant_001"], radius=3, nBits=fp_size
+            df["reactant_001"].to_numpy(), radius=3, nBits=fp_size
         )
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
 
         return product_fp, rxn_diff_fp
 
     @staticmethod
-    def calc_fp(lst: List, radius: int = 3, nBits: int = 2048):
+    def calc_fp(
+        lst: NDArray[np.character], radius: int = 3, nBits: int = 2048
+    ) -> NDArray[np.int64]:
         # Usage:
         # radius = 3
         # nBits = 2048

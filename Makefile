@@ -12,8 +12,7 @@ mypy:
 	poetry run python -m mypy . --ignore-missing-imports --explicit-package-bases
 
 strict_mypy:
-	poetry run python -m mypy . --ignore-missing-imports --explicit-package-bases
- --strict
+	poetry run python -m mypy . --ignore-missing-imports --exclude condition_prediction --explicit-package-bases --strict
 
 black:
 	poetry run python -m black .

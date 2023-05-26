@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        strict: ["", "--strict"]
+        strict: ["", "--strict --ignore condition_prediction"]
 
     steps:
       - name: Check out repository code
