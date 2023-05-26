@@ -334,7 +334,7 @@ class ConditionPrediction:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
                 wandb_tags.append("Condition Prediction")
-            wandb_run = wandb.init( # type: ignore
+            wandb_run = wandb.init(  # type: ignore
                 project=wandb_project,
                 entity=wandb_entity,
                 tags=wandb_tags,
@@ -419,7 +419,7 @@ class ConditionPrediction:
                 json.dump(test_metrics_dict, file)
 
             if wandb_logging:
-                artifact = wandb.Artifact( # type: ignore
+                artifact = wandb.Artifact(  # type: ignore
                     name="test_metrics",
                     type="metrics",
                     description="Metrics on the test set",
