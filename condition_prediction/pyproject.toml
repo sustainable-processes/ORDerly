@@ -3,8 +3,9 @@ name = "condition_prediction"
 version = "0.1.0"
 description = ""
 authors = [
-    "joearrowsmith <joearrowsmith98@gmail.com>",
+    "Joe Arrowsmith <joearrowsmith98@gmail.com>",
     "Kobi Felton <kobi.c.f@gmail.com>",
+    "Daniel Wigh <dswigh@gmail.com>",
 ]
 
 [tool.poetry.dependencies]
