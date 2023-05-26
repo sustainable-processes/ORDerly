@@ -3,8 +3,9 @@ name = "condition_prediction"
 version = "0.1.0"
 description = ""
 authors = [
-    "joearrowsmith <joearrowsmith98@gmail.com>",
+    "Joe Arrowsmith <joearrowsmith98@gmail.com>",
     "Kobi Felton <kobi.c.f@gmail.com>",
+    "Daniel Wigh <dswigh@gmail.com>",
 ]
 
 [tool.poetry.dependencies]
@@ -24,8 +25,6 @@ wandb = "^0.15.3"
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
-
-[tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
 
 [build-system]

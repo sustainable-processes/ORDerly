@@ -14,11 +14,11 @@ LOG = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import wandb
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
+import wandb
 from condition_prediction.constants import *
 from condition_prediction.data_generator import get_data_generators
 from condition_prediction.model import (
