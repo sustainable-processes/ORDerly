@@ -10,6 +10,10 @@ from condition_prediction.run import ConditionPrediction
 # Run through get_grouped_scores and check if you get the expected results
 
 
+def test_hello_world() -> None:
+    assert True
+
+
 @pytest.mark.parametrize(
     "one_hot_encode",
     [(True,), (False,)],
