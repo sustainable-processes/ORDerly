@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.preprocessing import OneHotEncoder
 
-from condition_prediction.run import ConditionPrediction
+from condition_prediction.utils import get_grouped_scores
 
 # Generate 2 dataframes each with 2 columns that have 3 classes
 # (optional) Use one hot encoder to generate one-hot encoded arryas
@@ -51,7 +51,5 @@ def test_grouped_scores(one_hot_encode: bool):
         encoders = None
 
     # Average score should be 75%
-    scores = ConditionPrediction.get_grouped_scores(
-        ground_truth, prediction, encoders=encoders
-    )
+    scores = get_grouped_scores(ground_truth, prediction, encoders=encoders)
     assert np.mean(scores) == 0.75

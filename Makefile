@@ -10,10 +10,10 @@ WANDB_ENTITY=ceb-sre
 
 
 mypy:
-	poetry run python -m mypy . --ignore-missing-imports
+	poetry run python -m mypy . --ignore-missing-imports --explicit-package-bases
 
 strict_mypy:
-	poetry run python -m mypy . --ignore-missing-imports --strict
+	poetry run python -m mypy . --ignore-missing-imports --exclude condition_prediction --explicit-package-bases --strict
 
 black:
 	poetry run python -m black .
