@@ -11,14 +11,12 @@ import click
 
 LOG = logging.getLogger(__name__)
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import tqdm
-import tqdm.contrib.logging
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
+from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 from condition_prediction.constants import *
 from condition_prediction.data_generator import get_data_generators
