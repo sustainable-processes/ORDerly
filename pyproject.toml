@@ -2,8 +2,16 @@
 name = "ORDerly"
 version = "0.0.1"
 description = "Cleaning and extraction of data from ORD"
-authors = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>", "Alexander Pomberger <ap2153@cam.ac.uk>", "Alexei A. Lapkin <aal35@cam.ac.uk>"]
-maintainers = ["Daniel S. Wigh <dsw46@cam.ac.uk>", "Joe Arrowsmith <joearrowsmith0@gmail.com>"]
+authors = [
+    "Daniel S. Wigh <dsw46@cam.ac.uk>",
+    "Joe Arrowsmith <joearrowsmith0@gmail.com>",
+    "Alexander Pomberger <ap2153@cam.ac.uk>",
+    "Alexei A. Lapkin <aal35@cam.ac.uk>",
+]
+maintainers = [
+    "Daniel S. Wigh <dsw46@cam.ac.uk>",
+    "Joe Arrowsmith <joearrowsmith0@gmail.com>",
+]
 # New attributes
 license = "MIT"
 readme = "README.md"
@@ -27,9 +35,6 @@ pytest = "^7.2.2"
 black = "^23.3.0"
 mypy = "^1.2.0"
 ipykernel = "^6.22.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
