@@ -1269,6 +1269,43 @@ files = [
 ]
 
 [[package]]
+name = "rdkit"
+version = "2023.3.1"
+description = "A collection of chemoinformatics and machine-learning software written in C++ and Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "rdkit-2023.3.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:39a70b6a65c62ac4a3319e3f9854c3d7eb2af1bd7bd43c8f25a02ed5c2a788cd"},
+    {file = "rdkit-2023.3.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:322ff13454ca622a730766ce6646e56c1326b4e9b32f41acddacd83a6efbf2a0"},
+    {file = "rdkit-2023.3.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8e3b8c14a0fcabdfb9a1c4bc6da75e6d176a545a66ddb5ccd26058b14e78186c"},
+    {file = "rdkit-2023.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2fbd715d9056bb985dede2c5604715b3969c8715770aef3d17b822b69eaaea58"},
+    {file = "rdkit-2023.3.1-cp310-cp310-win_amd64.whl", hash = "sha256:f47ac51fa3bf65cd0290fa991bbab65d8267914d0e348fc0bd5b02afd75043e3"},
+    {file = "rdkit-2023.3.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:21fcfe65e7e46a4b72334a2519c49dc2ecd71558f5cbe6f4fcab6a29b5c75ba8"},
+    {file = "rdkit-2023.3.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:763b58f4e1da09798b198f9e105cfda2431570ca9d39bcb687435a62025f7e28"},
+    {file = "rdkit-2023.3.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eb2612613d67a0a8221e0f79f3bb7ea2100634168211e02991f54c4e097920fc"},
+    {file = "rdkit-2023.3.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8ac9625c3f68529d5604c855e8134b84649c5e30662a0931202e98679c9f2dc2"},
+    {file = "rdkit-2023.3.1-cp311-cp311-win_amd64.whl", hash = "sha256:94abc61faec542c8a69230426fc128de214d9d067d031372e9e7ac9438ee8993"},
+    {file = "rdkit-2023.3.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:2d5691dc8f5d4616d02da314c95c8b9045b68b9a9a92f63c1999c63acd8addff"},
+    {file = "rdkit-2023.3.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1ed7b716efe9c521b440f666b10161965940cf955d91fff54f49aac9d5072c97"},
+    {file = "rdkit-2023.3.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:58e252d3523f037282554fb8195597f7873c65f1ad6fb7a56417bfbafd5a946d"},
+    {file = "rdkit-2023.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:1f8f6a2760f40c3536b693a5e4d72b4ee07e871067061a4e00b246303b63a52c"},
+    {file = "rdkit-2023.3.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:1f0d6a5455bc55b03a4f7064dabb46a3a5247feb96e117a3a71e735d819f3aa4"},
+    {file = "rdkit-2023.3.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:33b58f08d28e0cedf9769a73ec335996018ab4055eba330d2d3f103d35554e30"},
+    {file = "rdkit-2023.3.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a269f0ef8cc026ee2914b7583522f746982d50f89a4fad8f2f9c3288f1f3b485"},
+    {file = "rdkit-2023.3.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f8488a8366eddaa218381397694ecfeed601bdd688fd3b1e0f437486045ccb67"},
+    {file = "rdkit-2023.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:627336f0b38c237252a4c39bb972fbde6cd22978927ee1360dab75cdfc46457e"},
+    {file = "rdkit-2023.3.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:a0ef04f153ce2225d5a8c368dfe067fc502680b4f104135c49d08ceb31738839"},
+    {file = "rdkit-2023.3.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:891c7e47338ba06a752a76e66418deb75e1873e083ce90e614fa95408f50ba26"},
+    {file = "rdkit-2023.3.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:414afbfd0e926d4cc3a9b79835e8d625a4d5e2547b312f9b8f54f813e9569972"},
+    {file = "rdkit-2023.3.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:76759ed074ac35b3d5561544527229afeaab1d6c94211ef995a871092e592684"},
+    {file = "rdkit-2023.3.1-cp39-cp39-win_amd64.whl", hash = "sha256:fc54f5fc27a430aa72a067f4960bf358cef8da4027cc35c06e3552708b0fc7a2"},
+]
+
+[package.dependencies]
+numpy = "*"
+Pillow = "*"
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -1784,4 +1821,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "fafa56a95b10c6c12942c762b8e31d1511186f64e80866cf5aaac18d1a88eedf"
+content-hash = "736fab263ec5cd0ef4b946a4f413139dca827b148757e9fd5f0378012c07843e"
