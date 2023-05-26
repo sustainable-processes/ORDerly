@@ -70,5 +70,5 @@ jobs:
         run: poetry install --no-interaction --no-root
       
       - name: Code Quality
-        run: poetry run python -m mypy . --ignore-missing-imports ${{ matrix.strict }}
+        run: poetry run python -m mypy .  --explicit-package-bases --ignore-missing-imports ${{ matrix.strict }}
   
