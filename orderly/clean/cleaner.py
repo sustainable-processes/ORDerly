@@ -244,7 +244,9 @@ class Cleaner:
         if components is None:
             components = ["catalyst", "solvent", "agent", "reagent"]
         # Check for rows with all None values in the specified columns
-        mask = df.loc[:, df.columns.str.startswith(components)].isna().all(axis=1)
+        mask = (
+            df.loc[:, df.columns.str.startswith(tuple(components))].isna().all(axis=1)
+        )
 
         # Remove rows with all None values
         filtered_df = df[~mask]
