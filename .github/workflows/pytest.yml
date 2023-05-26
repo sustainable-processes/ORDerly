@@ -89,7 +89,7 @@ jobs:
         run: cd condition_prediction && poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: cd condition_prediction && poetry run pytest -v --cov condition_prediction
+        run: cd condition_prediction && poetry run pytest -v condition_prediction
 
       # - name: Upload
       #   uses: actions/upload-artifact@v1
