@@ -367,9 +367,6 @@ class ConditionPrediction:
             )
 
             # Solvent scores
-            import pdb
-
-            pdb.set_trace()
             solvent_scores = get_grouped_scores(
                 y_test_data[:2], predictions[:2], encoders[:2]
             )
