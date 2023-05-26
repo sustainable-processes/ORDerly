@@ -20,7 +20,7 @@ import tqdm.contrib.logging
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping
 
-from condition_prediction.constants import *
+from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.data_generator import get_data_generators
 from condition_prediction.model import (
     build_teacher_forcing_model,
@@ -194,8 +194,9 @@ class ConditionPrediction:
         # Apply these to the fingerprints
         if train_val_fp is not None:
             assert train_val_fp.shape[0] == train_val_df.shape[0]
-            assert test_fp.shape[0] == test_df.shape[0]
             fp_size = train_val_fp.shape[1] // 2
+        if test_fp is not None:
+            assert test_fp.shape[0] == test_df.shape[0]
 
         # If catalyst_000 exists, this means we had trust_labelling = True,
         # and we need to recast the columns to standardise the data

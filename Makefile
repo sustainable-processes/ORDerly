@@ -9,10 +9,11 @@ clean_default_num_reag=2
 
 
 mypy:
-	poetry run python -m mypy . --ignore-missing-imports
+	poetry run python -m mypy . --ignore-missing-imports --explicit-package-bases
 
 strict_mypy:
-	poetry run python -m mypy . --ignore-missing-imports --strict
+	poetry run python -m mypy . --ignore-missing-imports --explicit-package-bases
+ --strict
 
 black:
 	poetry run python -m black .
