@@ -333,7 +333,7 @@ class ConditionPrediction:
             wandb_tags = [] or wandb_tags
             if "Condition Prediction" not in wandb_tags:
                 wandb_tags.append("Condition Prediction")
-            wandb.init(
+            wandb_run = wandb.init(
                 project=wandb_project,
                 entity=wandb_entity,
                 tags=wandb_tags,
@@ -416,6 +416,15 @@ class ConditionPrediction:
             # Save the dictionary as a JSON file
             with open(test_metrics_file_path, "w") as file:
                 json.dump(test_metrics_dict, file)
+
+            if wandb_logging:
+                artifact = wandb.Artifact(
+                    name="test_metrics",
+                    type="metrics",
+                    description="Metrics on the test set",
+                )
+                artifact.add_dir(output_folder_path)
+                wandb_run.log_artifact(artifact)
 
 
 @click.command()
