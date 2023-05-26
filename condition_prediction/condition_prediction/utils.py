@@ -2,6 +2,7 @@ import os
 import socket
 from collections import Counter
 from datetime import datetime
+from datetime import datetime as dt
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -176,3 +177,23 @@ def post_training_plots(h, output_folder_path, molecule_columns: List[str]):
     plt.legend()
     output_file_path = output_folder_path / "train_val_loss.png"
     plt.savefig(output_file_path, bbox_inches="tight", dpi=600)
+
+
+class TrainingMetrics(callbacks.Callback):
+    def __init__(self, n_train: int, batch_size: int):
+        super().__init__()
+        self.n_train = n_train
+        self.batch_size = batch_size
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.start_time = dt.now()
+
+    def on_epoch_end(self, epoch, logs=None):
+        epoch_time = (dt.now() - self.start_time).total_seconds()
+        training_throughput = self.n_train / epoch_time
+        logs.update(
+            {
+                "training_throughput": training_throughput,
+                "time_per_step": self.batch_size / training_throughput,
+            }
+        )

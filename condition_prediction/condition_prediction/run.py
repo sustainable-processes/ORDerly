@@ -26,10 +26,10 @@ from condition_prediction.model import (
     update_teacher_forcing_model_weights,
 )
 from condition_prediction.utils import (
+    TrainingMetrics,
     frequency_informed_accuracy,
     get_grouped_scores,
     get_random_splits,
-    log_dir,
     post_training_plots,
 )
 
@@ -323,7 +323,12 @@ class ConditionPrediction:
         #         log_dir=log_dir(prefix="TF_", comment="_MOREDATA_REG_HARDSELECT")
         #     )
         # ]
-        callbacks = []
+        callbacks = [
+            TrainingMetrics(
+                n_train=train_idx.shape[0],
+                batch_size=train_generator.batch_size,
+            )
+        ]
         # Define the EarlyStopping callback
         if early_stopping_patience != 0:
             early_stop = EarlyStopping(
