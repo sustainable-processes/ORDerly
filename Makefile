@@ -315,16 +315,3 @@ example_workflow_prep_data: paper_extract_uspto_no_trust, paper_gen_uspto_no_tru
 # change env to have TF
 example_workflow_train_model: no_trust_with_map_train
 
-
-
-
-# compare AND vs OR
-
-paper_test_and:
-	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map_AND.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fration=0 --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False --remove_reactions_with_no_conditions=True
-
-paper_test_or:
-	poetry run python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map_AND.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fration=0 --remove_reactions_with_no_solvents=True --remove_reactions_with_no_agents=True --remove_reactions_with_no_conditions=False
-
-	
-paper_test: paper_test_and paper_test_or
