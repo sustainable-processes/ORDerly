@@ -197,12 +197,12 @@ def generate_sequence(
         halton_sequence.append(dim_sequence)
 
     # Transpose the 2-D list to be shape [num_samples, num_dims].
-    halton_sequence = list(zip(*halton_sequence))  # type: ignore
+    new_halton_sequence: List[List[int]] = list(zip(*halton_sequence))  # type: ignore
 
     # Shuffle the sequence.
     if shuffle_sequence:
-        random.shuffle(halton_sequence)
-    return halton_sequence
+        random.shuffle(new_halton_sequence)
+    return new_halton_sequence
 
 
 def _generate_double_point(
@@ -330,7 +330,7 @@ def zipit(
         num_samples=length, num_dims=len(generator_fns_or_sweeps)
     )
     # A List[Dict] of hyperparameter names to sweep values.
-    hyperparameter_sweep = []
+    hyperparameter_sweep: List[Dict[str, Any]] = []
     for trial_index in range(length):
         hyperparameter_sweep.append({})
         for hyperparameter_index in range(len(generator_fns_or_sweeps)):
@@ -401,13 +401,13 @@ def generate_search(search_space: _DictSearchSpace, num_trials: int) -> List[Dic
     return [p for p in zipit(hyperparameter_generators, num_trials)]
 
 
-if __name__ == "__main__":
-    search_space = {
-        "learning_rate": {"min": 0.0001, "max": 0.1, "scaling": "log"},
-        "dropout": {"min": 0.1, "max": 0.5, "scaling": "linear"},
-    }
-    hyp = generate_search(search_space=search_space, num_trials=10)
-    import pprint
+# if __name__ == "__main__":
+#     search_space = {
+#         "learning_rate": {"min": 0.0001, "max": 0.1, "scaling": "log"},
+#         "dropout": {"min": 0.1, "max": 0.5, "scaling": "linear"},
+#     }
+#     hyp = generate_search(search_space=search_space, num_trials=10)
+#     import pprint
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(hyp)
+#     pp = pprint.PrettyPrinter(indent=4)
+#     pp.pprint(hyp)

@@ -11,13 +11,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from halton import generate_search
-from yaml import dump, load
-
-try:
-    from yaml import CDumper as Dumper
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Dumper, Loader
+from yaml import Dumper, Loader, dump, load
 
 
 def id_generator(size=6, chars=string.ascii_lowercase + string.digits):
