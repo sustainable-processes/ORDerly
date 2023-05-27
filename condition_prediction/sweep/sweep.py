@@ -198,7 +198,7 @@ def run_sweep(
         # Create command line
         cmd = deepcopy(base_command)
         for param_name, value in trial.items():
-            cmd += f" --params {param_name}={value}"
+            cmd += f" --{param_name}={value}"
 
         # Add wandb group
         cmd += f" --wandb_group name={sweep_id}"
@@ -214,13 +214,13 @@ def run_sweep(
             results.append(
                 pool.apply_async(
                     run_cmd,
-                    args=(cmd),
-                ),
+                    args=(cmd,),
+                )
             )
 
     if pool:
         for result in results:
-            result.wait()
+            result.get()
 
 
 def run_cmd(cmd: str):
