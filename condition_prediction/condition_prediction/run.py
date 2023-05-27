@@ -55,6 +55,11 @@ class ConditionPrediction:
     epochs: int
     generate_fingerprints: bool
     fp_size: int
+    dropout: float
+    hidden_size_1: int
+    hidden_size_2: int
+    lr: float
+    batch_size: int
     workers: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
@@ -98,6 +103,11 @@ class ConditionPrediction:
             train_val_split=self.train_val_split,
             epochs=self.epochs,
             fp_size=self.fp_size,
+            dropout=self.dropout,
+            hidden_size_1=self.hidden_size_1,
+            hidden_size_2=self.hidden_size_2,
+            lr=self.lr,
+            batch_size=self.batch_size,
             workers=self.workers,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
@@ -178,7 +188,12 @@ class ConditionPrediction:
         early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
         train_mode: int = HARD_SELECTION,
+        batch_size: int = 512,
         fp_size: int = 2048,
+        dropout: float = 0.2,
+        hidden_size_1: int = 1024,
+        hidden_size_2: int = 100,
+        lr: float = 0.01,
         workers: int = 1,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
@@ -246,6 +261,7 @@ class ConditionPrediction:
             test_fp=test_fp,
             train_mode=train_mode,
             molecule_columns=molecule_columns,
+            batch_size=batch_size,
         )
         y_test_data = (
             test_generator.mol1,
@@ -275,11 +291,11 @@ class ConditionPrediction:
             mol3_dim=train_generator.mol3.shape[-1],
             mol4_dim=train_generator.mol4.shape[-1],
             mol5_dim=train_generator.mol5.shape[-1],
-            N_h1=1024,
-            N_h2=100,
+            N_h1=hidden_size_1,
+            N_h2=hidden_size_2,
             l2v=0,  # TODO check what coef they used
             mode=train_mode,
-            dropout_prob=0.2,
+            dropout_prob=dropout,
             use_batchnorm=True,
         )
         # we use a separate model for prediction because we use a recurrent setup for prediction
@@ -292,11 +308,11 @@ class ConditionPrediction:
             mol3_dim=train_generator.mol3.shape[-1],
             mol4_dim=train_generator.mol4.shape[-1],
             mol5_dim=train_generator.mol5.shape[-1],
-            N_h1=1024,
-            N_h2=100,
+            N_h1=hidden_size_1,
+            N_h2=hidden_size_2,
             l2v=0,
             mode=HARD_SELECTION,
-            dropout_prob=0.2,
+            dropout_prob=dropout,
             use_batchnorm=True,
         )
 
@@ -306,7 +322,7 @@ class ConditionPrediction:
                 for _ in range(5)
             ],
             loss_weights=[1, 1, 1, 1, 1],
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
             metrics={
                 f"mol{i}": [
                     "acc",
@@ -507,6 +523,36 @@ class ConditionPrediction:
     help="The size of the fingerprint used in fingerprint generation",
 )
 @click.option(
+    "--dropout",
+    default=0.2,
+    type=float,
+    help="The dropout rate used in the model",
+)
+@click.option(
+    "--hidden_size_1",
+    default=1024,
+    type=int,
+    help="The size of the first hidden layer in the model",
+)
+@click.option(
+    "--hidden_size_2",
+    default=100,
+    type=int,
+    help="The size of the second hidden layer in the model",
+)
+@click.option(
+    "--lr",
+    default=0.01,
+    type=float,
+    help="The learning rate used in the model",
+)
+@click.option(
+    "--batch_size",
+    default=512,
+    type=int,
+    help="The batch size used during training of the model",
+)
+@click.option(
     "--wandb_logging",
     default=True,
     type=bool,
@@ -560,6 +606,11 @@ def main_click(
     generate_fingerprints: bool,
     workers: int,
     fp_size: int,
+    dropout: float,
+    hidden_size_1: int,
+    hidden_size_2: int,
+    lr: float,
+    batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
     wandb_entity: Optional[str],
@@ -598,6 +649,11 @@ def main_click(
         generate_fingerprints=generate_fingerprints,
         workers=workers,
         fp_size=fp_size,
+        dropout=dropout,
+        hidden_size_1=hidden_size_1,
+        hidden_size_2=hidden_size_2,
+        lr=lr,
+        batch_size=batch_size,
         wandb_logging=wandb_logging,
         wandb_project=wandb_project,
         wandb_entity=wandb_entity,
@@ -621,6 +677,11 @@ def main(
     generate_fingerprints: bool,
     workers: int,
     fp_size: int,
+    dropout: float,
+    hidden_size_1: int,
+    hidden_size_2: int,
+    lr: float,
+    batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
     wandb_entity: Optional[str],
@@ -706,6 +767,11 @@ def main(
         train_val_split=train_val_split,
         generate_fingerprints=generate_fingerprints,
         fp_size=fp_size,
+        dropout=dropout,
+        hidden_size_1=hidden_size_1,
+        hidden_size_2=hidden_size_2,
+        lr=lr,
+        batch_size=batch_size,
         workers=workers,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
