@@ -6,6 +6,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
+from keras import callbacks
 from sklearn.preprocessing import OneHotEncoder
 
 
