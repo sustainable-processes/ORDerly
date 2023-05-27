@@ -578,7 +578,7 @@ class ConditionPrediction:
     help="The project to use for logging to wandb",
 )
 @click.option(
-    "--wandb_tags", multiple=True, default=None, help="Tags for weights and biases run"
+    "--wandb_tag", multiple=True, default=None, help="Tags for weights and biases run"
 )
 @click.option(
     "--wandb_group",
@@ -621,7 +621,7 @@ def main_click(
     wandb_logging: bool,
     wandb_project: str,
     wandb_entity: Optional[str],
-    wandb_tags: List[str],
+    wandb_tag: List[str],
     wandb_group: Optional[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
@@ -644,6 +644,7 @@ def main_click(
     We can then use the model to predict the condition of a reaction.
 
     """
+    wandb_tags = wandb_tag
     main(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
@@ -664,7 +665,7 @@ def main_click(
         wandb_logging=wandb_logging,
         wandb_project=wandb_project,
         wandb_entity=wandb_entity,
-        wandb_tags=list(wandb_tags),
+        wandb_tags=wandb_tags,
         wandb_group=wandb_group,
         overwrite=overwrite,
         log_file=log_file,

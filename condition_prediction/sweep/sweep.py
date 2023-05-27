@@ -7,7 +7,7 @@ import string
 import subprocess
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import click
 from sweep.halton import generate_search
@@ -89,13 +89,12 @@ def nest_dict(d, keys, value):
 def run_sweep(
     sweep_config_path: str,
     start_idx: int = 0,
-    sweep_id: Optional[str] = None,
-    sweep_filepath: Optional[str] = None,
+    sweep_id: Optional[Union[str, Path]] = None,
+    commands_filepath: Optional[Union[str, Path]] = None,
     resume: bool = False,
     dry_run: bool = False,
     shuffle: bool = True,
     max_parallel: int = 1,
-    # delete_save_dirs: bool = False,
 ):
     """Run hyperparameter search
 
@@ -107,8 +106,9 @@ def run_sweep(
         Starting trial index. Useful if resuming a sweep.
     sweep_id: str, optional
         The sweep id. Default randomly generated
-    sweep_filepath: str, optional
-        Path to save sweep results
+    commands_filepath: str, optional
+        Path to to save commands for each trial. Defaults to
+        the sweep config filename with "_commands.txt" appended
     resume: bool, optional
         Resume a sweep from sweep_filepath starting at start_idx
     dry_run : bool, optional
@@ -128,13 +128,18 @@ def run_sweep(
     num_trials = sweep_config.get("num_trials", 10)
     base_command = sweep_config["base_command"]
 
-    if sweep_filepath and resume:
-        with open(sweep_filepath, "r") as f:
-            cmds = f.readlines()
+    if commands_filepath and resume:
+        with open(commands_filepath, "r") as f:
+            lines = f.readlines()
+        sweep_id = lines[0].strip()
+        cmds = [line.strip() for line in lines]
+        print(f"Resuming sweep {sweep_id} from trial {start_idx}")
         run_commands(
             cmds, dry_run=dry_run, max_parallel=max_parallel, start_idx=start_idx
         )
         return
+    elif resume and not commands_filepath:
+        raise ValueError("Must provide commands_filepath to resume a sweep")
 
     # Halton quasi-random search
     search_space, conditional_search_spaces = construct_search_space(
@@ -164,9 +169,6 @@ def run_sweep(
     if not sweep_id:
         sweep_id = id_generator()
         sweep_id = f"sweep_{sweep_id}"
-        print("Starting sweep ", sweep_id)
-    else:
-        print("Resuming sweep ", sweep_id)
 
     # Create commands
     cmds = []
@@ -182,13 +184,15 @@ def run_sweep(
         # Run trial
         cmds.append(cmd)
 
-    if sweep_filepath is None:
-        sweep_filepath = Path("sweeps")
-        sweep_filepath.mkdir(exist_ok=True)
-        sweep_filepath = sweep_filepath / f"{sweep_id}.txt"
-    with open(sweep_filepath, "w") as f:
-        f.writelines([cmd + "\n" for cmd in cmds])
+    if commands_filepath is None:
+        commands_filepath = Path("sweeps")
+        commands_filepath.mkdir(exist_ok=True)
+        sweep_config_path = Path(sweep_config_path)
+        commands_filepath = commands_filepath / f"{sweep_config_path.stem}_commands.txt"
+    with open(commands_filepath, "w") as f:
+        f.writelines([sweep_id + "\n"] + [cmd + "\n" for cmd in cmds])
 
+    print("Starting sweep ", sweep_id)
     run_commands(cmds, dry_run=dry_run, max_parallel=max_parallel)
 
 
@@ -265,29 +269,21 @@ def run_cmd(cmd: str, trial_idx: int = None):
     is_flag=True,
     help="Resume a sweep from sweep_filepath starting at start_idx",
 )
-# @click.option(
-#     "--delete_save_dirs",
-#     is_flag=True,
-#     help="Delete save directories after each trial. Only run if max_parallel=1",
-#     default=False,
-# )
 def run_sweep_click(
-    sweep_config_path,
-    start_idx,
-    sweep_filepath,
-    sweep_id,
-    max_parallel,
-    dry_run,
-    resume,
-    # delete_save_dirs,
+    sweep_config_path: str,
+    start_idx: int,
+    sweep_filepath: str,
+    sweep_id: str,
+    max_parallel: int,
+    dry_run: bool,
+    resume: bool,
 ):
     run_sweep(
         sweep_config_path=sweep_config_path,
         start_idx=start_idx,
-        sweep_filepath=sweep_filepath,
+        commands_filepath=sweep_filepath,
         sweep_id=sweep_id,
         max_parallel=max_parallel,
         dry_run=dry_run,
         resume=resume,
-        # delete_save_dirs=delete_save_dirs,
     )
