@@ -560,14 +560,17 @@ class Cleaner:
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
             )
-            mapped_rxn_df_with_replacements = pd.DataFrame()
+            mapped_rxn_dict_with_replacements = {}
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
+                mapped_rxn_dict_with_replacements[col] = mapped_rxn_df[col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
+            mapped_rxn_df_with_replacements = pd.DataFrame(
+                mapped_rxn_dict_with_replacements
+            )
             # Add back the non-target columns to the df
             mapped_rxn_df_with_replacements = pd.concat(
                 [
@@ -578,22 +581,25 @@ class Cleaner:
             )
 
             # remove reactions with unresolved names
-            for col in tqdm.tqdm(
-                target_columns,
-                disable=self.disable_tqdm,
-            ):
-                LOG.info(f"Attempting to remove reactions for {col}")
-                not_mapped_rxn_df_with_del_rows = not_mapped_rxn_df[
-                    ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
-                ]
-                LOG.info(
-                    f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
-                )
+            if not not_mapped_rxn_df_with_del_rows.empty:
+                for col in tqdm.tqdm(
+                    target_columns,
+                    disable=self.disable_tqdm,
+                ):
+                    LOG.info(f"Attempting to remove reactions for {col}")
+                    not_mapped_rxn_df_with_del_rows = not_mapped_rxn_df[
+                        ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
+                    ]
+                    LOG.info(
+                        f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
+                    )
 
-            # concat the dfs again
-            df = pd.concat(
-                [mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows]
-            )
+                # concat the dfs again
+                df = pd.concat(
+                    [mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows]
+                )
+            else:
+                df = mapped_rxn_df_with_replacements
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
@@ -614,14 +620,15 @@ class Cleaner:
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
             )
-            df_with_replacements = pd.DataFrame()
+            dict_with_replacements = {}
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                df_with_replacements[col] = df.loc[:, col].map(
+                dict_with_replacements[col] = df[col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
+            df_with_replacements = pd.DataFrame(dict_with_replacements)
             # Add back the non-target columns to the df
             df = pd.concat(
                 [df_with_replacements, df.loc[:, ~df.columns.isin(target_columns)]],
@@ -1212,7 +1219,7 @@ def main(
         test_set_list = [set(row) for _, row in test_input_df.iterrows()]
 
         matching_indices = []  # List to store the indices of matching rows
-
+        LOG.info("Moving rows from test to train if they are in both")
         for values, index in zip(test_set_list, test_indices):
             if values in train_set_list:
                 matching_indices.append(index)
