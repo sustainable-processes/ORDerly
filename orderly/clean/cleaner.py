@@ -229,18 +229,6 @@ class Cleaner:
         return df
 
     @staticmethod
-    def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
-        LOG.info(f"Removing reactions with no reactants")
-        df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
-        return df
-
-    @staticmethod
-    def _remove_rxn_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
-        LOG.info("Removing reactions with no products")
-        df = Cleaner._del_rows_empty_in_this_col(df, "product")
-        return df
-
-    @staticmethod
     def _remove_rxn_with_no_conditions(
         df: pd.DataFrame, components: Optional[List[str]] = None
     ) -> pd.DataFrame:
@@ -663,33 +651,50 @@ class Cleaner:
                 number_of_columns_to_keep=number_of_columns_to_keep,
                 num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
-
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
+
+            df = Cleaner._del_rows_empty_in_this_col(df, "product")
+
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_reactants(df)
-            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
+            df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
+            LOG.info(f"After removing reactions with no reactants: {df.shape[0]}")
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_products(df)
+            df = Cleaner._del_rows_empty_in_this_col(df, "product")
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
         if self.remove_reactions_with_no_solvents:
             LOG.info(f"Before removing reactions with no solvents: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_solvents(df)
+            df = Cleaner._del_rows_empty_in_this_col(df, "solvent")
             LOG.info(f"After removing reactions with no solvents: {df.shape[0]}")
         if self.remove_reactions_with_no_agents:
-            LOG.info(f"Before removing reactions with no agents: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_agents(df)
-            LOG.info(f"After removing reactions with no agents: {df.shape[0]}")
-            
+            if "agent_000" in df.columns:
+                LOG.info(f"Before removing reactions with no agents: {df.shape[0]}")
+                df = Cleaner._del_rows_empty_in_this_col(df, "agent")
+                LOG.info(f"After removing reactions with no agents: {df.shape[0]}")
+            else:
+                LOG.info(
+                    f"Before removing reactions with no reagents AND no catalysts: {df.shape[0]}"
+                )
+                df = Cleaner._remove_rxn_with_no_conditions(
+                    df, components=["catalyst", "reagent"]
+                )
+                LOG.info(
+                    f"After removing reactions with no reagents AND no catalysts: {df.shape[0]}"
+                )
+
         if self.remove_reactions_with_no_conditions:
-            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
+            LOG.info(
+                f"Before removing reactions with no conditions (ie no solvents AND no agents): {df.shape[0]}"
+            )
             df = Cleaner._remove_rxn_with_no_conditions(
                 df, components=["catalyst", "solvent", "agent", "reagent"]
             )
-            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
+            LOG.info(
+                f"After removing reactions with no conditions (ie no solvents AND no agents): {df.shape[0]}"
+            )
 
         # Ensure consistent yield
         if self.consistent_yield:
