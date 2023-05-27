@@ -87,9 +87,9 @@ def nest_dict(d, keys, value):
 
 
 def run_sweep(
-    sweep_config_path: str,
+    sweep_config_path: Union[str, Path],
     start_idx: int = 0,
-    sweep_id: Optional[Union[str, Path]] = None,
+    sweep_id: Optional[str] = None,
     commands_filepath: Optional[Union[str, Path]] = None,
     resume: bool = False,
     dry_run: bool = False,
@@ -185,11 +185,13 @@ def run_sweep(
         cmds.append(cmd)
 
     if commands_filepath is None:
-        commands_filepath = Path("sweeps")
-        commands_filepath.mkdir(exist_ok=True)
-        sweep_config_path = Path(sweep_config_path)
-        commands_filepath = commands_filepath / f"{sweep_config_path.stem}_commands.txt"
-    with open(commands_filepath, "w") as f:
+        commands_filepath_pathlib = Path("sweeps")
+        commands_filepath_pathlib.mkdir(exist_ok=True)
+        sweep_config_pathlib = Path(sweep_config_path)
+        commands_filepath_pathlib = (
+            commands_filepath_pathlib / f"{sweep_config_pathlib.stem}_commands.txt"
+        )
+    with open(commands_filepath_pathlib, "w") as f:
         f.writelines([sweep_id + "\n"] + [cmd + "\n" for cmd in cmds])
 
     print("Starting sweep ", sweep_id)
@@ -222,7 +224,7 @@ def run_commands(cmds, dry_run: bool = False, max_parallel: int = 1, start_idx=0
             result.get()
 
 
-def run_cmd(cmd: str, trial_idx: int = None):
+def run_cmd(cmd: str, trial_idx: int):
     print(f"Running trial {trial_idx}")
     print(cmd)
     subprocess.run(cmd, shell=True)
