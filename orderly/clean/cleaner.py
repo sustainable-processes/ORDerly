@@ -910,7 +910,7 @@ class Cleaner:
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
-    "--train_test_split_fration",
+    "--train_test_split_fraction",
     type=float,
     default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
@@ -954,7 +954,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    train_test_split_fration: float,
+    train_test_split_fraction: float,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -1012,7 +1012,7 @@ def main_click(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
         scramble=scramble,
-        train_test_split_fration=train_test_split_fration,
+        train_test_split_fraction=train_test_split_fraction,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -1042,7 +1042,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    train_test_split_fration: float,
+    train_test_split_fraction: float,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1143,7 +1143,7 @@ def main(
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
         "scramble": scramble,
-        "train_test_split_fration": train_test_split_fration,
+        "train_test_split_fraction": train_test_split_fraction,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1196,8 +1196,7 @@ def main(
         disable_tqdm=disable_tqdm,
     )
 
-    LOG.info(f"completed cleaning, saving to {output_path}")
-    if train_test_split_fration not in [0.0, 1.0]:
+    if train_test_split_fraction not in [0.0, 1.0]:
         df = instance.cleaned_reactions
         LOG.info("Applying random split")
         # Get indices for train and val
@@ -1205,23 +1204,31 @@ def main(
         train_test_indices = np.arange(df.shape[0])
         rng.shuffle(train_test_indices)
         train_indices = train_test_indices[
-            : int(train_test_indices.shape[0] * train_test_split_fration)
+            : int(train_test_indices.shape[0] * train_test_split_fraction)
         ]
         test_indices = train_test_indices[
-            int(train_test_indices.shape[0] * train_test_split_fration) :
+            int(train_test_indices.shape[0] * train_test_split_fraction) :
         ]
 
-        input_columns = df.columns[df.columns.str.startswith(("reactant", "product"))]
-        train_input_df = df.loc[train_indices, input_columns]
-        test_input_df = df.loc[test_indices, input_columns]
+        input_columns = list(
+            df.columns[df.columns.str.startswith(("reactant", "product"))]
+        )
 
+        LOG.info(
+            f"preparing to move rows from test to train set based on {input_columns=}"
+        )
+        train_input_df = df.loc[train_indices, input_columns].copy().fillna("NULL")
+        test_input_df = df.loc[test_indices, input_columns].copy().fillna("NULL")
+
+        # TODO: This is a very slow way to do this. Can we do it faster?
         train_set_list = [set(row) for _, row in train_input_df.iterrows()]
+        train_set_set = set(train_set_list)
         test_set_list = [set(row) for _, row in test_input_df.iterrows()]
 
         matching_indices = []  # List to store the indices of matching rows
         LOG.info("Moving rows from test to train if they are in both")
         for values, index in zip(test_set_list, test_indices):
-            if values in train_set_list:
+            if values in train_set_set:
                 matching_indices.append(index)
 
         # drop the matching rows from the test set
@@ -1229,11 +1236,10 @@ def main(
         # Add the matching rows to the train set
         train_indices = np.append(train_indices, matching_indices)
 
-        percentage_of_test_data_moved_to_train = len(matching_indices) / len(
-            test_indices
-        )
-        LOG.info(f"{percentage_of_test_data_moved_to_train=}")
-        if percentage_of_test_data_moved_to_train > 0.1:
+        fraction_of_test_data_moved_to_train = len(matching_indices) / len(test_indices)
+
+        LOG.info(f"{fraction_of_test_data_moved_to_train=}")
+        if fraction_of_test_data_moved_to_train > 0.1:
             LOG.warning(
                 "More than 10% of the test set was moved the training set. This may indicate a non-diverse dataset."
             )
@@ -1247,5 +1253,6 @@ def main(
         instance.cleaned_reactions.to_parquet(output_path)
         LOG.info("Saved unsplit data")
 
+    LOG.info(f"completed cleaning, saving to {output_path}")
     end_time = datetime.datetime.now()
     LOG.info("Cleaning complete, duration: {}".format(end_time - start_time))
