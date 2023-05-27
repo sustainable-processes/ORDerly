@@ -5,12 +5,12 @@ import random
 import shutil
 import string
 import subprocess
-from argparse import ArgumentParser
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Optional
 
-from halton import generate_search
+import click
+from sweep.halton import generate_search
 from yaml import Dumper, Loader, dump, load
 
 
@@ -86,7 +86,7 @@ def nest_dict(d, keys, value):
     return d
 
 
-def run_search(
+def run_sweep(
     sweep_config_path: str,
     start_idx: int = 0,
     sweep_id: Optional[str] = None,
@@ -96,7 +96,7 @@ def run_search(
     dry_run: bool = False,
     shuffle: bool = True,
     max_parallel: int = 1,
-    delete_save_dirs: bool = False,
+    # delete_save_dirs: bool = False,
 ):
     """Run hyperparameter search
 
@@ -118,8 +118,7 @@ def run_search(
         Shuffle trials. Default True
     max_parallel : int, optional
         Maximum number of parallel trials. Default 1
-    delete_save_dirs : bool, optional
-        Delete save directories after sweep. Default False
+
 
     Notes
     -----
@@ -128,21 +127,20 @@ def run_search(
     with open(sweep_config_path, "r") as f:
         sweep_config = load(f, Loader=Loader)
     num_trials = sweep_config.get("num_trials", 10)
+    base_command = sweep_config["base_command"]
 
-    with open(sweep_config["base_config_filepath"], "r") as f:
-        base_config_all = load(f, Loader=Loader)
-    key = sweep_config["key"]
-    # base_config = base_config_all[key]
-    if key in base_config_all:
-        base_config = base_config_all[key]
-    else:
-        keys = key.split(".")
-        base_config = base_config_all
-        for k in keys:
-            if k in base_config:
-                base_config = base_config[k]
-            else:
-                raise ValueError(f"Key {key} not found in base config")
+    # key = sweep_config["key"]
+    # # base_config = base_config_all[key]
+    # if key in base_config_all:
+    #     base_config = base_config_all[key]
+    # else:
+    #     keys = key.split(".")
+    #     base_config = base_config_all
+    #     for k in keys:
+    #         if k in base_config:
+    #             base_config = base_config[k]
+    #         else:
+    #             raise ValueError(f"Key {key} not found in base config")
 
     # Halton quasi-random search
     if sweep_filepath and resume:
@@ -197,39 +195,26 @@ def run_search(
         pool = None
     for i, trial in enumerate(trials[start_idx:]):
         print("Running trial", i)
-
-        # Override base config parameters
-        trial_config = {}
-        trial_config["pipeline"] = sweep_config["pipeline"]
-        params = deepcopy(base_config)
+        # Create command line
+        cmd = deepcopy(base_command)
         for param_name, value in trial.items():
-            params[param_name] = value
+            cmd += f" --params {param_name}={value}"
 
-        # Add wandb kwargs
-        if "wandb_kwargs" in params:
-            params["wandb_kwargs"]["group"] = sweep_id
-            # params["wandb_kwargs"]["trial"] = i
-        else:
-            params["wandb_kwargs"] = {"group": sweep_id}
-        params["save_dir"] = f"data/07_model_output/{sweep_id}/trial_{i}"
-
-        # Create kedro config
-        trial_config["params"] = {key: params}
-        run_config = {"run": trial_config}
-        kedro_config_path = config_dir / f"trial_{i}.yml"
-        with open(kedro_config_path, "w") as f:
-            f.write(dump(run_config, Dumper=Dumper))
+        # Add wandb group
+        cmd += f" --wandb_group name={sweep_id}"
+        # kedro_config_path = config_dir / f"trial_{i}.yml"
+        # with open(kedro_config_path, "w") as f:
+        #     f.write(dump(run_config, Dumper=Dumper))
 
         # Run trial
-        cmd = ["kedro", "run", "--config", str(kedro_config_path)]
+        # cmd = ["kedro", "run", "--config", str(kedro_config_path)]
         if dry_run:
             print(cmd)
         if pool:
             results.append(
                 pool.apply_async(
                     run_cmd,
-                    args=(cmd, params["save_dir"]),
-                    kwds={"delete_save_dirs": delete_save_dirs},
+                    args=(cmd),
                 ),
             )
 
@@ -238,60 +223,67 @@ def run_search(
             result.wait()
 
 
-def run_cmd(cmd: str, save_dir, delete_save_dirs=False):
-    # cmd = " ".join(cmd)
+def run_cmd(cmd: str):
     print(cmd)
-    print(Path.cwd())
-    subprocess.run(cmd, shell=False)
-    if delete_save_dirs:
-        delete_dirs = [save_dir, "wandb", "artifacts", "lightning_logs"]
-        for delete_dir in delete_dirs:
-            delete_dir = Path(delete_dir)
-            if delete_dir.exists():
-                shutil.rmtree(delete_dir)
+    subprocess.run(cmd, shell=True)
 
 
-if __name__ == "__main__":
-    parser = ArgumentParser(prog="Hyperparameter search")
-    parser.add_argument(
-        "--sweep_config_path",
-        type=str,
-        default="conf/base/sweeps/pyg.yml",
-        help="Path to sweep config file",
+@click.command()
+@click.argument(
+    "sweep_config_path",
+    type=str,
+    # help="Path to sweep config file",
+)
+@click.option(
+    "--start_idx",
+    type=int,
+    default=0,
+    help="Index of first trial to run",
+)
+@click.option(
+    "--sweep_filepath",
+    type=str,
+    default=None,
+    help="Path to save sweep results",
+)
+@click.option(
+    "--sweep_id",
+    type=str,
+    default=None,
+    help="Sweep ID for grouping in wandb interface",
+)
+@click.option(
+    "--max_parallel",
+    type=int,
+    default=2,
+    help="Maximum number of parallel trials",
+)
+@click.option(
+    "--dry_run",
+    is_flag=True,
+    help="Print commands instead of running",
+)
+# @click.option(
+#     "--delete_save_dirs",
+#     is_flag=True,
+#     help="Delete save directories after each trial. Only run if max_parallel=1",
+#     default=False,
+# )
+def run_sweep_click(
+    sweep_config_path,
+    start_idx,
+    sweep_filepath,
+    sweep_id,
+    max_parallel,
+    dry_run,
+    # delete_save_dirs,
+):
+    run_sweep(
+        sweep_config_path=sweep_config_path,
+        start_idx=start_idx,
+        sweep_filepath=sweep_filepath,
+        sweep_id=sweep_id,
+        max_parallel=max_parallel,
+        dry_run=dry_run,
+        # delete_save_dirs=delete_save_dirs,
     )
-    parser.add_argument(
-        "--start_idx",
-        type=int,
-        default=0,
-        help="Index of first trial to run",
-    )
-    parser.add_argument(
-        "--sweep_filepath",
-        type=str,
-        default=None,
-        help="Path to save sweep results",
-    )
-    parser.add_argument(
-        "--sweep_id",
-        type=str,
-        default=None,
-        help="Sweep ID for grouping in wandb interface",
-    )
-    parser.add_argument(
-        "--max_parallel",
-        type=int,
-        default=2,
-        help="Maximum number of parallel trials",
-    )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print commands instead of running",
-    )
-    parser.add_argument(
-        "--delete_save_dirs",
-        action="store_true",
-        help="Delete save directories after each trial. Only run if max_parallel=1",
-        default=False,
-    )
-    run_search(**vars(parser.parse_args()))

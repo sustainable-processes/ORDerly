@@ -62,6 +62,7 @@ class ConditionPrediction:
     wandb_project: str
     wandb_entity: Optional[str] = None
     wandb_tags: Optional[List[str]] = None
+    wandb_group: Optional[str] = None
 
     def __post_init__(self) -> None:
         pass
@@ -104,6 +105,7 @@ class ConditionPrediction:
             wandb_entity=self.wandb_entity,
             wandb_logging=self.wandb_logging,
             wandb_tags=self.wandb_tags,
+            wandb_group=self.wandb_group,
         )
 
     @staticmethod
@@ -182,6 +184,7 @@ class ConditionPrediction:
         wandb_project: str = "orderly",
         wandb_entity: Optional[str] = None,
         wandb_tags: Optional[List[str]] = None,
+        wandb_group: Optional[str] = None,
     ) -> None:
         """
         Run condition prediction training
@@ -343,6 +346,7 @@ class ConditionPrediction:
                 project=wandb_project,
                 entity=wandb_entity,
                 tags=wandb_tags,
+                group=wandb_group,
             )
             callbacks.extend(
                 [
@@ -524,6 +528,12 @@ class ConditionPrediction:
     "--wandb_tags", multiple=True, default=None, help="Tags for weights and biases run"
 )
 @click.option(
+    "--wandb_group",
+    default=None,
+    type=str,
+    help="The group to use for logging to wandb",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -554,6 +564,7 @@ def main_click(
     wandb_project: str,
     wandb_entity: Optional[str],
     wandb_tags: List[str],
+    wandb_group: Optional[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -591,6 +602,7 @@ def main_click(
         wandb_project=wandb_project,
         wandb_entity=wandb_entity,
         wandb_tags=list(wandb_tags),
+        wandb_group=wandb_group,
         overwrite=overwrite,
         log_file=log_file,
         log_level=log_level,
@@ -613,6 +625,7 @@ def main(
     wandb_project: str,
     wandb_entity: Optional[str],
     wandb_tags: List[str],
+    wandb_group: Optional[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -701,6 +714,7 @@ def main(
         wandb_project=wandb_project,
         wandb_logging=wandb_logging,
         wandb_tags=list(wandb_tags),
+        wandb_group=wandb_group,
     )
 
     instance.run_model_arguments()
