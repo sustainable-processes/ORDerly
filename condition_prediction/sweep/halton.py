@@ -197,7 +197,7 @@ def generate_sequence(
         halton_sequence.append(dim_sequence)
 
     # Transpose the 2-D list to be shape [num_samples, num_dims].
-    halton_sequence = list(zip(*halton_sequence))
+    halton_sequence = list(zip(*halton_sequence))  # type: ignore
 
     # Shuffle the sequence.
     if shuffle_sequence:
@@ -287,7 +287,7 @@ def uniform(
 def product(sweeps: Sequence[_SweepSequence]) -> _SweepSequence:
     """Cartesian product of a list of hyperparameter generators."""
     # A List[Dict] of hyperparameter names to sweep values.
-    hyperparameter_sweep = []
+    hyperparameter_sweep: List = []
     for hyperparameter_index in range(len(sweeps)):
         hyperparameter_sweep.append([])
         # Keep iterating until the iterator in sweep() ends.
