@@ -9,7 +9,7 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
 
-from condition_prediction.constants import *
+from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
 
 LOG = logging.getLogger(__name__)
@@ -258,7 +258,7 @@ def get_data_generators(
         mol3=train_mol3,
         mol4=train_mol4,
         mol5=train_mol5,
-        fp=train_val_fp[train_idx],
+        fp=train_val_fp[train_idx] if train_val_fp is not None else None,
         data=df.iloc[train_idx],
         mode=train_mode,
         batch_size=batch_size,
@@ -276,7 +276,7 @@ def get_data_generators(
         mol3=val_mol3,
         mol4=val_mol4,
         mol5=val_mol5,
-        fp=train_val_fp[val_idx],
+        fp=train_val_fp[val_idx] if train_val_fp is not None else None,
         data=df.iloc[val_idx],
         mode=val_mode,
         batch_size=batch_size,

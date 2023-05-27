@@ -1,18 +1,17 @@
-import logging
-import os
-import json
-from typing import List, Dict, Tuple, Optional
 import dataclasses
 import datetime
+import json
+import logging
+import os
 import pathlib
+from typing import Dict, List, Optional, Tuple
+
 import click
-
-from click_loglevel import LogLevel
-
+import numpy as np
+import pandas as pd
 import tqdm
 import tqdm.contrib.logging
-import pandas as pd
-import numpy as np
+from click_loglevel import LogLevel
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
@@ -243,12 +242,15 @@ class Cleaner:
 
     @staticmethod
     def _remove_rxn_with_no_conditions(
-        df: pd.DataFrame, components=("catalyst", "solvent", "agent", "reagent")
+        df: pd.DataFrame, components: Optional[List[str]] = None
     ) -> pd.DataFrame:
         LOG.info("Removing reactions with no conditions")
-
+        if components is None:
+            components = ["catalyst", "solvent", "agent", "reagent"]
         # Check for rows with all None values in the specified columns
-        mask = df.loc[:, df.columns.str.startswith(components)].isna().all(axis=1)
+        mask = (
+            df.loc[:, df.columns.str.startswith(tuple(components))].isna().all(axis=1)
+        )
 
         # Remove rows with all None values
         filtered_df = df[~mask]
@@ -685,7 +687,7 @@ class Cleaner:
         if self.remove_reactions_with_no_conditions:
             LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
             df = Cleaner._remove_rxn_with_no_conditions(
-                df, components=("catalyst", "solvent", "agent", "reagent")
+                df, components=["catalyst", "solvent", "agent", "reagent"]
             )
             LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
 
