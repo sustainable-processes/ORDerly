@@ -1,6 +1,17 @@
-base_command: python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=20 --evaluate_on_test_data=True --wandb_entity="ceb-sre"
-num_trials: 5
+base_command: python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=1000 --evaluate_on_test_data=True --wandb_entity="ceb-sre"
+num_trials: 20
 params:
+  ### Model related parameters ###
+  hidden_size_1:
+    min: 64
+    max: 1022
+    scaling: linear
+    type: integer
+  hidden_size_2:
+    min: 64
+    max: 1024
+    scaling: linear
+    type: integer
   ### Training related parameters ###
   dropout:
     min: 0.0
@@ -12,31 +23,3 @@ params:
     max: 0.1
     scaling: log
     type: float
-  # optimizer: 
-  #   values: [adam]
-  # beta_1:
-  #   key: optimizer_kwargs
-  #   min: 0.8
-  #   max: 0.99
-  #   scaling: log
-  #   type: float
-  # scheduler:
-  #   values: [noam]
-  # warmup_epochs:
-  #   key: scheduler_kwargs 
-  #   min: 1
-  #   max: 10
-  #   scaling: linear
-  #   type: integer
-  # max_lr_ratio:
-  #   key: scheduler_kwargs 
-  #   min: 2
-  #   max: 100
-  #   scaling: linear
-  #   type: float
-  # final_lr_ratio:
-  #   key: scheduler_kwargs
-  #   min: 0.1
-  #   max: 1.0
-  #   scaling: linear
-  #   type: float

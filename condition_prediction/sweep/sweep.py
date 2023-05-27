@@ -91,7 +91,6 @@ def run_sweep(
     start_idx: int = 0,
     sweep_id: Optional[str] = None,
     sweep_filepath: Optional[str] = None,
-    trials_dir: Optional[str] = None,
     resume: bool = False,
     dry_run: bool = False,
     shuffle: bool = True,
@@ -129,48 +128,34 @@ def run_sweep(
     num_trials = sweep_config.get("num_trials", 10)
     base_command = sweep_config["base_command"]
 
-    # key = sweep_config["key"]
-    # # base_config = base_config_all[key]
-    # if key in base_config_all:
-    #     base_config = base_config_all[key]
-    # else:
-    #     keys = key.split(".")
-    #     base_config = base_config_all
-    #     for k in keys:
-    #         if k in base_config:
-    #             base_config = base_config[k]
-    #         else:
-    #             raise ValueError(f"Key {key} not found in base config")
-
-    # Halton quasi-random search
     if sweep_filepath and resume:
         with open(sweep_filepath, "r") as f:
-            trials = json.load(f)
-    elif "params" in sweep_config:
-        search_space, conditional_search_spaces = construct_search_space(
-            sweep_config["params"]
+            cmds = f.readlines()
+        run_commands(
+            cmds, dry_run=dry_run, max_parallel=max_parallel, start_idx=start_idx
         )
-        print("Generating search space")
-        trials = generate_search(search_space, num_trials=num_trials)
-        trials = add_conditional_searches(conditional_search_spaces, trials)
-        for trial in trials:
-            for param_name in sweep_config["params"]:
-                if "key" in sweep_config["params"][param_name]:
-                    param_key = sweep_config["params"][param_name]["key"]
-                    new_param_dict = nest_dict(
-                        {}, param_key.split("."), {param_name: trial[param_name]}
-                    )
-                    base_key = list(new_param_dict.keys())[0]
-                    if base_key in trial:
-                        trial[base_key].update(new_param_dict[base_key])
-                    else:
-                        trial.update(new_param_dict)
-                    del trial[param_name]
-        if sweep_filepath:
-            with open(sweep_filepath, "w") as f:
-                json.dump(trials, f)
-    else:
-        raise ValueError("No parameters found in config file")
+        return
+
+    # Halton quasi-random search
+    search_space, conditional_search_spaces = construct_search_space(
+        sweep_config["params"]
+    )
+    print("Generating search space")
+    trials = generate_search(search_space, num_trials=num_trials)
+    trials = add_conditional_searches(conditional_search_spaces, trials)
+    for trial in trials:
+        for param_name in sweep_config["params"]:
+            if "key" in sweep_config["params"][param_name]:
+                param_key = sweep_config["params"][param_name]["key"]
+                new_param_dict = nest_dict(
+                    {}, param_key.split("."), {param_name: trial[param_name]}
+                )
+                base_key = list(new_param_dict.keys())[0]
+                if base_key in trial:
+                    trial[base_key].update(new_param_dict[base_key])
+                else:
+                    trial.update(new_param_dict)
+                del trial[param_name]
 
     if shuffle:
         random.shuffle(trials)
@@ -183,18 +168,9 @@ def run_sweep(
     else:
         print("Resuming sweep ", sweep_id)
 
-    # Create config files and run
-    if not trials_dir:
-        trials_dir = f"conf/local/sweeps/{sweep_id}"
-    config_dir = Path(trials_dir)
-    config_dir.mkdir(exist_ok=True, parents=True)
-    results = []
-    if not dry_run:
-        pool = mp.Pool(max_parallel)
-    else:
-        pool = None
+    # Create commands
+    cmds = []
     for i, trial in enumerate(trials[start_idx:]):
-        print("Running trial", i)
         # Create command line
         cmd = deepcopy(base_command)
         for param_name, value in trial.items():
@@ -202,28 +178,48 @@ def run_sweep(
 
         # Add wandb group
         cmd += f" --wandb_group name={sweep_id}"
-        # kedro_config_path = config_dir / f"trial_{i}.yml"
-        # with open(kedro_config_path, "w") as f:
-        #     f.write(dump(run_config, Dumper=Dumper))
 
         # Run trial
-        # cmd = ["kedro", "run", "--config", str(kedro_config_path)]
+        cmds.append(cmd)
+
+    if sweep_filepath is None:
+        sweep_filepath = Path("sweeps")
+        sweep_filepath.mkdir(exist_ok=True)
+        sweep_filepath = sweep_filepath / f"{sweep_id}.txt"
+    with open(sweep_filepath, "w") as f:
+        f.writelines([cmd + "\n" for cmd in cmds])
+
+    run_commands(cmds, dry_run=dry_run, max_parallel=max_parallel)
+
+
+def run_commands(cmds, dry_run: bool = False, max_parallel: int = 1, start_idx=0):
+    if not dry_run:
+        pool = mp.Pool(max_parallel)
+    else:
+        pool = None
+
+    results = []
+    idx = start_idx
+    for cmd in cmds[start_idx:]:
         if dry_run:
+            print(f"Running trial {idx}")
             print(cmd)
         if pool:
             results.append(
                 pool.apply_async(
                     run_cmd,
-                    args=(cmd,),
+                    args=(cmd, idx),
                 )
             )
+        idx += 1
 
     if pool:
         for result in results:
             result.get()
 
 
-def run_cmd(cmd: str):
+def run_cmd(cmd: str, trial_idx: int = None):
+    print(f"Running trial {trial_idx}")
     print(cmd)
     subprocess.run(cmd, shell=True)
 
@@ -263,6 +259,12 @@ def run_cmd(cmd: str):
     is_flag=True,
     help="Print commands instead of running",
 )
+@click.option(
+    "--resume",
+    default=False,
+    is_flag=True,
+    help="Resume a sweep from sweep_filepath starting at start_idx",
+)
 # @click.option(
 #     "--delete_save_dirs",
 #     is_flag=True,
@@ -276,6 +278,7 @@ def run_sweep_click(
     sweep_id,
     max_parallel,
     dry_run,
+    resume,
     # delete_save_dirs,
 ):
     run_sweep(
@@ -285,5 +288,6 @@ def run_sweep_click(
         sweep_id=sweep_id,
         max_parallel=max_parallel,
         dry_run=dry_run,
+        resume=resume,
         # delete_save_dirs=delete_save_dirs,
     )
