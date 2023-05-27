@@ -581,7 +581,7 @@ class Cleaner:
             )
 
             # remove reactions with unresolved names
-            if not not_mapped_rxn_df_with_del_rows.empty:
+            if not not_mapped_rxn_df.empty:
                 for col in tqdm.tqdm(
                     target_columns,
                     disable=self.disable_tqdm,
