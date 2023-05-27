@@ -570,6 +570,65 @@ def main_click(
     We can then use the model to predict the condition of a reaction.
 
     """
+    main(
+        train_data_path=train_data_path,
+        test_data_path=test_data_path,
+        output_folder_path=output_folder_path,
+        train_fraction=train_fraction,
+        train_val_split=train_val_split,
+        epochs=epochs,
+        early_stopping_patience=early_stopping_patience,
+        evaluate_on_test_data=evaluate_on_test_data,
+        generate_fingerprints=generate_fingerprints,
+        workers=workers,
+        fp_size=fp_size,
+        wandb_logging=wandb_logging,
+        wandb_project=wandb_project,
+        wandb_entity=wandb_entity,
+        wandb_tags=list(wandb_tags),
+        overwrite=overwrite,
+        log_file=log_file,
+        log_level=log_level,
+    )
+
+
+def main(
+    train_data_path: pathlib.Path,
+    test_data_path: pathlib.Path,
+    output_folder_path: pathlib.Path,
+    train_fraction: float,
+    train_val_split: float,
+    epochs: int,
+    early_stopping_patience: int,
+    evaluate_on_test_data: bool,
+    generate_fingerprints: bool,
+    workers: int,
+    fp_size: int,
+    wandb_logging: bool,
+    wandb_project: str,
+    wandb_entity: Optional[str],
+    wandb_tags: List[str],
+    overwrite: bool,
+    log_file: pathlib.Path = pathlib.Path("model.log"),
+    log_level: int = logging.INFO,
+) -> None:
+    """
+    After extraction and cleaning of ORD data, this will train a condition prediction model.
+
+
+    Functionality:
+    1) Load the the train and test data
+    2) Get the fingerprint to use as input (Morgan fp from rdkit). Generating FP is slow, so we do it once and save it.
+    3) Apply OHE to the target variables
+    3) Train the model (use tqdm to show progress)
+        3.1) Save graphs of training & validation loss and accuracy
+        3.2) Save the model
+    4) Evaluate the model on the test data
+        4.1) Save the test loss and accuracy in a log file
+
+    We can then use the model to predict the condition of a reaction.
+
+    """
     train_data_path = pathlib.Path(train_data_path)
     test_data_path = pathlib.Path(test_data_path)
     output_folder_path = pathlib.Path(output_folder_path)
