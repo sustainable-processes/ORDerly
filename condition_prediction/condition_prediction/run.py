@@ -205,6 +205,12 @@ class ConditionPrediction:
         Run condition prediction training
 
         """
+        config = locals()
+        config.pop("train_val_df")
+        config.pop("test_df")
+        config.pop("train_val_fp")
+        config.pop("test_fp")
+
         ### Data setup ###
         assert train_val_df.shape[1] == test_df.shape[1]
 
@@ -363,6 +369,7 @@ class ConditionPrediction:
                 entity=wandb_entity,
                 tags=wandb_tags,
                 group=wandb_group,
+                config=config,
             )
             callbacks.extend(
                 [
@@ -375,7 +382,7 @@ class ConditionPrediction:
         h = model.fit(
             train_generator,
             epochs=epochs,
-            verbose=1,
+            verbose=2,
             validation_data=val_generator,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
