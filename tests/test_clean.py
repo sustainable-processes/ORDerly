@@ -44,6 +44,8 @@ def get_cleaned_df(
     remove_rxn_with_unresolved_names: bool,
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
+    remove_reactions_with_no_solvents: bool,
+    remove_reactions_with_no_agents: bool,
     remove_reactions_with_no_conditions: bool,
     drop_duplicates: bool,
 ) -> pd.DataFrame:
@@ -81,6 +83,8 @@ def get_cleaned_df(
         remove_rxn_with_unresolved_names=remove_rxn_with_unresolved_names,
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
+        remove_reactions_with_no_solvents=remove_reactions_with_no_solvents,
+        remove_reactions_with_no_agents=remove_reactions_with_no_agents,
         remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         scramble=False,
         train_test_split_fration=0,
@@ -107,12 +111,16 @@ def cleaned_df_params_default(
         True,
         True,
         True,
+        False,
+        True,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
+    # remove_reactions_with_no_solvents: bool,
+    # remove_reactions_with_no_agents: bool,
     # remove_reactions_with_no_conditions: bool,
     # drop_duplicates: bool
     return (
@@ -141,12 +149,16 @@ def cleaned_df_params_default_without_min_freq(
         True,
         True,
         True,
+        False,
+        True,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
     # set_unresolved_names_to_none: bool,
     # remove_rxn_with_unresolved_names: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
+    # remove_reactions_with_no_solvents: bool,
+    # remove_reactions_with_no_agents: bool,
     # remove_reactions_with_no_conditions: bool,
     # drop_duplicates: bool
     return (
@@ -172,6 +184,8 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates(
         True,
         True,
         True,
+        True,
+        False,
         False,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
@@ -179,6 +193,8 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates(
     # remove_rxn_with_unresolved_names: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
+    # remove_reactions_with_no_solvents: bool,
+    # remove_reactions_with_no_agents: bool,
     # remove_reactions_with_no_conditions: bool,
     # drop_duplicates: bool
 
@@ -209,6 +225,8 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
         True,
         True,
         True,
+        True,
+        False,
         False,
     ]
     # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
@@ -216,6 +234,8 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
     # remove_rxn_with_unresolved_names: bool,
     # remove_reactions_with_no_reactants: bool,
     # remove_reactions_with_no_products: bool,
+    # remove_reactions_with_no_solvents: bool,
+    # remove_reactions_with_no_agents: bool,
     # remove_reactions_with_no_conditions: bool,
     # drop_duplicates: bool
     return (

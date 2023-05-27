@@ -44,6 +44,8 @@ class Cleaner:
         remove_reactions_with_no_reactants (bool): Remove reactions with no reactants
         remove_reactions_with_no_products (bool): Remove reactions with no products
         remove_reactions_with_no_conditions (bool): Remove reactions with no conditions (e.g. no solvent, catalyst, reagent, agent)
+        remove_reactions_with_no_solvents (bool): Remove reactions with no solvents
+        remove_reactions_with_no_agents (bool): Remove reactions with no agents
         consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
@@ -62,6 +64,8 @@ class Cleaner:
     remove_reactions_with_no_reactants: bool
     remove_reactions_with_no_products: bool
     remove_reactions_with_no_conditions: bool
+    remove_reactions_with_no_solvents: bool
+    remove_reactions_with_no_agents: bool
     consistent_yield: bool
     num_reactant: int
     num_product: int
@@ -222,18 +226,6 @@ class Cleaner:
 
         df = df.sort_index(axis=1)
         df = df.reset_index(drop=True)
-        return df
-
-    @staticmethod
-    def _remove_rxn_with_no_reactants(df: pd.DataFrame) -> pd.DataFrame:
-        LOG.info(f"Removing reactions with no reactants")
-        df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
-        return df
-
-    @staticmethod
-    def _remove_rxn_with_no_products(df: pd.DataFrame) -> pd.DataFrame:
-        LOG.info("Removing reactions with no products")
-        df = Cleaner._del_rows_empty_in_this_col(df, "product")
         return df
 
     @staticmethod
@@ -568,14 +560,17 @@ class Cleaner:
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
             )
-            mapped_rxn_df_with_replacements = pd.DataFrame()
+            mapped_rxn_dict_with_replacements = {}
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                mapped_rxn_df_with_replacements[col] = mapped_rxn_df.loc[:, col].map(
+                mapped_rxn_dict_with_replacements[col] = mapped_rxn_df[col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
+            mapped_rxn_df_with_replacements = pd.DataFrame(
+                mapped_rxn_dict_with_replacements
+            )
             # Add back the non-target columns to the df
             mapped_rxn_df_with_replacements = pd.concat(
                 [
@@ -586,22 +581,25 @@ class Cleaner:
             )
 
             # remove reactions with unresolved names
-            for col in tqdm.tqdm(
-                target_columns,
-                disable=self.disable_tqdm,
-            ):
-                LOG.info(f"Attempting to remove reactions for {col}")
-                not_mapped_rxn_df_with_del_rows = not_mapped_rxn_df[
-                    ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
-                ]
-                LOG.info(
-                    f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
-                )
+            if not not_mapped_rxn_df.empty:
+                for col in tqdm.tqdm(
+                    target_columns,
+                    disable=self.disable_tqdm,
+                ):
+                    LOG.info(f"Attempting to remove reactions for {col}")
+                    not_mapped_rxn_df_with_del_rows = not_mapped_rxn_df[
+                        ~not_mapped_rxn_df[col].isin(self.molecules_to_remove)
+                    ]
+                    LOG.info(
+                        f"Removed reactions with unresolved names for {col}: {df.shape[0]}"
+                    )
 
-            # concat the dfs again
-            df = pd.concat(
-                [mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows]
-            )
+                # concat the dfs again
+                df = pd.concat(
+                    [mapped_rxn_df_with_replacements, not_mapped_rxn_df_with_del_rows]
+                )
+            else:
+                df = mapped_rxn_df_with_replacements
 
             LOG.info(
                 f"After removing reactions without mapped rxn that also have unresolvable names: {df.shape[0]}"
@@ -622,14 +620,15 @@ class Cleaner:
             LOG.info(
                 f"Set unresolved names to none for {target_columns}: {df.shape[0]}"
             )
-            df_with_replacements = pd.DataFrame()
+            dict_with_replacements = {}
             # set unresolved names to <unresolved>
             mtr = {i: None for i in self.molecules_to_remove}
             for col in target_columns:
                 LOG.info(f"Applying nones to {col=}")
-                df_with_replacements[col] = df.loc[:, col].map(
+                dict_with_replacements[col] = df[col].map(
                     lambda x: mtr.get(x, x)
                 )  # equivalent to series = series.replace(self.molecules_to_remove, <unresolved>)
+            df_with_replacements = pd.DataFrame(dict_with_replacements)
             # Add back the non-target columns to the df
             df = pd.concat(
                 [df_with_replacements, df.loc[:, ~df.columns.isin(target_columns)]],
@@ -659,24 +658,50 @@ class Cleaner:
                 number_of_columns_to_keep=number_of_columns_to_keep,
                 num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
-
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
+
+            df = Cleaner._del_rows_empty_in_this_col(df, "product")
+
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_reactants(df)
-            LOG.info(f"After removing reactions with no reactant: {df.shape[0]}")
+            df = Cleaner._del_rows_empty_in_this_col(df, "reactant")
+            LOG.info(f"After removing reactions with no reactants: {df.shape[0]}")
         # Remove reactions with no products
         if self.remove_reactions_with_no_products:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
-            df = Cleaner._remove_rxn_with_no_products(df)
+            df = Cleaner._del_rows_empty_in_this_col(df, "product")
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+        if self.remove_reactions_with_no_solvents:
+            LOG.info(f"Before removing reactions with no solvents: {df.shape[0]}")
+            df = Cleaner._del_rows_empty_in_this_col(df, "solvent")
+            LOG.info(f"After removing reactions with no solvents: {df.shape[0]}")
+        if self.remove_reactions_with_no_agents:
+            if "agent_000" in df.columns:
+                LOG.info(f"Before removing reactions with no agents: {df.shape[0]}")
+                df = Cleaner._del_rows_empty_in_this_col(df, "agent")
+                LOG.info(f"After removing reactions with no agents: {df.shape[0]}")
+            else:
+                LOG.info(
+                    f"Before removing reactions with no reagents AND no catalysts: {df.shape[0]}"
+                )
+                df = Cleaner._remove_rxn_with_no_conditions(
+                    df, components=["catalyst", "reagent"]
+                )
+                LOG.info(
+                    f"After removing reactions with no reagents AND no catalysts: {df.shape[0]}"
+                )
+
         if self.remove_reactions_with_no_conditions:
-            LOG.info(f"Before removing reactions with no conditions: {df.shape[0]}")
+            LOG.info(
+                f"Before removing reactions with no conditions (ie no solvents AND no agents): {df.shape[0]}"
+            )
             df = Cleaner._remove_rxn_with_no_conditions(
                 df, components=["catalyst", "solvent", "agent", "reagent"]
             )
-            LOG.info(f"After removing reactions with no conditions: {df.shape[0]}")
+            LOG.info(
+                f"After removing reactions with no conditions (ie no solvents AND no agents): {df.shape[0]}"
+            )
 
         # Ensure consistent yield
         if self.consistent_yield:
@@ -778,9 +803,23 @@ class Cleaner:
 @click.option(
     "--remove_reactions_with_no_conditions",
     type=bool,
+    default=False,
+    show_default=True,
+    help="Remove reactions with no rxn conditions (i.e. no solvents AND no agents. This is different to remove_reactions_with_no_solvents=True and remove_reactions_with_no_agents=True since this will remove reactions with no solvents OR no agents )",
+)
+@click.option(
+    "--remove_reactions_with_no_solvents",
+    type=bool,
     default=True,
     show_default=True,
-    help="Remove reactions with no rxn conditions (i.e. no solvent, reagent, catalyst, or agent)",
+    help="Remove reactions with no solvents",
+)
+@click.option(
+    "--remove_reactions_with_no_agents",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Remove reactions with no agents (ie no reagents AND no catalysts). Does not consider solvents",
 )
 @click.option(
     "--consistent_yield",
@@ -899,6 +938,8 @@ def main_click(
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
     remove_reactions_with_no_conditions: bool,
+    remove_reactions_with_no_solvents: bool,
+    remove_reactions_with_no_agents: bool,
     consistent_yield: bool,
     num_reactant: int,
     num_product: int,
@@ -956,6 +997,8 @@ def main_click(
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
+        remove_reactions_with_no_solvents=remove_reactions_with_no_solvents,
+        remove_reactions_with_no_agents=remove_reactions_with_no_agents,
         num_reactant=num_reactant,
         num_product=num_product,
         num_solv=num_solv,
@@ -985,6 +1028,8 @@ def main(
     remove_reactions_with_no_reactants: bool,
     remove_reactions_with_no_products: bool,
     remove_reactions_with_no_conditions: bool,
+    remove_reactions_with_no_solvents: bool,
+    remove_reactions_with_no_agents: bool,
     num_reactant: int,
     num_product: int,
     num_solv: int,
@@ -1083,6 +1128,8 @@ def main(
         "remove_reactions_with_no_reactants": remove_reactions_with_no_reactants,
         "remove_reactions_with_no_products": remove_reactions_with_no_products,
         "remove_reactions_with_no_conditions": remove_reactions_with_no_conditions,
+        "remove_reactions_with_no_solvents": remove_reactions_with_no_solvents,
+        "remove_reactions_with_no_agents": remove_reactions_with_no_agents,
         "num_reactant": num_reactant,
         "num_product": num_product,
         "num_solv": num_solv,
@@ -1129,6 +1176,8 @@ def main(
         remove_reactions_with_no_reactants=remove_reactions_with_no_reactants,
         remove_reactions_with_no_products=remove_reactions_with_no_products,
         remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
+        remove_reactions_with_no_solvents=remove_reactions_with_no_solvents,
+        remove_reactions_with_no_agents=remove_reactions_with_no_agents,
         consistent_yield=consistent_yield,
         num_reactant=num_reactant,
         num_product=num_product,
@@ -1170,7 +1219,7 @@ def main(
         test_set_list = [set(row) for _, row in test_input_df.iterrows()]
 
         matching_indices = []  # List to store the indices of matching rows
-
+        LOG.info("Moving rows from test to train if they are in both")
         for values, index in zip(test_set_list, test_indices):
             if values in train_set_list:
                 matching_indices.append(index)
