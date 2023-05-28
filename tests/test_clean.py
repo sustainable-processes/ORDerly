@@ -1296,5 +1296,5 @@ def test_move_rows_from_test_to_train_set() -> None:
     matching_indices = orderly.clean.cleaner.get_matching_indices(
         df, train_indices, test_indices, reactant_columns, product_columns
     )
-    breakpoint()
+
     assert np.equal(matching_indices, np.array([3, 4])).all()
