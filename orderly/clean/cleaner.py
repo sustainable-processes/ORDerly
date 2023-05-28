@@ -817,7 +817,7 @@ def get_matching_indices(
     if len(to_move) > 0:
         test_indices_to_move = []
         for h in to_move:
-            test_indices_to_move += find(test_hashes, h)
+            test_indices_to_move += find(test_hashes, h)  # type: ignore [no-untyped-call]
         matching_indices = [test_indices[i] for i in test_indices_to_move]
 
     return np.array(matching_indices)
