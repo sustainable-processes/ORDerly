@@ -767,14 +767,15 @@ class Cleaner:
         return df
 
 
-# TODO: There must be a better way to do this
-def move_rows_from_test_to_train_set(
+def get_matching_indices(
     df: pd.DataFrame,
     train_indices: NDArray[np.int64],
     test_indices: NDArray[np.int64],
-    input_columns: List[str],
+    reactant_columns: List[str],
+    product_columns: List[str],
 ) -> NDArray[np.int64]:
-    """Move rows in the test set that also appear in the train set to the train set.
+    """Get indices of test set of reactions that also appear in the train set
+
 
     Args:
         df: DataFrame to split
@@ -784,19 +785,41 @@ def move_rows_from_test_to_train_set(
 
     Returns:
         matching_indices: indices of the test set of reactions that also appear in the train set
+
+    Notes:
+        The indices here are the ordinal indices, not the values of the index of the dataframe
     """
-    LOG.info(f"preparing to move rows from test to train set based on {input_columns=}")
-    train_input_df = df.loc[train_indices, input_columns]
-    test_input_df = df.loc[test_indices, input_columns]
 
-    train_set_list = [set(row) for _, row in train_input_df.iterrows()]
-    test_set_list = [set(row) for _, row in test_input_df.iterrows()]
+    LOG.info(
+        f"preparing to move rows from test to train set based on {reactant_columns=} and {product_columns=}"
+    )
+    # Get reaction 'hashes'
+    reaction_hashes = [
+        ".".join(
+            sorted(row[reactant_columns].tolist())
+            + sorted(row[product_columns].tolist())
+        )
+        for _, row in df.iterrows()
+    ]
 
-    matching_indices = []  # List to store the indices of matching rows
-    LOG.info("Moving rows from test to train if they are in both")
-    for values, index in zip(test_set_list, test_indices):
-        if values in train_set_list:
-            matching_indices.append(index)
+    # Get train and test reaction hashes
+    train_hashes = [reaction_hashes[i] for i in train_indices]
+    test_hashes = [reaction_hashes[i] for i in test_indices]
+
+    # Find hashes in both train and test set
+    train_set = set(train_hashes)
+    test_set = set(test_hashes)
+    to_move = train_set.intersection(test_set)
+    LOG.info(f"Found {len(to_move)} rows to move from test to train set")
+
+    # Get indices of hashes to move from test set to train set
+    matching_indices = []
+    find = lambda lst, val: [i for i, x in enumerate(lst) if x == val]
+    if len(to_move) > 0:
+        test_indices_to_move = []
+        for h in to_move:
+            test_indices_to_move += find(test_hashes, h)  # type: ignore [no-untyped-call]
+        matching_indices = [test_indices[i] for i in test_indices_to_move]
 
     return np.array(matching_indices)
 
@@ -1245,12 +1268,15 @@ def main(
             int(train_test_indices.shape[0] * train_test_split_fraction) :
         ]
 
-        input_columns = list(
-            df.columns[df.columns.str.startswith(("reactant", "product"))]
-        )
+        # input_columns = list(
+        #     df.columns[df.columns.str.startswith(("reactant", "product"))]
+        # )
 
-        matching_indices = move_rows_from_test_to_train_set(
-            df, train_indices, test_indices, input_columns
+        reactant_columns = list(df.columns[df.columns.str.startswith("reactant")])
+        product_columns = list(df.columns[df.columns.str.startswith("product")])
+
+        matching_indices = get_matching_indices(
+            df, train_indices, test_indices, reactant_columns, product_columns
         )
 
         # drop the matching rows from the test set

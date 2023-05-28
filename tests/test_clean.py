@@ -1,9 +1,8 @@
-from typing import List, Dict, Tuple, Any, Optional
 import pathlib
-import pytest
-
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
+import pytest
 
 
 def test_hello_world() -> None:
@@ -252,9 +251,10 @@ def cleaned_df_params_retaining_unresolved_names_and_duplicates_without_min_freq
 def test_molecule_names_not_empty() -> None:
     import os
     import pathlib
-    import pandas as pd
-    import orderly.data.util
 
+    import pandas as pd
+
+    import orderly.data.util
     from orderly.data.test_data import get_path_of_molecule_names
 
     all_empty = True
@@ -301,9 +301,11 @@ def test_get_value_counts(
     columns_to_count_from: List[str],
     expected_total_value_counts: Dict[str, int],
 ) -> None:
-    import orderly.clean.cleaner
-    import pandas as pd
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -325,9 +327,11 @@ def test_get_value_counts(
 def test_scramble(
     toy_dict: Dict[str, List[str]],
 ) -> None:
-    import orderly.clean.cleaner
-    import pandas as pd
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -443,9 +447,11 @@ def test_remove_reactions_with_too_many_of_component(
     number_of_columns_to_keep: int,
     expected_dict: Dict[str, int],
 ) -> None:
-    import orderly.clean.cleaner
-    import pandas as pd
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -524,9 +530,11 @@ def test_map_rare_molecules_to_other(
     min_frequency_of_occurrence: int,
     expected_dict: Dict[str, List[str]],
 ) -> None:
-    import pandas as pd
-    import orderly.clean.cleaner
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -710,9 +718,11 @@ def test_move_none_to_after_data(
     target_strings: Tuple[str, ...],
     expected_dict: Dict[str, List[str]],
 ) -> None:
-    import pandas as pd
-    import orderly.clean.cleaner
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -781,9 +791,11 @@ def test_remove_rare_molecules(
     min_frequency_of_occurrence: int,
     expected_dict: Dict[str, List[str]],
 ) -> None:
-    import pandas as pd
-    import orderly.clean.cleaner
     import copy
+
+    import pandas as pd
+
+    import orderly.clean.cleaner
 
     toy_dict = copy.copy(toy_dict)
 
@@ -897,6 +909,7 @@ def test_number_of_columns_and_order_of_None(
     cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]]
 ) -> None:
     import copy
+
     import numpy as np
 
     cleaned_df, params = copy.copy(cleaned_df_params_default)
@@ -1255,11 +1268,14 @@ def test_move_rows_from_test_to_train_set() -> None:
     """
     Test that the function that moves rows from the test set to the train set works as expected.
     """
-    import pandas as pd
-    import orderly.clean.cleaner
     import numpy as np
+    import pandas as pd
 
-    input_columns = ["reactant_000", "reactant_001", "product_000"]
+    import orderly.clean.cleaner
+
+    reactant_columns = ["reactant_000", "reactant_001"]
+    product_columns = ["product_000"]
+
     train_indices = np.array([0, 1, 2])
     test_indices = np.array([3, 4, 5])
 
@@ -1277,8 +1293,10 @@ def test_move_rows_from_test_to_train_set() -> None:
     test_df = pd.DataFrame(test_dict)
     df = pd.concat([train_df, test_df], axis=0, sort=False)
 
-    matching_indices = orderly.clean.cleaner.move_rows_from_test_to_train_set(
-        df, train_indices, test_indices, input_columns
+    df = df.reset_index(drop=True)
+
+    matching_indices = orderly.clean.cleaner.get_matching_indices(
+        df, train_indices, test_indices, reactant_columns, product_columns
     )
 
-    assert matching_indices == np.array([3, 4])
+    assert np.equal(matching_indices, np.array([3, 4])).all()
