@@ -1285,7 +1285,7 @@ def main(
         # Add the matching rows to the train set
         train_indices = np.append(train_indices, matching_indices)
 
-        fraction_of_test_data_moved_to_train = len(matching_indices) / len(test_indices)
+        fraction_of_test_data_moved_to_train = len(matching_indices) / int(train_test_indices.shape[0] * (1-train_test_split_fraction))
 
         LOG.info(f"{fraction_of_test_data_moved_to_train=}")
         if fraction_of_test_data_moved_to_train > 0.1:
