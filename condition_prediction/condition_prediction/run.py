@@ -430,7 +430,7 @@ class ConditionPrediction:
                     description="Metrics on the test set",
                 )
                 artifact.add_dir(output_folder_path)
-                wandb_run.log_artifact(artifact)
+                wandb_run.log_artifact(artifact)  # type: ignore
 
 
 @click.command()
