@@ -767,7 +767,6 @@ class Cleaner:
         return df
 
 
-
 def get_matching_indices(
     df: pd.DataFrame,
     train_indices: NDArray[np.int64],
@@ -821,7 +820,6 @@ def get_matching_indices(
         for h in to_move:
             test_indices_to_move += find(test_hashes, h)  # type: ignore [no-untyped-call]
         matching_indices = [test_indices[i] for i in test_indices_to_move]
-
 
     return np.array(matching_indices)
 
@@ -1279,7 +1277,6 @@ def main(
 
         matching_indices = get_matching_indices(
             df, train_indices, test_indices, reactant_columns, product_columns
-
         )
 
         # drop the matching rows from the test set

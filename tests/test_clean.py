@@ -1300,4 +1300,3 @@ def test_move_rows_from_test_to_train_set() -> None:
     )
 
     assert np.equal(matching_indices, np.array([3, 4])).all()
-
