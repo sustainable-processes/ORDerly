@@ -1271,10 +1271,12 @@ def main(
         # input_columns = list(
         #     df.columns[df.columns.str.startswith(("reactant", "product"))]
         # )
-        df = df.fillna("NULL")
 
         reactant_columns = list(df.columns[df.columns.str.startswith("reactant")])
         product_columns = list(df.columns[df.columns.str.startswith("product")])
+
+        for col in reactant_columns + product_columns:
+            df[col] = df[col].fillna("NULL")
 
         matching_indices = get_matching_indices(
             df, train_indices, test_indices, reactant_columns, product_columns
@@ -1285,7 +1287,9 @@ def main(
         # Add the matching rows to the train set
         train_indices = np.append(train_indices, matching_indices)
 
-        fraction_of_test_data_moved_to_train = len(matching_indices) / int(train_test_indices.shape[0] * (1-train_test_split_fraction))
+        fraction_of_test_data_moved_to_train = len(matching_indices) / int(
+            train_test_indices.shape[0] * (1 - train_test_split_fraction)
+        )
 
         LOG.info(f"{fraction_of_test_data_moved_to_train=}")
         if fraction_of_test_data_moved_to_train > 0.1:
