@@ -820,7 +820,7 @@ def get_matching_indices(
             test_indices_to_move += find(test_hashes, h)
         matching_indices = [test_indices[i] for i in test_indices_to_move]
 
-    return matching_indices
+    return np.array(matching_indices)
 
 
 @click.command()
