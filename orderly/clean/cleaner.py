@@ -1219,7 +1219,7 @@ def main(
         )
         train_input_df = df.loc[train_indices, input_columns].copy().fillna("NULL")
         test_input_df = df.loc[test_indices, input_columns].copy().fillna("NULL")
-        
+
         # TODO: This is a very slow way to do this. Can we do it faster?
         # We just need to find the intersection between test and train df reactant and product columns, taking into account that the order of the molecules may be different. .merge is the suggested way to do this, but it doesn't work as I expect.
         if sorted(input_columns) == sorted(
@@ -1258,7 +1258,6 @@ def main(
                     matching_indices.append(index)
 
         else:
-            
             train_set_list = [set(row) for _, row in train_input_df.iterrows()]
             test_set_list = [set(row) for _, row in test_input_df.iterrows()]
 
