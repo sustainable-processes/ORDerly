@@ -767,7 +767,7 @@ class Cleaner:
         return df
 
 
-# TODO: There must be a better way to do this
+
 def get_matching_indices(
     df: pd.DataFrame,
     train_indices: NDArray[np.int64],
@@ -776,6 +776,7 @@ def get_matching_indices(
     product_columns: List[str],
 ) -> NDArray[np.int64]:
     """Get indices of test set of reactions that also appear in the train set
+
 
     Args:
         df: DataFrame to split
@@ -789,6 +790,7 @@ def get_matching_indices(
     Notes:
         The indices here are the ordinal indices, not the values of the index of the dataframe
     """
+
     LOG.info(
         f"preparing to move rows from test to train set based on {reactant_columns=} and {product_columns=}"
     )
@@ -819,6 +821,7 @@ def get_matching_indices(
         for h in to_move:
             test_indices_to_move += find(test_hashes, h)  # type: ignore [no-untyped-call]
         matching_indices = [test_indices[i] for i in test_indices_to_move]
+
 
     return np.array(matching_indices)
 
@@ -1276,6 +1279,7 @@ def main(
 
         matching_indices = get_matching_indices(
             df, train_indices, test_indices, reactant_columns, product_columns
+
         )
 
         # drop the matching rows from the test set

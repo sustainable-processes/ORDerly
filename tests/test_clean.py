@@ -1275,6 +1275,7 @@ def test_move_rows_from_test_to_train_set() -> None:
 
     reactant_columns = ["reactant_000", "reactant_001"]
     product_columns = ["product_000"]
+
     train_indices = np.array([0, 1, 2])
     test_indices = np.array([3, 4, 5])
 
@@ -1291,6 +1292,7 @@ def test_move_rows_from_test_to_train_set() -> None:
     train_df = pd.DataFrame(train_dict)
     test_df = pd.DataFrame(test_dict)
     df = pd.concat([train_df, test_df], axis=0, sort=False)
+
     df = df.reset_index(drop=True)
 
     matching_indices = orderly.clean.cleaner.get_matching_indices(
@@ -1298,3 +1300,4 @@ def test_move_rows_from_test_to_train_set() -> None:
     )
 
     assert np.equal(matching_indices, np.array([3, 4])).all()
+
