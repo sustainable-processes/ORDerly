@@ -9,11 +9,15 @@ clean_default_num_reag=2
 WANDB_ENTITY=ceb-sre
 
 
-mypy:
-	python -m mypy . --ignore-missing-imports --explicit-package-bases
+mypy_orderly:
+	python -m mypy . --ignore-missing-imports --explicit-package-bases --exclude condition_prediction
 
-strict_mypy:
+strict_mypy_orderly:
 	python -m mypy . --ignore-missing-imports --exclude condition_prediction --explicit-package-bases --strict
+
+mypy_condition_prediction:
+	echo "Make sure to run this in the condition_prediction environment"
+	python -m mypy condition_prediction --ignore-missing-imports --explicit-package-bases
 
 black:
 	python -m black .
@@ -27,8 +31,12 @@ test_clean:
 test_data:
 	python -m pytest -vv tests/test_data.py
 
-pytest:
-	python -m pytest -vv
+pytest_orderly:
+	python -m pytest -vv tests/
+
+pytest_condition_prediction:
+	echo "Make sure to run this in the condition_prediction environment"
+	python -m pytest -vv condition_prediction/
 
 pytestx:
 	python -m pytest -vv --exitfirst
