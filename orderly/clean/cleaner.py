@@ -770,10 +770,10 @@ class Cleaner:
 # TODO: There must be a better way to do this
 def move_rows_from_test_to_train_set(
     df: pd.DataFrame,
-    train_indices: NDArray,
-    test_indices: NDArray,
+    train_indices: NDArray[np.int64],
+    test_indices: NDArray[np.int64],
     input_columns: List[str],
-) -> np.ndarray:
+) -> NDArray[np.int64]:
     """Move rows in the test set that also appear in the train set to the train set.
 
     Args:
