@@ -1219,17 +1219,54 @@ def main(
         )
         train_input_df = df.loc[train_indices, input_columns].copy().fillna("NULL")
         test_input_df = df.loc[test_indices, input_columns].copy().fillna("NULL")
-
+        
         # TODO: This is a very slow way to do this. Can we do it faster?
-        train_set_list = [set(row) for _, row in train_input_df.iterrows()]
-        train_set_set = set(train_set_list)
-        test_set_list = [set(row) for _, row in test_input_df.iterrows()]
+        # We just need to find the intersection between test and train df reactant and product columns, taking into account that the order of the molecules may be different. .merge is the suggested way to do this, but it doesn't work as I expect.
+        if sorted(input_columns) == sorted(
+            ["reactant_000", "reactant_001", "product_000"]
+        ):
+            train_reactions = set()
+            # Iterate over each row in the DataFrame
+            for index, row in train_input_df.iterrows():
+                # Extract the values from the current row
+                reactant_000 = row["reactant_000"]
+                reactant_001 = row["reactant_001"]
+                product_000 = row["product_000"]
 
-        matching_indices = []  # List to store the indices of matching rows
-        LOG.info("Moving rows from test to train if they are in both")
-        for values, index in zip(test_set_list, test_indices):
-            if values in train_set_set:
-                matching_indices.append(index)
+                # Create the two reaction strings and add them to the set
+                reaction_1 = reactant_000 + reactant_001 + product_000
+                reaction_2 = reactant_001 + reactant_000 + product_000
+                train_reactions.add(reaction_1)
+                train_reactions.add(reaction_2)
+
+            test_reactions = set()
+            # Iterate over each row in the DataFrame
+            for index, row in train_input_df.iterrows():
+                # Extract the values from the current row
+                reactant_000 = row["reactant_000"]
+                reactant_001 = row["reactant_001"]
+                product_000 = row["product_000"]
+
+                # Create the two reaction strings and add them to the set
+                reaction_1 = reactant_000 + reactant_001 + product_000
+                test_reactions.add(reaction_1)
+
+            matching_indices = []  # List to store the indices of matching rows
+            LOG.info("Moving rows from test to train if they are in both")
+            for values, index in zip(test_reactions, test_indices):
+                if values in train_reactions:
+                    matching_indices.append(index)
+
+        else:
+            
+            train_set_list = [set(row) for _, row in train_input_df.iterrows()]
+            test_set_list = [set(row) for _, row in test_input_df.iterrows()]
+
+            matching_indices = []  # List to store the indices of matching rows
+            LOG.info("Moving rows from test to train if they are in both")
+            for values, index in zip(test_set_list, test_indices):
+                if values in train_set_list:
+                    matching_indices.append(index)
 
         # drop the matching rows from the test set
         test_indices = test_indices[~np.isin(test_indices, matching_indices)]
