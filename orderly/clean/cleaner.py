@@ -1271,6 +1271,7 @@ def main(
         # input_columns = list(
         #     df.columns[df.columns.str.startswith(("reactant", "product"))]
         # )
+        df = df.fillna("NULL")
 
         reactant_columns = list(df.columns[df.columns.str.startswith("reactant")])
         product_columns = list(df.columns[df.columns.str.startswith("product")])
