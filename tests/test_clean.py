@@ -1251,25 +1251,34 @@ def test_frequency_retaining_unresolved_names_and_duplicates(
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
 
 
-def test_move_rows_from_test_to_train_set()-> None:
+def test_move_rows_from_test_to_train_set() -> None:
     """
     Test that the function that moves rows from the test set to the train set works as expected.
     """
     import pandas as pd
     import orderly.clean.cleaner
     import numpy as np
+
     input_columns = ["reactant_000", "reactant_001", "product_000"]
     train_indices = np.array([0, 1, 2])
     test_indices = np.array([3, 4, 5])
 
-    train_dict = {"reactant_000": ["a", "b", "c"], "reactant_001": ["b", "e", "f"], "product_000": ["c", "h", "i"]}
-    test_dict = {"reactant_000": ["a", "b", "c"], "reactant_001": ["b", "a", "a"], "product_000": ["c", "c", "b"]}
+    train_dict = {
+        "reactant_000": ["a", "b", "c"],
+        "reactant_001": ["b", "e", "f"],
+        "product_000": ["c", "h", "i"],
+    }
+    test_dict = {
+        "reactant_000": ["a", "b", "c"],
+        "reactant_001": ["b", "a", "a"],
+        "product_000": ["c", "c", "b"],
+    }
     train_df = pd.DataFrame(train_dict)
     test_df = pd.DataFrame(test_dict)
     df = pd.concat([train_df, test_df], axis=0, sort=False)
-    
-    matching_indices = orderly.clean.cleaner.move_rows_from_test_to_train_set(df, train_indices, test_indices, input_columns)
-    
-    assert matching_indices == np.array([3,4])
-        
-        
+
+    matching_indices = orderly.clean.cleaner.move_rows_from_test_to_train_set(
+        df, train_indices, test_indices, input_columns
+    )
+
+    assert matching_indices == np.array([3, 4])

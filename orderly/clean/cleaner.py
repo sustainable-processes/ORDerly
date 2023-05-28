@@ -12,6 +12,7 @@ import pandas as pd
 import tqdm
 import tqdm.contrib.logging
 from click_loglevel import LogLevel
+from numpy.typing import NDArray
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
 
@@ -764,11 +765,14 @@ class Cleaner:
             df = Cleaner._replace_None_with_NA(df, components)
         df = df.sort_index(axis=1)
         return df
-    
-    
-#TODO: There must be a better way to do this
+
+
+# TODO: There must be a better way to do this
 def move_rows_from_test_to_train_set(
-    df: pd.DataFrame, train_indices: np.ndarray, test_indices: np.ndarray, input_columns: List[str]
+    df: pd.DataFrame,
+    train_indices: NDArray,
+    test_indices: NDArray,
+    input_columns: List[str],
 ) -> np.ndarray:
     """Move rows in the test set that also appear in the train set to the train set.
 
@@ -776,17 +780,15 @@ def move_rows_from_test_to_train_set(
         df: DataFrame to split
         train_indices: Indices for train set
         test_indices: Indices for test set
-        
+
 
     Returns:
         matching_indices: indices of the test set of reactions that also appear in the train set
     """
-    LOG.info(
-        f"preparing to move rows from test to train set based on {input_columns=}"
-    )
+    LOG.info(f"preparing to move rows from test to train set based on {input_columns=}")
     train_input_df = df.loc[train_indices, input_columns]
     test_input_df = df.loc[test_indices, input_columns]
-    
+
     train_set_list = [set(row) for _, row in train_input_df.iterrows()]
     test_set_list = [set(row) for _, row in test_input_df.iterrows()]
 
@@ -795,8 +797,8 @@ def move_rows_from_test_to_train_set(
     for values, index in zip(test_set_list, test_indices):
         if values in train_set_list:
             matching_indices.append(index)
-            
-    return matching_indices
+
+    return np.array(matching_indices)
 
 
 @click.command()
@@ -1228,7 +1230,6 @@ def main(
         scramble=scramble,
         disable_tqdm=disable_tqdm,
     )
-        
 
     if train_test_split_fraction not in [0.0, 1.0]:
         df = instance.cleaned_reactions
@@ -1247,11 +1248,10 @@ def main(
         input_columns = list(
             df.columns[df.columns.str.startswith(("reactant", "product"))]
         )
-        
+
         matching_indices = move_rows_from_test_to_train_set(
             df, train_indices, test_indices, input_columns
         )
-        
 
         # drop the matching rows from the test set
         test_indices = test_indices[~np.isin(test_indices, matching_indices)]
