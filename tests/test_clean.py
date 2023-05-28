@@ -1291,9 +1291,10 @@ def test_move_rows_from_test_to_train_set() -> None:
     train_df = pd.DataFrame(train_dict)
     test_df = pd.DataFrame(test_dict)
     df = pd.concat([train_df, test_df], axis=0, sort=False)
+    df = df.reset_index(drop=True)
 
     matching_indices = orderly.clean.cleaner.get_matching_indices(
         df, train_indices, test_indices, reactant_columns, product_columns
     )
-
+    breakpoint()
     assert np.equal(matching_indices, np.array([3, 4])).all()
