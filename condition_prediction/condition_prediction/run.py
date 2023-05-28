@@ -55,6 +55,11 @@ class ConditionPrediction:
     epochs: int
     generate_fingerprints: bool
     fp_size: int
+    dropout: float
+    hidden_size_1: int
+    hidden_size_2: int
+    lr: float
+    batch_size: int
     workers: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
@@ -62,6 +67,7 @@ class ConditionPrediction:
     wandb_project: str
     wandb_entity: Optional[str] = None
     wandb_tags: Optional[List[str]] = None
+    wandb_group: Optional[str] = None
 
     def __post_init__(self) -> None:
         pass
@@ -97,6 +103,11 @@ class ConditionPrediction:
             train_val_split=self.train_val_split,
             epochs=self.epochs,
             fp_size=self.fp_size,
+            dropout=self.dropout,
+            hidden_size_1=self.hidden_size_1,
+            hidden_size_2=self.hidden_size_2,
+            lr=self.lr,
+            batch_size=self.batch_size,
             workers=self.workers,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
@@ -104,6 +115,7 @@ class ConditionPrediction:
             wandb_entity=self.wandb_entity,
             wandb_logging=self.wandb_logging,
             wandb_tags=self.wandb_tags,
+            wandb_group=self.wandb_group,
         )
 
     @staticmethod
@@ -176,17 +188,29 @@ class ConditionPrediction:
         early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
         train_mode: int = HARD_SELECTION,
+        batch_size: int = 512,
         fp_size: int = 2048,
+        dropout: float = 0.2,
+        hidden_size_1: int = 1024,
+        hidden_size_2: int = 100,
+        lr: float = 0.01,
         workers: int = 1,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
         wandb_entity: Optional[str] = None,
         wandb_tags: Optional[List[str]] = None,
+        wandb_group: Optional[str] = None,
     ) -> None:
         """
         Run condition prediction training
 
         """
+        config = locals()
+        config.pop("train_val_df")
+        config.pop("test_df")
+        config.pop("train_val_fp")
+        config.pop("test_fp")
+
         ### Data setup ###
         assert train_val_df.shape[1] == test_df.shape[1]
 
@@ -243,6 +267,7 @@ class ConditionPrediction:
             test_fp=test_fp,
             train_mode=train_mode,
             molecule_columns=molecule_columns,
+            batch_size=batch_size,
         )
         y_test_data = (
             test_generator.mol1,
@@ -272,11 +297,11 @@ class ConditionPrediction:
             mol3_dim=train_generator.mol3.shape[-1],
             mol4_dim=train_generator.mol4.shape[-1],
             mol5_dim=train_generator.mol5.shape[-1],
-            N_h1=1024,
-            N_h2=100,
+            N_h1=hidden_size_1,
+            N_h2=hidden_size_2,
             l2v=0,  # TODO check what coef they used
             mode=train_mode,
-            dropout_prob=0.2,
+            dropout_prob=dropout,
             use_batchnorm=True,
         )
         # we use a separate model for prediction because we use a recurrent setup for prediction
@@ -289,11 +314,11 @@ class ConditionPrediction:
             mol3_dim=train_generator.mol3.shape[-1],
             mol4_dim=train_generator.mol4.shape[-1],
             mol5_dim=train_generator.mol5.shape[-1],
-            N_h1=1024,
-            N_h2=100,
+            N_h1=hidden_size_1,
+            N_h2=hidden_size_2,
             l2v=0,
             mode=HARD_SELECTION,
-            dropout_prob=0.2,
+            dropout_prob=dropout,
             use_batchnorm=True,
         )
 
@@ -303,7 +328,7 @@ class ConditionPrediction:
                 for _ in range(5)
             ],
             loss_weights=[1, 1, 1, 1, 1],
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
             metrics={
                 f"mol{i}": [
                     "acc",
@@ -343,6 +368,8 @@ class ConditionPrediction:
                 project=wandb_project,
                 entity=wandb_entity,
                 tags=wandb_tags,
+                group=wandb_group,
+                config=config,
             )
             callbacks.extend(
                 [
@@ -355,7 +382,7 @@ class ConditionPrediction:
         h = model.fit(
             train_generator,
             epochs=epochs,
-            verbose=1,
+            verbose=2,
             validation_data=val_generator,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
@@ -503,6 +530,36 @@ class ConditionPrediction:
     help="The size of the fingerprint used in fingerprint generation",
 )
 @click.option(
+    "--dropout",
+    default=0.2,
+    type=float,
+    help="The dropout rate used in the model",
+)
+@click.option(
+    "--hidden_size_1",
+    default=1024,
+    type=int,
+    help="The size of the first hidden layer in the model",
+)
+@click.option(
+    "--hidden_size_2",
+    default=100,
+    type=int,
+    help="The size of the second hidden layer in the model",
+)
+@click.option(
+    "--lr",
+    default=0.01,
+    type=float,
+    help="The learning rate used in the model",
+)
+@click.option(
+    "--batch_size",
+    default=512,
+    type=int,
+    help="The batch size used during training of the model",
+)
+@click.option(
     "--wandb_logging",
     default=True,
     type=bool,
@@ -521,7 +578,13 @@ class ConditionPrediction:
     help="The project to use for logging to wandb",
 )
 @click.option(
-    "--wandb_tags", multiple=True, default=None, help="Tags for weights and biases run"
+    "--wandb_tag", multiple=True, default=None, help="Tags for weights and biases run"
+)
+@click.option(
+    "--wandb_group",
+    default=None,
+    type=str,
+    help="The group to use for logging to wandb",
 )
 @click.option(
     "--overwrite",
@@ -550,10 +613,16 @@ def main_click(
     generate_fingerprints: bool,
     workers: int,
     fp_size: int,
+    dropout: float,
+    hidden_size_1: int,
+    hidden_size_2: int,
+    lr: float,
+    batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
     wandb_entity: Optional[str],
-    wandb_tags: List[str],
+    wandb_tag: List[str],
+    wandb_group: Optional[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -575,6 +644,7 @@ def main_click(
     We can then use the model to predict the condition of a reaction.
 
     """
+    wandb_tags = wandb_tag
     main(
         train_data_path=train_data_path,
         test_data_path=test_data_path,
@@ -587,10 +657,16 @@ def main_click(
         generate_fingerprints=generate_fingerprints,
         workers=workers,
         fp_size=fp_size,
+        dropout=dropout,
+        hidden_size_1=hidden_size_1,
+        hidden_size_2=hidden_size_2,
+        lr=lr,
+        batch_size=batch_size,
         wandb_logging=wandb_logging,
         wandb_project=wandb_project,
         wandb_entity=wandb_entity,
-        wandb_tags=list(wandb_tags),
+        wandb_tags=wandb_tags,
+        wandb_group=wandb_group,
         overwrite=overwrite,
         log_file=log_file,
         log_level=log_level,
@@ -609,10 +685,16 @@ def main(
     generate_fingerprints: bool,
     workers: int,
     fp_size: int,
+    dropout: float,
+    hidden_size_1: int,
+    hidden_size_2: int,
+    lr: float,
+    batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
     wandb_entity: Optional[str],
     wandb_tags: List[str],
+    wandb_group: Optional[str],
     overwrite: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
@@ -693,6 +775,11 @@ def main(
         train_val_split=train_val_split,
         generate_fingerprints=generate_fingerprints,
         fp_size=fp_size,
+        dropout=dropout,
+        hidden_size_1=hidden_size_1,
+        hidden_size_2=hidden_size_2,
+        lr=lr,
+        batch_size=batch_size,
         workers=workers,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
@@ -701,6 +788,7 @@ def main(
         wandb_project=wandb_project,
         wandb_logging=wandb_logging,
         wandb_tags=list(wandb_tags),
+        wandb_group=wandb_group,
     )
 
     instance.run_model_arguments()
