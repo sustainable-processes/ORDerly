@@ -287,8 +287,10 @@ def get_datasets(
     train_mode: int = TEACHER_FORCE,
     batch_size: int = 512,
     shuffle_buffer_size: int = 1000,
-    cache_data: bool = False,
     prefetch_buffer_size: int = None,
+    cache_train_data bool = False,
+    cache_val_data bool = False,
+    cache_test_data bool = False,
 ):
     """
     Get data generators for train, val and test
@@ -391,7 +393,7 @@ def get_datasets(
         shuffle=True,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
-        cache_data=True,
+        cache_data=cache_train_data,
     )
     val_dataset = get_dataset(
         val_mol1,
@@ -406,7 +408,7 @@ def get_datasets(
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
-        cache_data=cache_data,
+        cache_data=cache_val_data,
     )
     test_dataset = get_dataset(
         test_mol1,
@@ -421,9 +423,27 @@ def get_datasets(
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
-        cache_data=cache_data,
+        cache_data=cache_test_data,
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
 
     return train_dataset, val_dataset, test_dataset, encoders
+
+
+def unbatch_dataset(dataset):
+    X = []
+    Y = []
+    for i, (Xi, Yi) in dataset.enumerate().as_numpy_iterator():
+        for j, xj in enumerate(Xi):
+            if j > len(X)-1:
+                X.append(xj)
+            else:
+                X[j] = np.concatenate((X[j], xj), 0)
+        for j, yj in enumerate(Yi):
+            if j > len(Y)-1:
+                Y.append(yj)
+            else:
+                Y[j] = np.concatenate((Y[j], yj), 0)
+            
+    return X, Y

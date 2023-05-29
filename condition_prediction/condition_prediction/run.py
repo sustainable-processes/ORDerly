@@ -20,7 +20,7 @@ from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.data_generator import get_datasets
+from condition_prediction.data_generator import get_datasets, unbatch_dataset
 from condition_prediction.model import (
     build_teacher_forcing_model,
     update_teacher_forcing_model_weights,
@@ -223,6 +223,7 @@ class ConditionPrediction:
         config.pop("test_df")
         config.pop("train_val_fp")
         config.pop("test_fp")
+        
 
         ### Data setup ###
         assert train_val_df.shape[1] == test_df.shape[1]
@@ -284,7 +285,10 @@ class ConditionPrediction:
             batch_size=batch_size,
             shuffle_buffer_size=shuffle_buffer_size,
             prefetch_buffer_size=prefetch_buffer_size,
+            cache_test_data=True,
+            cache_val_data=True,
         )
+        
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
@@ -419,8 +423,7 @@ class ConditionPrediction:
 
         # Save the final performance on the test set
         del train_dataset
-        # y_test_data = list(test_dataset.unbatch().as_numpy_iterator())
-
+        _, y_test_data = unbatch_dataset(test_dataset)
         if evaluate_on_test_data:
             # Evaluate the model on the test set
             test_metrics = model.evaluate(
@@ -432,29 +435,29 @@ class ConditionPrediction:
             test_metrics_dict["trust_labelling"] = trust_labelling
 
             ### Grouped scores
-#             predictions = model.predict(
-#                 test_dataset,
-#                 use_multiprocessing=use_multiprocessing,
-#                 workers=workers,
-#             )
+            predictions = model.predict(
+                test_dataset,
+                use_multiprocessing=use_multiprocessing,
+                workers=workers,
+            )
 
-#             # Solvent scores
-#             solvent_scores = get_grouped_scores(
-#                 y_test_data[:2], predictions[:2], encoders[:2]
-#             )
-#             test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
+            # Solvent scores
+            solvent_scores = get_grouped_scores(
+                y_test_data[:2], predictions[:2], encoders[:2]
+            )
+            test_metrics_dict["test_solvent_accuracy"] = np.mean(solvent_scores)
 
-#             # 3 agents scores
-#             agent_scores = get_grouped_scores(
-#                 y_test_data[2:], predictions[2:], encoders[2:]
-#             )
-#             test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
+            # 3 agents scores
+            agent_scores = get_grouped_scores(
+                y_test_data[2:], predictions[2:], encoders[2:]
+            )
+            test_metrics_dict["test_three_agents_accuray"] = np.mean(agent_scores)
 
-#             # Overall scores
-#             overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
-#                 axis=1
-#             )
-#             test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
+            # Overall scores
+            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
+                axis=1
+            )
+            test_metrics_dict["test_overall_accuracy"] = np.mean(overall_scores)
 
             # Save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
@@ -463,6 +466,7 @@ class ConditionPrediction:
                 json.dump(test_metrics_dict, file)
 
             if wandb_logging:
+                # Log artifact
                 artifact = wandb.Artifact(  # type: ignore
                     name="test_metrics",
                     type="metrics",
@@ -470,6 +474,9 @@ class ConditionPrediction:
                 )
                 artifact.add_dir(output_folder_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
+                # Add as run summary
+                wandb_run.summary.update(test_metrics_dict)
+                wandb_runrun.summary.update()
 
 
 @click.command()
