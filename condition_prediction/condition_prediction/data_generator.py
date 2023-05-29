@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 import signal
 from dataclasses import dataclass
@@ -8,13 +9,12 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
-import multiprocessing
-
-# from pqdm.processes import pqdm
-from tqdm import tqdm
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
+
+# from pqdm.processes import pqdm
+from tqdm import tqdm
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
@@ -47,16 +47,16 @@ class GenerateData:
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
             result = GenerateData._map_idx_to_data_gen_fp(
-                    self.df,
-                    idx,
-                    self.mol1,
-                    self.mol2,
-                    self.mol3,
-                    self.mol4,
-                    self.mol5,
-                    self.radius,
-                    self.fp_size,
-                )
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.radius,
+                self.fp_size,
+            )
             # result = result.get()
             return result
         else:
@@ -288,9 +288,9 @@ def get_datasets(
     batch_size: int = 512,
     shuffle_buffer_size: int = 1000,
     prefetch_buffer_size: int = None,
-    cache_train_data bool = False,
-    cache_val_data bool = False,
-    cache_test_data bool = False,
+    cache_train_data: bool = False,
+    cache_val_data: bool = False,
+    cache_test_data: bool = False,
 ):
     """
     Get data generators for train, val and test
@@ -436,14 +436,14 @@ def unbatch_dataset(dataset):
     Y = []
     for i, (Xi, Yi) in dataset.enumerate().as_numpy_iterator():
         for j, xj in enumerate(Xi):
-            if j > len(X)-1:
+            if j > len(X) - 1:
                 X.append(xj)
             else:
                 X[j] = np.concatenate((X[j], xj), 0)
         for j, yj in enumerate(Yi):
-            if j > len(Y)-1:
+            if j > len(Y) - 1:
                 Y.append(yj)
             else:
                 Y[j] = np.concatenate((Y[j], yj), 0)
-            
+
     return X, Y

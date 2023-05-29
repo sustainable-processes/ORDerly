@@ -68,6 +68,9 @@ class ConditionPrediction:
     shuffle_buffer_size: int
     prefetch_buffer_size: int
     evaluate_on_test_data: bool
+    cache_train_data: bool = False
+    cache_val_data: bool = False
+    cache_test_data: bool = False
     early_stopping_patience: int
     eager_mode: bool
     wandb_logging: bool
@@ -117,6 +120,9 @@ class ConditionPrediction:
             batch_size=self.batch_size,
             workers=self.workers,
             eager_mode=self.eager_mode,
+            cache_train_data=self.cache_train_data,
+            cache_val_data=self.cache_val_data,
+            cache_test_data=self.cache_test_data,
             shuffle_buffer_size=self.shuffle_buffer_size,
             prefetch_buffer_size=self.prefetch_buffer_size,
             early_stopping_patience=self.early_stopping_patience,
@@ -207,6 +213,9 @@ class ConditionPrediction:
         workers: int = 1,
         shuffle_buffer_size: int = 1000,
         prefetch_buffer_size: Optional[int] = None,
+        cache_train_data: bool = False,
+        cache_val_data: bool = False,
+        cache_test_data: bool = False,
         eager_mode: bool = False,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
@@ -223,7 +232,6 @@ class ConditionPrediction:
         config.pop("test_df")
         config.pop("train_val_fp")
         config.pop("test_fp")
-        
 
         ### Data setup ###
         assert train_val_df.shape[1] == test_df.shape[1]
@@ -285,10 +293,11 @@ class ConditionPrediction:
             batch_size=batch_size,
             shuffle_buffer_size=shuffle_buffer_size,
             prefetch_buffer_size=prefetch_buffer_size,
-            cache_test_data=True,
-            cache_val_data=True,
+            cache_train_data=cache_train_data,
+            cache_val_data=cache_val_data,
+            cache_test_data=cache_test_data,
         )
-        
+
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
@@ -611,6 +620,24 @@ class ConditionPrediction:
     default=False,
 )
 @click.option(
+    "--cache_train_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the training data",
+)
+@click.option(
+    "--cache_val_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the validation data",
+)
+@click.option(
+    "--cache_test_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the test data",
+)
+@click.option(
     "--shuffle_buffer_size",
     default=1000,
     type=int,
@@ -661,6 +688,9 @@ def main_click(
     wandb_group: Optional[str],
     overwrite: bool,
     eager_mode: bool,
+    cache_train_data: bool,
+    cache_val_data: bool,
+    cache_test_data: bool,
     shuffle_buffer_size: int,
     prefetch_buffer_size: Optional[int],
     log_file: pathlib.Path = pathlib.Path("model.log"),
@@ -700,6 +730,9 @@ def main_click(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        cache_train_data=cache_train_data,
+        cache_val_data=cache_val_data,
+        cache_test_data=cache_test_data,
         batch_size=batch_size,
         wandb_logging=wandb_logging,
         wandb_project=wandb_project,
@@ -739,6 +772,9 @@ def main(
     wandb_group: Optional[str],
     overwrite: bool,
     eager_mode: bool,
+    cache_train_data: bool,
+    cache_val_data: bool,
+    cache_test_data: bool,
     shuffle_buffer_size: int,
     prefetch_buffer_size: Optional[int],
     log_file: pathlib.Path = pathlib.Path("model.log"),
@@ -826,6 +862,9 @@ def main(
         lr=lr,
         batch_size=batch_size,
         workers=workers,
+        cache_train_data=cache_train_data,
+        cache_val_data=cache_val_data,
+        cache_test_data=cache_test_data,
         shuffle_buffer_size=shuffle_buffer_size,
         prefetch_buffer_size=prefetch_buffer_size,
         epochs=epochs,
