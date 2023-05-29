@@ -718,9 +718,20 @@ class Cleaner:
 
         # drop duplicates
         if self.drop_duplicates:
-            LOG.info(f"Before removing duplicates (all columns): {df.shape[0]}")
-            df = df.drop_duplicates()
-            LOG.info(f"After removing duplicates (all columns): {df.shape[0]}")
+            col_subset = [
+                col
+                for col in df.columns
+                if col.startswith(
+                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
+                )
+            ]
+            LOG.info(
+                f"Before removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+            )
+            df = df.drop_duplicates(subset=col_subset, keep="first")
+            LOG.info(
+                f"After removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+            )
 
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
@@ -751,10 +762,20 @@ class Cleaner:
 
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
-            col_subset = [col for col in df.columns if col.startswith(('reactant', 'product', 'solvent', 'reagent', 'agent', 'catalyst', 'temperature'))]
-            LOG.info(f"Before removing duplicates ({col_subset=}): {df.shape[0]}")
-            df = df.drop_duplicates(subset=col_subset, keep='first')
-            LOG.info(f"After removing duplicates({col_subset=}): {df.shape[0]}")
+            col_subset = [
+                col
+                for col in df.columns
+                if col.startswith(
+                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
+                )
+            ]
+            LOG.info(
+                f"Before removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+            )
+            df = df.drop_duplicates(subset=col_subset, keep="first")
+            LOG.info(
+                f"After removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+            )
 
         df.reset_index(inplace=True, drop=True)
 
@@ -766,6 +787,7 @@ class Cleaner:
             df = Cleaner._replace_None_with_NA(df, components)
         df = df.sort_index(axis=1)
         return df
+
 
 # TODO: Find more efficient way to do this. This function takes like 15 min to run (out of 19 min total)
 def get_matching_indices(
