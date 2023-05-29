@@ -100,7 +100,7 @@ def get_dataset(
     shuffle_buffer_size: int = 1000,
     cache_data: bool = False,
     prefetch_buffer_size: int = None,
-    interleave: bool = True,
+    interleave: bool = False,
 ):
     """
     Get datasets
