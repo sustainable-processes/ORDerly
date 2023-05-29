@@ -285,11 +285,6 @@ class ConditionPrediction:
             shuffle_buffer_size=shuffle_buffer_size,
             prefetch_buffer_size=prefetch_buffer_size,
         )
-        # y_test_data = test_dataset[1].copy()
-        # train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
-        # # train_dataset = train_dataset.batch(batch_size)
-        # val_dataset = configure_for_performance(val_dataset, batch_size=batch_size)
-        # test_dataset = configure_for_performance(test_dataset, batch_size=batch_size)
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
@@ -388,7 +383,7 @@ class ConditionPrediction:
             callbacks.extend(
                 [
                     WandbMetricsLogger(),
-                    WandbModelCheckpoint("models", save_best_only=True),
+                    WandbModelCheckpoint("models/{epoch:02d}", save_best_only=True),
                 ]
             )
 
@@ -396,7 +391,7 @@ class ConditionPrediction:
         h = model.fit(
             train_dataset,
             epochs=epochs,
-            verbose=1,
+            verbose=0,
             validation_data=val_dataset,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
@@ -423,6 +418,9 @@ class ConditionPrediction:
         )
 
         # Save the final performance on the test set
+        del train_dataset
+        # y_test_data = list(test_dataset.unbatch().as_numpy_iterator())
+
         if evaluate_on_test_data:
             # Evaluate the model on the test set
             test_metrics = model.evaluate(
@@ -434,29 +432,29 @@ class ConditionPrediction:
             test_metrics_dict["trust_labelling"] = trust_labelling
 
             ### Grouped scores
-            predictions = model.predict(
-                test_dataset,
-                use_multiprocessing=use_multiprocessing,
-                workers=workers,
-            )
+#             predictions = model.predict(
+#                 test_dataset,
+#                 use_multiprocessing=use_multiprocessing,
+#                 workers=workers,
+#             )
 
-            # Solvent scores
-            solvent_scores = get_grouped_scores(
-                y_test_data[:2], predictions[:2], encoders[:2]
-            )
-            test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
+#             # Solvent scores
+#             solvent_scores = get_grouped_scores(
+#                 y_test_data[:2], predictions[:2], encoders[:2]
+#             )
+#             test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
 
-            # 3 agents scores
-            agent_scores = get_grouped_scores(
-                y_test_data[2:], predictions[2:], encoders[2:]
-            )
-            test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
+#             # 3 agents scores
+#             agent_scores = get_grouped_scores(
+#                 y_test_data[2:], predictions[2:], encoders[2:]
+#             )
+#             test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
 
-            # Overall scores
-            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
-                axis=1
-            )
-            test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
+#             # Overall scores
+#             overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
+#                 axis=1
+#             )
+#             test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
 
             # Save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"

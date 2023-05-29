@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -7,7 +8,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
-from pqdm.processes import pqdm
+import multiprocessing
+
+# from pqdm.processes import pqdm
+from tqdm import tqdm
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
@@ -26,6 +30,7 @@ class GenerateData:
     radius: int = 3
     mode: int
     df: pd.DataFrame
+    num_parallel_batches: int = 1
     product_fp: Optional[NDArray[np.int64]] = None
     rxn_diff_fp: Optional[NDArray[np.int64]] = None
     mol1: NDArray[np.float32]
@@ -34,54 +39,124 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
+    # def __post_init__(self):
+    #     initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+    #     self.pool = multiprocessing.Pool(self.num_parallel_batches, initializer)
+
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
-
-        if self.product_fp is None or self.rxn_diff_fp is None:
-            product_fp, rxn_diff_fp = self.get_fp(self.df.iloc[idx])
+        if self.product_fp is None and self.rxn_diff_fp is None:
+            result = GenerateData._map_idx_to_data_gen_fp(
+                    self.df,
+                    idx,
+                    self.mol1,
+                    self.mol2,
+                    self.mol3,
+                    self.mol4,
+                    self.mol5,
+                    self.radius,
+                    self.fp_size,
+                )
+            # result = result.get()
+            return result
         else:
-            product_fp = self.product_fp[idx]
-            rxn_diff_fp = self.rxn_diff_fp[idx]
+            return self._map_idx_to_data(
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.product_fp,
+                self.rxn_diff_fp,
+                self.radius,
+                self.fp_size,
+            )
+
+    @staticmethod
+    def _map_idx_to_data(
+        df,
+        idx,
+        mol1,
+        mol2,
+        mol3,
+        mol4,
+        mol5,
+        product_fp,
+        rxn_diff_fp,
+        radius=3,
+        fp_size=2048,
+    ):
+        return (
+            product_fp[idx],
+            rxn_diff_fp[idx],
+            mol1[idx],
+            mol2[idx],
+            mol3[idx],
+            mol4[idx],
+            mol5[idx],
+        )
+
+    @staticmethod
+    def _map_idx_to_data_gen_fp(
+        df,
+        idx,
+        mol1,
+        mol2,
+        mol3,
+        mol4,
+        mol5,
+        radius=3,
+        fp_size=2048,
+    ):
+        product_fp, rxn_diff_fp = GenerateData.get_fp(
+            df.iloc[idx], radius=radius, fp_size=fp_size
+        )
 
         return (
             product_fp,
             rxn_diff_fp,
-            self.mol1[idx],
-            self.mol2[idx],
-            self.mol3[idx],
-            self.mol4[idx],
-            self.mol5[idx],
+            mol1[idx],
+            mol2[idx],
+            mol3[idx],
+            mol4[idx],
+            mol5[idx],
         )
 
-    def get_fp(self, df):
-        product_fp = self.calc_fps(df["product_000"])
-        reactant_fp_0 = self.calc_fps(df["reactant_001"])
-        reactant_fp_1 = self.calc_fps(df["reactant_001"])
+    @staticmethod
+    def get_fp(df: pd.DataFrame, radius: int, fp_size: int):
+        product_fp = GenerateData.calc_fps(df["product_000"], radius, fp_size)
+        reactant_fp_0 = GenerateData.calc_fps(df["reactant_001"], radius, fp_size)
+        reactant_fp_1 = GenerateData.calc_fps(df["reactant_001"], radius, fp_size)
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
         return product_fp, rxn_diff_fp
 
-    def calc_fps(self, smiles_list: List[str]):
+    @staticmethod
+    def calc_fps(smiles_list: List[str], radius: int, fp_size: int):
         block = BlockLogs()
-        fingerprints = np.array(pqdm(smiles_list, self.calc_fp, n_jobs=4))
+        # fingerprints = np.array(pqdm(smiles_list, self.calc_fp, n_jobs=8))
+        fingerprints = np.array(
+            [GenerateData.calc_fp(smi, radius, fp_size) for smi in smiles_list]
+        )
         return fingerprints
 
-    def calc_fp(self, smiles: str):
+    @staticmethod
+    def calc_fp(smiles: str, radius: int, fp_size: int):
         # convert to mol object
         if smiles == "NULL":
-            return np.zeros((self.fp_size,), dtype=int)
+            return np.zeros((fp_size,), dtype=int)
         try:
             mol = Chem.MolFromSmiles(smiles)
             # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
-            fp = AllChem.GetHashedMorganFingerprint(
-                mol, self.radius, nBits=self.fp_size
-            )
+            fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=fp_size)
             array = np.zeros((0,), dtype=np.int8)
             DataStructs.ConvertToNumpyArray(fp, array)
             return array
         except:
             if smiles is not None:
                 LOG.warning(f"Could not generate fingerprint for {smiles=}")
-            return np.zeros((self.fp_size,), dtype=int)
+            return np.zeros((fp_size,), dtype=int)
 
 
 def get_dataset(
@@ -139,9 +214,10 @@ def get_dataset(
         mol3=mol3,
         mol4=mol4,
         mol5=mol5,
+        num_parallel_batches=os.cpu_count() - 1,
     )
-    # z = list(range(df.shape[0]))  # The index generator
-    dataset = tf.data.Dataset.range(df.shape[0])
+
+    dataset = tf.data.Dataset.range(df.shape[0])  # INdex generator
 
     # Need to shuffle here so it doesn't try to run the expensive stuff
     # while shuffling
@@ -162,10 +238,14 @@ def get_dataset(
         y = tuple(data[2:])
         return X, y
 
+    # Batch dataset
     dataset = dataset.batch(batch_size)
 
     # Generate the actual data
-    dataset = dataset.map(map_func=map_func, num_parallel_calls=4)
+    dataset = dataset.map(
+        map_func=map_func
+        # , num_parallel_calls=os.cpu_count(), deterministic=False
+    )
 
     if cache_data:
         dataset = dataset.cache()
@@ -311,7 +391,7 @@ def get_datasets(
         shuffle=True,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
-        cache_data=cache_data,
+        cache_data=True,
     )
     val_dataset = get_dataset(
         val_mol1,
