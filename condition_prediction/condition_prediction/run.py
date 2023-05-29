@@ -63,6 +63,7 @@ class ConditionPrediction:
     workers: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
+    eager_mode: bool
     wandb_logging: bool
     wandb_project: str
     wandb_entity: Optional[str] = None
@@ -109,6 +110,7 @@ class ConditionPrediction:
             lr=self.lr,
             batch_size=self.batch_size,
             workers=self.workers,
+            eager_mode=self.eager_mode,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
             wandb_project=self.wandb_project,
@@ -195,6 +197,7 @@ class ConditionPrediction:
         hidden_size_2: int = 100,
         lr: float = 0.01,
         workers: int = 1,
+        eager_mode: bool = False,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
         wandb_entity: Optional[str] = None,
@@ -333,7 +336,7 @@ class ConditionPrediction:
                 ]
                 for i in range(1, 6)
             },
-            run_eagerly=True,
+            run_eagerly=eager_mode,
         )
         update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
@@ -584,6 +587,11 @@ class ConditionPrediction:
     help="The group to use for logging to wandb",
 )
 @click.option(
+    "--eager_mode",
+    is_flag=True,
+    default=False,
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -621,6 +629,7 @@ def main_click(
     wandb_tag: List[str],
     wandb_group: Optional[str],
     overwrite: bool,
+    eager_mode: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -665,6 +674,7 @@ def main_click(
         wandb_tags=wandb_tags,
         wandb_group=wandb_group,
         overwrite=overwrite,
+        eager_mode=eager_mode,
         log_file=log_file,
         log_level=log_level,
     )
@@ -693,6 +703,7 @@ def main(
     wandb_tags: List[str],
     wandb_group: Optional[str],
     overwrite: bool,
+    eager_mode: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -786,6 +797,7 @@ def main(
         wandb_logging=wandb_logging,
         wandb_tags=list(wandb_tags),
         wandb_group=wandb_group,
+        eager_mode=eager_mode,
     )
 
     instance.run_model_arguments()

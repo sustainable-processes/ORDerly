@@ -123,7 +123,7 @@ def get_dataset(
             return X, y
 
         if shuffle:
-            dataset = dataset.shuffle(buffer_size=df.shape[0])
+            dataset = dataset.shuffle(buffer_size=1000)
         dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
     else:
         product_fp = fp[:, : fp.shape[1] // 2]
