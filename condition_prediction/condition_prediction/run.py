@@ -268,8 +268,9 @@ class ConditionPrediction:
             train_mode=train_mode,
             molecule_columns=molecule_columns,
         )
-        y_test_data = test_dataset[1].copy()
+        # y_test_data = test_dataset[1].copy()
         train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
+        # train_dataset = train_dataset.batch(batch_size)
         val_dataset = configure_for_performance(val_dataset, batch_size=batch_size)
         test_dataset = configure_for_performance(test_dataset, batch_size=batch_size)
         if evaluate_on_test_data:
@@ -283,16 +284,15 @@ class ConditionPrediction:
         del train_val_df
         del test_df
         LOG.info("Data ready for modelling")
-
         ### Model Setup ###
         model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_dataset.mol1.shape[-1],
-            mol2_dim=train_dataset.mol2.shape[-1],
-            mol3_dim=train_dataset.mol3.shape[-1],
-            mol4_dim=train_dataset.mol4.shape[-1],
-            mol5_dim=train_dataset.mol5.shape[-1],
+            mol1_dim=len(encoders[0].categories_[0]),
+            mol2_dim=len(encoders[1].categories_[0]),
+            mol3_dim=len(encoders[2].categories_[0]),
+            mol4_dim=len(encoders[3].categories_[0]),
+            mol5_dim=len(encoders[4].categories_[0]),
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,  # TODO check what coef they used
@@ -305,11 +305,11 @@ class ConditionPrediction:
         pred_model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_dataset.mol1.shape[-1],
-            mol2_dim=train_dataset.mol2.shape[-1],
-            mol3_dim=train_dataset.mol3.shape[-1],
-            mol4_dim=train_dataset.mol4.shape[-1],
-            mol5_dim=train_dataset.mol5.shape[-1],
+            mol1_dim=len(encoders[0].categories_[0]),
+            mol2_dim=len(encoders[1].categories_[0]),
+            mol3_dim=len(encoders[2].categories_[0]),
+            mol4_dim=len(encoders[3].categories_[0]),
+            mol5_dim=len(encoders[4].categories_[0]),
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,
@@ -333,6 +333,7 @@ class ConditionPrediction:
                 ]
                 for i in range(1, 6)
             },
+            run_eagerly=True,
         )
         update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
@@ -347,7 +348,7 @@ class ConditionPrediction:
         callbacks = [
             TrainingMetrics(
                 n_train=train_idx.shape[0],
-                batch_size=train_dataset.batch_size,
+                batch_size=batch_size,
             )
         ]
         # Define the EarlyStopping callback

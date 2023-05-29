@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -19,63 +19,62 @@ AUTOTUNE = tf.data.AUTOTUNE
 
 
 @dataclass(kw_only=True)
-class GenerateFingerprints:
+class GenerateData:
     fp_size: int
     mode: int
+    df: pd.DataFrame
+    mol1: NDArray[np.float32]
+    mol2: NDArray[np.float32]
+    mol3: NDArray[np.float32]
+    mol4: NDArray[np.float32]
+    mol5: NDArray[np.float32]
 
-    def construct_batch_gen_fp(
-        self,
-        smiles_arr: NDArray[np.character],
-        outputs: NDArray[np.int64],
-    ):
-        product_fp, rxn_diff_fp = self.get_fp(smiles_arr, fp_size=self.fp_size)
-        if self.mode == TEACHER_FORCE:
-            X = (
-                product_fp,
-                rxn_diff_fp,
-                outputs[0],
-                outputs[1],
-                outputs[2],
-                outputs[3],
-                outputs[4],
-            )
-        else:
-            X = (
-                product_fp,
-                rxn_diff_fp,
-            )
-        return X, outputs
+    def map_idx_to_data(self, idx):
+        idx = idx.numpy()
+        product_fp, rxn_diff_fp = self.get_fp(self.df.iloc[idx], fp_size=self.fp_size)
+        # product_fp = product_fp[:, np.newaxis]
+        # rxn_diff_fp = rxn_diff_fp[:, np.newaxis]
+        return (
+            product_fp,
+            rxn_diff_fp,
+            self.mol1[idx],
+            self.mol2[idx],
+            self.mol3[idx],
+            self.mol4[idx],
+            self.mol5[idx],
+        )
 
     @staticmethod
-    def get_fp(arr, fp_size: int = 2048):
-        product_fp = GenerateFingerprints.calc_fp(arr[:, -1], radius=3, nBits=fp_size)
-        reactant_fp_0 = GenerateFingerprints.calc_fp(arr[:, 0], radius=3, nBits=fp_size)
-        reactant_fp_1 = GenerateFingerprints.calc_fp(arr[:, 1], radius=3, nBits=fp_size)
+    def get_fp(row, fp_size: int = 2048):
+        product_fp = GenerateData.calc_fp(row["product_000"], radius=3, nBits=fp_size)
+        reactant_fp_0 = GenerateData.calc_fp(
+            row["reactant_001"], radius=3, nBits=fp_size
+        )
+        reactant_fp_1 = GenerateData.calc_fp(
+            row["reactant_001"], radius=3, nBits=fp_size
+        )
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
         return product_fp, rxn_diff_fp
 
     @staticmethod
-    def calc_fp(lst: List, radius: int = 3, nBits: int = 2048):
+    def calc_fp(smiles: str, radius: int = 3, nBits: int = 2048):
         # Usage:
         # radius = 3
         # nBits = 2048
         # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
         block = BlockLogs()
-        ans = []
-        for smiles in lst:
-            # convert to mol object
-            try:
-                mol = Chem.MolFromSmiles(smiles)
-                # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
-                fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
-                array = np.zeros((0,), dtype=np.int8)
-                DataStructs.ConvertToNumpyArray(fp, array)
-                ans.append(array)
-            except:
-                if smiles is not None:
-                    LOG.warning(f"Could not generate fingerprint for {smiles=}")
-                ans.append(np.zeros((nBits,), dtype=int))
-        return np.vstack(ans)
+        # convert to mol object
+        try:
+            mol = Chem.MolFromSmiles(smiles)
+            # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
+            fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
+            array = np.zeros((0,), dtype=np.int64)
+            DataStructs.ConvertToNumpyArray(fp, array)
+            return array
+        except:
+            if smiles is not None:
+                LOG.warning(f"Could not generate fingerprint for {smiles=}")
+            return np.zeros((nBits,), dtype=np.int64)
 
 
 def get_dataset(
@@ -88,35 +87,41 @@ def get_dataset(
     fp: Optional[NDArray[np.int64]] = None,
     mode: int = TEACHER_FORCE,
     fp_size: int = 2048,
-    num_parallel_calls: Optional[int] = None,
+    # num_parallel_calls: Optional[int] = None,
 ):
     # Construct outputs
-    y = (
-        mol1,
-        mol2,
-        mol3,
-        mol4,
-        mol5,
-    )
-
     if fp is None and df is None:
         raise ValueError("Must provide either df or fp")
 
     if fp is None:
-        X = df[["reactant_000", "reactant_001", "product_000"]].to_numpy()
-        dataset = tf.data.Dataset.from_tensor_slices((X, y))
-        fp_generator = GenerateFingerprints(fp_size=fp_size, mode=mode)
-        map_func = lambda x, y: tf.numpy_function(
-            fp_generator.construct_batch_gen_fp,
-            [x, y],
-            Tout=[tf.int64, tf.int64],
+        fp_generator = GenerateData(
+            fp_size=fp_size,
+            mode=mode,
+            df=df,
+            mol1=mol1,
+            mol2=mol2,
+            mol3=mol3,
+            mol4=mol4,
+            mol5=mol5,
         )
-        dataset = dataset.map(
-            map_func=map_func,
-            num_parallel_calls=AUTOTUNE
-            if num_parallel_calls is None
-            else num_parallel_calls,
-        )
+        z = list(range(df.shape[0]))  # The index generator
+        dataset = tf.data.Dataset.from_generator(lambda: z, tf.uint8)
+
+        def map_func(idx):
+            data = tf.py_function(
+                fp_generator.map_idx_to_data,
+                inp=[idx],
+                Tout=[tf.int64] * 2 + [tf.float32] * 5,
+            )
+
+            if mode == TEACHER_FORCE:
+                X = tuple(data)
+            else:
+                X = tuple(data[:2])
+            y = tuple(data[2:])
+            return X, y
+
+        dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
     else:
         product_fp = fp[:, : fp.shape[1] // 2]
         rxn_diff_fp = fp[:, fp.shape[1] // 2 :]
@@ -183,7 +188,7 @@ def get_datasets(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol2,
@@ -195,7 +200,7 @@ def get_datasets(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol3,
@@ -207,7 +212,7 @@ def get_datasets(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol4,
@@ -219,7 +224,7 @@ def get_datasets(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol5,
@@ -231,7 +236,7 @@ def get_datasets(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
 
     # Get datsets
