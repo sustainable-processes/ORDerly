@@ -34,6 +34,10 @@ from condition_prediction.utils import (
 )
 
 
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 @dataclasses.dataclass(kw_only=True)
 class ConditionPrediction:
     """
@@ -391,7 +395,7 @@ class ConditionPrediction:
         h = model.fit(
             train_dataset,
             epochs=epochs,
-            verbose=2,
+            verbose=1,
             validation_data=val_dataset,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,

@@ -100,6 +100,7 @@ def get_dataset(
     shuffle_buffer_size: int = 1000,
     cache_data: bool = False,
     prefetch_buffer_size: int = None,
+    interleave: bool = True,
 ):
     """
     Get datasets
@@ -144,6 +145,7 @@ def get_dataset(
     dataset = tf.data.Dataset.from_generator(lambda: z, tf.uint8)
 
     # Need to shuffle here so it doesn't try to run the expensive stuff
+    # while shuffling
     if shuffle:
         dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
 
@@ -179,9 +181,18 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
+    
+    if interleave:
+        dataset = tf.data.Dataset.range(df.shape[0]).interleave(
+            lambda _: dataset,
+            num_parallel_calls=AUTOTUNE,
+            deterministic=False,
+            cycle_length=AUTOTUNE
+        )
+    
 
     if prefetch_buffer_size is None:
-        prefetch_buffer_size = 5 * batch_size
+        prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
     return dataset
 
