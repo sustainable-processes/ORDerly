@@ -23,6 +23,8 @@ class GenerateData:
     fp_size: int
     mode: int
     df: pd.DataFrame
+    product_fp: Optional[NDArray[np.int64]] = None
+    rxn_diff_fp: Optional[NDArray[np.int64]] = None
     mol1: NDArray[np.float32]
     mol2: NDArray[np.float32]
     mol3: NDArray[np.float32]
@@ -31,9 +33,15 @@ class GenerateData:
 
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
-        product_fp, rxn_diff_fp = self.get_fp(self.df.iloc[idx], fp_size=self.fp_size)
-        # product_fp = product_fp[:, np.newaxis]
-        # rxn_diff_fp = rxn_diff_fp[:, np.newaxis]
+
+        if self.product_fp is None or self.rxn_diff_fp is None:
+            product_fp, rxn_diff_fp = self.get_fp(
+                self.df.iloc[idx], fp_size=self.fp_size
+            )
+        else:
+            product_fp = self.product_fp[idx]
+            rxn_diff_fp = self.rxn_diff_fp[idx]
+
         return (
             product_fp,
             rxn_diff_fp,
@@ -89,63 +97,77 @@ def get_dataset(
     fp_size: int = 2048,
     shuffle: bool = True,
     batch_size: int = 512,
+    shuffle_buffer_size: int = 1000,
+    cache_data: bool = False,
+    prefetch_buffer_size: int = None,
 ):
+    """
+    Get datasets
+
+    Args:
+        df: dataframe containing ground truth solvents and reagents
+        fp: fingerprints
+        mode: teacher force or hard/soft selection
+        fp_size: size of fingerprints
+        shuffle: whether to shuffle the data
+        batch_size: batch size
+        shuffle_buffer_size: buffer size for shuffling. Defaults to 1000.
+        cache_data: whether to cache the data
+        prefetch_buffer_size: buffer size for prefetching. Defaults to 5 times the batch size
+
+    """
+
     # Construct outputs
     if fp is None and df is None:
         raise ValueError("Must provide either df or fp")
 
-    if fp is None:
-        fp_generator = GenerateData(
-            fp_size=fp_size,
-            mode=mode,
-            df=df,
-            mol1=mol1,
-            mol2=mol2,
-            mol3=mol3,
-            mol4=mol4,
-            mol5=mol5,
-        )
-        z = list(range(df.shape[0]))  # The index generator
-        dataset = tf.data.Dataset.from_generator(lambda: z, tf.uint8)
-
-        def map_func(idx):
-            data = tf.py_function(
-                fp_generator.map_idx_to_data,
-                inp=[idx],
-                Tout=[tf.int64] * 2 + [tf.float32] * 5,
-            )
-
-            if mode == TEACHER_FORCE:
-                X = tuple(data)
-            else:
-                X = tuple(data[:2])
-            y = tuple(data[2:])
-            return X, y
-
-        if shuffle:
-            dataset = dataset.shuffle(buffer_size=1000)
-        dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
-    else:
+    if fp is not None:
         product_fp = fp[:, : fp.shape[1] // 2]
         rxn_diff_fp = fp[:, fp.shape[1] // 2 :]
+    else:
+        product_fp = None
+        rxn_diff_fp = None
+
+    fp_generator = GenerateData(
+        fp_size=fp_size,
+        mode=mode,
+        df=df,
+        product_fp=product_fp,
+        rxn_diff_fp=rxn_diff_fp,
+        mol1=mol1,
+        mol2=mol2,
+        mol3=mol3,
+        mol4=mol4,
+        mol5=mol5,
+    )
+    z = list(range(df.shape[0]))  # The index generator
+    dataset = tf.data.Dataset.from_generator(lambda: z, tf.uint8)
+
+    # Need to shuffle here so it doesn't try to run the expensive stuff
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
+
+    def map_func(idx):
+        data = tf.py_function(
+            fp_generator.map_idx_to_data,
+            inp=[idx],
+            Tout=[tf.int64] * 2 + [tf.float32] * 5,
+        )
+
         if mode == TEACHER_FORCE:
-            X = (
-                product_fp,
-                rxn_diff_fp,
-                mol1,
-                mol2,
-                mol3,
-                mol4,
-                mol5,
-            )
+            X = tuple(data)
         else:
-            X = (
-                product_fp,
-                rxn_diff_fp,
-            )
-        dataset = tf.data.Dataset.from_tensor_slices((X, y))
+            X = tuple(data[:2])
+        y = tuple(data[2:])
+        return X, y
+
+    # Generate the actual data
+    dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
 
     dataset = dataset.batch(batch_size)
+
+    if cache_data:
+        dataset = dataset.cache()
 
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
@@ -157,7 +179,10 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
-    dataset = dataset.prefetch(buffer_size=AUTOTUNE)
+
+    if prefetch_buffer_size is None:
+        prefetch_buffer_size = 5 * batch_size
+    dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
     return dataset
 
 
