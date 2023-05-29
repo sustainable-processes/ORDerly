@@ -20,7 +20,7 @@ from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.data_generator import configure_for_performance, get_datasets
+from condition_prediction.data_generator import get_datasets
 from condition_prediction.model import (
     build_teacher_forcing_model,
     update_teacher_forcing_model_weights,
@@ -270,12 +270,13 @@ class ConditionPrediction:
             test_fp=test_fp,
             train_mode=train_mode,
             molecule_columns=molecule_columns,
+            batch_size=batch_size,
         )
         # y_test_data = test_dataset[1].copy()
-        train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
-        # train_dataset = train_dataset.batch(batch_size)
-        val_dataset = configure_for_performance(val_dataset, batch_size=batch_size)
-        test_dataset = configure_for_performance(test_dataset, batch_size=batch_size)
+        # train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
+        # # train_dataset = train_dataset.batch(batch_size)
+        # val_dataset = configure_for_performance(val_dataset, batch_size=batch_size)
+        # test_dataset = configure_for_performance(test_dataset, batch_size=batch_size)
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,

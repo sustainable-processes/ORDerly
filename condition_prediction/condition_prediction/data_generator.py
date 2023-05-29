@@ -88,7 +88,7 @@ def get_dataset(
     mode: int = TEACHER_FORCE,
     fp_size: int = 2048,
     shuffle: bool = True,
-    # num_parallel_calls: Optional[int] = None,
+    batch_size: int = 512,
 ):
     # Construct outputs
     if fp is None and df is None:
@@ -145,6 +145,19 @@ def get_dataset(
             )
         dataset = tf.data.Dataset.from_tensor_slices((X, y))
 
+    dataset = dataset.batch(batch_size)
+
+    # ensures shape is correct after batching
+    # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
+    def _fixup_shape(X, Y):
+        for i in range(len(X)):
+            X[i].set_shape([None, X[i].shape[1]])
+        for i in range(len(Y)):
+            Y[i].set_shape([None, Y[i].shape[1]])
+        return X, Y
+
+    dataset = dataset.map(_fixup_shape)
+    dataset = dataset.prefetch(buffer_size=AUTOTUNE)
     return dataset
 
 
@@ -158,7 +171,7 @@ def get_datasets(
     train_val_fp: Optional[np.ndarray] = None,
     test_fp: Optional[np.ndarray] = None,
     train_mode: int = TEACHER_FORCE,
-    # batch_size: int = 512,
+    batch_size: int = 512,
 ):
     """
     Get data generators for train, val and test
@@ -288,10 +301,3 @@ def get_datasets(
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
 
     return train_dataset, val_dataset, test_dataset, encoders
-
-
-def configure_for_performance(ds, batch_size):
-    ds = ds.cache()
-    ds = ds.batch(batch_size)
-    ds = ds.prefetch(buffer_size=tf.data.AUTOTUNE)
-    return ds
