@@ -87,6 +87,7 @@ def get_dataset(
     fp: Optional[NDArray[np.int64]] = None,
     mode: int = TEACHER_FORCE,
     fp_size: int = 2048,
+    shuffle: bool = True,
     # num_parallel_calls: Optional[int] = None,
 ):
     # Construct outputs
@@ -121,6 +122,8 @@ def get_dataset(
             y = tuple(data[2:])
             return X, y
 
+        if shuffle:
+            dataset = dataset.shuffle(buffer_size=df.shape[0])
         dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
     else:
         product_fp = fp[:, : fp.shape[1] // 2]
@@ -255,6 +258,7 @@ def get_datasets(
         fp=train_val_fp,
         mode=train_mode,
         fp_size=fp_size,
+        shuffle=True,
     )
     val_dataset = get_dataset(
         val_mol1,
@@ -266,6 +270,7 @@ def get_datasets(
         fp=train_val_fp,
         mode=val_mode,
         fp_size=fp_size,
+        shuffle=False,
     )
     test_dataset = get_dataset(
         test_mol1,
@@ -277,6 +282,7 @@ def get_datasets(
         fp=test_fp,
         mode=val_mode,
         fp_size=fp_size,
+        shuffle=False,
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
@@ -287,6 +293,5 @@ def get_datasets(
 def configure_for_performance(ds, batch_size):
     ds = ds.cache()
     ds = ds.batch(batch_size)
-    ds = ds.shuffle(buffer_size=1000)
     ds = ds.prefetch(buffer_size=tf.data.AUTOTUNE)
     return ds
