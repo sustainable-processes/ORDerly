@@ -141,8 +141,8 @@ def get_dataset(
         mol4=mol4,
         mol5=mol5,
     )
-    z = list(range(df.shape[0]))  # The index generator
-    dataset = tf.data.Dataset.from_generator(lambda: z, tf.uint8)
+    # z = list(range(df.shape[0]))  # The index generator
+    dataset = tf.data.Dataset.range(df.shape[0])
 
     # Need to shuffle here so it doesn't try to run the expensive stuff
     # while shuffling
@@ -163,10 +163,12 @@ def get_dataset(
         y = tuple(data[2:])
         return X, y
 
+    dataset = dataset.batch(batch_size)
+    
     # Generate the actual data
     dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
 
-    dataset = dataset.batch(batch_size)
+    
 
     if cache_data:
         dataset = dataset.cache()
