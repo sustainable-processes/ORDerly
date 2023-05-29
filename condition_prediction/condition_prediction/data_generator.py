@@ -197,6 +197,9 @@ def get_datasets(
     test_fp: Optional[np.ndarray] = None,
     train_mode: int = TEACHER_FORCE,
     batch_size: int = 512,
+    shuffle_buffer_size: int = 1000,
+    cache_data: bool = False,
+    prefetch_buffer_size: int = None,
 ):
     """
     Get data generators for train, val and test
@@ -297,6 +300,9 @@ def get_datasets(
         mode=train_mode,
         fp_size=fp_size,
         shuffle=True,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_data,
     )
     val_dataset = get_dataset(
         val_mol1,
@@ -309,6 +315,9 @@ def get_datasets(
         mode=val_mode,
         fp_size=fp_size,
         shuffle=False,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_data,
     )
     test_dataset = get_dataset(
         test_mol1,
@@ -321,6 +330,9 @@ def get_datasets(
         mode=val_mode,
         fp_size=fp_size,
         shuffle=False,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_data,
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]

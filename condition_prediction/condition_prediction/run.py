@@ -61,6 +61,8 @@ class ConditionPrediction:
     lr: float
     batch_size: int
     workers: int
+    shuffle_buffer_size: int
+    prefetch_buffer_size: int
     evaluate_on_test_data: bool
     early_stopping_patience: int
     eager_mode: bool
@@ -111,6 +113,8 @@ class ConditionPrediction:
             batch_size=self.batch_size,
             workers=self.workers,
             eager_mode=self.eager_mode,
+            shuffle_buffer_size=self.shuffle_buffer_size,
+            prefetch_buffer_size=self.prefetch_buffer_size,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
             wandb_project=self.wandb_project,
@@ -197,6 +201,8 @@ class ConditionPrediction:
         hidden_size_2: int = 100,
         lr: float = 0.01,
         workers: int = 1,
+        shuffle_buffer_size: int = 1000,
+        prefetch_buffer_size: Optional[int] = None,
         eager_mode: bool = False,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
@@ -271,6 +277,8 @@ class ConditionPrediction:
             train_mode=train_mode,
             molecule_columns=molecule_columns,
             batch_size=batch_size,
+            shuffle_buffer_size=shuffle_buffer_size,
+            prefetch_buffer_size=prefetch_buffer_size,
         )
         # y_test_data = test_dataset[1].copy()
         # train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
@@ -593,6 +601,18 @@ class ConditionPrediction:
     default=False,
 )
 @click.option(
+    "--shuffle_buffer_size",
+    default=1000,
+    type=int,
+    help="The buffer size used for shuffling the data",
+)
+@click.option(
+    "--prefetch_buffer_size",
+    default=None,
+    type=int,
+    help="The buffer size used for prefetching the data. Defaults to 5x the batch size",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -631,6 +651,8 @@ def main_click(
     wandb_group: Optional[str],
     overwrite: bool,
     eager_mode: bool,
+    shuffle_buffer_size: int,
+    prefetch_buffer_size: Optional[int],
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -676,6 +698,8 @@ def main_click(
         wandb_group=wandb_group,
         overwrite=overwrite,
         eager_mode=eager_mode,
+        shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
         log_file=log_file,
         log_level=log_level,
     )
@@ -705,6 +729,8 @@ def main(
     wandb_group: Optional[str],
     overwrite: bool,
     eager_mode: bool,
+    shuffle_buffer_size: int,
+    prefetch_buffer_size: Optional[int],
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -790,6 +816,8 @@ def main(
         lr=lr,
         batch_size=batch_size,
         workers=workers,
+        shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
