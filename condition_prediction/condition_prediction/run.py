@@ -20,7 +20,7 @@ from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.data_generator import get_data_generators
+from condition_prediction.data_generator import configure_for_performance, get_datasets
 from condition_prediction.model import (
     build_teacher_forcing_model,
     update_teacher_forcing_model_weights,
@@ -253,11 +253,11 @@ class ConditionPrediction:
         molecule_columns = [mol_1_col, mol_2_col, mol_3_col, mol_4_col, mol_5_col]
 
         (
-            train_generator,
-            val_generator,
-            test_generator,
+            train_dataset,
+            val_dataset,
+            test_dataset,
             encoders,
-        ) = get_data_generators(
+        ) = get_datasets(
             df=df,
             train_idx=train_idx,
             val_idx=val_idx,
@@ -267,15 +267,11 @@ class ConditionPrediction:
             test_fp=test_fp,
             train_mode=train_mode,
             molecule_columns=molecule_columns,
-            batch_size=batch_size,
         )
-        y_test_data = (
-            test_generator.mol1,
-            test_generator.mol2,
-            test_generator.mol3,
-            test_generator.mol4,
-            test_generator.mol5,
-        )
+        y_test_data = test_dataset[1].copy()
+        train_dataset = configure_for_performance(train_dataset, batch_size=batch_size)
+        val_dataset = configure_for_performance(val_dataset, batch_size=batch_size)
+        test_dataset = configure_for_performance(test_dataset, batch_size=batch_size)
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
@@ -292,11 +288,11 @@ class ConditionPrediction:
         model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_generator.mol1.shape[-1],
-            mol2_dim=train_generator.mol2.shape[-1],
-            mol3_dim=train_generator.mol3.shape[-1],
-            mol4_dim=train_generator.mol4.shape[-1],
-            mol5_dim=train_generator.mol5.shape[-1],
+            mol1_dim=train_dataset.mol1.shape[-1],
+            mol2_dim=train_dataset.mol2.shape[-1],
+            mol3_dim=train_dataset.mol3.shape[-1],
+            mol4_dim=train_dataset.mol4.shape[-1],
+            mol5_dim=train_dataset.mol5.shape[-1],
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,  # TODO check what coef they used
@@ -309,11 +305,11 @@ class ConditionPrediction:
         pred_model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_generator.mol1.shape[-1],
-            mol2_dim=train_generator.mol2.shape[-1],
-            mol3_dim=train_generator.mol3.shape[-1],
-            mol4_dim=train_generator.mol4.shape[-1],
-            mol5_dim=train_generator.mol5.shape[-1],
+            mol1_dim=train_dataset.mol1.shape[-1],
+            mol2_dim=train_dataset.mol2.shape[-1],
+            mol3_dim=train_dataset.mol3.shape[-1],
+            mol4_dim=train_dataset.mol4.shape[-1],
+            mol5_dim=train_dataset.mol5.shape[-1],
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,
@@ -351,7 +347,7 @@ class ConditionPrediction:
         callbacks = [
             TrainingMetrics(
                 n_train=train_idx.shape[0],
-                batch_size=train_generator.batch_size,
+                batch_size=train_dataset.batch_size,
             )
         ]
         # Define the EarlyStopping callback
@@ -380,10 +376,10 @@ class ConditionPrediction:
 
         use_multiprocessing = True if workers > 0 else False
         h = model.fit(
-            train_generator,
+            train_dataset,
             epochs=epochs,
             verbose=2,
-            validation_data=val_generator,
+            validation_data=val_dataset,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
             workers=workers,
@@ -412,7 +408,7 @@ class ConditionPrediction:
         if evaluate_on_test_data:
             # Evaluate the model on the test set
             test_metrics = model.evaluate(
-                test_generator,
+                test_dataset,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
             )
@@ -421,7 +417,7 @@ class ConditionPrediction:
 
             ### Grouped scores
             predictions = model.predict(
-                test_generator,
+                test_dataset,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
             )

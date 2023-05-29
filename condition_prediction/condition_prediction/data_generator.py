@@ -1,10 +1,11 @@
 import logging
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
-import keras
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from numpy.typing import NDArray
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
@@ -14,122 +15,42 @@ from condition_prediction.utils import apply_train_ohe_fit
 
 LOG = logging.getLogger(__name__)
 
+AUTOTUNE = tf.data.AUTOTUNE
 
-class FingerprintDataGenerator(keras.utils.Sequence):
-    """Data generator for reaction condition prediction
 
-    Args:
-        mol1: ground truth solvent 1
-        mol2: ground truth solvent 2
-        mol3: ground truth reagent 1
-        mol4: ground truth reagent 2
-        mol5: ground truth reagent 3
-        data: dataframe containing ground truth solvents and reagents
-        fp: fingerprints if precalculated
-        mode: teacher force or hard/soft selection
-        batch_size: batch size
-        fp_size (int): size of fingerprint if being calcuated on the fly
-        shuffle (bool): shuffle data at the end of each epoch
+@dataclass(kw_only=True)
+class GenerateFingerprints:
+    fp_size: int
+    mode: int
 
-    Notes:
-        If no fingerprints are provided, they will be calculated on the fly
-
-    """
-
-    def __init__(
+    def construct_batch_gen_fp(
         self,
-        mol1: np.ndarray,
-        mol2: np.ndarray,
-        mol3: np.ndarray,
-        mol4: np.ndarray,
-        mol5: np.ndarray,
-        data: Optional[pd.DataFrame] = None,
-        fp: Optional[np.ndarray] = None,
-        mode: int = TEACHER_FORCE,
-        batch_size=32,
-        fp_size=2048,
-        shuffle=True,
+        smiles_arr: NDArray[np.character],
+        outputs: NDArray[np.int64],
     ):
-        "Initialization"
-
-        self.mol1 = mol1
-        self.mol2 = mol2
-        self.mol3 = mol3
-        self.mol4 = mol4
-        self.mol5 = mol5
-        self.data = data
-        self.fp = fp
-        if self.data is None and self.fp is None:
-            raise ValueError("Must provide either data or fp")
-        self.mode = mode
-        self.batch_size = batch_size
-        self.fp_size = fp_size
-        self.shuffle = shuffle
-        self.on_epoch_end()
-
-    def __len__(self):
-        "Denotes the number of batches per epoch"
-        n = self.data.shape[0] if self.data is not None else self.fp.shape[0]
-        k = n // self.batch_size
-        k += 1 if n % self.batch_size != 0 else 0
-        return k
-
-    def __getitem__(self, index):
-        "Generate one batch of data"
-        # Generate indexes of the batch
-        indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
-
-        # Get fingerprints
-        if self.fp is not None:
-            batch_product_fp = self.fp[indexes, : self.fp.shape[1] // 2]
-            batch_rxn_diff_fp = self.fp[indexes, self.fp.shape[1] // 2 :]
-        else:
-            batch_product_fp, batch_rxn_diff_fp = self.get_fp(self.data.iloc[indexes])
-
-        # Get ground truth solvents and reagents
-        batch_mol1 = tf.gather(self.mol1, indexes)
-        batch_mol2 = tf.gather(self.mol2, indexes)
-        batch_mol3 = tf.gather(self.mol3, indexes)
-        batch_mol4 = tf.gather(self.mol4, indexes)
-        batch_mol5 = tf.gather(self.mol5, indexes)
-
+        product_fp, rxn_diff_fp = self.get_fp(smiles_arr, fp_size=self.fp_size)
         if self.mode == TEACHER_FORCE:
             X = (
-                batch_product_fp,
-                batch_rxn_diff_fp,
-                batch_mol1,
-                batch_mol2,
-                batch_mol3,
-                batch_mol4,
-                batch_mol5,
+                product_fp,
+                rxn_diff_fp,
+                outputs[0],
+                outputs[1],
+                outputs[2],
+                outputs[3],
+                outputs[4],
             )
         else:
             X = (
-                batch_product_fp,
-                batch_rxn_diff_fp,
+                product_fp,
+                rxn_diff_fp,
             )
+        return X, outputs
 
-        y = (
-            batch_mol1,
-            batch_mol2,
-            batch_mol3,
-            batch_mol4,
-            batch_mol5,
-        )
-
-        return X, y
-
-    def on_epoch_end(self):
-        "Updates indexes after each epoch"
-        n_examples = self.fp.shape[0] if self.fp is not None else self.data.shape[0]
-        self.indexes = np.arange(n_examples)
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
-
-    def get_fp(self, df: pd.DataFrame):
-        product_fp = self.calc_fp(df["product_000"], radius=3, nBits=self.fp_size)
-        reactant_fp_0 = self.calc_fp(df["reactant_000"], radius=3, nBits=self.fp_size)
-        reactant_fp_1 = self.calc_fp(df["reactant_001"], radius=3, nBits=self.fp_size)
+    @staticmethod
+    def get_fp(arr, fp_size: int = 2048):
+        product_fp = GenerateFingerprints.calc_fp(arr[:, -1], radius=3, nBits=fp_size)
+        reactant_fp_0 = GenerateFingerprints.calc_fp(arr[:, 0], radius=3, nBits=fp_size)
+        reactant_fp_1 = GenerateFingerprints.calc_fp(arr[:, 1], radius=3, nBits=fp_size)
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
         return product_fp, rxn_diff_fp
 
@@ -157,7 +78,69 @@ class FingerprintDataGenerator(keras.utils.Sequence):
         return np.vstack(ans)
 
 
-def get_data_generators(
+def get_dataset(
+    mol1: NDArray[np.int64],
+    mol2: NDArray[np.int64],
+    mol3: NDArray[np.int64],
+    mol4: NDArray[np.int64],
+    mol5: NDArray[np.int64],
+    df: Optional[pd.DataFrame] = None,
+    fp: Optional[NDArray[np.int64]] = None,
+    mode: int = TEACHER_FORCE,
+    fp_size: int = 2048,
+    num_parallel_calls: Optional[int] = None,
+):
+    # Construct outputs
+    y = (
+        mol1,
+        mol2,
+        mol3,
+        mol4,
+        mol5,
+    )
+
+    if fp is None and df is None:
+        raise ValueError("Must provide either df or fp")
+
+    if fp is None:
+        X = df[["reactant_000", "reactant_001", "product_000"]].to_numpy()
+        dataset = tf.data.Dataset.from_tensor_slices((X, y))
+        fp_generator = GenerateFingerprints(fp_size=fp_size, mode=mode)
+        map_func = lambda x, y: tf.numpy_function(
+            fp_generator.construct_batch_gen_fp,
+            [x, y],
+            Tout=[tf.int64, tf.int64],
+        )
+        dataset = dataset.map(
+            map_func=map_func,
+            num_parallel_calls=AUTOTUNE
+            if num_parallel_calls is None
+            else num_parallel_calls,
+        )
+    else:
+        product_fp = fp[:, : fp.shape[1] // 2]
+        rxn_diff_fp = fp[:, fp.shape[1] // 2 :]
+        if mode == TEACHER_FORCE:
+            X = (
+                product_fp,
+                rxn_diff_fp,
+                mol1,
+                mol2,
+                mol3,
+                mol4,
+                mol5,
+            )
+        else:
+            X = (
+                product_fp,
+                rxn_diff_fp,
+            )
+        dataset = tf.data.Dataset.from_tensor_slices((X, y))
+
+    return dataset
+
+
+def get_datasets(
     df: pd.DataFrame,
     train_idx: np.ndarray,
     val_idx: np.ndarray,
@@ -167,7 +150,7 @@ def get_data_generators(
     train_val_fp: Optional[np.ndarray] = None,
     test_fp: Optional[np.ndarray] = None,
     train_mode: int = TEACHER_FORCE,
-    batch_size: int = 512,
+    # batch_size: int = 512,
 ):
     """
     Get data generators for train, val and test
@@ -251,52 +234,54 @@ def get_data_generators(
         tensor_func=tf.convert_to_tensor,
     )
 
-    # Create fingerprint generators
-    train_generator = FingerprintDataGenerator(
-        mol1=train_mol1,
-        mol2=train_mol2,
-        mol3=train_mol3,
-        mol4=train_mol4,
-        mol5=train_mol5,
-        fp=train_val_fp[train_idx] if train_val_fp is not None else None,
-        data=df.iloc[train_idx],
-        mode=train_mode,
-        batch_size=batch_size,
-        shuffle=True,
-        fp_size=fp_size,
-    )
+    # Get datsets
     val_mode = (
         HARD_SELECTION
         if train_mode == TEACHER_FORCE or train_mode == HARD_SELECTION
         else SOFT_SELECTION
     )
-    val_generator = FingerprintDataGenerator(
-        mol1=val_mol1,
-        mol2=val_mol2,
-        mol3=val_mol3,
-        mol4=val_mol4,
-        mol5=val_mol5,
-        fp=train_val_fp[val_idx] if train_val_fp is not None else None,
-        data=df.iloc[val_idx],
-        mode=val_mode,
-        batch_size=batch_size,
-        shuffle=False,
+    train_dataset = get_dataset(
+        train_mol1,
+        train_mol2,
+        train_mol3,
+        train_mol4,
+        train_mol5,
+        df=df.iloc[train_idx],
+        fp=train_val_fp,
+        mode=train_mode,
         fp_size=fp_size,
     )
-    test_generator = FingerprintDataGenerator(
-        mol1=test_mol1,
-        mol2=test_mol2,
-        mol3=test_mol3,
-        mol4=test_mol4,
-        mol5=test_mol5,
-        fp=test_fp,
-        data=df.iloc[test_idx],
+    val_dataset = get_dataset(
+        val_mol1,
+        val_mol2,
+        val_mol3,
+        val_mol4,
+        val_mol5,
+        df=df.iloc[val_idx],
+        fp=train_val_fp,
         mode=val_mode,
-        batch_size=batch_size,
-        shuffle=False,
+        fp_size=fp_size,
+    )
+    test_dataset = get_dataset(
+        test_mol1,
+        test_mol2,
+        test_mol3,
+        test_mol4,
+        test_mol5,
+        df=df.iloc[test_idx],
+        fp=test_fp,
+        mode=val_mode,
         fp_size=fp_size,
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
 
-    return train_generator, val_generator, test_generator, encoders
+    return train_dataset, val_dataset, test_dataset, encoders
+
+
+def configure_for_performance(ds, batch_size):
+    ds = ds.cache()
+    ds = ds.batch(batch_size)
+    ds = ds.shuffle(buffer_size=1000)
+    ds = ds.prefetch(buffer_size=tf.data.AUTOTUNE)
+    return ds
