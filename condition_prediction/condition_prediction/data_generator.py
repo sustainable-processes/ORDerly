@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
+from multiprocessing import Pool
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
@@ -21,6 +22,7 @@ AUTOTUNE = tf.data.AUTOTUNE
 @dataclass(kw_only=True)
 class GenerateData:
     fp_size: int
+    radius: int = 3
     mode: int
     df: pd.DataFrame
     product_fp: Optional[NDArray[np.int64]] = None
@@ -35,9 +37,7 @@ class GenerateData:
         idx = idx.numpy()
 
         if self.product_fp is None or self.rxn_diff_fp is None:
-            product_fp, rxn_diff_fp = self.get_fp(
-                self.df.iloc[idx], fp_size=self.fp_size
-            )
+            product_fp, rxn_diff_fp = self.get_fp(self.df.iloc[idx])
         else:
             product_fp = self.product_fp[idx]
             rxn_diff_fp = self.rxn_diff_fp[idx]
@@ -52,37 +52,40 @@ class GenerateData:
             self.mol5[idx],
         )
 
-    @staticmethod
-    def get_fp(row, fp_size: int = 2048):
-        product_fp = GenerateData.calc_fp(row["product_000"], radius=3, nBits=fp_size)
-        reactant_fp_0 = GenerateData.calc_fp(
-            row["reactant_001"], radius=3, nBits=fp_size
-        )
-        reactant_fp_1 = GenerateData.calc_fp(
-            row["reactant_001"], radius=3, nBits=fp_size
-        )
+    
+    def get_fp(self, df):
+        product_fp = self.calc_fps(df["product_000"])
+        reactant_fp_0 = self.calc_fps(df["reactant_001"])
+        reactant_fp_1 = self.calc_fps(df["reactant_001"])
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
         return product_fp, rxn_diff_fp
 
-    @staticmethod
-    def calc_fp(smiles: str, radius: int = 3, nBits: int = 2048):
-        # Usage:
-        # radius = 3
-        # nBits = 2048
-        # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
+    def calc_fps(self, smiles_list: List[str]):
         block = BlockLogs()
+        ans = []
+        with Pool() as pool:
+            fingerprints = np.array(
+                list(pool.imap(self.calc_fp, smiles_list))
+            )
+        return fingerprints
+    
+    def calc_fp(self,smiles: str):
         # convert to mol object
+        if smiles == "NULL":
+            return np.zeros((nBits,), dtype=int)
         try:
             mol = Chem.MolFromSmiles(smiles)
             # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
-            fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
-            array = np.zeros((0,), dtype=np.int64)
+            fp = AllChem.GetHashedMorganFingerprint(mol, self.radius, nBits=self.fp_size)
+            array = np.zeros((0,), dtype=np.int8)
             DataStructs.ConvertToNumpyArray(fp, array)
             return array
         except:
             if smiles is not None:
                 LOG.warning(f"Could not generate fingerprint for {smiles=}")
-            return np.zeros((nBits,), dtype=np.int64)
+            return np.zeros((nBits,), dtype=int)
+
+
 
 
 def get_dataset(
@@ -166,10 +169,8 @@ def get_dataset(
     dataset = dataset.batch(batch_size)
     
     # Generate the actual data
-    dataset = dataset.map(map_func=map_func, num_parallel_calls=AUTOTUNE)
-
+    dataset = dataset.map(map_func=map_func)
     
-
     if cache_data:
         dataset = dataset.cache()
 
@@ -185,14 +186,13 @@ def get_dataset(
     dataset = dataset.map(_fixup_shape)
     
     if interleave:
-        dataset = tf.data.Dataset.range(df.shape[0]).interleave(
+        dataset = tf.data.Dataset.range(len(dataset)).interleave(
             lambda _: dataset,
             num_parallel_calls=AUTOTUNE,
             deterministic=False,
-            cycle_length=AUTOTUNE
+            # cycle_length=16,
         )
     
-
     if prefetch_buffer_size is None:
         prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
