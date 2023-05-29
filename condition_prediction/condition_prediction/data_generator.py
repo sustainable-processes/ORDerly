@@ -1,4 +1,5 @@
 import logging
+import os
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -6,10 +7,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
+from pqdm.processes import pqdm
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
-from multiprocessing import Pool
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
@@ -52,7 +53,6 @@ class GenerateData:
             self.mol5[idx],
         )
 
-    
     def get_fp(self, df):
         product_fp = self.calc_fps(df["product_000"])
         reactant_fp_0 = self.calc_fps(df["reactant_001"])
@@ -62,30 +62,26 @@ class GenerateData:
 
     def calc_fps(self, smiles_list: List[str]):
         block = BlockLogs()
-        ans = []
-        with Pool() as pool:
-            fingerprints = np.array(
-                list(pool.imap(self.calc_fp, smiles_list))
-            )
+        fingerprints = np.array(pqdm(smiles_list, self.calc_fp, n_jobs=4))
         return fingerprints
-    
-    def calc_fp(self,smiles: str):
+
+    def calc_fp(self, smiles: str):
         # convert to mol object
         if smiles == "NULL":
-            return np.zeros((nBits,), dtype=int)
+            return np.zeros((self.fp_size,), dtype=int)
         try:
             mol = Chem.MolFromSmiles(smiles)
             # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
-            fp = AllChem.GetHashedMorganFingerprint(mol, self.radius, nBits=self.fp_size)
+            fp = AllChem.GetHashedMorganFingerprint(
+                mol, self.radius, nBits=self.fp_size
+            )
             array = np.zeros((0,), dtype=np.int8)
             DataStructs.ConvertToNumpyArray(fp, array)
             return array
         except:
             if smiles is not None:
                 LOG.warning(f"Could not generate fingerprint for {smiles=}")
-            return np.zeros((nBits,), dtype=int)
-
-
+            return np.zeros((self.fp_size,), dtype=int)
 
 
 def get_dataset(
@@ -167,10 +163,10 @@ def get_dataset(
         return X, y
 
     dataset = dataset.batch(batch_size)
-    
+
     # Generate the actual data
-    dataset = dataset.map(map_func=map_func)
-    
+    dataset = dataset.map(map_func=map_func, num_parallel_calls=4)
+
     if cache_data:
         dataset = dataset.cache()
 
@@ -184,7 +180,7 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
-    
+
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(
             lambda _: dataset,
@@ -192,7 +188,7 @@ def get_dataset(
             deterministic=False,
             # cycle_length=16,
         )
-    
+
     if prefetch_buffer_size is None:
         prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)

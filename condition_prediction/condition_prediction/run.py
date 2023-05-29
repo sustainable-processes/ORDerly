@@ -33,10 +33,10 @@ from condition_prediction.utils import (
     post_training_plots,
 )
 
-
-physical_devices = tf.config.experimental.list_physical_devices('GPU')
+physical_devices = tf.config.experimental.list_physical_devices("GPU")
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 
 @dataclasses.dataclass(kw_only=True)
 class ConditionPrediction:
@@ -243,6 +243,7 @@ class ConditionPrediction:
         if train_val_fp is not None:
             assert train_val_fp.shape[0] == train_val_df.shape[0]
             fp_size = train_val_fp.shape[1] // 2
+            config.update({"fp_size": fp_size})
         if test_fp is not None:
             assert test_fp.shape[0] == test_df.shape[0]
 
