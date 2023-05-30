@@ -2,11 +2,13 @@
 .DS_Store
 *.log
 
-#notebooks/
+#condition_prediction/
 models/
-
-# Weights and biases
 wandb/
+.tf_cache*/
+
+# vscode
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
