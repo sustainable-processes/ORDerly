@@ -1099,22 +1099,19 @@ class OrdExtractor:
 
             rxn_non_smiles_names_list += rxn_non_smiles_names_list_additions
 
-            if set(reactants) != set(
-                products
-            ):  # If the reactants and products are the same, then we don't want to add this reaction to our dataset
-                rxn_lists["rxn_str"].append(rxn_str)
-                rxn_lists["reactant"].append(reactants)
-                rxn_lists["agent"].append(agents)
-                rxn_lists["reagent"].append(reagents)
-                rxn_lists["solvent"].append(solvents)
-                rxn_lists["catalyst"].append(catalysts)
-                rxn_lists["temperature"].append(temperature)
-                rxn_lists["rxn_time"].append(rxn_time)
-                rxn_lists["product"].append(products)
-                rxn_lists["yield"].append(yields)
-                rxn_lists["procedure_details"].append(procedure_details)
-                rxn_lists["date_of_experiment"].append(date_of_experiment)
-                rxn_lists["is_mapped"].append(is_mapped)
+            rxn_lists["rxn_str"].append(rxn_str)
+            rxn_lists["reactant"].append(reactants)
+            rxn_lists["agent"].append(agents)
+            rxn_lists["reagent"].append(reagents)
+            rxn_lists["solvent"].append(solvents)
+            rxn_lists["catalyst"].append(catalysts)
+            rxn_lists["temperature"].append(temperature)
+            rxn_lists["rxn_time"].append(rxn_time)
+            rxn_lists["product"].append(products)
+            rxn_lists["yield"].append(yields)
+            rxn_lists["procedure_details"].append(procedure_details)
+            rxn_lists["date_of_experiment"].append(date_of_experiment)
+            rxn_lists["is_mapped"].append(is_mapped)
 
         return rxn_lists, rxn_non_smiles_names_list
 
