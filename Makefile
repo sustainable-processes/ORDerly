@@ -313,18 +313,19 @@ with_trust_with_map_train_20:
 	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
 
 # Sweeps
-sweep_no_trust_no_map_train:
-	python -m sweep sweeps/no_trust_no_map_train.yaml --max_parallel 1
+sweep_no_trust_no_map_train_commands:
+	python -m sweep sweeps/no_trust_no_map_train.yaml --dry_run
 
-sweep_no_trust_with_map_train:
-	python -m sweep sweeps/no_trust_with_map_train.yaml --max_parallel 1
+sweep_no_trust_with_map_train_commands:
+	python -m sweep sweeps/no_trust_with_map_train.yaml --dry_run
 
-sweep_with_trust_no_map_train:
-	python -m sweep sweeps/with_trust_no_map_train.yaml --max_parallel 1
+sweep_with_trust_no_map_train_commands:
+	python -m sweep sweeps/with_trust_no_map_train.yaml --dry_run
 
-sweep_with_trust_with_map_train:
-	python -m sweep sweeps/with_trust_with_map_train.yaml --max_parallel 1
+sweep_with_trust_with_map_train_commands:
+	python -m sweep sweeps/with_trust_with_map_train.yaml --dry_run
 
+sweep_all: sweep_no_trust_no_map_train_commands sweep_no_trust_with_map_train_commands sweep_with_trust_no_map_train_commands sweep_with_trust_with_map_train_commands
 
 train_all: no_trust_no_map_train no_trust_with_map_train with_trust_no_map_train with_trust_with_map_train no_trust_no_map_train_20 no_trust_with_map_train_20 with_trust_no_map_train_20 with_trust_with_map_train_20
 
