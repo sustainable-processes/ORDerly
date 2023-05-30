@@ -377,17 +377,19 @@ class ConditionPrediction:
         )
 
         ### Training ###
-        # callbacks = [
-        #     tf.keras.callbacks.TensorBoard(
-        #         log_dir=log_dir(prefix="TF_", comment="_MOREDATA_REG_HARDSELECT")
-        #     )
-        # ]
         callbacks = [
             TrainingMetrics(
                 n_train=train_idx.shape[0],
                 batch_size=batch_size,
             )
         ]
+        from datetime import datetime
+        callbacks.append(
+            tf.keras.callbacks.TensorBoard(
+                log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"), 
+                profile_batch="1,2"
+            )
+        )
         # Define the EarlyStopping callback
         if early_stopping_patience != 0:
             early_stop = EarlyStopping(
@@ -413,6 +415,7 @@ class ConditionPrediction:
                 tags=wandb_tags,
                 group=wandb_group,
                 config=config,
+                sync_tensorboard=True,
             )
             callbacks.extend(
                 [

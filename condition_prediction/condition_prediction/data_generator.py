@@ -244,14 +244,6 @@ def get_dataset(
         # num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
-    if cache_data:
-        cache_dir = Path(cache_dir)
-        if not cache_dir.exists():
-            cache_dir.mkdir(exist_ok=True)
-            # # Read through dataset once to cache it
-            # print("Caching dataset")
-            # [1 for _ in dataset.as_numpy_iterator()]
-        dataset = dataset.cache(filename=str(cache_dir / "fps"))
 
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
@@ -263,6 +255,15 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
+    
+    if cache_data:
+        cache_dir = Path(cache_dir)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # # Read through dataset once to cache it
+            # print("Caching dataset")
+            # [1 for _ in dataset.as_numpy_iterator()]
+        dataset = dataset.cache(filename=str(cache_dir / "fps"))
 
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(
@@ -275,6 +276,7 @@ def get_dataset(
     if prefetch_buffer_size is None:
         prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
+    print("Prefetch buffer size:", prefetch_buffer_size)
     return dataset
 
 
