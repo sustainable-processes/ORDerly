@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from click_loglevel import LogLevel
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -63,6 +63,8 @@ class ConditionPrediction:
     hidden_size_1: int
     hidden_size_2: int
     lr: float
+    reduce_lr_on_plateau_patience: int
+    reduce_lr_on_plateau_factor: float
     batch_size: int
     workers: int
     shuffle_buffer_size: int
@@ -118,6 +120,8 @@ class ConditionPrediction:
             hidden_size_1=self.hidden_size_1,
             hidden_size_2=self.hidden_size_2,
             lr=self.lr,
+            reduce_lr_on_plateau_patience=self.reduce_lr_on_plateau_patience,
+            reduce_lr_on_plateau_factor=self.reduce_lr_on_plateau_factor,
             batch_size=self.batch_size,
             workers=self.workers,
             eager_mode=self.eager_mode,
@@ -209,6 +213,8 @@ class ConditionPrediction:
         hidden_size_1: int = 1024,
         hidden_size_2: int = 100,
         lr: float = 0.01,
+        reduce_lr_on_plateau_patience: int = 0,
+        reduce_lr_on_plateau_factor: int = 0.1,
         workers: int = 1,
         shuffle_buffer_size: int = 1000,
         prefetch_buffer_size: Optional[int] = None,
@@ -384,6 +390,14 @@ class ConditionPrediction:
                 monitor="val_loss", patience=early_stopping_patience
             )
             callbacks.append(early_stop)
+        if reduce_lr_on_plateau_patience != 0:
+            reduce_lr = ReduceLROnPlateau(
+                monitor="val_loss",
+                factor=reduce_lr_on_plateau_factor,
+                patience=reduce_lr_on_plateau_patience,
+                min_lr=1e-6,
+            )
+            callbacks.append(reduce_lr)
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -584,6 +598,18 @@ class ConditionPrediction:
     help="The learning rate used in the model",
 )
 @click.option(
+    "--reduce_lr_on_plateau_patience",
+    default=0,
+    type=int,
+    help="Number of epochs with no improvement after which learning rate will be reduced. If 0, then learning rate reduction is disabled.",
+)
+@click.option(
+    "--reduce_lr_on_plateau_factor",
+    default=0.1,
+    type=float,
+    help="Factor by which the learning rate will be reduced. new_lr = lr * factor",
+)
+@click.option(
     "--batch_size",
     default=512,
     type=int,
@@ -689,6 +715,8 @@ def main_click(
     hidden_size_1: int,
     hidden_size_2: int,
     lr: float,
+    reduce_lr_on_plateau_patience: int,
+    reduce_lr_on_plateau_factor: float,
     batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
@@ -740,6 +768,8 @@ def main_click(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        reduce_lr_on_plateau_patience=reduce_lr_on_plateau_patience,
+        reduce_lr_on_plateau_factor=reduce_lr_on_plateau_factor,
         cache_train_data=cache_train_data,
         cache_val_data=cache_val_data,
         cache_test_data=cache_test_data,
@@ -775,6 +805,8 @@ def main(
     hidden_size_1: int,
     hidden_size_2: int,
     lr: float,
+    reduce_lr_on_plateau_patience: int,
+    reduce_lr_on_plateau_factor: float,
     batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
@@ -872,6 +904,8 @@ def main(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        reduce_lr_on_plateau_patience=reduce_lr_on_plateau_patience,
+        reduce_lr_on_plateau_factor=reduce_lr_on_plateau_factor,
         batch_size=batch_size,
         workers=workers,
         cache_train_data=cache_train_data,
