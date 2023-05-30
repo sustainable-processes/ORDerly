@@ -1,5 +1,4 @@
 import logging
-import multiprocessing
 import os
 import signal
 from dataclasses import dataclass
@@ -9,12 +8,13 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
-from rdkit.rdBase import BlockLogs
+import multiprocessing
 
 # from pqdm.processes import pqdm
 from tqdm import tqdm
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
+from rdkit.rdBase import BlockLogs
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
@@ -39,25 +39,28 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
-    # def __post_init__(self):
-    #     initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
-    #     self.pool = multiprocessing.Pool(self.num_parallel_batches, initializer)
+    def __post_init__(self):
+        initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+        self.pool = multiprocessing.Pool(self.num_parallel_batches, initializer)
 
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
-            result = GenerateData._map_idx_to_data_gen_fp(
-                self.df,
-                idx,
-                self.mol1,
-                self.mol2,
-                self.mol3,
-                self.mol4,
-                self.mol5,
-                self.radius,
-                self.fp_size,
+            result = self.pool.apply_async(
+                GenerateData._map_idx_to_data_gen_fp,
+                (
+                    self.df,
+                    idx,
+                    self.mol1,
+                    self.mol2,
+                    self.mol3,
+                    self.mol4,
+                    self.mol5,
+                    self.radius,
+                    self.fp_size,
+                ),
             )
-            # result = result.get()
+            result = result.get()
             return result
         else:
             return self._map_idx_to_data(
@@ -243,8 +246,7 @@ def get_dataset(
 
     # Generate the actual data
     dataset = dataset.map(
-        map_func=map_func
-        # , num_parallel_calls=os.cpu_count(), deterministic=False
+        map_func=map_func, num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
     if cache_data:
