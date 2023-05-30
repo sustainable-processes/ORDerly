@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from click_loglevel import LogLevel
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -398,6 +398,7 @@ class ConditionPrediction:
                 min_lr=1e-6,
             )
             callbacks.append(reduce_lr)
+        checkpoint_filepath = "models/{epoch:02d}"
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -412,8 +413,15 @@ class ConditionPrediction:
             callbacks.extend(
                 [
                     WandbMetricsLogger(),
-                    WandbModelCheckpoint("models/{epoch:02d}", save_best_only=True),
+                    WandbModelCheckpoint(checkpoint_filepath, save_best_only=True),
                 ]
+            )
+        else:
+            callbacks.append(
+                ModelCheckpoint(
+                    filepath=checkpoint_filepath,
+                    save_best_only=True,
+                )
             )
 
         use_multiprocessing = True if workers > 0 else False
@@ -426,6 +434,8 @@ class ConditionPrediction:
             use_multiprocessing=use_multiprocessing,
             workers=workers,
         )
+        # Load the best model back
+        model.load_weights(checkpoint_filepath)
         update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
         )
@@ -436,10 +446,6 @@ class ConditionPrediction:
         train_val_metrics_dict["trust_labelling"] = trust_labelling
         with open(train_val_file_path, "w") as file:
             json.dump(train_val_metrics_dict, file)
-
-        # TODO: Save the model
-        # model_save_file_path = output_folder_path / "models"
-        # model.save(model_save_file_path)
 
         ### Evaluation ####
         post_training_plots(
