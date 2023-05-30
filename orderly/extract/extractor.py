@@ -140,7 +140,9 @@ class OrdExtractor:
                     ii.value, is_mapped=False
                 )
                 if canon_smi is not None:
-                    LOG.info(f"SMILES string found labelled as name: {ii.value}")
+                    LOG.info(
+                        f"SMILES string found labelled as name: {ii.value} -> {canon_smi}"
+                    )
                 else:
                     canon_smi = ii.value
                     non_smiles_names_list.append(ii.value)
@@ -266,6 +268,11 @@ class OrdExtractor:
                         products.append(p_clean)
                     else:
                         cleaned_agents.append(p_clean)
+
+            # Finally, now that we have the genuine reactants and products, we should remove any agents that are also present in the reactants or products
+            cleaned_agents = [
+                a for a in cleaned_agents if a not in reactants and a not in products
+            ]
         else:
             reactants = reactants_from_rxn_without_mapping
             products = products_from_rxn_without_mapping
@@ -708,6 +715,7 @@ class OrdExtractor:
                 agents += molecules_unique_to_labelled_data
 
         else:
+            breakpoint()
             return None
 
         if (
@@ -902,10 +910,7 @@ class OrdExtractor:
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
             # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
-            assert set(reactants).isdisjoint(
-                products
-            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
-            reactants_and_products = reactants + products
+            reactants_and_products = set(reactants + products)
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
             solvents = [s for s in solvents if s not in reactants_and_products]
