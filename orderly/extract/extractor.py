@@ -715,7 +715,6 @@ class OrdExtractor:
                 agents += molecules_unique_to_labelled_data
 
         else:
-            breakpoint()
             return None
 
         if (
