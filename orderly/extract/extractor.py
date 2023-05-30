@@ -136,13 +136,13 @@ class OrdExtractor:
                 ### Attempt to canonicalise to check whether it's a mislabelled SMILES string
                 ### Return it as a name
                 ### Simply return None
-                #TODO: I'm not sure what the best option to do here is. For now, we'll just keep track of the names, and return None.
-                
+                # TODO: I'm not sure what the best option to do here is. For now, we'll just keep track of the names, and return None.
+
                 # In theory, we'd just do this:
                 ## name = ii.value
                 ## non_smiles_names_list.append(name)
                 # However, at least once, in the case of "II" (diiodine), the smiles string was recorded as a name, which breaks everything downstream.
-                
+
                 LOG.info(f"Molecule found with no SMILES, only name: {ii.value}")
                 if ii.value != "II":
                     non_smiles_names_list.append(ii.value)
