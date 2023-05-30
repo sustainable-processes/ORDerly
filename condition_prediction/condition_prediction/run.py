@@ -141,7 +141,7 @@ class ConditionPrediction:
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
         molecule_columns: List[str],
-    ) -> None:
+    ) -> Dict[str, Any]:
         mol_1_col = molecule_columns[0]
         mol_2_col = molecule_columns[1]
         mol_3_col = molecule_columns[2]
