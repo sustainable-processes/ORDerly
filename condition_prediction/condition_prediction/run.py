@@ -140,7 +140,6 @@ class ConditionPrediction:
     def get_frequency_informed_guess(
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
-        output_folder_path: pathlib.Path,
         molecule_columns: List[str],
     ) -> None:
         mol_1_col = molecule_columns[0]
@@ -180,18 +179,16 @@ class ConditionPrediction:
         )
 
         # Save the naive_top_3 benchmark to json
-        benchmark_file_path = output_folder_path / "freq_informed_acc.json"
         benchmark_dict = {
             f"most_common_solvents": most_common_solvents,
             f"most_common_agents": most_common_agents,
             f"most_common_combination": most_common_combination,
-            f"solvent_acc": solvent_accuracy,
-            f"agent_acc": agent_accuracy,
-            f"overall_acc": overall_accuracy,
+            f"frequency_informed_solvent_accuracy": solvent_accuracy,
+            f"frequency_informed_agent_accuracy": agent_accuracy,
+            f"frequency_informed_overall_accuracy": overall_accuracy,
         }
 
-        with open(benchmark_file_path, "w") as file:
-            json.dump(benchmark_dict, file)
+        return benchmark_dict
 
     @staticmethod
     def run_model(
@@ -302,12 +299,14 @@ class ConditionPrediction:
         )
 
         if evaluate_on_test_data:
-            ConditionPrediction.get_frequency_informed_guess(
+            benchmark_dict = ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
                 test_df=test_df,
-                output_folder_path=output_folder_path,
                 molecule_columns=molecule_columns,
             )
+            benchmark_file_path = output_folder_path / "freq_informed_acc.json"
+            with open(benchmark_file_path, "w") as file:
+                json.dump(benchmark_dict, file)
 
         del train_val_df
         del test_df
@@ -463,7 +462,7 @@ class ConditionPrediction:
             agent_scores = get_grouped_scores(
                 y_test_data[2:], predictions[2:], encoders[2:]
             )
-            test_metrics_dict["test_three_agents_accuray"] = np.mean(agent_scores)
+            test_metrics_dict["test_three_agents_accuracy"] = np.mean(agent_scores)
 
             # Overall scores
             overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
@@ -486,7 +485,8 @@ class ConditionPrediction:
                 )
                 artifact.add_dir(output_folder_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
-                # Add as run summary
+                # Add  run summary
+                wandb_run.summary.update(benchmark_dict)  # type: ignore
                 wandb_run.summary.update(test_metrics_dict)  # type: ignore
 
 
