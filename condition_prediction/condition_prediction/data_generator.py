@@ -294,6 +294,7 @@ def get_datasets(
     cache_train_data: bool = False,
     cache_val_data: bool = False,
     cache_test_data: bool = False,
+    interleave: bool = False,
 ):
     """
     Get data generators for train, val and test
@@ -397,6 +398,8 @@ def get_datasets(
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_train_data,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_dir=".tf_cache_train/",
     )
     val_dataset = get_dataset(
@@ -412,6 +415,8 @@ def get_datasets(
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_data=cache_val_data,
         cache_dir=".tf_cache_val/",
     )
@@ -428,6 +433,8 @@ def get_datasets(
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_data=cache_test_data,
         cache_dir=".tf_cache_test/",
     )

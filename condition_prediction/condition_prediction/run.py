@@ -69,6 +69,7 @@ class ConditionPrediction:
     workers: int
     shuffle_buffer_size: int
     prefetch_buffer_size: int
+    interleave: bool
     evaluate_on_test_data: bool
     cache_train_data: bool = False
     cache_val_data: bool = False
@@ -130,6 +131,7 @@ class ConditionPrediction:
             cache_test_data=self.cache_test_data,
             shuffle_buffer_size=self.shuffle_buffer_size,
             prefetch_buffer_size=self.prefetch_buffer_size,
+            interleave=self.interleave,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
             wandb_project=self.wandb_project,
@@ -218,6 +220,7 @@ class ConditionPrediction:
         workers: int = 1,
         shuffle_buffer_size: int = 1000,
         prefetch_buffer_size: Optional[int] = None,
+        interleave: bool = False,
         cache_train_data: bool = False,
         cache_val_data: bool = False,
         cache_test_data: bool = False,
@@ -299,6 +302,7 @@ class ConditionPrediction:
             batch_size=batch_size,
             shuffle_buffer_size=shuffle_buffer_size,
             prefetch_buffer_size=prefetch_buffer_size,
+            interleave=interleave,
             cache_train_data=cache_train_data,
             cache_val_data=cache_val_data,
             cache_test_data=cache_test_data,
@@ -684,6 +688,12 @@ class ConditionPrediction:
     help="The buffer size used for prefetching the data. Defaults to 5x the batch size",
 )
 @click.option(
+    "--interleave",
+    default=False,
+    type=bool,
+    help="If True, will interleave the data processing",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -736,6 +746,7 @@ def main_click(
     cache_test_data: bool,
     shuffle_buffer_size: int,
     prefetch_buffer_size: int,
+    interleave: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
     verbosity: int = 2,
@@ -789,6 +800,7 @@ def main_click(
         eager_mode=eager_mode,
         shuffle_buffer_size=shuffle_buffer_size,
         prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         log_file=log_file,
         log_level=log_level,
         verbosity=verbosity,
@@ -826,6 +838,7 @@ def main(
     cache_test_data: bool,
     shuffle_buffer_size: int,
     prefetch_buffer_size: int,
+    interleave: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
     verbosity: int = 2,
@@ -919,6 +932,7 @@ def main(
         cache_test_data=cache_test_data,
         shuffle_buffer_size=shuffle_buffer_size,
         prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
