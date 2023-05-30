@@ -274,6 +274,24 @@ class Cleaner:
         return df
 
     @staticmethod
+    def _remove_rxn_with_same_reactant_and_product(df: pd.DataFrame) -> pd.DataFrame:
+        reactant_cols = df.filter(like="reactant").columns
+        product_cols = df.filter(like="product").columns
+
+        drop_indices = []
+
+        for index, row in df.iterrows():
+            reactants = set(row[reactant_cols])
+            products = set(row[product_cols])
+
+            if reactants == products:
+                drop_indices.append(index)
+
+        LOG.info(f"Removing reactions with same reactants and products")
+        df = df.drop(drop_indices)
+        return df
+
+    @staticmethod
     def _remove_with_inconsistent_yield(
         df: pd.DataFrame, num_product: int
     ) -> pd.DataFrame:
@@ -673,6 +691,7 @@ class Cleaner:
             LOG.info(f"Before removing reactions with no products: {df.shape[0]}")
             df = Cleaner._del_rows_empty_in_this_col(df, "product")
             LOG.info(f"After removing reactions with no products: {df.shape[0]}")
+
         if self.remove_reactions_with_no_solvents:
             LOG.info(f"Before removing reactions with no solvents: {df.shape[0]}")
             df = Cleaner._del_rows_empty_in_this_col(df, "solvent")
@@ -704,6 +723,14 @@ class Cleaner:
                 f"After removing reactions with no conditions (ie no solvents AND no agents): {df.shape[0]}"
             )
 
+        # Remove any reactions where reactant and product are the same
+        LOG.info(
+            f"Before removing reactions where reactants and products are the same: {df.shape[0]}"
+        )
+        df = Cleaner._remove_rxn_with_same_reactant_and_product(df)
+        LOG.info(
+            f"After removing reactions where reactants and products are the same: {df.shape[0]}"
+        )
         # Ensure consistent yield
         if self.consistent_yield:
             LOG.info(
