@@ -132,21 +132,22 @@ class OrdExtractor:
         for ii in identifiers:  # if there's no smiles, return the name
             # We need to look for a SMILES before we look for a name, so we can't merge these two loops even though they look identical.
             if ii.type == 6:
+                # If a molecule in ORD doesn't have SMILES, but does have a name, there are a few different ways it can be recorded.
+                ### Attempt to canonicalise to check whether it's a mislabelled SMILES string
+                ### Return it as a name
+                ### Simply return None
+                #TODO: I'm not sure what the best option to do here is. For now, we'll just keep track of the names, and return None.
+                
                 # In theory, we'd just do this:
                 ## name = ii.value
                 ## non_smiles_names_list.append(name)
                 # However, at least once, in the case of "II" (diiodine), the smiles string was recorded as a name, which breaks everything downstream.
-                canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    ii.value, is_mapped=False
-                )
-                if canon_smi is not None:
-                    LOG.info(
-                        f"SMILES string found labelled as name: {ii.value} -> {canon_smi}"
-                    )
-                else:
-                    canon_smi = ii.value
+                
+                LOG.info(f"Molecule found with no SMILES, only name: {ii.value}")
+                if ii.value != "II":
                     non_smiles_names_list.append(ii.value)
-                return canon_smi, non_smiles_names_list
+
+                return None, non_smiles_names_list
         return None, non_smiles_names_list
 
     @staticmethod
