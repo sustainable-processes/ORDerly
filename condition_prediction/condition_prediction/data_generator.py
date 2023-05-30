@@ -14,12 +14,11 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
 
-from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.utils import apply_train_ohe_fit
-
 # from pqdm.processes import pqdm
 from tqdm import tqdm
 
+from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
+from condition_prediction.utils import apply_train_ohe_fit
 
 LOG = logging.getLogger(__name__)
 
@@ -32,7 +31,6 @@ class GenerateData:
     radius: int = 3
     mode: int
     df: pd.DataFrame
-    num_parallel_batches: int = 1
     product_fp: Optional[NDArray[np.int64]] = None
     rxn_diff_fp: Optional[NDArray[np.int64]] = None
     mol1: NDArray[np.float32]
@@ -41,33 +39,9 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
-    # def __post_init__(self):
-    #     # initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
-    #     self.pool = multiprocessing.Pool(
-    #         self.num_parallel_batches, GenerateData.initializer
-    #     )
-
-    # @staticmethod
-    # def initializer():
-    #     return signal.signal(signal.SIGINT, signal.SIG_IGN)
-
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
-            # result = self.pool.apply_async(
-            #     GenerateData._map_idx_to_data_gen_fp,
-            #     (
-            #         self.df,
-            #         idx,
-            #         self.mol1,
-            #         self.mol2,
-            #         self.mol3,
-            #         self.mol4,
-            #         self.mol5,
-            #         self.radius,
-            #         self.fp_size,
-            #     ),
-            # )
             result = GenerateData._map_idx_to_data_gen_fp(
                 self.df,
                 idx,
@@ -182,11 +156,11 @@ class GenerateData:
 
 
 def get_dataset(
-    mol1: NDArray[np.int64],
-    mol2: NDArray[np.int64],
-    mol3: NDArray[np.int64],
-    mol4: NDArray[np.int64],
-    mol5: NDArray[np.int64],
+    mol1: NDArray[np.float32],
+    mol2: NDArray[np.float32],
+    mol3: NDArray[np.float32],
+    mol4: NDArray[np.float32],
+    mol5: NDArray[np.float32],
     df: Optional[pd.DataFrame] = None,
     fp: Optional[NDArray[np.int64]] = None,
     mode: int = TEACHER_FORCE,
@@ -196,7 +170,7 @@ def get_dataset(
     shuffle_buffer_size: int = 1000,
     cache_data: bool = False,
     cache_dir: Union[str, Path] = ".tf_cache/",
-    prefetch_buffer_size: int = None,
+    prefetch_buffer_size: Optional[int] = None,
     interleave: bool = False,
 ):
     """
@@ -237,10 +211,10 @@ def get_dataset(
         mol3=mol3,
         mol4=mol4,
         mol5=mol5,
-        num_parallel_batches=os.cpu_count() - 1,
     )
 
-    dataset = tf.data.Dataset.range(df.shape[0])  # INdex generator
+    n_items = df.shape[0] if df is not None else fp.shape[0]  # type: ignore
+    dataset = tf.data.Dataset.range(n_items)  # INdex generator
 
     # Need to shuffle here so it doesn't try to run the expensive stuff
     # while shuffling
@@ -279,7 +253,6 @@ def get_dataset(
             # [1 for _ in dataset.as_numpy_iterator()]
         dataset = dataset.cache(filename=str(cache_dir / "fps"))
 
-
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
     def _fixup_shape(X, Y):
@@ -317,7 +290,7 @@ def get_datasets(
     train_mode: int = TEACHER_FORCE,
     batch_size: int = 512,
     shuffle_buffer_size: int = 1000,
-    prefetch_buffer_size: int = None,
+    prefetch_buffer_size: Optional[int] = None,
     cache_train_data: bool = False,
     cache_val_data: bool = False,
     cache_test_data: bool = False,

@@ -484,7 +484,7 @@ class ConditionPrediction:
                 artifact.add_dir(output_folder_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
                 # Add as run summary
-                wandb_run.summary.update(test_metrics_dict)
+                wandb_run.summary.update(test_metrics_dict)  # type: ignore
 
 
 @click.command()
@@ -691,7 +691,7 @@ def main_click(
     cache_val_data: bool,
     cache_test_data: bool,
     shuffle_buffer_size: int,
-    prefetch_buffer_size: Optional[int],
+    prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -775,7 +775,7 @@ def main(
     cache_val_data: bool,
     cache_test_data: bool,
     shuffle_buffer_size: int,
-    prefetch_buffer_size: Optional[int],
+    prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
