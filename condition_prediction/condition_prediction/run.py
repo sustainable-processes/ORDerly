@@ -78,6 +78,7 @@ class ConditionPrediction:
     wandb_entity: Optional[str] = None
     wandb_tags: Optional[List[str]] = None
     wandb_group: Optional[str] = None
+    verbosity: int = 2
 
     def __post_init__(self) -> None:
         pass
@@ -132,6 +133,7 @@ class ConditionPrediction:
             wandb_logging=self.wandb_logging,
             wandb_tags=self.wandb_tags,
             wandb_group=self.wandb_group,
+            verbosity=self.verbosity,
         )
 
     @staticmethod
@@ -222,6 +224,7 @@ class ConditionPrediction:
         wandb_entity: Optional[str] = None,
         wandb_tags: Optional[List[str]] = None,
         wandb_group: Optional[str] = None,
+        verbosity: int = 2,
     ) -> None:
         """
         Run condition prediction training
@@ -404,7 +407,7 @@ class ConditionPrediction:
         h = model.fit(
             train_dataset,
             epochs=epochs,
-            verbose=1,
+            verbose=verbosity,
             validation_data=val_dataset,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
@@ -656,6 +659,13 @@ class ConditionPrediction:
     help="If true, will overwrite the contents in the output folder, else will through an error if the folder is not empty",
 )
 @click.option(
+    "--verbosity",
+    type=int,
+    default=2,
+    show_default=True,
+    help="The verbosity level of the logger. 0 is silent, 1 is progress bar, 2 is one line per epoch",
+)
+@click.option(
     "--log_file",
     type=str,
     default="default_path_model.log",
@@ -694,6 +704,7 @@ def main_click(
     prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
+    verbosity: int = 2,
 ) -> None:
     """
     After extraction and cleaning of ORD data, this will train a condition prediction model.
@@ -744,6 +755,7 @@ def main_click(
         prefetch_buffer_size=prefetch_buffer_size,
         log_file=log_file,
         log_level=log_level,
+        verbosity=verbosity,
     )
 
 
@@ -778,6 +790,7 @@ def main(
     prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
+    verbosity: int = 2,
 ) -> None:
     """
     After extraction and cleaning of ORD data, this will train a condition prediction model.
@@ -875,6 +888,7 @@ def main(
         wandb_tags=list(wandb_tags),
         wandb_group=wandb_group,
         eager_mode=eager_mode,
+        verbosity=verbosity,
     )
 
     instance.run_model_arguments()
