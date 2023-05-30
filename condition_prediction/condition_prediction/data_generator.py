@@ -18,7 +18,7 @@ from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACH
 from condition_prediction.utils import apply_train_ohe_fit
 
 # from pqdm.processes import pqdm
-# from tqdm import tqdm
+from tqdm import tqdm
 
 
 LOG = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class GenerateData:
                 self.radius,
                 self.fp_size,
             )
-            result = result.get()
+            # result = result.get()
             return result
         else:
             return self._map_idx_to_data(
@@ -159,7 +159,7 @@ class GenerateData:
         block = BlockLogs()
         # fingerprints = np.array(pqdm(smiles_list, self.calc_fp, n_jobs=8))
         fingerprints = np.array(
-            [GenerateData.calc_fp(smi, radius, fp_size) for smi in smiles_list]
+            [GenerateData.calc_fp(smi, radius, fp_size) for smi in tqdm(smiles_list)]
         )
         return fingerprints
 
@@ -272,11 +272,13 @@ def get_dataset(
 
     if cache_data:
         cache_dir = Path(cache_dir)
-        cache_dir.mkdir(exist_ok=True)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # # Read through dataset once to cache it
+            # print("Caching dataset")
+            # [1 for _ in dataset.as_numpy_iterator()]
         dataset = dataset.cache(filename=str(cache_dir / "fps"))
-        # Read through dataset once to cache it
-        LOG.info("Caching dataset")
-        dataset.as_numpy_iterator()
+
 
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
