@@ -1,23 +1,25 @@
 import logging
+import multiprocessing
 import os
 import signal
 from dataclasses import dataclass
-from typing import List, Optional
+from pathlib import Path
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
-import multiprocessing
-
-# from pqdm.processes import pqdm
-from tqdm import tqdm
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
+
+# from pqdm.processes import pqdm
+# from tqdm import tqdm
+
 
 LOG = logging.getLogger(__name__)
 
@@ -39,26 +41,43 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
-    def __post_init__(self):
-        initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
-        self.pool = multiprocessing.Pool(self.num_parallel_batches, initializer)
+    # def __post_init__(self):
+    #     # initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+    #     self.pool = multiprocessing.Pool(
+    #         self.num_parallel_batches, GenerateData.initializer
+    #     )
+
+    # @staticmethod
+    # def initializer():
+    #     return signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
-            result = self.pool.apply_async(
-                GenerateData._map_idx_to_data_gen_fp,
-                (
-                    self.df,
-                    idx,
-                    self.mol1,
-                    self.mol2,
-                    self.mol3,
-                    self.mol4,
-                    self.mol5,
-                    self.radius,
-                    self.fp_size,
-                ),
+            # result = self.pool.apply_async(
+            #     GenerateData._map_idx_to_data_gen_fp,
+            #     (
+            #         self.df,
+            #         idx,
+            #         self.mol1,
+            #         self.mol2,
+            #         self.mol3,
+            #         self.mol4,
+            #         self.mol5,
+            #         self.radius,
+            #         self.fp_size,
+            #     ),
+            # )
+            result = GenerateData._map_idx_to_data_gen_fp(
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.radius,
+                self.fp_size,
             )
             result = result.get()
             return result
@@ -176,6 +195,7 @@ def get_dataset(
     batch_size: int = 512,
     shuffle_buffer_size: int = 1000,
     cache_data: bool = False,
+    cache_dir: Union[str, Path] = ".tf_cache/",
     prefetch_buffer_size: int = None,
     interleave: bool = False,
 ):
@@ -246,11 +266,17 @@ def get_dataset(
 
     # Generate the actual data
     dataset = dataset.map(
-        map_func=map_func, num_parallel_calls=os.cpu_count(), deterministic=False
+        map_func=map_func,
+        # num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
     if cache_data:
-        dataset = dataset.cache()
+        cache_dir = Path(cache_dir)
+        cache_dir.mkdir(exist_ok=True)
+        dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        # Read through dataset once to cache it
+        LOG.info("Caching dataset")
+        dataset.as_numpy_iterator()
 
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
@@ -396,6 +422,7 @@ def get_datasets(
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_train_data,
+        cache_dir=".tf_cache_train/",
     )
     val_dataset = get_dataset(
         val_mol1,
@@ -411,6 +438,7 @@ def get_datasets(
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_val_data,
+        cache_dir=".tf_cache_val/",
     )
     test_dataset = get_dataset(
         test_mol1,
@@ -426,6 +454,7 @@ def get_datasets(
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_test_data,
+        cache_dir=".tf_cache_test/",
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
