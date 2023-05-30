@@ -1,163 +1,284 @@
 import logging
-from typing import List, Optional
+import multiprocessing
+import os
+import signal
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Optional, Union
 
-import keras
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from numpy.typing import NDArray
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.rdBase import BlockLogs
+
+# from pqdm.processes import pqdm
+from tqdm import tqdm
 
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.utils import apply_train_ohe_fit
 
 LOG = logging.getLogger(__name__)
 
+AUTOTUNE = tf.data.AUTOTUNE
 
-class FingerprintDataGenerator(keras.utils.Sequence):
-    """Data generator for reaction condition prediction
 
-    Args:
-        mol1: ground truth solvent 1
-        mol2: ground truth solvent 2
-        mol3: ground truth reagent 1
-        mol4: ground truth reagent 2
-        mol5: ground truth reagent 3
-        data: dataframe containing ground truth solvents and reagents
-        fp: fingerprints if precalculated
-        mode: teacher force or hard/soft selection
-        batch_size: batch size
-        fp_size (int): size of fingerprint if being calcuated on the fly
-        shuffle (bool): shuffle data at the end of each epoch
+@dataclass(kw_only=True)
+class GenerateData:
+    fp_size: int
+    radius: int = 3
+    mode: int
+    df: pd.DataFrame
+    product_fp: Optional[NDArray[np.int64]] = None
+    rxn_diff_fp: Optional[NDArray[np.int64]] = None
+    mol1: NDArray[np.float32]
+    mol2: NDArray[np.float32]
+    mol3: NDArray[np.float32]
+    mol4: NDArray[np.float32]
+    mol5: NDArray[np.float32]
 
-    Notes:
-        If no fingerprints are provided, they will be calculated on the fly
+    def map_idx_to_data(self, idx):
+        idx = idx.numpy()
+        if self.product_fp is None and self.rxn_diff_fp is None:
+            result = GenerateData._map_idx_to_data_gen_fp(
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.radius,
+                self.fp_size,
+            )
+            # result = result.get()
+            return result
+        else:
+            return self._map_idx_to_data(
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.product_fp,
+                self.rxn_diff_fp,
+                self.radius,
+                self.fp_size,
+            )
 
-    """
-
-    def __init__(
-        self,
-        mol1: np.ndarray,
-        mol2: np.ndarray,
-        mol3: np.ndarray,
-        mol4: np.ndarray,
-        mol5: np.ndarray,
-        data: Optional[pd.DataFrame] = None,
-        fp: Optional[np.ndarray] = None,
-        mode: int = TEACHER_FORCE,
-        batch_size=32,
+    @staticmethod
+    def _map_idx_to_data(
+        df,
+        idx,
+        mol1,
+        mol2,
+        mol3,
+        mol4,
+        mol5,
+        product_fp,
+        rxn_diff_fp,
+        radius=3,
         fp_size=2048,
-        shuffle=True,
     ):
-        "Initialization"
-
-        self.mol1 = mol1
-        self.mol2 = mol2
-        self.mol3 = mol3
-        self.mol4 = mol4
-        self.mol5 = mol5
-        self.data = data
-        self.fp = fp
-        if self.data is None and self.fp is None:
-            raise ValueError("Must provide either data or fp")
-        self.mode = mode
-        self.batch_size = batch_size
-        self.fp_size = fp_size
-        self.shuffle = shuffle
-        self.on_epoch_end()
-
-    def __len__(self):
-        "Denotes the number of batches per epoch"
-        n = self.data.shape[0] if self.data is not None else self.fp.shape[0]
-        k = n // self.batch_size
-        k += 1 if n % self.batch_size != 0 else 0
-        return k
-
-    def __getitem__(self, index):
-        "Generate one batch of data"
-        # Generate indexes of the batch
-        indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
-
-        # Get fingerprints
-        if self.fp is not None:
-            batch_product_fp = self.fp[indexes, : self.fp.shape[1] // 2]
-            batch_rxn_diff_fp = self.fp[indexes, self.fp.shape[1] // 2 :]
-        else:
-            batch_product_fp, batch_rxn_diff_fp = self.get_fp(self.data.iloc[indexes])
-
-        # Get ground truth solvents and reagents
-        batch_mol1 = tf.gather(self.mol1, indexes)
-        batch_mol2 = tf.gather(self.mol2, indexes)
-        batch_mol3 = tf.gather(self.mol3, indexes)
-        batch_mol4 = tf.gather(self.mol4, indexes)
-        batch_mol5 = tf.gather(self.mol5, indexes)
-
-        if self.mode == TEACHER_FORCE:
-            X = (
-                batch_product_fp,
-                batch_rxn_diff_fp,
-                batch_mol1,
-                batch_mol2,
-                batch_mol3,
-                batch_mol4,
-                batch_mol5,
-            )
-        else:
-            X = (
-                batch_product_fp,
-                batch_rxn_diff_fp,
-            )
-
-        y = (
-            batch_mol1,
-            batch_mol2,
-            batch_mol3,
-            batch_mol4,
-            batch_mol5,
+        return (
+            product_fp[idx],
+            rxn_diff_fp[idx],
+            mol1[idx],
+            mol2[idx],
+            mol3[idx],
+            mol4[idx],
+            mol5[idx],
         )
 
-        return X, y
+    @staticmethod
+    def _map_idx_to_data_gen_fp(
+        df,
+        idx,
+        mol1,
+        mol2,
+        mol3,
+        mol4,
+        mol5,
+        radius=3,
+        fp_size=2048,
+    ):
+        product_fp, rxn_diff_fp = GenerateData.get_fp(
+            df.iloc[idx], radius=radius, fp_size=fp_size
+        )
 
-    def on_epoch_end(self):
-        "Updates indexes after each epoch"
-        n_examples = self.fp.shape[0] if self.fp is not None else self.data.shape[0]
-        self.indexes = np.arange(n_examples)
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
+        return (
+            product_fp,
+            rxn_diff_fp,
+            mol1[idx],
+            mol2[idx],
+            mol3[idx],
+            mol4[idx],
+            mol5[idx],
+        )
 
-    def get_fp(self, df: pd.DataFrame):
-        product_fp = self.calc_fp(df["product_000"], radius=3, nBits=self.fp_size)
-        reactant_fp_0 = self.calc_fp(df["reactant_000"], radius=3, nBits=self.fp_size)
-        reactant_fp_1 = self.calc_fp(df["reactant_001"], radius=3, nBits=self.fp_size)
+    @staticmethod
+    def get_fp(df: pd.DataFrame, radius: int, fp_size: int):
+        product_fp = GenerateData.calc_fps(df["product_000"], radius, fp_size)
+        reactant_fp_0 = GenerateData.calc_fps(df["reactant_001"], radius, fp_size)
+        reactant_fp_1 = GenerateData.calc_fps(df["reactant_001"], radius, fp_size)
         rxn_diff_fp = product_fp - reactant_fp_0 - reactant_fp_1
         return product_fp, rxn_diff_fp
 
     @staticmethod
-    def calc_fp(lst: List, radius: int = 3, nBits: int = 2048):
-        # Usage:
-        # radius = 3
-        # nBits = 2048
-        # p0 = calc_fp(data_df['product_0'][:10000], radius=radius, nBits=nBits)
+    def calc_fps(smiles_list: List[str], radius: int, fp_size: int):
         block = BlockLogs()
-        ans = []
-        for smiles in lst:
-            # convert to mol object
-            try:
-                mol = Chem.MolFromSmiles(smiles)
-                # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
-                fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=nBits)
-                array = np.zeros((0,), dtype=np.int8)
-                DataStructs.ConvertToNumpyArray(fp, array)
-                ans.append(array)
-            except:
-                if smiles is not None:
-                    LOG.warning(f"Could not generate fingerprint for {smiles=}")
-                ans.append(np.zeros((nBits,), dtype=int))
-        return np.vstack(ans)
+        # fingerprints = np.array(pqdm(smiles_list, self.calc_fp, n_jobs=8))
+        fingerprints = np.array(
+            [GenerateData.calc_fp(smi, radius, fp_size) for smi in tqdm(smiles_list)]
+        )
+        return fingerprints
+
+    @staticmethod
+    def calc_fp(smiles: str, radius: int, fp_size: int):
+        # convert to mol object
+        if smiles == "NULL":
+            return np.zeros((fp_size,), dtype=int)
+        try:
+            mol = Chem.MolFromSmiles(smiles)
+            # We are using hashed fingerprint, becasue an unhased FP has length: 4294967295
+            fp = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=fp_size)
+            array = np.zeros((0,), dtype=np.int8)
+            DataStructs.ConvertToNumpyArray(fp, array)
+            return array
+        except:
+            if smiles is not None:
+                LOG.warning(f"Could not generate fingerprint for {smiles=}")
+            return np.zeros((fp_size,), dtype=int)
 
 
-def get_data_generators(
+def get_dataset(
+    mol1: NDArray[np.float32],
+    mol2: NDArray[np.float32],
+    mol3: NDArray[np.float32],
+    mol4: NDArray[np.float32],
+    mol5: NDArray[np.float32],
+    df: Optional[pd.DataFrame] = None,
+    fp: Optional[NDArray[np.int64]] = None,
+    mode: int = TEACHER_FORCE,
+    fp_size: int = 2048,
+    shuffle: bool = True,
+    batch_size: int = 512,
+    shuffle_buffer_size: int = 1000,
+    cache_data: bool = False,
+    cache_dir: Union[str, Path] = ".tf_cache/",
+    prefetch_buffer_size: Optional[int] = None,
+    interleave: bool = False,
+):
+    """
+    Get datasets
+
+    Args:
+        df: dataframe containing ground truth solvents and reagents
+        fp: fingerprints
+        mode: teacher force or hard/soft selection
+        fp_size: size of fingerprints
+        shuffle: whether to shuffle the data
+        batch_size: batch size
+        shuffle_buffer_size: buffer size for shuffling. Defaults to 1000.
+        cache_data: whether to cache the data
+        prefetch_buffer_size: buffer size for prefetching. Defaults to 5 times the batch size
+
+    """
+
+    # Construct outputs
+    if fp is None and df is None:
+        raise ValueError("Must provide either df or fp")
+
+    if fp is not None:
+        product_fp = fp[:, : fp.shape[1] // 2]
+        rxn_diff_fp = fp[:, fp.shape[1] // 2 :]
+    else:
+        product_fp = None
+        rxn_diff_fp = None
+
+    fp_generator = GenerateData(
+        fp_size=fp_size,
+        mode=mode,
+        df=df,
+        product_fp=product_fp,
+        rxn_diff_fp=rxn_diff_fp,
+        mol1=mol1,
+        mol2=mol2,
+        mol3=mol3,
+        mol4=mol4,
+        mol5=mol5,
+    )
+
+    n_items = df.shape[0] if df is not None else fp.shape[0]  # type: ignore
+    dataset = tf.data.Dataset.range(n_items)  # INdex generator
+
+    # Need to shuffle here so it doesn't try to run the expensive stuff
+    # while shuffling
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
+
+    def map_func(idx):
+        data = tf.py_function(
+            fp_generator.map_idx_to_data,
+            inp=[idx],
+            Tout=[tf.int64] * 2 + [tf.float32] * 5,
+        )
+
+        if mode == TEACHER_FORCE:
+            X = tuple(data)
+        else:
+            X = tuple(data[:2])
+        y = tuple(data[2:])
+        return X, y
+
+    # Batch dataset
+    dataset = dataset.batch(batch_size)
+
+    # Generate the actual data
+    dataset = dataset.map(
+        map_func=map_func,
+        # num_parallel_calls=os.cpu_count(), deterministic=False
+    )
+
+    if cache_data:
+        cache_dir = Path(cache_dir)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # # Read through dataset once to cache it
+            # print("Caching dataset")
+            # [1 for _ in dataset.as_numpy_iterator()]
+        dataset = dataset.cache(filename=str(cache_dir / "fps"))
+
+    # ensures shape is correct after batching
+    # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
+    def _fixup_shape(X, Y):
+        for i in range(len(X)):
+            X[i].set_shape([None, X[i].shape[1]])
+        for i in range(len(Y)):
+            Y[i].set_shape([None, Y[i].shape[1]])
+        return X, Y
+
+    dataset = dataset.map(_fixup_shape)
+
+    if interleave:
+        dataset = tf.data.Dataset.range(len(dataset)).interleave(
+            lambda _: dataset,
+            num_parallel_calls=AUTOTUNE,
+            deterministic=False,
+            # cycle_length=16,
+        )
+
+    if prefetch_buffer_size is None:
+        prefetch_buffer_size = AUTOTUNE
+    dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
+    return dataset
+
+
+def get_datasets(
     df: pd.DataFrame,
     train_idx: np.ndarray,
     val_idx: np.ndarray,
@@ -168,6 +289,11 @@ def get_data_generators(
     test_fp: Optional[np.ndarray] = None,
     train_mode: int = TEACHER_FORCE,
     batch_size: int = 512,
+    shuffle_buffer_size: int = 1000,
+    prefetch_buffer_size: Optional[int] = None,
+    cache_train_data: bool = False,
+    cache_val_data: bool = False,
+    cache_test_data: bool = False,
 ):
     """
     Get data generators for train, val and test
@@ -200,7 +326,7 @@ def get_data_generators(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol2,
@@ -212,7 +338,7 @@ def get_data_generators(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol3,
@@ -224,7 +350,7 @@ def get_data_generators(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol4,
@@ -236,7 +362,7 @@ def get_data_generators(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
     (
         train_mol5,
@@ -248,55 +374,82 @@ def get_data_generators(
         train_idx,
         val_idx,
         test_idx,
-        tensor_func=tf.convert_to_tensor,
+        # tensor_func=tf.convert_to_tensor,
     )
 
-    # Create fingerprint generators
-    train_generator = FingerprintDataGenerator(
-        mol1=train_mol1,
-        mol2=train_mol2,
-        mol3=train_mol3,
-        mol4=train_mol4,
-        mol5=train_mol5,
-        fp=train_val_fp[train_idx] if train_val_fp is not None else None,
-        data=df.iloc[train_idx],
-        mode=train_mode,
-        batch_size=batch_size,
-        shuffle=True,
-        fp_size=fp_size,
-    )
+    # Get datsets
     val_mode = (
         HARD_SELECTION
         if train_mode == TEACHER_FORCE or train_mode == HARD_SELECTION
         else SOFT_SELECTION
     )
-    val_generator = FingerprintDataGenerator(
-        mol1=val_mol1,
-        mol2=val_mol2,
-        mol3=val_mol3,
-        mol4=val_mol4,
-        mol5=val_mol5,
-        fp=train_val_fp[val_idx] if train_val_fp is not None else None,
-        data=df.iloc[val_idx],
-        mode=val_mode,
-        batch_size=batch_size,
-        shuffle=False,
+    train_dataset = get_dataset(
+        train_mol1,
+        train_mol2,
+        train_mol3,
+        train_mol4,
+        train_mol5,
+        df=df.iloc[train_idx],
+        fp=train_val_fp,
+        mode=train_mode,
         fp_size=fp_size,
+        shuffle=True,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_train_data,
+        cache_dir=".tf_cache_train/",
     )
-    test_generator = FingerprintDataGenerator(
-        mol1=test_mol1,
-        mol2=test_mol2,
-        mol3=test_mol3,
-        mol4=test_mol4,
-        mol5=test_mol5,
-        fp=test_fp,
-        data=df.iloc[test_idx],
+    val_dataset = get_dataset(
+        val_mol1,
+        val_mol2,
+        val_mol3,
+        val_mol4,
+        val_mol5,
+        df=df.iloc[val_idx],
+        fp=train_val_fp,
         mode=val_mode,
-        batch_size=batch_size,
-        shuffle=False,
         fp_size=fp_size,
+        shuffle=False,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_val_data,
+        cache_dir=".tf_cache_val/",
+    )
+    test_dataset = get_dataset(
+        test_mol1,
+        test_mol2,
+        test_mol3,
+        test_mol4,
+        test_mol5,
+        df=df.iloc[test_idx],
+        fp=test_fp,
+        mode=val_mode,
+        fp_size=fp_size,
+        shuffle=False,
+        batch_size=batch_size,
+        shuffle_buffer_size=shuffle_buffer_size,
+        cache_data=cache_test_data,
+        cache_dir=".tf_cache_test/",
     )
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
 
-    return train_generator, val_generator, test_generator, encoders
+    return train_dataset, val_dataset, test_dataset, encoders
+
+
+def unbatch_dataset(dataset):
+    X = []
+    Y = []
+    for i, (Xi, Yi) in dataset.enumerate().as_numpy_iterator():
+        for j, xj in enumerate(Xi):
+            if j > len(X) - 1:
+                X.append(xj)
+            else:
+                X[j] = np.concatenate((X[j], xj), 0)
+        for j, yj in enumerate(Yi):
+            if j > len(Y) - 1:
+                Y.append(yj)
+            else:
+                Y[j] = np.concatenate((Y[j], yj), 0)
+
+    return X, Y

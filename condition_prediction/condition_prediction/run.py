@@ -20,7 +20,7 @@ from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.data_generator import get_data_generators
+from condition_prediction.data_generator import get_datasets, unbatch_dataset
 from condition_prediction.model import (
     build_teacher_forcing_model,
     update_teacher_forcing_model_weights,
@@ -32,6 +32,10 @@ from condition_prediction.utils import (
     get_random_splits,
     post_training_plots,
 )
+
+physical_devices = tf.config.experimental.list_physical_devices("GPU")
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -61,8 +65,14 @@ class ConditionPrediction:
     lr: float
     batch_size: int
     workers: int
+    shuffle_buffer_size: int
+    prefetch_buffer_size: int
     evaluate_on_test_data: bool
+    cache_train_data: bool = False
+    cache_val_data: bool = False
+    cache_test_data: bool = False
     early_stopping_patience: int
+    eager_mode: bool
     wandb_logging: bool
     wandb_project: str
     wandb_entity: Optional[str] = None
@@ -109,6 +119,12 @@ class ConditionPrediction:
             lr=self.lr,
             batch_size=self.batch_size,
             workers=self.workers,
+            eager_mode=self.eager_mode,
+            cache_train_data=self.cache_train_data,
+            cache_val_data=self.cache_val_data,
+            cache_test_data=self.cache_test_data,
+            shuffle_buffer_size=self.shuffle_buffer_size,
+            prefetch_buffer_size=self.prefetch_buffer_size,
             early_stopping_patience=self.early_stopping_patience,
             evaluate_on_test_data=self.evaluate_on_test_data,
             wandb_project=self.wandb_project,
@@ -195,6 +211,12 @@ class ConditionPrediction:
         hidden_size_2: int = 100,
         lr: float = 0.01,
         workers: int = 1,
+        shuffle_buffer_size: int = 1000,
+        prefetch_buffer_size: Optional[int] = None,
+        cache_train_data: bool = False,
+        cache_val_data: bool = False,
+        cache_test_data: bool = False,
+        eager_mode: bool = False,
         wandb_logging: bool = True,
         wandb_project: str = "orderly",
         wandb_entity: Optional[str] = None,
@@ -230,6 +252,7 @@ class ConditionPrediction:
         if train_val_fp is not None:
             assert train_val_fp.shape[0] == train_val_df.shape[0]
             fp_size = train_val_fp.shape[1] // 2
+            config.update({"fp_size": fp_size})
         if test_fp is not None:
             assert test_fp.shape[0] == test_df.shape[0]
 
@@ -253,11 +276,11 @@ class ConditionPrediction:
         molecule_columns = [mol_1_col, mol_2_col, mol_3_col, mol_4_col, mol_5_col]
 
         (
-            train_generator,
-            val_generator,
-            test_generator,
+            train_dataset,
+            val_dataset,
+            test_dataset,
             encoders,
-        ) = get_data_generators(
+        ) = get_datasets(
             df=df,
             train_idx=train_idx,
             val_idx=val_idx,
@@ -268,14 +291,13 @@ class ConditionPrediction:
             train_mode=train_mode,
             molecule_columns=molecule_columns,
             batch_size=batch_size,
+            shuffle_buffer_size=shuffle_buffer_size,
+            prefetch_buffer_size=prefetch_buffer_size,
+            cache_train_data=cache_train_data,
+            cache_val_data=cache_val_data,
+            cache_test_data=cache_test_data,
         )
-        y_test_data = (
-            test_generator.mol1,
-            test_generator.mol2,
-            test_generator.mol3,
-            test_generator.mol4,
-            test_generator.mol5,
-        )
+
         if evaluate_on_test_data:
             ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
@@ -287,16 +309,15 @@ class ConditionPrediction:
         del train_val_df
         del test_df
         LOG.info("Data ready for modelling")
-
         ### Model Setup ###
         model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_generator.mol1.shape[-1],
-            mol2_dim=train_generator.mol2.shape[-1],
-            mol3_dim=train_generator.mol3.shape[-1],
-            mol4_dim=train_generator.mol4.shape[-1],
-            mol5_dim=train_generator.mol5.shape[-1],
+            mol1_dim=len(encoders[0].categories_[0]),
+            mol2_dim=len(encoders[1].categories_[0]),
+            mol3_dim=len(encoders[2].categories_[0]),
+            mol4_dim=len(encoders[3].categories_[0]),
+            mol5_dim=len(encoders[4].categories_[0]),
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,  # TODO check what coef they used
@@ -309,11 +330,11 @@ class ConditionPrediction:
         pred_model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
-            mol1_dim=train_generator.mol1.shape[-1],
-            mol2_dim=train_generator.mol2.shape[-1],
-            mol3_dim=train_generator.mol3.shape[-1],
-            mol4_dim=train_generator.mol4.shape[-1],
-            mol5_dim=train_generator.mol5.shape[-1],
+            mol1_dim=len(encoders[0].categories_[0]),
+            mol2_dim=len(encoders[1].categories_[0]),
+            mol3_dim=len(encoders[2].categories_[0]),
+            mol4_dim=len(encoders[3].categories_[0]),
+            mol5_dim=len(encoders[4].categories_[0]),
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,
@@ -337,6 +358,7 @@ class ConditionPrediction:
                 ]
                 for i in range(1, 6)
             },
+            run_eagerly=eager_mode,
         )
         update_teacher_forcing_model_weights(
             update_model=pred_model, to_copy_model=model
@@ -351,7 +373,7 @@ class ConditionPrediction:
         callbacks = [
             TrainingMetrics(
                 n_train=train_idx.shape[0],
-                batch_size=train_generator.batch_size,
+                batch_size=batch_size,
             )
         ]
         # Define the EarlyStopping callback
@@ -374,16 +396,16 @@ class ConditionPrediction:
             callbacks.extend(
                 [
                     WandbMetricsLogger(),
-                    WandbModelCheckpoint("models", save_best_only=True),
+                    WandbModelCheckpoint("models/{epoch:02d}", save_best_only=True),
                 ]
             )
 
         use_multiprocessing = True if workers > 0 else False
         h = model.fit(
-            train_generator,
+            train_dataset,
             epochs=epochs,
-            verbose=2,
-            validation_data=val_generator,
+            verbose=1,
+            validation_data=val_dataset,
             callbacks=callbacks,
             use_multiprocessing=use_multiprocessing,
             workers=workers,
@@ -409,10 +431,12 @@ class ConditionPrediction:
         )
 
         # Save the final performance on the test set
+        del train_dataset
+        _, y_test_data = unbatch_dataset(test_dataset)
         if evaluate_on_test_data:
             # Evaluate the model on the test set
             test_metrics = model.evaluate(
-                test_generator,
+                test_dataset,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
             )
@@ -421,7 +445,7 @@ class ConditionPrediction:
 
             ### Grouped scores
             predictions = model.predict(
-                test_generator,
+                test_dataset,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
             )
@@ -430,19 +454,19 @@ class ConditionPrediction:
             solvent_scores = get_grouped_scores(
                 y_test_data[:2], predictions[:2], encoders[:2]
             )
-            test_metrics_dict["solvent_accuracy"] = np.mean(solvent_scores)
+            test_metrics_dict["test_solvent_accuracy"] = np.mean(solvent_scores)
 
             # 3 agents scores
             agent_scores = get_grouped_scores(
                 y_test_data[2:], predictions[2:], encoders[2:]
             )
-            test_metrics_dict["three_agents_accuray"] = np.mean(agent_scores)
+            test_metrics_dict["test_three_agents_accuray"] = np.mean(agent_scores)
 
             # Overall scores
             overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
                 axis=1
             )
-            test_metrics_dict["overall_accuracy"] = np.mean(overall_scores)
+            test_metrics_dict["test_overall_accuracy"] = np.mean(overall_scores)
 
             # Save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
@@ -451,6 +475,7 @@ class ConditionPrediction:
                 json.dump(test_metrics_dict, file)
 
             if wandb_logging:
+                # Log artifact
                 artifact = wandb.Artifact(  # type: ignore
                     name="test_metrics",
                     type="metrics",
@@ -458,6 +483,8 @@ class ConditionPrediction:
                 )
                 artifact.add_dir(output_folder_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
+                # Add as run summary
+                wandb_run.summary.update(test_metrics_dict)  # type: ignore
 
 
 @click.command()
@@ -587,6 +614,41 @@ class ConditionPrediction:
     help="The group to use for logging to wandb",
 )
 @click.option(
+    "--eager_mode",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--cache_train_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the training data",
+)
+@click.option(
+    "--cache_val_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the validation data",
+)
+@click.option(
+    "--cache_test_data",
+    default=False,
+    type=bool,
+    help="If True, will cache the test data",
+)
+@click.option(
+    "--shuffle_buffer_size",
+    default=1000,
+    type=int,
+    help="The buffer size used for shuffling the data",
+)
+@click.option(
+    "--prefetch_buffer_size",
+    default=None,
+    type=int,
+    help="The buffer size used for prefetching the data. Defaults to 5x the batch size",
+)
+@click.option(
     "--overwrite",
     type=bool,
     default=False,
@@ -624,6 +686,12 @@ def main_click(
     wandb_tag: List[str],
     wandb_group: Optional[str],
     overwrite: bool,
+    eager_mode: bool,
+    cache_train_data: bool,
+    cache_val_data: bool,
+    cache_test_data: bool,
+    shuffle_buffer_size: int,
+    prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -661,6 +729,9 @@ def main_click(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        cache_train_data=cache_train_data,
+        cache_val_data=cache_val_data,
+        cache_test_data=cache_test_data,
         batch_size=batch_size,
         wandb_logging=wandb_logging,
         wandb_project=wandb_project,
@@ -668,6 +739,9 @@ def main_click(
         wandb_tags=wandb_tags,
         wandb_group=wandb_group,
         overwrite=overwrite,
+        eager_mode=eager_mode,
+        shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
         log_file=log_file,
         log_level=log_level,
     )
@@ -696,6 +770,12 @@ def main(
     wandb_tags: List[str],
     wandb_group: Optional[str],
     overwrite: bool,
+    eager_mode: bool,
+    cache_train_data: bool,
+    cache_val_data: bool,
+    cache_test_data: bool,
+    shuffle_buffer_size: int,
+    prefetch_buffer_size: int,
     log_file: pathlib.Path = pathlib.Path("model.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -781,6 +861,11 @@ def main(
         lr=lr,
         batch_size=batch_size,
         workers=workers,
+        cache_train_data=cache_train_data,
+        cache_val_data=cache_val_data,
+        cache_test_data=cache_test_data,
+        shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
         epochs=epochs,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
@@ -789,6 +874,7 @@ def main(
         wandb_logging=wandb_logging,
         wandb_tags=list(wandb_tags),
         wandb_group=wandb_group,
+        eager_mode=eager_mode,
     )
 
     instance.run_model_arguments()
