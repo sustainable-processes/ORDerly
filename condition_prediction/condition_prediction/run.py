@@ -485,7 +485,6 @@ class ConditionPrediction:
                 wandb_run.log_artifact(artifact)  # type: ignore
                 # Add as run summary
                 wandb_run.summary.update(test_metrics_dict)
-                wandb_run.summary.update()
 
 
 @click.command()
