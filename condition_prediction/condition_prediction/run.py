@@ -214,7 +214,7 @@ class ConditionPrediction:
         hidden_size_2: int = 100,
         lr: float = 0.01,
         reduce_lr_on_plateau_patience: int = 0,
-        reduce_lr_on_plateau_factor: float = 0.1,
+        reduce_lr_on_plateau_factor: int = 0.1,
         workers: int = 1,
         shuffle_buffer_size: int = 1000,
         prefetch_buffer_size: Optional[int] = None,
