@@ -5,7 +5,7 @@ import logging
 import os
 import pathlib
 from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 
