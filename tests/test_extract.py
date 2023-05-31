@@ -1149,7 +1149,11 @@ def test_handle_reaction_object(
     solvents_set = orderly.extract.defaults.get_solvents_set()
 
     rnx_object = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, trust_labelling, consider_molecule_names=True
+        rxn,
+        manual_replacements_dict,
+        solvents_set,
+        trust_labelling,
+        consider_molecule_names=True,
     )
 
     assert rnx_object is not None
