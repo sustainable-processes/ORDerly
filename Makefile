@@ -226,10 +226,10 @@ paper_4: paper_clean_uspto_no_trust_filtered paper_clean_uspto_with_trust_filter
 
 # 5. plot min freq of occurence
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
 
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_100_1000:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
 
 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_10_100:
 	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
