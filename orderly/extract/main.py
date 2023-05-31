@@ -175,6 +175,7 @@ def extract(
     output_path: pathlib.Path,
     file: pathlib.Path,
     trust_labelling: bool,
+    consider_molecule_names: bool,
     manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
     solvents_set: Set[CANON_SMILES],
     extracted_ord_data_folder: str = "extracted_ords",
@@ -190,6 +191,7 @@ def extract(
     instance = orderly.extract.extractor.OrdExtractor(
         ord_file_path=file,
         trust_labelling=trust_labelling,
+        consider_molecule_names=consider_molecule_names,
         manual_replacements_dict=manual_replacements_dict,
         solvents_set=solvents_set,
         contains_substring=name_contains_substring,
@@ -259,6 +261,13 @@ def extract(
     help="""
 - If True, maintain the labelling and ordering of the original data.
 - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a transition metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move transition metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.""",
+)
+@click.option(
+    "--consider_molecule_names",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Controls whether plain text names are extracted as a backup. Molecules stored in the ORD input/outcome field can be represented in a number of different ways, including SMILES, InChI, and a (plain English) name. The SMILES representation is always the preferred representation. This bool controls what happens if there's no SMILES string available: if consider_molecule_names=False, the input/outcome extractor simply returns None for that molecule; if consider_molecule_names=True, the input/outcome extractor will return the string to be added to the reaction, check whether the string is resolvable as SMILES (to canonicalise it), and if it is not resolvable, the string is added to the non_smiles_names_list to be handled/removed during cleaning.",
 )
 @click.option(
     "--output_path",
@@ -335,6 +344,7 @@ def main_click(
     data_path: str,
     ord_file_ending: str,
     trust_labelling: bool,
+    consider_molecule_names: bool,
     output_path: str,
     extracted_ord_data_folder: str,
     solvents_path: str,
@@ -361,6 +371,7 @@ def main_click(
     3) trust_labelling: Bool
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a transition metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move transition metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the catalyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    3) consider_molecule_names: bool
     4) output_path: str
         - The path to the folder than will contain the extracted_ord_data_folder and molecule_names_folder
     5) extracted_ord_data_folder: str
@@ -424,6 +435,7 @@ def main_click(
         data_path=pathlib.Path(data_path),
         ord_file_ending=ord_file_ending,
         trust_labelling=trust_labelling,
+        consider_molecule_names=consider_molecule_names,
         output_path=pathlib.Path(output_path),
         extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=_solvents_path,
@@ -442,6 +454,7 @@ def main(
     data_path: pathlib.Path,
     ord_file_ending: str,
     trust_labelling: bool,
+    consider_molecule_names: bool,
     output_path: pathlib.Path,
     extracted_ord_data_folder: str,
     solvents_path: Optional[pathlib.Path],
@@ -468,6 +481,7 @@ def main(
     3) trust_labelling: Bool
         - If True, maintain the labelling and ordering of the original data.
         - If False: Trust the mapped reaction more than the labelled data. A reaction string should be of the form reactants>agents>products; however, agents (particularly reagents) may sometimes appear as reactants on the LHS, so any molecules on the LHS we re-label as a reagent if it (i) does not contain any atom mapped atoms, (ii) the molecule appears on both the LHS and RHS (ie it is unreacted). Note that the original labelling is trusted (by default) if the reaction is not mapped. The agents list consists of catalysts, reagents and solvents; any molecules that occur in the set of solvents are extracted from the agents list and re-labelled as solvents, while the remaining molecules remain labelled as agents. Then the list of agents and solvents is sorted alphabetically, and finally any molecules that contain a transition metal were moved to the front of the agents list; ideally these lists be sorted by using chemical reasoning (e.g. by amount or importance), however this information doesn't exist, so we sort alphabetically and move transition metal containing molecules to the front (since its likely to be a catalyst) to at least add some order, albeit an arbitrary one. Prior work indicates that sequential prediction of conditions (with the caatlyst first) outperforms predicting all conditions in a single output layer (https://doi.org/10.1021/acscentsci.8b00357), so ordering may be helpful.
+    3) consider_molecule_names: bool
     4) output_path: pathlib.Path
         - The path to the folder than will contain the extracted_ord_data_folder and molecule_names_folder
     5) extracted_ord_data_folder: str
@@ -566,6 +580,7 @@ def main(
     kwargs = {
         "output_path": output_path,
         "trust_labelling": trust_labelling,
+        "consider_molecule_names": consider_molecule_names,
         "manual_replacements_dict": manual_replacements_dict,
         "solvents_set": solvents_set,
         "extracted_ord_data_folder": extracted_ord_data_folder,

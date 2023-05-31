@@ -36,6 +36,7 @@ class OrdExtractor:
 
     ord_file_path: pathlib.Path
     trust_labelling: bool
+    consider_molecule_names: bool
     manual_replacements_dict: MANUAL_REPLACEMENTS_DICT
     solvents_set: Optional[Set[SOLVENT]] = None
     filename: Optional[str] = None
@@ -111,6 +112,7 @@ class OrdExtractor:
     @staticmethod
     def find_smiles(
         identifiers: REPEATEDCOMPOSITECONTAINER,
+        consider_molecule_names: bool = False,
     ) -> Tuple[Optional[SMILES | MOLECULE_IDENTIFIER], List[MOLECULE_IDENTIFIER]]:
         """
         Search through the identifiers to return a smiles string, if this doesn't exist, search to return the English name, and if this doesn't exist, return None
@@ -129,22 +131,30 @@ class OrdExtractor:
                     canon_smi = i.value
                     non_smiles_names_list.append(i.value)
                 return canon_smi, non_smiles_names_list
-        for ii in identifiers:  # if there's no smiles, return the name
-            # We need to look for a SMILES before we look for a name, so we can't merge these two loops even though they look identical.
-            if ii.type == 6:
+
+        if consider_molecule_names:
+            for ii in identifiers:  # if there's no smiles, return the name
+                # We need to look for a SMILES before we look for a name, so we can't merge these two loops even though they look identical.
+                # If a molecule in ORD doesn't have SMILES, but does have a name, there are a few different ways it can be recorded.
+                ### Attempt to canonicalise to check whether it's a mislabelled SMILES string
+                ### Return it as a name
+                ### Simply return None
+                # TODO: I'm not sure what the best option to do here is.
                 # In theory, we'd just do this:
                 ## name = ii.value
                 ## non_smiles_names_list.append(name)
                 # However, at least once, in the case of "II" (diiodine), the smiles string was recorded as a name, which breaks everything downstream.
-                canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
-                    ii.value, is_mapped=False
-                )
-                if canon_smi is not None:
-                    LOG.info(f"SMILES string found labelled as name: {ii.value}")
-                else:
-                    canon_smi = ii.value
-                    non_smiles_names_list.append(ii.value)
-                return canon_smi, non_smiles_names_list
+                if ii.type == 6:
+                    canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
+                        ii.value, is_mapped=False
+                    )
+                    if canon_smi is not None:
+                        LOG.info(f"SMILES string found labelled as name: {ii.value}")
+                    else:
+                        canon_smi = ii.value
+                        non_smiles_names_list.append(ii.value)
+                    return canon_smi, non_smiles_names_list
+
         return None, non_smiles_names_list
 
     @staticmethod
@@ -191,7 +201,7 @@ class OrdExtractor:
         del product_from_rxn
 
         non_smiles_names_list: List[MOLECULE_IDENTIFIER] = []
-        # We need molecules wihtout maping info, so we can compare them to the products
+        # We need molecules without maping info, so we can compare them to the products
         reactants_from_rxn_without_mapping: CANON_REACTANTS = []
         for smi in reactants_from_rxn:
             canon_smi = orderly.extract.canonicalise.get_canonicalised_smiles(
@@ -266,6 +276,11 @@ class OrdExtractor:
                         products.append(p_clean)
                     else:
                         cleaned_agents.append(p_clean)
+
+            # Finally, now that we have the genuine reactants and products, we should remove any agents that are also present in the reactants or products
+            cleaned_agents = [
+                a for a in cleaned_agents if a not in reactants and a not in products
+            ]
         else:
             reactants = reactants_from_rxn_without_mapping
             products = products_from_rxn_without_mapping
@@ -280,7 +295,7 @@ class OrdExtractor:
 
     @staticmethod
     def rxn_input_extractor(
-        rxn: ord_reaction_pb2.Reaction,
+        rxn: ord_reaction_pb2.Reaction, consider_molecule_names: bool
     ) -> Tuple[
         REACTANTS,
         REAGENTS,
@@ -315,7 +330,8 @@ class OrdExtractor:
                     if identifier.value.lower() in ["ice", "ice water"]:
                         ice_present = True
                 smiles, non_smiles_names_list_additions = OrdExtractor.find_smiles(
-                    identifiers
+                    identifiers,
+                    consider_molecule_names,
                 )
                 non_smiles_names_list += non_smiles_names_list_additions
                 if smiles is None:
@@ -349,6 +365,7 @@ class OrdExtractor:
     @staticmethod
     def rxn_outcomes_extractor(
         rxn: ord_reaction_pb2.Reaction,
+        consider_molecule_names: bool,
     ) -> Tuple[PRODUCTS, YIELDS, List[MOLECULE_IDENTIFIER]]:
         """
         Extract reaction information from ORD output object (ord_reaction_pb2.Reaction.outcomes)
@@ -365,7 +382,7 @@ class OrdExtractor:
             (
                 product_smiles,
                 non_smiles_names_list_additions,
-            ) = OrdExtractor.find_smiles(identifiers)
+            ) = OrdExtractor.find_smiles(identifiers, consider_molecule_names)
 
             if product_smiles is None:
                 continue
@@ -574,6 +591,7 @@ class OrdExtractor:
         manual_replacements_dict: MANUAL_REPLACEMENTS_DICT,
         solvents_set: Set[SOLVENT],
         trust_labelling: bool = False,
+        consider_molecule_names: bool = False,
         use_labelling_if_extract_fails: bool = True,
         include_unadded_labelled_molecules_as_agents: bool = True,
     ) -> Optional[
@@ -619,14 +637,14 @@ class OrdExtractor:
             labelled_products_from_input,  # I'm not sure what to do with this, it doesn't make sense for people to have put a product as an input, so this list should be empty anyway
             ice_present,
             non_smiles_names_list_additions,
-        ) = OrdExtractor.rxn_input_extractor(rxn)
+        ) = OrdExtractor.rxn_input_extractor(rxn, consider_molecule_names)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         (
             labelled_products,
             yields,
             non_smiles_names_list_additions,
-        ) = OrdExtractor.rxn_outcomes_extractor(rxn)
+        ) = OrdExtractor.rxn_outcomes_extractor(rxn, consider_molecule_names)
         rxn_non_smiles_names_list += non_smiles_names_list_additions
 
         # This whole block is just to raise warnings incase the products in the input object look weird.
@@ -902,10 +920,7 @@ class OrdExtractor:
         # Since we, at this point, trust the reactants and products as being the reactants and products, we should remove any agents, reagents, solvents, and catalysts that are also in the reactants and products
         if not trust_labelling:
             # Need to double check that reactants and products are disjoint after canonicalising and applying the manual_replacements_dict
-            assert set(reactants).isdisjoint(
-                products
-            ), f"The intersection between reactants and products is not None. {reactants=} and {products=} and {rxn_str=} and solvent={solvents} and catalysts={catalysts} and reagents={reagents} and agents={agents}"
-            reactants_and_products = reactants + products
+            reactants_and_products = set(reactants + products)
             agents = [a for a in agents if a not in reactants_and_products]
             reagents = [r for r in reagents if r not in reactants_and_products]
             solvents = [s for s in solvents if s not in reactants_and_products]
@@ -1073,6 +1088,7 @@ class OrdExtractor:
                 manual_replacements_dict=self.manual_replacements_dict,
                 solvents_set=self.solvents_set,
                 trust_labelling=self.trust_labelling,
+                consider_molecule_names=self.consider_molecule_names,
             )
             if extracted_reaction is None:
                 continue
@@ -1095,22 +1111,19 @@ class OrdExtractor:
 
             rxn_non_smiles_names_list += rxn_non_smiles_names_list_additions
 
-            if set(reactants) != set(
-                products
-            ):  # If the reactants and products are the same, then we don't want to add this reaction to our dataset
-                rxn_lists["rxn_str"].append(rxn_str)
-                rxn_lists["reactant"].append(reactants)
-                rxn_lists["agent"].append(agents)
-                rxn_lists["reagent"].append(reagents)
-                rxn_lists["solvent"].append(solvents)
-                rxn_lists["catalyst"].append(catalysts)
-                rxn_lists["temperature"].append(temperature)
-                rxn_lists["rxn_time"].append(rxn_time)
-                rxn_lists["product"].append(products)
-                rxn_lists["yield"].append(yields)
-                rxn_lists["procedure_details"].append(procedure_details)
-                rxn_lists["date_of_experiment"].append(date_of_experiment)
-                rxn_lists["is_mapped"].append(is_mapped)
+            rxn_lists["rxn_str"].append(rxn_str)
+            rxn_lists["reactant"].append(reactants)
+            rxn_lists["agent"].append(agents)
+            rxn_lists["reagent"].append(reagents)
+            rxn_lists["solvent"].append(solvents)
+            rxn_lists["catalyst"].append(catalysts)
+            rxn_lists["temperature"].append(temperature)
+            rxn_lists["rxn_time"].append(rxn_time)
+            rxn_lists["product"].append(products)
+            rxn_lists["yield"].append(yields)
+            rxn_lists["procedure_details"].append(procedure_details)
+            rxn_lists["date_of_experiment"].append(date_of_experiment)
+            rxn_lists["is_mapped"].append(is_mapped)
 
         return rxn_lists, rxn_non_smiles_names_list
 

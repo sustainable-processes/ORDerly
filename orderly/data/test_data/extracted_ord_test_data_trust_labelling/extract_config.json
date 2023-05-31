@@ -1,4 +1,5 @@
 {
+    "consider_molecule_names": false,
     "extracted_ord_data_folder": "extracted_ords",
     "inverse_substring": false,
     "manual_replacements_dict": {
