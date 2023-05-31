@@ -5,7 +5,7 @@ import logging
 import os
 import pathlib
 from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 
@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from click_loglevel import LogLevel
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -63,6 +63,8 @@ class ConditionPrediction:
     hidden_size_1: int
     hidden_size_2: int
     lr: float
+    reduce_lr_on_plateau_patience: int
+    reduce_lr_on_plateau_factor: float
     batch_size: int
     workers: int
     shuffle_buffer_size: int
@@ -118,6 +120,8 @@ class ConditionPrediction:
             hidden_size_1=self.hidden_size_1,
             hidden_size_2=self.hidden_size_2,
             lr=self.lr,
+            reduce_lr_on_plateau_patience=self.reduce_lr_on_plateau_patience,
+            reduce_lr_on_plateau_factor=self.reduce_lr_on_plateau_factor,
             batch_size=self.batch_size,
             workers=self.workers,
             eager_mode=self.eager_mode,
@@ -140,9 +144,8 @@ class ConditionPrediction:
     def get_frequency_informed_guess(
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
-        output_folder_path: pathlib.Path,
         molecule_columns: List[str],
-    ) -> None:
+    ) -> Dict[str, Any]:
         mol_1_col = molecule_columns[0]
         mol_2_col = molecule_columns[1]
         mol_3_col = molecule_columns[2]
@@ -180,18 +183,16 @@ class ConditionPrediction:
         )
 
         # Save the naive_top_3 benchmark to json
-        benchmark_file_path = output_folder_path / "freq_informed_acc.json"
         benchmark_dict = {
             f"most_common_solvents": most_common_solvents,
             f"most_common_agents": most_common_agents,
             f"most_common_combination": most_common_combination,
-            f"solvent_acc": solvent_accuracy,
-            f"agent_acc": agent_accuracy,
-            f"overall_acc": overall_accuracy,
+            f"frequency_informed_solvent_accuracy": solvent_accuracy,
+            f"frequency_informed_agent_accuracy": agent_accuracy,
+            f"frequency_informed_overall_accuracy": overall_accuracy,
         }
 
-        with open(benchmark_file_path, "w") as file:
-            json.dump(benchmark_dict, file)
+        return benchmark_dict
 
     @staticmethod
     def run_model(
@@ -212,6 +213,8 @@ class ConditionPrediction:
         hidden_size_1: int = 1024,
         hidden_size_2: int = 100,
         lr: float = 0.01,
+        reduce_lr_on_plateau_patience: int = 0,
+        reduce_lr_on_plateau_factor: float = 0.1,
         workers: int = 1,
         shuffle_buffer_size: int = 1000,
         prefetch_buffer_size: Optional[int] = None,
@@ -302,12 +305,14 @@ class ConditionPrediction:
         )
 
         if evaluate_on_test_data:
-            ConditionPrediction.get_frequency_informed_guess(
+            benchmark_dict = ConditionPrediction.get_frequency_informed_guess(
                 train_val_df=train_val_df,
                 test_df=test_df,
-                output_folder_path=output_folder_path,
                 molecule_columns=molecule_columns,
             )
+            benchmark_file_path = output_folder_path / "freq_informed_acc.json"
+            with open(benchmark_file_path, "w") as file:
+                json.dump(benchmark_dict, file)
 
         del train_val_df
         del test_df
@@ -385,6 +390,14 @@ class ConditionPrediction:
                 monitor="val_loss", patience=early_stopping_patience
             )
             callbacks.append(early_stop)
+        if reduce_lr_on_plateau_patience != 0:
+            reduce_lr = ReduceLROnPlateau(
+                monitor="val_loss",
+                factor=reduce_lr_on_plateau_factor,
+                patience=reduce_lr_on_plateau_patience,
+                min_lr=1e-6,
+            )
+            callbacks.append(reduce_lr)
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -463,7 +476,7 @@ class ConditionPrediction:
             agent_scores = get_grouped_scores(
                 y_test_data[2:], predictions[2:], encoders[2:]
             )
-            test_metrics_dict["test_three_agents_accuray"] = np.mean(agent_scores)
+            test_metrics_dict["test_three_agents_accuracy"] = np.mean(agent_scores)
 
             # Overall scores
             overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
@@ -486,7 +499,8 @@ class ConditionPrediction:
                 )
                 artifact.add_dir(output_folder_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
-                # Add as run summary
+                # Add  run summary
+                wandb_run.summary.update(benchmark_dict)  # type: ignore
                 wandb_run.summary.update(test_metrics_dict)  # type: ignore
 
 
@@ -582,6 +596,18 @@ class ConditionPrediction:
     default=0.01,
     type=float,
     help="The learning rate used in the model",
+)
+@click.option(
+    "--reduce_lr_on_plateau_patience",
+    default=0,
+    type=int,
+    help="Number of epochs with no improvement after which learning rate will be reduced. If 0, then learning rate reduction is disabled.",
+)
+@click.option(
+    "--reduce_lr_on_plateau_factor",
+    default=0.1,
+    type=float,
+    help="Factor by which the learning rate will be reduced. new_lr = lr * factor",
 )
 @click.option(
     "--batch_size",
@@ -689,6 +715,8 @@ def main_click(
     hidden_size_1: int,
     hidden_size_2: int,
     lr: float,
+    reduce_lr_on_plateau_patience: int,
+    reduce_lr_on_plateau_factor: float,
     batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
@@ -740,6 +768,8 @@ def main_click(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        reduce_lr_on_plateau_patience=reduce_lr_on_plateau_patience,
+        reduce_lr_on_plateau_factor=reduce_lr_on_plateau_factor,
         cache_train_data=cache_train_data,
         cache_val_data=cache_val_data,
         cache_test_data=cache_test_data,
@@ -775,6 +805,8 @@ def main(
     hidden_size_1: int,
     hidden_size_2: int,
     lr: float,
+    reduce_lr_on_plateau_patience: int,
+    reduce_lr_on_plateau_factor: float,
     batch_size: int,
     wandb_logging: bool,
     wandb_project: str,
@@ -872,6 +904,8 @@ def main(
         hidden_size_1=hidden_size_1,
         hidden_size_2=hidden_size_2,
         lr=lr,
+        reduce_lr_on_plateau_patience=reduce_lr_on_plateau_patience,
+        reduce_lr_on_plateau_factor=reduce_lr_on_plateau_factor,
         batch_size=batch_size,
         workers=workers,
         cache_train_data=cache_train_data,
