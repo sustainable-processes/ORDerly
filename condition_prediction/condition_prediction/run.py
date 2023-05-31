@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from click_loglevel import LogLevel
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -30,15 +30,15 @@ from condition_prediction.utils import (
     frequency_informed_accuracy,
     get_grouped_scores,
     get_random_splits,
+    jsonify_dict,
     post_training_plots,
-    jsonify_dict
 )
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-tf.get_logger().setLevel('ERROR')
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+tf.get_logger().setLevel("ERROR")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -389,7 +389,7 @@ class ConditionPrediction:
         # from datetime import datetime
         # callbacks.append(
         #     tf.keras.callbacks.TensorBoard(
-        #         log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"), 
+        #         log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"),
         #         profile_batch="1,2"
         #     )
         # )
@@ -474,20 +474,16 @@ class ConditionPrediction:
             y_val_data[:2], predictions[:2], encoders[:2]
         )
         train_val_metrics_dict["val_solvent_accuracy"] = np.mean(solvent_scores)
-        agent_scores = get_grouped_scores(
-            y_val_data[2:], predictions[2:], encoders[2:]
-        )
+        agent_scores = get_grouped_scores(y_val_data[2:], predictions[2:], encoders[2:])
         train_val_metrics_dict["val_three_agents_accuracy"] = np.mean(agent_scores)
 
         # Overall scores
-        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
-            axis=1
-        )
+        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
         train_val_metrics_dict["val_overall_accuracy"] = np.mean(overall_scores)
         with open(train_val_file_path, "w") as file:
             json.dump(jsonify_dict(train_val_metrics_dict), file)
         if wandb_logging:
-            wandb_run.summary.update(train_val_metrics_dict)
+            wandb_run.summary.update(train_val_metrics_dict)  # type: ignore
 
         ### Evaluation ####
         post_training_plots(

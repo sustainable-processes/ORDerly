@@ -47,15 +47,15 @@ class GenerateData:
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
             result = GenerateData._map_idx_to_data_gen_fp(
-                    self.df,
-                    idx,
-                    self.mol1,
-                    self.mol2,
-                    self.mol3,
-                    self.mol4,
-                    self.mol5,
-                    self.radius,
-                    self.fp_size,
+                self.df,
+                idx,
+                self.mol1,
+                self.mol2,
+                self.mol3,
+                self.mol4,
+                self.mol5,
+                self.radius,
+                self.fp_size,
             )
             # result = result.get()
             return result
@@ -258,7 +258,7 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
-    
+
     if cache_data:
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
