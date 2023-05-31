@@ -267,7 +267,7 @@ def extract(
     type=bool,
     default=False,
     show_default=True,
-    help="Consider the molecule name as backup in case there's no SMILES when extracting the molecule from the ORD input/outcome",
+    help="Controls whether plain text names are extracted as a backup. Molecules stored in the ORD input/outcome field can be represented in a number of different ways, including SMILES, InChI, and a (plain English) name. The SMILES representation is always the preferred representation. This bool controls what happens if there's no SMILES string available: if consider_molecule_names=False, the input/outcome extractor simply returns None for that molecule; if consider_molecule_names=True, the input/outcome extractor will return the string to be added to the reaction, check whether the string is resolvable as SMILES (to canonicalise it), and if it is not resolvable, the string is added to the non_smiles_names_list to be handled/removed during cleaning.",
 )
 @click.option(
     "--output_path",
