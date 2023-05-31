@@ -31,6 +31,7 @@ from condition_prediction.utils import (
     get_grouped_scores,
     get_random_splits,
     post_training_plots,
+    jsonify_dict
 )
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
@@ -406,7 +407,7 @@ class ConditionPrediction:
                 min_lr=1e-6,
             )
             callbacks.append(reduce_lr)
-        checkpoint_filepath = "models/"
+        checkpoint_filepath = output_folder_path / "weights.best.hdf5"
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -422,16 +423,18 @@ class ConditionPrediction:
             callbacks.extend(
                 [
                     WandbMetricsLogger(),
+                    # Wandb checkpoint uploads everything
+                    # that's expensive in space and time
                     # WandbModelCheckpoint(checkpoint_filepath, save_best_only=True),
                 ]
             )
-        else:
-            callbacks.append(
-                ModelCheckpoint(
-                    filepath=checkpoint_filepath,
-                    save_best_only=True,
-                )
+        callbacks.append(
+            ModelCheckpoint(
+                filepath=checkpoint_filepath,
+                save_best_only=True,
+                save_weights_only=True,
             )
+        )
 
         use_multiprocessing = True if workers > 0 else False
         h = model.fit(
@@ -443,6 +446,14 @@ class ConditionPrediction:
             use_multiprocessing=use_multiprocessing,
             workers=workers,
         )
+        # Upload the best model
+        if wandb_logging:
+            artifact = wandb.Artifact(  # type: ignore
+                name="best_model",
+                type="model",
+            )
+            artifact.add_file(checkpoint_filepath)
+
         # Load the best model back
         model.load_weights(checkpoint_filepath)
         update_teacher_forcing_model_weights(
@@ -452,9 +463,9 @@ class ConditionPrediction:
         # Save the train and val metrics
         train_val_file_path = output_folder_path / "train_val_metrics.json"
         train_val_metrics_dict = h.history
-        train_val_metrics_dict["trust_labelling"] = trust_labelling
+        train_val_metrics_dict["trust_labelling"] = float(trust_labelling)
         with open(train_val_file_path, "w") as file:
-            json.dump(train_val_metrics_dict, file)
+            json.dump(jsonify_dict(train_val_metrics_dict), file)
 
         ### Evaluation ####
         post_training_plots(
@@ -503,16 +514,17 @@ class ConditionPrediction:
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             # Save the dictionary as a JSON file
             with open(test_metrics_file_path, "w") as file:
-                json.dump(test_metrics_dict, file)
+                json.dump(jsonify_dict(test_metrics_dict), file)
 
             if wandb_logging:
-                # Log artifact
+                # Log data
                 artifact = wandb.Artifact(  # type: ignore
                     name="test_metrics",
                     type="metrics",
                     description="Metrics on the test set",
                 )
-                artifact.add_dir(output_folder_path)
+                artifact.add_file(test_metrics_file_path)
+                artifact.add_file(benchmark_file_path)
                 wandb_run.log_artifact(artifact)  # type: ignore
                 # Add  run summary
                 wandb_run.summary.update(benchmark_dict)  # type: ignore
