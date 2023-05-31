@@ -218,7 +218,7 @@ class ORDerlyPlotter:
             frequency.append(i)
 
         # Plot the results
-        plt.bar(frequency, num_reactions, width=freq_step, edgecolor="black")
+        plt.bar(frequency, num_reactions, width=freq_step, edgecolor="black", color="grey")
 
         # set the plot title and axis labels
         plt.title(f"Removing rare molecules")
@@ -228,8 +228,11 @@ class ORDerlyPlotter:
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=total_num_reactions, color="red", linestyle="--")
 
+        breakpoint()
         # Add a legend
-        plt.legend(["Total reactions", f"Number of reactions".capitalize()])
+        plt.legend(["Total reactions", f"Number of reactions".capitalize()], loc='upper right')
+        # Adjust the legend position
+        #plt.legend.set_bbox_to_anchor((1, 0.8))
 
         figure_file_path = (
             plot_output_path / f"min_freq_{freq_step}_{freq_threshold}.png"
