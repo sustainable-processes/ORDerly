@@ -39,19 +39,23 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
+    # def __post_init__(self):
+    #     initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+    #     self.pool = multiprocessing.Pool(os.cpu_count(), initializer)
+
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
             result = GenerateData._map_idx_to_data_gen_fp(
-                self.df,
-                idx,
-                self.mol1,
-                self.mol2,
-                self.mol3,
-                self.mol4,
-                self.mol5,
-                self.radius,
-                self.fp_size,
+                    self.df,
+                    idx,
+                    self.mol1,
+                    self.mol2,
+                    self.mol3,
+                    self.mol4,
+                    self.mol5,
+                    self.radius,
+                    self.fp_size,
             )
             # result = result.get()
             return result
@@ -244,7 +248,6 @@ def get_dataset(
         # num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
-
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
     def _fixup_shape(X, Y):
@@ -260,10 +263,11 @@ def get_dataset(
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
             cache_dir.mkdir(exist_ok=True)
-            # # Read through dataset once to cache it
-            # print("Caching dataset")
-            # [1 for _ in dataset.as_numpy_iterator()]
+            # Read through dataset once to cache it
+            print("Caching dataset")
+            [1 for _ in dataset.as_numpy_iterator()]
         dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        # dataset = dataset.cache()
 
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(

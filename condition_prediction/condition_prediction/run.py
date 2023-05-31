@@ -36,6 +36,8 @@ from condition_prediction.utils import (
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+tf.get_logger().setLevel('ERROR')
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -383,13 +385,13 @@ class ConditionPrediction:
                 batch_size=batch_size,
             )
         ]
-        from datetime import datetime
-        callbacks.append(
-            tf.keras.callbacks.TensorBoard(
-                log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"), 
-                profile_batch="1,2"
-            )
-        )
+        # from datetime import datetime
+        # callbacks.append(
+        #     tf.keras.callbacks.TensorBoard(
+        #         log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"), 
+        #         profile_batch="1,2"
+        #     )
+        # )
         # Define the EarlyStopping callback
         if early_stopping_patience != 0:
             early_stop = EarlyStopping(
@@ -404,7 +406,7 @@ class ConditionPrediction:
                 min_lr=1e-6,
             )
             callbacks.append(reduce_lr)
-        checkpoint_filepath = "models/{epoch:02d}"
+        checkpoint_filepath = "models/"
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -415,12 +417,12 @@ class ConditionPrediction:
                 tags=wandb_tags,
                 group=wandb_group,
                 config=config,
-                sync_tensorboard=True,
+                # sync_tensorboard=True,
             )
             callbacks.extend(
                 [
                     WandbMetricsLogger(),
-                    WandbModelCheckpoint(checkpoint_filepath, save_best_only=True),
+                    # WandbModelCheckpoint(checkpoint_filepath, save_best_only=True),
                 ]
             )
         else:
@@ -905,7 +907,7 @@ def main(
         raise e
 
     fp_directory = train_data_path.parent / "fingerprints"
-    fp_directory.mkdir(parents=True, exist_ok=True)
+    # fp_directory.mkdir(parents=True, exist_ok=True)
     # Define the train_fp_path
     train_fp_path = fp_directory / (train_data_path.stem + ".npy")
     test_fp_path = fp_directory / (test_data_path.stem + ".npy")
