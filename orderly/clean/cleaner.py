@@ -679,8 +679,6 @@ class Cleaner:
             )
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
 
-            df = Cleaner._del_rows_empty_in_this_col(df, "product")
-
         # Remove reactions with no reactants
         if self.remove_reactions_with_no_reactants:
             LOG.info(f"Before removing reactions with no reactants: {df.shape[0]}")
