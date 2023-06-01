@@ -266,8 +266,8 @@ def get_dataset(
             # Read through dataset once to cache it
             print("Caching dataset")
             [1 for _ in dataset.as_numpy_iterator()]
-        dataset = dataset.cache(filename=str(cache_dir / "fps"))
-        # dataset = dataset.cache()
+        # dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        dataset = dataset.cache()
 
     if cache_data:
         cache_dir = Path(cache_dir)
