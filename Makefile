@@ -187,10 +187,10 @@ train_model:
 # 1. Extract 
 
 paper_extract_uspto_no_trust:
-	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
+	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False
 
 paper_extract_uspto_with_trust:
-	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_with_trust"
+	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_with_trust" --consider_molecule_names=True
 
 paper_1: paper_extract_uspto_no_trust paper_extract_uspto_with_trust
 
