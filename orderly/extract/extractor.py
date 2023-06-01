@@ -571,9 +571,8 @@ class OrdExtractor:
         # Ideally we'd order the agents, so we have the catalysts (metal centre) first, then the ligands, then the bases and finally any reagents
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
         # Instead, let's move all agents that contain a transition metal centre to the front of the list
-
-        # agents = sorted(agents, key=lambda x: orderly.extract.defaults.has_transition_metal(x), reverse=True)
-        # Actually nvm, we're not gonna do this for the agents, there are too few transition metals in the agents,
+        agents = sorted(agents, key=lambda x: orderly.extract.defaults.has_transition_metal(x), reverse=True)
+        # This way, we can decide in the cleaning script whether we want to scramble the order or use the fact that transition metals are first in the list to identify them as catalysts
 
         return agents, solvents
 
