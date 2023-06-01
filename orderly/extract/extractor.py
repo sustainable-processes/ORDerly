@@ -572,17 +572,9 @@ class OrdExtractor:
         # We don't have a list of catalysts, and it's not straight forward to figure out if something is a catalyst or not (both chemically and computationally)
         # Instead, let's move all agents that contain a transition metal centre to the front of the list
 
-        agents_with_transition_metal = []
-        agents_wo_transition_metal = []
-        for agent in agents:
-            agent_has_transition_metal = orderly.extract.defaults.has_transition_metal(
-                agent
-            )
-            if agent_has_transition_metal:
-                agents_with_transition_metal.append(agent)
-            else:
-                agents_wo_transition_metal.append(agent)
-        agents = agents_with_transition_metal + agents_wo_transition_metal
+        # agents = sorted(agents, key=lambda x: orderly.extract.defaults.has_transition_metal(x), reverse=True)
+        # Actually nvm, we're not gonna do this for the agents, there are too few transition metals in the agents,
+
         return agents, solvents
 
     @staticmethod
@@ -1020,6 +1012,16 @@ class OrdExtractor:
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
             temperature = TEMPERATURE_CELCIUS(0.0)
+
+        # Move the catalysts with a transition metal to the front of the list
+        # This will be useful in the cleaner if we have to rename the catalysts to reagents
+        catalysts = sorted(
+            catalysts,
+            key=lambda x: orderly.extract.defaults.has_transition_metal(x),
+            reverse=True,
+        )
+        if len(catalysts) > 1:
+            breakpoint()
 
         return (
             reactants,
