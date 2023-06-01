@@ -32,7 +32,7 @@ from condition_prediction.utils import (
     get_random_splits,
     jsonify_dict,
     post_training_plots,
-    jsonify_dict
+    jsonify_dict,
 )
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
