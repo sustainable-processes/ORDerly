@@ -14,6 +14,7 @@ import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from orderly.types import *
 
@@ -56,6 +57,8 @@ class ORDerlyPlotter:
                 self.df, molecule, self.plot_output_path
             )
 
+    import matplotlib.ticker as ticker
+
     @staticmethod
     def plot_num_rxn_component(
         df: pd.DataFrame,
@@ -75,28 +78,35 @@ class ORDerlyPlotter:
         plotting_subset = counts[:num_columns]
         # create a bar plot of string counts for each column
         plt.bar(
-            range(1, num_columns + 1), plotting_subset
+            range(1, num_columns + 1),
+            plotting_subset,
+            color='grey',
+            edgecolor='black'
         )  # Adjusted to start at index 1
 
         # set the x-axis tick labels to the column names
         # plt.xticks(range(len(self.columns_to_plot)), self.columns_to_plot, rotation=90)
 
         # set the plot title and axis labels
-        plt.title(f"Components per reaction")
+        # plt.title(f"Components per reaction") # Usually the title is added on top of the figure on overleaf, after (a)
         plt.ylabel(f"Number of reactions")
         plt.xlabel(f"Number of {col_starts_with}s")
+
+        # Format y-axis labels with commas
+        plt.gca().yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
         # Add a legend
-        plt.legend(["Total reactions", f"{col_starts_with} counts".capitalize()])
+        plt.legend(["Total reactions", f"{col_starts_with} counts".capitalize()], loc="right")
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
         # save the plot to file
         plt.savefig(figure_file_path, bbox_inches="tight", dpi=600)
         return
+
 
     @staticmethod
     def _get_columns_to_plot(df: pd.DataFrame, col_starts_with: str) -> List[str]:
@@ -221,16 +231,15 @@ class ORDerlyPlotter:
         plt.bar(frequency, num_reactions, width=freq_step, edgecolor="black", color="grey")
 
         # set the plot title and axis labels
-        plt.title(f"Removing rare molecules")
+        #plt.title(f"Removing rare molecules") Title should be added on overleaf
         plt.ylabel(f"Number of reactions")
         plt.xlabel(f"Minimum frequency of occurrence")
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=total_num_reactions, color="red", linestyle="--")
 
-        breakpoint()
         # Add a legend
-        plt.legend(["Total reactions", f"Number of reactions".capitalize()], loc='upper right')
+        plt.legend(["Total reactions", f"Number of reactions".capitalize()], loc='right')
         # Adjust the legend position
         #plt.legend.set_bbox_to_anchor((1, 0.8))
 
