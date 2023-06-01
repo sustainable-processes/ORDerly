@@ -141,20 +141,27 @@ class Cleaner:
             "catalyst": self.num_cat,
             "reagent": self.num_reag,
         }
-    
+
     @staticmethod
-    def _rename_catalyst_as_reagent(df: pd.DataFrame, num_cat_cols_to_keep: int)-> pd.DataFrame:
+    def _rename_catalyst_as_reagent(
+        df: pd.DataFrame, num_cat_cols_to_keep: int
+    ) -> pd.DataFrame:
         cat_cols = [col for col in df.columns if col.startswith("catalyst")]
         # cols to keep as catalyst
         _ = cat_cols[:num_cat_cols_to_keep]
         # cols to rename as reagent
         cat_cols_to_rename = cat_cols[num_cat_cols_to_keep:]
         # rename cols
-        df = df.rename(columns=dict(zip(cat_cols_to_rename, [f"reagent_{i:03d}" for i in range(len(cat_cols_to_rename))])))
-        
+        df = df.rename(
+            columns=dict(
+                zip(
+                    cat_cols_to_rename,
+                    [f"reagent_{i:03d}" for i in range(len(cat_cols_to_rename))],
+                )
+            )
+        )
+
         return df
-        
-        
 
     @staticmethod
     def _remove_reactions_with_too_many_of_component(
@@ -642,9 +649,9 @@ class Cleaner:
         # Remove reactions with too many of a certain component
         num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
         # If the len of cols that start with reagent is 0:
-        breakpoint()
         if len(self._get_columns_beginning_with_str(df.columns, "reagent")) == 0:
             df = Cleaner._rename_catalyst_as_reagent(df, num_cat_cols_to_keep)
+            
         for col in [
             "reactant",
             "product",
