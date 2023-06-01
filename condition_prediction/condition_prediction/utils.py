@@ -218,8 +218,11 @@ def jsonify_dict(d, copy=True):
         elif type(v) in [str, int, float, bool, tuple] or v is None:
             pass
         else:
-            raise TypeError(f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}.")
+            raise TypeError(
+                f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}."
+            )
     return d
+
 
 def unjsonify_dict(d, copy=True):
     """Convert JSON back to proper types"""
@@ -233,7 +236,9 @@ def unjsonify_dict(d, copy=True):
         elif type(v) in [str, int, float, bool, tuple] or v is None:
             pass
         else:
-            raise TypeError(f"Cannot unjsonify type for key ({k}) with value {l} and value {type(l)}.")
+            raise TypeError(
+                f"Cannot unjsonify type for key ({k}) with value {l} and value {type(l)}."
+            )
     return d
 
 
@@ -252,7 +257,9 @@ def jsonify_list(a, copy=True):
         elif type(l) in [str, int, float, bool, tuple] or l is None:
             pass
         else:
-            raise TypeError(f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}.")
+            raise TypeError(
+                f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}."
+            )
     return a
 
 

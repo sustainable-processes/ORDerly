@@ -166,7 +166,9 @@ def test_rxn_input_extractor(
         labelled_products_from_input,  # Daniel: I'm not sure what to do with this, it doesn't make sense for people to have put a product as an input, so this list should be empty anyway
         ice_present,
         non_smiles_names_list_additions,
-    ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(rxn)
+    ) = orderly.extract.extractor.OrdExtractor.rxn_input_extractor(
+        rxn, consider_molecule_names=True
+    )  # TODO: Add tests for when consider_molecule_names=False
 
     assert (
         expected_labelled_reactants == labelled_reactants
@@ -241,7 +243,9 @@ def test_rxn_outcomes_extractor(
         labelled_products,
         yields,
         non_smiles_names_list_additions,
-    ) = orderly.extract.extractor.OrdExtractor.rxn_outcomes_extractor(rxn)
+    ) = orderly.extract.extractor.OrdExtractor.rxn_outcomes_extractor(
+        rxn, consider_molecule_names=True
+    )  # TODO: Add tests for when consider_molecule_names=False
 
     assert expected_yields == yields, f"failure for {expected_yields=} got {yields}"
     assert (
@@ -1145,7 +1149,11 @@ def test_handle_reaction_object(
     solvents_set = orderly.extract.defaults.get_solvents_set()
 
     rnx_object = orderly.extract.extractor.OrdExtractor.handle_reaction_object(
-        rxn, manual_replacements_dict, solvents_set, trust_labelling
+        rxn,
+        manual_replacements_dict,
+        solvents_set,
+        trust_labelling,
+        consider_molecule_names=True,
     )
 
     assert rnx_object is not None
@@ -1289,6 +1297,7 @@ def test_extraction_pipeline(
         data_path=orderly.data.test_data.get_path_of_test_ords(),
         ord_file_ending=".pb.gz",
         trust_labelling=trust_labelling,
+        consider_molecule_names=True,  # TODO: add test for consider_molecule_names=False
         output_path=tmp_path,
         extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=None,
@@ -1407,6 +1416,7 @@ def test_extraction_pipeline_exact_output(
         data_path=orderly.data.test_data.get_path_of_test_ords(),
         ord_file_ending=file_to_extract,
         trust_labelling=trust_labelling,
+        consider_molecule_names=False,  # TODO: add test for consider_molecule_names=False
         output_path=tmp_path,
         extracted_ord_data_folder=extracted_ord_data_folder,
         solvents_path=None,

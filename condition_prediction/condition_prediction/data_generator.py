@@ -269,6 +269,16 @@ def get_dataset(
         dataset = dataset.cache(filename=str(cache_dir / "fps"))
         # dataset = dataset.cache()
 
+    if cache_data:
+        cache_dir = Path(cache_dir)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # Read through dataset once to cache it
+            print("Caching dataset")
+            [1 for _ in dataset.as_numpy_iterator()]
+        dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        # dataset = dataset.cache()
+
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(
             lambda _: dataset,
