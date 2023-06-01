@@ -191,7 +191,8 @@ def run_sweep(
         commands_filepath_pathlib = (
             commands_filepath_pathlib / f"{sweep_config_pathlib.stem}_commands.txt"
         )
-    with open(commands_filepath_pathlib, "w") as f:
+        commands_filepath = commands_filepath_pathlib
+    with open(commands_filepath, "w") as f:
         f.writelines([sweep_id + "\n"] + [cmd + "\n" for cmd in cmds])
 
     print("Starting sweep ", sweep_id)
