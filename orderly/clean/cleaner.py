@@ -649,8 +649,13 @@ class Cleaner:
         # Remove reactions with too many of a certain component
         num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
         # If the len of cols that start with reagent is 0:
+        LOG.info(f"Number of catalyst columns: {len(self._get_columns_beginning_with_str(df.columns, 'catalyst'))}")
+        LOG.info(f"Number of reagent columns: {len(self._get_columns_beginning_with_str(df.columns, 'reagent'))}")
         if len(self._get_columns_beginning_with_str(df.columns, "reagent")) == 0:
+            LOG.info(f"No reagent columns found, renaming some catalyst columns as reagent columns")
             df = Cleaner._rename_catalyst_as_reagent(df, num_cat_cols_to_keep)
+        else:
+            LOG.info(f"Reagent columns found, not renaming any catalyst columns as reagent columns")
             
         for col in [
             "reactant",
