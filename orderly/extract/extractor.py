@@ -1020,8 +1020,6 @@ class OrdExtractor:
             key=lambda x: orderly.extract.defaults.has_transition_metal(x),
             reverse=True,
         )
-        if len(catalysts) > 1:
-            breakpoint()
 
         return (
             reactants,
