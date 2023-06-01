@@ -169,19 +169,22 @@ class ConditionPrediction:
         mol_5_col = molecule_columns[4]
 
         # Evaulate whether the correct set of labels have been predicted, rather than treating them separately
-        solvent_accuracy, most_common_solvents = frequency_informed_accuracy(
+        # Top 1 accuracy
+        solvent_accuracy_top_1, _ = frequency_informed_accuracy(
             (train_val_df[mol_1_col], train_val_df[mol_2_col]),
             (test_df[mol_1_col], test_df[mol_2_col]),
+            1,
         )
-        agent_accuracy, most_common_agents = frequency_informed_accuracy(
+        agent_accuracy_top_1, _ = frequency_informed_accuracy(
             (
                 train_val_df[mol_3_col],
                 train_val_df[mol_4_col],
                 train_val_df[mol_5_col],
             ),
             (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
+            1,
         )
-        overall_accuracy, most_common_combination = frequency_informed_accuracy(
+        overall_accuracy_top_1, _ = frequency_informed_accuracy(
             (
                 train_val_df[mol_1_col],
                 train_val_df[mol_2_col],
@@ -196,16 +199,53 @@ class ConditionPrediction:
                 test_df[mol_4_col],
                 test_df[mol_5_col],
             ),
+            1,
+        )
+        
+        # Top 3 accuracy
+        solvent_accuracy_top_3, most_common_solvents_top_3 = frequency_informed_accuracy(
+            (train_val_df[mol_1_col], train_val_df[mol_2_col]),
+            (test_df[mol_1_col], test_df[mol_2_col]),
+            3,
+        )
+        agent_accuracy_top_3, most_common_agents_top_3 = frequency_informed_accuracy(
+            (
+                train_val_df[mol_3_col],
+                train_val_df[mol_4_col],
+                train_val_df[mol_5_col],
+            ),
+            (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
+            3,
+        )
+        overall_accuracy_top_3, most_common_combination_top_3 = frequency_informed_accuracy(
+            (
+                train_val_df[mol_1_col],
+                train_val_df[mol_2_col],
+                train_val_df[mol_3_col],
+                train_val_df[mol_4_col],
+                train_val_df[mol_5_col],
+            ),
+            (
+                test_df[mol_1_col],
+                test_df[mol_2_col],
+                test_df[mol_3_col],
+                test_df[mol_4_col],
+                test_df[mol_5_col],
+            ),
+            3,
         )
 
         # Save the naive_top_3 benchmark to json
         benchmark_dict = {
-            f"most_common_solvents": most_common_solvents,
-            f"most_common_agents": most_common_agents,
-            f"most_common_combination": most_common_combination,
-            f"frequency_informed_solvent_accuracy": solvent_accuracy,
-            f"frequency_informed_agent_accuracy": agent_accuracy,
-            f"frequency_informed_overall_accuracy": overall_accuracy,
+            f"most_common_solvents_top_3": most_common_solvents_top_3,
+            f"most_common_agents_top_3": most_common_agents_top_3,
+            f"most_common_combination_top_3": most_common_combination_top_3,
+            f"frequency_informed_solvent_accuracy_top_1": solvent_accuracy_top_1,
+            f"frequency_informed_agent_accuracy_top_1": agent_accuracy_top_1,
+            f"frequency_informed_overall_accuracy_top_1": overall_accuracy_top_1,
+            f"frequency_informed_solvent_accuracy_top_3": solvent_accuracy_top_3,
+            f"frequency_informed_agent_accuracy_top_3": agent_accuracy_top_3,
+            f"frequency_informed_overall_accuracy_top_3": overall_accuracy_top_3,
         }
 
         return benchmark_dict

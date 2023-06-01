@@ -99,7 +99,7 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
 
-def frequency_informed_accuracy(data_train, data_test):
+def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
     """
     Choose the most frequent combination of components in the training data and use that to predict the combination in the test data.
 
@@ -118,12 +118,14 @@ def frequency_informed_accuracy(data_train, data_test):
     row_counts = Counter(data_train_list)
 
     # Find the most frequent row and its count
-    most_frequent_row, _ = row_counts.most_common(1)[0]
+    most_frequent_rows, _ = row_counts.most_common(1)[:top_n]
 
     # Count the occurrences of the most frequent row in data_train_np
-    correct_predictions = data_test_list.count(most_frequent_row)
+    correct_predictions = 0
+    for row in most_frequent_rows:
+        correct_predictions += data_test_list.count(row)
 
-    return correct_predictions / len(data_test_list), most_frequent_row
+    return correct_predictions / len(data_test_list), most_frequent_rows
 
 
 def get_random_splits(n_indices, train_fraction, train_val_split, random_seed=54321):
