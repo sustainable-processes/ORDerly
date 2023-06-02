@@ -655,14 +655,14 @@ class Cleaner:
         LOG.info(
             f"Number of reagent columns: {len(self._get_columns_beginning_with_str(df.columns, ('reagent',)))}"
         )
-        if len(self._get_columns_beginning_with_str(df.columns, ("reagent",))) == 0:
+        if (len(self._get_columns_beginning_with_str(df.columns, ("reagent",))) == 0) and (len(self._get_columns_beginning_with_str(df.columns, ("catalyst",))) > num_cat_cols_to_keep):
             LOG.info(
                 f"No reagent columns found, renaming some catalyst columns as reagent columns"
             )
             df = Cleaner._rename_catalyst_as_reagent(df, num_cat_cols_to_keep)
         else:
             LOG.info(
-                f"Reagent columns found, not renaming any catalyst columns as reagent columns"
+                f"Reagent columns found or not enough catalyst columns, not renaming any catalyst columns as reagent columns"
             )
 
         for col in [
