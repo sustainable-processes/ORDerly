@@ -202,9 +202,12 @@ class ConditionPrediction:
             ),
             1,
         )
-        
+
         # Top 3 accuracy
-        solvent_accuracy_top_3, most_common_solvents_top_3 = frequency_informed_accuracy(
+        (
+            solvent_accuracy_top_3,
+            most_common_solvents_top_3,
+        ) = frequency_informed_accuracy(
             (train_val_df[mol_1_col], train_val_df[mol_2_col]),
             (test_df[mol_1_col], test_df[mol_2_col]),
             3,
@@ -218,7 +221,10 @@ class ConditionPrediction:
             (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
             3,
         )
-        overall_accuracy_top_3, most_common_combination_top_3 = frequency_informed_accuracy(
+        (
+            overall_accuracy_top_3,
+            most_common_combination_top_3,
+        ) = frequency_informed_accuracy(
             (
                 train_val_df[mol_1_col],
                 train_val_df[mol_2_col],

@@ -98,6 +98,7 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
 
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
+
 def get_grouped_scores_top3(y_true, y_pred, encoders=None):
     """
     Get the top-3 accuracy of the predictions for a group of components (e.g. solvents or agents)
@@ -114,8 +115,12 @@ def get_grouped_scores_top3(y_true, y_pred, encoders=None):
             # Here we get the indices of top 3 predictions for each component
             selection_idx = np.argsort(components, axis=1)[:, -3:]
             prob_selection = np.sort(components, axis=1)[:, -3:]
-            one_hot_targets = np.array([np.eye(components.shape[1])[idx] for idx in selection_idx])
-            component_pred = [enc.inverse_transform(one_hot) for one_hot in one_hot_targets]
+            one_hot_targets = np.array(
+                [np.eye(components.shape[1])[idx] for idx in selection_idx]
+            )
+            component_pred = [
+                enc.inverse_transform(one_hot) for one_hot in one_hot_targets
+            ]
             component_pred = np.stack(component_pred, axis=0)
             components_pred.append(component_pred)
             prob_components_pred.append(prob_selection)
@@ -131,14 +136,16 @@ def get_grouped_scores_top3(y_true, y_pred, encoders=None):
     # Ranking the combinations by probabilities
     ranking_idx = np.argsort(prob_components_pred, axis=1)[:, ::-1]
     ranked_components_pred = np.take_along_axis(components_pred, ranking_idx, axis=1)
-    
+
     # Checking if true component is within the top-3 predicted components
-    match = np.array([components_true[i] in ranked_components_pred[i] for i in range(ranked_components_pred.shape[0])])
+    match = np.array(
+        [
+            components_true[i] in ranked_components_pred[i]
+            for i in range(ranked_components_pred.shape[0])
+        ]
+    )
 
     return match
-
-
-
 
 
 def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
@@ -161,7 +168,7 @@ def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
 
     # Find the most frequent row and its count
     most_frequent_rows = row_counts.most_common(top_n)
-    
+
     # Count the occurrences of the most frequent row in data_train_np
     correct_predictions = 0
     for row in most_frequent_rows:
