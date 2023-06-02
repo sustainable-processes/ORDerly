@@ -61,6 +61,7 @@ class ConditionPrediction:
     train_fraction: float
     train_val_split: float
     epochs: int
+    train_mode: int
     generate_fingerprints: bool
     fp_size: int
     dropout: float
@@ -120,6 +121,7 @@ class ConditionPrediction:
             train_fraction=self.train_fraction,
             train_val_split=self.train_val_split,
             epochs=self.epochs,
+            train_mode=self.train_mode,
             fp_size=self.fp_size,
             dropout=self.dropout,
             hidden_size_1=self.hidden_size_1,
@@ -201,6 +203,25 @@ class ConditionPrediction:
         return benchmark_dict
 
     @staticmethod
+    def evaluate_model(model, dataset, encoders):
+        metrics = {}
+        predictions = model.predict(dataset)
+        _, unbatched_data = unbatch_dataset(dataset)
+        solvent_scores = get_grouped_scores(
+            unbatched_data[:2], predictions[:2], encoders[:2]
+        )
+        metrics["solvent_accuracy"] = np.mean(solvent_scores)
+        agent_scores = get_grouped_scores(
+            unbatched_data[2:], predictions[2:], encoders[2:]
+        )
+        metrics["three_agents_accuracy"] = np.mean(agent_scores)
+
+        # Overall scores
+        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
+        metrics["overall_accuracy"] = np.mean(overall_scores)
+        return metrics
+
+    @staticmethod
     def run_model(
         train_val_df: pd.DataFrame,
         test_df: pd.DataFrame,
@@ -235,6 +256,7 @@ class ConditionPrediction:
         wandb_tags: Optional[List[str]] = None,
         wandb_group: Optional[str] = None,
         verbosity: int = 2,
+        dataset_version: str = "v3",
     ) -> None:
         """
         Run condition prediction training
@@ -259,6 +281,14 @@ class ConditionPrediction:
             n_indices=train_val_df.shape[0],
             train_fraction=train_fraction,
             train_val_split=train_val_split,
+        )
+        config.update(
+            dict(
+                n_train=train_idx.shape[0],
+                n_val=val_idx.shape[0],
+                n_test=test_idx.shape[0],
+                dataset_version=dataset_version,
+            )
         )
 
         # Apply these to the fingerprints
@@ -324,6 +354,7 @@ class ConditionPrediction:
 
         del train_val_df
         del test_df
+
         LOG.info("Data ready for modelling")
         ### Model Setup ###
         model = build_teacher_forcing_model(
@@ -376,8 +407,22 @@ class ConditionPrediction:
             },
             run_eagerly=eager_mode,
         )
-        update_teacher_forcing_model_weights(
-            update_model=pred_model, to_copy_model=model
+        pred_model.compile(
+            loss=[
+                tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+                for _ in range(5)
+            ],
+            loss_weights=[1, 1, 1, 1, 1],
+            optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
+            metrics={
+                f"mol{i}": [
+                    "acc",
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3"),
+                    tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top5"),
+                ]
+                for i in range(1, 6)
+            },
+            run_eagerly=eager_mode,
         )
 
         ### Training ###
@@ -387,14 +432,8 @@ class ConditionPrediction:
                 batch_size=batch_size,
             )
         ]
-        # from datetime import datetime
-        # callbacks.append(
-        #     tf.keras.callbacks.TensorBoard(
-        #         log_dir="logs/" + datetime.now().strftime("%Y%m%d-%H%M%S"),
-        #         profile_batch="1,2"
-        #     )
-        # )
-        # Define the EarlyStopping callback
+
+        # Callbacks
         if early_stopping_patience != 0:
             early_stop = EarlyStopping(
                 monitor="val_loss", patience=early_stopping_patience
@@ -405,10 +444,10 @@ class ConditionPrediction:
                 monitor="val_loss",
                 factor=reduce_lr_on_plateau_factor,
                 patience=reduce_lr_on_plateau_patience,
-                min_lr=1e-6,
+                min_lr=1e-4,
             )
             callbacks.append(reduce_lr)
-        checkpoint_filepath = output_folder_path / "weights.best.hdf5"
+        best_checkpoint_filepath = output_folder_path / "weights.best.hdf5"
         if wandb_logging:
             wandb_tags = [] if wandb_tags is None else wandb_tags
             if "Condition Prediction" not in wandb_tags:
@@ -431,108 +470,117 @@ class ConditionPrediction:
             )
         callbacks.append(
             ModelCheckpoint(
-                filepath=checkpoint_filepath,
+                filepath=best_checkpoint_filepath,
                 save_best_only=True,
                 save_weights_only=True,
             )
         )
 
         use_multiprocessing = True if workers > 0 else False
-        h = model.fit(
-            train_dataset,
-            epochs=epochs,
-            verbose=verbosity,
-            validation_data=val_dataset,
-            callbacks=callbacks,
-            use_multiprocessing=use_multiprocessing,
-            workers=workers,
-        )
-        # Upload the best model
+        h = None
+        last_checkpoint_filepath = output_folder_path / "weights.last.hdf5"
+        try:
+            h = model.fit(
+                train_dataset,
+                epochs=epochs,
+                verbose=verbosity,
+                validation_data=val_dataset,
+                callbacks=callbacks,
+                use_multiprocessing=use_multiprocessing,
+                workers=workers,
+            )
+        except KeyboardInterrupt:
+            LOG.info(
+                "Keyboard interrupt detected. Stopping training and doing evaluation."
+            )
+        finally:
+            model.save_weights(last_checkpoint_filepath)
+            update_teacher_forcing_model_weights(
+                update_model=pred_model, to_copy_model=model
+            )
+        # Upload the best and last model model
         if wandb_logging:
+            # Save and upload last model
             artifact = wandb.Artifact(  # type: ignore
-                name="best_model",
+                name=f"run_{wandb_run.id}_model",
                 type="model",
             )
-            artifact.add_file(checkpoint_filepath)
+            artifact.add_file(last_checkpoint_filepath)
+            wandb_run.log_artifact(artifact, aliases=["last_epoch"])
 
-        # Load the best model back
-        model.load_weights(checkpoint_filepath)
-        update_teacher_forcing_model_weights(
-            update_model=pred_model, to_copy_model=model
+            # Save best model
+            artifact = wandb.Artifact(  # type: ignore
+                name=f"run_{wandb_run.id}_model",
+                type="model",
+            )
+            artifact.add_file(best_checkpoint_filepath)
+            wandb_run.log_artifact(artifact, aliases=["best"])
+
+        # Train and val metrics
+        train_val_metrics_dict = {}
+        train_val_metrics_dict["trust_labelling"] = trust_labelling
+        train_val_metrics_dict.update(
+            {
+                "val_last_epoch": ConditionPrediction.evaluate_model(
+                    pred_model, val_dataset, encoders
+                )
+            }
         )
 
-        # Save the train and val metrics
-        train_val_file_path = output_folder_path / "train_val_metrics.json"
-        train_val_metrics_dict = h.history
-        train_val_metrics_dict["trust_labelling"] = float(trust_labelling)
-        predictions = model.predict(
-            val_dataset,
-            use_multiprocessing=use_multiprocessing,
-            workers=workers,
+        # Load the best model back and do evaluation
+        pred_model.load_weights(best_checkpoint_filepath)
+        train_val_metrics_dict.update(
+            {
+                "val_best": ConditionPrediction.evaluate_model(
+                    pred_model, val_dataset, encoders
+                )
+            }
         )
-        _, y_val_data = unbatch_dataset(val_dataset)
-        solvent_scores = get_grouped_scores(
-            y_val_data[:2], predictions[:2], encoders[:2]
-        )
-        train_val_metrics_dict["val_solvent_accuracy"] = np.mean(solvent_scores)
-        agent_scores = get_grouped_scores(y_val_data[2:], predictions[2:], encoders[2:])
-        train_val_metrics_dict["val_three_agents_accuracy"] = np.mean(agent_scores)
 
-        # Overall scores
-        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
-        train_val_metrics_dict["val_overall_accuracy"] = np.mean(overall_scores)
-        with open(train_val_file_path, "w") as file:
-            json.dump(jsonify_dict(train_val_metrics_dict), file)
+        # Save train and val metrics
         if wandb_logging:
             wandb_run.summary.update(train_val_metrics_dict)  # type: ignore
-
-        ### Evaluation ####
-        post_training_plots(
-            h, output_folder_path=output_folder_path, molecule_columns=molecule_columns
-        )
+        if h is not None:
+            train_val_metrics_dict.update(h.history)
+            post_training_plots(
+                h,
+                output_folder_path=output_folder_path,
+                molecule_columns=molecule_columns,
+            )
+        train_val_file_path = output_folder_path / "train_val_metrics.json"
+        with open(train_val_file_path, "w") as file:
+            json.dump(jsonify_dict(train_val_metrics_dict), file)
 
         # Save the final performance on the test set
         del train_dataset
         if evaluate_on_test_data:
             # Evaluate the model on the test set
-            test_metrics = model.evaluate(
+            test_metrics = pred_model.evaluate(
                 test_dataset,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
             )
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
             test_metrics_dict["trust_labelling"] = trust_labelling
-
-            ### Grouped scores
-            predictions = model.predict(
-                test_dataset,
-                use_multiprocessing=use_multiprocessing,
-                workers=workers,
+            pred_model.load_weights(best_checkpoint_filepath)
+            test_metrics_dict.update(
+                {
+                    "test_best": ConditionPrediction.evaluate_model(
+                        pred_model, test_dataset, encoders
+                    )
+                }
             )
-
-            # Solvent scores
-            _, y_test_data = unbatch_dataset(test_dataset)
-            train_val_metrics_dict["val_solvent_accuracy"]
-            solvent_scores = get_grouped_scores(
-                y_test_data[:2], predictions[:2], encoders[:2]
+            pred_model.load_weights(last_checkpoint_filepath)
+            test_metrics_dict.update(
+                {
+                    "test_last_epoch": ConditionPrediction.evaluate_model(
+                        pred_model, test_dataset, encoders
+                    )
+                }
             )
-            test_metrics_dict["test_solvent_accuracy"] = np.mean(solvent_scores)
-
-            # 3 agents scores
-            agent_scores = get_grouped_scores(
-                y_test_data[2:], predictions[2:], encoders[2:]
-            )
-            test_metrics_dict["test_three_agents_accuracy"] = np.mean(agent_scores)
-
-            # Overall scores
-            overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(
-                axis=1
-            )
-            test_metrics_dict["test_overall_accuracy"] = np.mean(overall_scores)
 
             # Save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
-            # Save the dictionary as a JSON file
             with open(test_metrics_file_path, "w") as file:
                 json.dump(jsonify_dict(test_metrics_dict), file)
 
@@ -582,6 +630,12 @@ class ConditionPrediction:
     default=0.8,
     type=float,
     help="The fraction of the train data that is used for training (the rest is used for validation)",
+)
+@click.option(
+    "--train_mode",
+    default=1,
+    type=int,
+    help="Training mode. 0 for Teacher force, 1 for hard seleciton, 2 for soft selection",
 )
 @click.option(
     "--epochs",
@@ -759,6 +813,7 @@ def main_click(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    train_mode: int,
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
     generate_fingerprints: bool,
@@ -813,6 +868,7 @@ def main_click(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         epochs=epochs,
+        train_mode=train_mode,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
         generate_fingerprints=generate_fingerprints,
@@ -851,6 +907,7 @@ def main(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    train_mode: int,
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
     generate_fingerprints: bool,
@@ -971,6 +1028,7 @@ def main(
         prefetch_buffer_size=prefetch_buffer_size,
         interleave=interleave,
         epochs=epochs,
+        train_mode=train_mode,
         early_stopping_patience=early_stopping_patience,
         evaluate_on_test_data=evaluate_on_test_data,
         wandb_entity=wandb_entity,
