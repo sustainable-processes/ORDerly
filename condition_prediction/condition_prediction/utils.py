@@ -118,12 +118,12 @@ def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
     row_counts = Counter(data_train_list)
 
     # Find the most frequent row and its count
-    most_frequent_rows, _ = row_counts.most_common(1)[:top_n]
-
+    most_frequent_rows = row_counts.most_common(top_n)
+    
     # Count the occurrences of the most frequent row in data_train_np
     correct_predictions = 0
     for row in most_frequent_rows:
-        correct_predictions += data_test_list.count(row)
+        correct_predictions += data_test_list.count(row[0])
 
     return correct_predictions / len(data_test_list), most_frequent_rows
 
