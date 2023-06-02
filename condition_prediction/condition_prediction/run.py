@@ -13,6 +13,7 @@ LOG = logging.getLogger(__name__)
 
 import numpy as np
 import pandas as pd
+from functools import partial
 import tensorflow as tf
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
@@ -20,7 +21,12 @@ from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
-from condition_prediction.data_generator import get_datasets, unbatch_dataset
+from condition_prediction.data_generator import (
+    get_datasets,
+    unbatch_dataset,
+    rearrange_data_teacher_force,
+    rearrange_data,
+)
 from condition_prediction.model import (
     build_teacher_forcing_model,
     update_teacher_forcing_model_weights,
@@ -330,7 +336,7 @@ class ConditionPrediction:
             fp_size=fp_size,
             train_val_fp=train_val_fp,
             test_fp=test_fp,
-            train_mode=train_mode,
+            # train_mode=train_mode,
             molecule_columns=molecule_columns,
             batch_size=batch_size,
             shuffle_buffer_size=shuffle_buffer_size,
@@ -340,6 +346,18 @@ class ConditionPrediction:
             cache_val_data=cache_val_data,
             cache_test_data=cache_test_data,
         )
+        train_dataset = train_dataset.map(
+            rearrange_data_teacher_force
+            if train_mode == TEACHER_FORCE
+            else rearrange_data(data, mode)
+        )
+        val_dataset_for_train = val_dataset.map(
+            rearrange_data_teacher_force
+            if train_mode == TEACHER_FORCE
+            else rearrange_data
+        )
+        val_dataset = val_dataset.map(rearrange_data)
+        test_dataset = test_dataset.map(rearrange_data)
 
         if evaluate_on_test_data:
             benchmark_dict = ConditionPrediction.get_frequency_informed_guess(
@@ -373,6 +391,11 @@ class ConditionPrediction:
         )
         # we use a separate model for prediction because we use a recurrent setup for prediction
         # the pred model is only different after the first component (mol1)
+        val_mode = (
+            HARD_SELECTION
+            if train_mode == TEACHER_FORCE or train_mode == HARD_SELECTION
+            else SOFT_SELECTION
+        )
         pred_model = build_teacher_forcing_model(
             pfp_len=fp_size,
             rxnfp_len=fp_size,
@@ -384,7 +407,7 @@ class ConditionPrediction:
             N_h1=hidden_size_1,
             N_h2=hidden_size_2,
             l2v=0,
-            mode=HARD_SELECTION,
+            mode=val_mode,
             dropout_prob=dropout,
             use_batchnorm=True,
         )
@@ -483,7 +506,7 @@ class ConditionPrediction:
                 train_dataset,
                 epochs=epochs,
                 verbose=verbosity,
-                validation_data=val_dataset,
+                validation_data=val_dataset_for_train,
                 callbacks=callbacks,
                 use_multiprocessing=use_multiprocessing,
                 workers=workers,
