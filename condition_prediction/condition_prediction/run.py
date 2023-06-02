@@ -36,6 +36,7 @@ from condition_prediction.utils import (
     TrainingMetrics,
     frequency_informed_accuracy,
     get_grouped_scores,
+    get_grouped_scores_top3,
     get_random_splits,
     jsonify_dict,
     post_training_plots,
@@ -254,20 +255,48 @@ class ConditionPrediction:
     def evaluate_model(model, dataset, encoders):
         metrics = {}
         predictions = model.predict(dataset)
-        _, unbatched_data = unbatch_dataset(dataset)
-        solvent_scores = get_grouped_scores(
-            unbatched_data[:2], predictions[:2], encoders[:2]
+        _, ground_truth = unbatch_dataset(dataset)
+        
+        # Top 1 accuracies
+            
+        # Solvent scores
+        solvent_scores_top1 = get_grouped_scores(
+            ground_truth[:2], predictions[:2], encoders[:2]
         )
-        metrics["solvent_accuracy"] = np.mean(solvent_scores)
-        agent_scores = get_grouped_scores(
-            unbatched_data[2:], predictions[2:], encoders[2:]
+        metrics["test_solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
+
+        # 3 agents scores
+        agent_scores_top1 = get_grouped_scores(
+            ground_truth[2:], predictions[2:], encoders[2:]
         )
-        metrics["three_agents_accuracy"] = np.mean(agent_scores)
+        metrics["test_three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
 
         # Overall scores
-        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
-        metrics["overall_accuracy"] = np.mean(overall_scores)
+        overall_scores_top1 = np.stack([solvent_scores_top1, agent_scores_top1], axis=1).all(
+            axis=1
+        )
+        metrics["test_overall_accuracy_top1"] = np.mean(overall_scores_top1)
+        
+        
+        # Top 3 accuracies
+        # Solvent score
+        solvent_scores_top3 = get_grouped_scores_top3(ground_truth[:2], predictions[:2], encoders[:2])
+        metrics["test_solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
+
+        # 3 agents scores
+        agent_scores_top3 = get_grouped_scores_top3(
+            ground_truth[2:], predictions[2:], encoders[2:]
+        )
+        metrics["test_three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
+
+        # Overall scores
+        overall_scores_top3 = np.stack([solvent_scores_top3, agent_scores_top3], axis=1).all(
+            axis=1
+        )
+        metrics["test_overall_accuracy_top3"] = np.mean(overall_scores_top3)
+    
         return metrics
+    
 
     @staticmethod
     def run_model(
@@ -657,7 +686,8 @@ class ConditionPrediction:
                     )
                 }
             )
-
+            
+        
             # Save the test metrics
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             with open(test_metrics_file_path, "w") as file:

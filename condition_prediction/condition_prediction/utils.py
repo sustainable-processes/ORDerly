@@ -98,6 +98,48 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
 
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
+def get_grouped_scores_top3(y_true, y_pred, encoders=None):
+    """
+    Get the top-3 accuracy of the predictions for a group of components (e.g. solvents or agents)
+    """
+    components_true = []
+    if encoders is not None:
+        for enc, components in zip(encoders, y_true):
+            components_true.append(enc.inverse_transform(components))
+        components_true = np.concatenate(components_true, axis=1)
+
+        components_pred = []
+        prob_components_pred = []
+        for enc, components in zip(encoders, y_pred):
+            # Here we get the indices of top 3 predictions for each component
+            selection_idx = np.argsort(components, axis=1)[:, -3:]
+            prob_selection = np.sort(components, axis=1)[:, -3:]
+            one_hot_targets = np.array([np.eye(components.shape[1])[idx] for idx in selection_idx])
+            component_pred = [enc.inverse_transform(one_hot) for one_hot in one_hot_targets]
+            component_pred = np.stack(component_pred, axis=0)
+            components_pred.append(component_pred)
+            prob_components_pred.append(prob_selection)
+        components_pred = np.concatenate(components_pred, axis=2)
+        prob_components_pred = np.array(prob_components_pred)
+        prob_components_pred = np.transpose(prob_components_pred, (1, 2, 0))
+    else:
+        components_true = y_true
+        components_pred = y_pred
+    components_true = np.where(components_true == None, "NULL", components_true)
+    components_pred = np.where(components_pred == None, "NULL", components_pred)
+
+    # Ranking the combinations by probabilities
+    ranking_idx = np.argsort(prob_components_pred, axis=1)[:, ::-1]
+    ranked_components_pred = np.take_along_axis(components_pred, ranking_idx, axis=1)
+    
+    # Checking if true component is within the top-3 predicted components
+    match = np.array([components_true[i] in ranked_components_pred[i] for i in range(ranked_components_pred.shape[0])])
+
+    return match
+
+
+
+
 
 def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
     """
