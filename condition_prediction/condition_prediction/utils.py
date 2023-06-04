@@ -131,10 +131,9 @@ def get_random_splits(n_indices, train_fraction, train_val_split):
     rng = np.random.default_rng(12345)
     train_val_indexes = np.arange(n_indices)
     rng.shuffle(train_val_indexes)
-    train_val_indexes = train_val_indexes[
-        : int(train_val_indexes.shape[0] * train_fraction)
+    train_idx = train_val_indexes[
+        : int(train_val_indexes.shape[0] * train_val_split * train_fraction)
     ]
-    train_idx = train_val_indexes[: int(train_val_indexes.shape[0] * train_val_split)]
     val_idx = train_val_indexes[int(train_val_indexes.shape[0] * train_val_split) :]
     return train_idx, val_idx
 
