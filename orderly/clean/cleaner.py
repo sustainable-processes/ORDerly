@@ -361,7 +361,7 @@ class Cleaner:
                     value_counts < min_frequency_of_occurrence
                 ].index.tolist()
             }
-            LOG.info(f"rare values: {rare_values}")
+            #LOG.info(f"rare values: {rare_values}")
             # Map the rare values to 'other'
             df[col] = df[col].map(
                 lambda x: rare_values.get(x, x)
