@@ -196,6 +196,10 @@ def get_dataset(
     # Construct outputs
     if fp is None and df is None:
         raise ValueError("Must provide either df or fp")
+    elif fp is not None and df is not None and fp.shape[0] != df.shape[0]:
+        raise ValueError(
+            f"Fingerprint ({fp.shape}) and dataframe ({df.shape}) not the same size"
+        )
 
     if fp is not None:
         product_fp = fp[:, : fp.shape[1] // 2]
