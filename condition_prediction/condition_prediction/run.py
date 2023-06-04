@@ -344,7 +344,7 @@ class ConditionPrediction:
 
         if evaluate_on_test_data:
             benchmark_dict = ConditionPrediction.get_frequency_informed_guess(
-                train_val_df=train_val_df,
+                train_val_df=train_val_df.iloc[train_idx],
                 test_df=test_df,
                 molecule_columns=molecule_columns,
             )
