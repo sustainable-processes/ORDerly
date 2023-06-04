@@ -361,7 +361,7 @@ class Cleaner:
                     value_counts < min_frequency_of_occurrence
                 ].index.tolist()
             }
-            #LOG.info(f"rare values: {rare_values}")
+            # LOG.info(f"rare values: {rare_values}")
             # Map the rare values to 'other'
             df[col] = df[col].map(
                 lambda x: rare_values.get(x, x)
@@ -655,7 +655,12 @@ class Cleaner:
         LOG.info(
             f"Number of reagent columns: {len(self._get_columns_beginning_with_str(df.columns, ('reagent',)))}"
         )
-        if (len(self._get_columns_beginning_with_str(df.columns, ("reagent",))) == 0) and (len(self._get_columns_beginning_with_str(df.columns, ("catalyst",))) > num_cat_cols_to_keep):
+        if (
+            len(self._get_columns_beginning_with_str(df.columns, ("reagent",))) == 0
+        ) and (
+            len(self._get_columns_beginning_with_str(df.columns, ("catalyst",)))
+            > num_cat_cols_to_keep
+        ):
             LOG.info(
                 f"No reagent columns found, renaming some catalyst columns as reagent columns"
             )
