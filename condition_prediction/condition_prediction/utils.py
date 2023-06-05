@@ -98,7 +98,6 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
 
     sorted_arr1 = np.sort(components_true, axis=1)
     sorted_arr2 = np.sort(components_pred, axis=1)
-    breakpoint()
 
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
