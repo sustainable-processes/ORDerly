@@ -312,19 +312,34 @@ with_trust_no_map_train_20:
 with_trust_with_map_train_20:
 	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
 
+
 # Sweeps
-sweep_no_trust_no_map_train:
-	python -m sweep sweeps/no_trust_no_map_train.yaml --max_parallel 1
+TRAIN_FRACS =  0.2 0.4 0.6 0.8 1.0
+DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets/
+DATASETS = no_trust_no_map no_trust_with_map with_trust_no_map with_trust_with_map
+dataset_size_sweep:
+	@for dataset in ${DATASETS}; \
+	do \
+		for train_frac in ${TRAIN_FRACS}; \
+		do \
+			rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --train_fraction=$${train_frac} --train_val_split=0.8 --overwrite=True --batch_size=512 --epochs=100 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity="ceb-sre"; \
+		done \
+	done
 
-sweep_no_trust_with_map_train:
-	python -m sweep sweeps/no_trust_with_map_train.yaml --max_parallel 1
 
-sweep_with_trust_no_map_train:
-	python -m sweep sweeps/with_trust_no_map_train.yaml --max_parallel 1
+sweep_no_trust_no_map_train_commands:
+	python -m sweep sweeps/no_trust_no_map_train.yaml --dry_run
 
-sweep_with_trust_with_map_train:
-	python -m sweep sweeps/with_trust_with_map_train.yaml --max_parallel 1
+sweep_no_trust_with_map_train_commands:
+	python -m sweep sweeps/no_trust_with_map_train.yaml --dry_run
 
+sweep_with_trust_no_map_train_commands:
+	python -m sweep sweeps/with_trust_no_map_train.yaml --dry_run
+
+sweep_with_trust_with_map_train_commands:
+	python -m sweep sweeps/with_trust_with_map_train.yaml --dry_run
+
+sweep_all: sweep_no_trust_no_map_train_commands sweep_no_trust_with_map_train_commands sweep_with_trust_no_map_train_commands sweep_with_trust_with_map_train_commands
 
 train_all: no_trust_no_map_train no_trust_with_map_train with_trust_no_map_train with_trust_with_map_train no_trust_no_map_train_20 no_trust_with_map_train_20 with_trust_no_map_train_20 with_trust_with_map_train_20
 

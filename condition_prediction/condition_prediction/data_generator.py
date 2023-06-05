@@ -39,6 +39,10 @@ class GenerateData:
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
 
+    # def __post_init__(self):
+    #     initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+    #     self.pool = multiprocessing.Pool(os.cpu_count(), initializer)
+
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
         if self.product_fp is None and self.rxn_diff_fp is None:
@@ -192,6 +196,10 @@ def get_dataset(
     # Construct outputs
     if fp is None and df is None:
         raise ValueError("Must provide either df or fp")
+    elif fp is not None and df is not None and fp.shape[0] != df.shape[0]:
+        raise ValueError(
+            f"Fingerprint ({fp.shape}) and dataframe ({df.shape}) not the same size"
+        )
 
     if fp is not None:
         product_fp = fp[:, : fp.shape[1] // 2]
@@ -244,15 +252,6 @@ def get_dataset(
         # num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
-    if cache_data:
-        cache_dir = Path(cache_dir)
-        if not cache_dir.exists():
-            cache_dir.mkdir(exist_ok=True)
-            # # Read through dataset once to cache it
-            # print("Caching dataset")
-            # [1 for _ in dataset.as_numpy_iterator()]
-        dataset = dataset.cache(filename=str(cache_dir / "fps"))
-
     # ensures shape is correct after batching
     # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
     def _fixup_shape(X, Y):
@@ -263,6 +262,26 @@ def get_dataset(
         return X, Y
 
     dataset = dataset.map(_fixup_shape)
+
+    if cache_data:
+        cache_dir = Path(cache_dir)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # Read through dataset once to cache it
+            print("Caching dataset")
+            [1 for _ in dataset.as_numpy_iterator()]
+        # dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        dataset = dataset.cache()
+
+    if cache_data:
+        cache_dir = Path(cache_dir)
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+            # Read through dataset once to cache it
+            print("Caching dataset")
+            [1 for _ in dataset.as_numpy_iterator()]
+        dataset = dataset.cache(filename=str(cache_dir / "fps"))
+        # dataset = dataset.cache()
 
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(
@@ -275,6 +294,7 @@ def get_dataset(
     if prefetch_buffer_size is None:
         prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
+    print("Prefetch buffer size:", prefetch_buffer_size)
     return dataset
 
 
@@ -294,6 +314,7 @@ def get_datasets(
     cache_train_data: bool = False,
     cache_val_data: bool = False,
     cache_test_data: bool = False,
+    interleave: bool = False,
 ):
     """
     Get data generators for train, val and test
@@ -390,13 +411,15 @@ def get_datasets(
         train_mol4,
         train_mol5,
         df=df.iloc[train_idx],
-        fp=train_val_fp,
+        fp=train_val_fp[train_idx] if train_val_fp is not None else None,
         mode=train_mode,
         fp_size=fp_size,
         shuffle=True,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_train_data,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_dir=".tf_cache_train/",
     )
     val_dataset = get_dataset(
@@ -406,12 +429,14 @@ def get_datasets(
         val_mol4,
         val_mol5,
         df=df.iloc[val_idx],
-        fp=train_val_fp,
+        fp=train_val_fp[val_idx] if train_val_fp is not None else None,
         mode=val_mode,
         fp_size=fp_size,
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_data=cache_val_data,
         cache_dir=".tf_cache_val/",
     )
@@ -428,6 +453,8 @@ def get_datasets(
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_data=cache_test_data,
         cache_dir=".tf_cache_test/",
     )
