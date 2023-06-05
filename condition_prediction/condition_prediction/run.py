@@ -32,7 +32,6 @@ from condition_prediction.utils import (
     get_random_splits,
     jsonify_dict,
     post_training_plots,
-    jsonify_dict,
 )
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
@@ -502,19 +501,19 @@ class ConditionPrediction:
         if wandb_logging:
             # Save and upload last model
             artifact = wandb.Artifact(  # type: ignore
-                name=f"run_{wandb_run.id}_model",
+                name=f"run_{wandb_run.id}_model",  # type: ignore
                 type="model",
             )
             artifact.add_file(last_checkpoint_filepath)
-            wandb_run.log_artifact(artifact, aliases=["last_epoch"])
+            wandb_run.log_artifact(artifact, aliases=["last_epoch"])  # type: ignore
 
             # Save best model
             artifact = wandb.Artifact(  # type: ignore
-                name=f"run_{wandb_run.id}_model",
+                name=f"run_{wandb_run.id}_model",  # type: ignore
                 type="model",
             )
             artifact.add_file(best_checkpoint_filepath)
-            wandb_run.log_artifact(artifact, aliases=["best"])
+            wandb_run.log_artifact(artifact, aliases=["best"])  # type: ignore
 
         # Train and val metrics
         train_val_metrics_dict = {}
