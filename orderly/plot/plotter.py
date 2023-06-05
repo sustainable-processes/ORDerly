@@ -41,6 +41,16 @@ class ORDerlyPlotter:
 
     def __post_init__(self) -> None:
         self.df = pd.read_parquet(self.clean_data_path)
+        # Increase the font size
+
+        # Increase the font size for other elements
+        plt.rcParams.update({'font.size': 12})
+        
+        # Decrease the font size for tick labels
+        # plt.xticks(fontsize=12)
+        # plt.yticks(fontsize=12)
+
+
 
     ####################################################################################################
 
@@ -99,7 +109,7 @@ class ORDerlyPlotter:
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
         # Add a legend
-        plt.legend(["Total reactions", f"{col_starts_with} counts".capitalize()], loc="right")
+        plt.legend(["Rxn (before filtering)", f"Rxn (after {col_starts_with} filtering)".capitalize()], loc="right")
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
