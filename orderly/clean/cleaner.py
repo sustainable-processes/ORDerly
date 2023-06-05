@@ -143,20 +143,35 @@ class Cleaner:
         }
 
     @staticmethod
+    def _rename_catalyst_as_reagent(
+        df: pd.DataFrame, num_cat_cols_to_keep: int
+    ) -> pd.DataFrame:
+        cat_cols = [col for col in df.columns if col.startswith("catalyst")]
+        # cols to keep as catalyst
+        _ = cat_cols[:num_cat_cols_to_keep]
+        # cols to rename as reagent
+        cat_cols_to_rename = cat_cols[num_cat_cols_to_keep:]
+        # rename cols
+        df = df.rename(
+            columns=dict(
+                zip(
+                    cat_cols_to_rename,
+                    [f"reagent_{i:03d}" for i in range(len(cat_cols_to_rename))],
+                )
+            )
+        )
+
+        return df
+
+    @staticmethod
     def _remove_reactions_with_too_many_of_component(
         df: pd.DataFrame,
         component_name: str,
         number_of_columns_to_keep: int,
-        num_cat_cols_to_keep: int = 1,
-        recursive_counter: int = 0,
     ) -> pd.DataFrame:
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
-        if recursive_counter > 5:
-            raise ValueError(
-                "Too many recursive calls attempting to remap catalyst to reagent columns"
-            )
 
         if number_of_columns_to_keep == -1:
             df = df.sort_index(axis=1)
@@ -180,50 +195,27 @@ class Cleaner:
         # And if there are fewer than expected, add a column of Nones
         elif len(component_columns) < number_of_columns_to_keep:
             LOG.warning(
-                f"There are only {len(component_columns)} {component_name} columns, but {number_of_columns_to_keep} were requested. Adding empty columns (or replacing reagent with catalyst)."
+                f"There are only {len(component_columns)} {component_name} columns, but {number_of_columns_to_keep} were requested."
             )
 
-            # Need to check that there's enough catalyst columns to replace the reagent columns, if not we'll just add empty columns
-            # If there are enough catalyst columns
-            #   then, rename some of the catalyst columns as reagent columns
-            cat_cols = [col for col in df.columns if col.startswith("catalyst")]
-            if (
-                (component_name == "reagent")
-                and (len(component_columns) == 0)
-                and (len(cat_cols) - num_cat_cols_to_keep > 0)
-            ):
-                # TODO: add catch for when the number of reagent columns is not 0? Mix reagent and catalyts columns?
-
-                LOG.warning(f"Replacing reagent with catalyst")
-                cols_to_rename = cat_cols[number_of_columns_to_keep:]
-                for i, col in enumerate(cols_to_rename):
-                    df[f"reagent_{i:03d}"] = df[col]
-                    df = df.drop(columns=col)
-                df = Cleaner._remove_reactions_with_too_many_of_component(
-                    df=df,
-                    component_name="reagent",
-                    number_of_columns_to_keep=number_of_columns_to_keep,
-                    num_cat_cols_to_keep=num_cat_cols_to_keep,
-                    recursive_counter=recursive_counter + 1,
+            num_columns_to_add = number_of_columns_to_keep - len(component_columns)
+            column_names_to_add = [
+                f"{component_name}_{i:03d}"
+                for i in range(
+                    len(component_columns),
+                    len(component_columns) + num_columns_to_add,
                 )
-
-            else:
-                num_columns_to_add = number_of_columns_to_keep - len(component_columns)
-                column_names_to_add = [
-                    f"{component_name}_{i:03d}"
-                    for i in range(
-                        len(component_columns),
-                        len(component_columns) + num_columns_to_add,
-                    )
-                ]
-                for new_col_name in column_names_to_add:
-                    empty_col = [pd.NA] * df.shape[
-                        0
-                    ]  # create a column of Nones the same length as the df
-                    new_columns = pd.DataFrame(
-                        columns=[new_col_name], data=empty_col
-                    )  # these columns are all empty
-                    df = pd.concat([df, new_columns], axis=1)
+            ]
+            for new_col_name in column_names_to_add:
+                empty_col = [pd.NA] * df.shape[
+                    0
+                ]  # create a column of Nones the same length as the df
+                new_columns = pd.DataFrame(
+                    columns=[new_col_name], data=empty_col
+                )  # these columns are all empty
+                df = pd.concat([df, new_columns], axis=1)
+        elif len(component_columns) == number_of_columns_to_keep:
+            pass
 
         df = df.sort_index(axis=1)
         df = df.reset_index(drop=True)
@@ -369,7 +361,7 @@ class Cleaner:
                     value_counts < min_frequency_of_occurrence
                 ].index.tolist()
             }
-
+            # LOG.info(f"rare values: {rare_values}")
             # Map the rare values to 'other'
             df[col] = df[col].map(
                 lambda x: rare_values.get(x, x)
@@ -656,6 +648,28 @@ class Cleaner:
 
         # Remove reactions with too many of a certain component
         num_cat_cols_to_keep = self._get_number_of_columns_to_keep()["catalyst"]
+        # If the len of cols that start with reagent is 0:
+        LOG.info(
+            f"Number of catalyst columns: {len(self._get_columns_beginning_with_str(df.columns, ('catalyst',)))}"
+        )
+        LOG.info(
+            f"Number of reagent columns: {len(self._get_columns_beginning_with_str(df.columns, ('reagent',)))}"
+        )
+        if (
+            len(self._get_columns_beginning_with_str(df.columns, ("reagent",))) == 0
+        ) and (
+            len(self._get_columns_beginning_with_str(df.columns, ("catalyst",)))
+            > num_cat_cols_to_keep
+        ):
+            LOG.info(
+                f"No reagent columns found, renaming some catalyst columns as reagent columns"
+            )
+            df = Cleaner._rename_catalyst_as_reagent(df, num_cat_cols_to_keep)
+        else:
+            LOG.info(
+                f"Reagent columns found or not enough catalyst columns, not renaming any catalyst columns as reagent columns"
+            )
+
         for col in [
             "reactant",
             "product",
@@ -675,7 +689,6 @@ class Cleaner:
                 df,
                 component_name=col,
                 number_of_columns_to_keep=number_of_columns_to_keep,
-                num_cat_cols_to_keep=num_cat_cols_to_keep,
             )
             LOG.info(f"After removing reactions with too many {col}s: {df.shape[0]}")
 
