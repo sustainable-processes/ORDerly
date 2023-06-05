@@ -1,18 +1,17 @@
+import math
 import os
 import socket
 from collections import Counter
 from copy import deepcopy
 from datetime import datetime
 from datetime import datetime as dt
+from itertools import product
 from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import callbacks
 from sklearn.preprocessing import OneHotEncoder
-
-from itertools import product
-import math
 
 
 def log_dir(prefix="", comment=""):
