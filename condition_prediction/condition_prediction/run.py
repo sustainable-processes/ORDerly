@@ -93,6 +93,7 @@ class ConditionPrediction:
     wandb_tags: Optional[List[str]] = None
     wandb_group: Optional[str] = None
     verbosity: int = 2
+    random_seed: int = 12345
 
     def __post_init__(self) -> None:
         pass
@@ -126,6 +127,7 @@ class ConditionPrediction:
             output_folder_path=self.output_folder_path,
             train_fraction=self.train_fraction,
             train_val_split=self.train_val_split,
+            random_seed=self.random_seed,
             epochs=self.epochs,
             train_mode=self.train_mode,
             fp_size=self.fp_size,
@@ -236,6 +238,7 @@ class ConditionPrediction:
         test_fp: Optional[np.ndarray] = None,
         train_fraction: float = 1.0,
         train_val_split: float = 0.8,
+        random_seed: int = 12345,
         epochs: int = 20,
         early_stopping_patience: int = 5,
         evaluate_on_test_data: bool = False,
@@ -262,7 +265,7 @@ class ConditionPrediction:
         wandb_tags: Optional[List[str]] = None,
         wandb_group: Optional[str] = None,
         verbosity: int = 2,
-        dataset_version: str = "v3",
+        dataset_version: str = "v4",
     ) -> None:
         """
         Run condition prediction training
@@ -287,6 +290,7 @@ class ConditionPrediction:
             n_indices=train_val_df.shape[0],
             train_fraction=train_fraction,
             train_val_split=train_val_split,
+            random_seed=random_seed,
         )
         config.update(
             dict(
@@ -667,6 +671,12 @@ class ConditionPrediction:
     help="The fraction of the train data that is used for training (the rest is used for validation)",
 )
 @click.option(
+    "--random_seed",
+    default=12345,
+    type=int,
+    help="The random seed used for splitting the data",
+)
+@click.option(
     "--train_mode",
     default=1,
     type=int,
@@ -847,6 +857,7 @@ def main_click(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    random_seed: int,
     epochs: int,
     train_mode: int,
     early_stopping_patience: int,
@@ -902,6 +913,7 @@ def main_click(
         output_folder_path=output_folder_path,
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        random_seed=random_seed,
         epochs=epochs,
         train_mode=train_mode,
         early_stopping_patience=early_stopping_patience,
@@ -942,6 +954,7 @@ def main(
     train_fraction: float,
     train_val_split: float,
     epochs: int,
+    random_seed: int,
     train_mode: int,
     early_stopping_patience: int,
     evaluate_on_test_data: bool,
@@ -1046,6 +1059,7 @@ def main(
         output_folder_path=output_folder_path,
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        random_seed=random_seed,
         generate_fingerprints=generate_fingerprints,
         fp_size=fp_size,
         dropout=dropout,

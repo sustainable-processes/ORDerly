@@ -314,15 +314,19 @@ with_trust_with_map_train_20:
 
 
 # Sweeps
+RANDOM_SEEDS = 12345 54321 98765
 TRAIN_FRACS =  0.2 0.4 0.6 0.8 1.0
 DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets/
 DATASETS = no_trust_no_map no_trust_with_map with_trust_no_map with_trust_with_map
 dataset_size_sweep:
-	@for dataset in ${DATASETS}; \
+	@for random_seed in ${RANDOM_SEEDS}; \
 	do \
-		for train_frac in ${TRAIN_FRACS}; \
+		for dataset in ${DATASETS}; \
 		do \
-			rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --train_fraction=$${train_frac} --train_val_split=0.8 --overwrite=True --batch_size=512 --epochs=100 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity="ceb-sre"; \
+			for train_frac in ${TRAIN_FRACS}; \
+			do \
+				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity="ceb-sre"; \
+			done \
 		done \
 	done
 
