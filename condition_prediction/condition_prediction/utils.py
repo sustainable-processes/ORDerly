@@ -128,7 +128,7 @@ def frequency_informed_accuracy(data_train, data_test):
 
 def get_random_splits(n_indices, train_fraction, train_val_split):
     # Get indices for train and val
-    rng = np.random.default_rng(12345)
+    rng = np.random.default_rng(54321)
     train_val_indexes = np.arange(n_indices)
     rng.shuffle(train_val_indexes)
     train_idx = train_val_indexes[
