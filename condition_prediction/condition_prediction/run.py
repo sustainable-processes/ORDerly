@@ -11,9 +11,10 @@ import click
 
 LOG = logging.getLogger(__name__)
 
+from functools import partial
+
 import numpy as np
 import pandas as pd
-from functools import partial
 import tensorflow as tf
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
@@ -23,9 +24,9 @@ import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.data_generator import (
     get_datasets,
-    unbatch_dataset,
-    rearrange_data_teacher_force,
     rearrange_data,
+    rearrange_data_teacher_force,
+    unbatch_dataset,
 )
 from condition_prediction.model import (
     build_teacher_forcing_model,
@@ -349,7 +350,7 @@ class ConditionPrediction:
         train_dataset = train_dataset.map(
             rearrange_data_teacher_force
             if train_mode == TEACHER_FORCE
-            else rearrange_data(data, mode)
+            else rearrange_data
         )
         val_dataset_for_train = val_dataset.map(
             rearrange_data_teacher_force
@@ -358,6 +359,9 @@ class ConditionPrediction:
         )
         val_dataset = val_dataset.map(rearrange_data)
         test_dataset = test_dataset.map(rearrange_data)
+        # train_dataset = train_dataset.map(rearrange_data_teacher_force)
+        # val_dataset = val_dataset.map(rearrange_data_teacher_force)
+        # test_dataset = test_dataset.map(rearrange_data_teacher_force)
 
         if evaluate_on_test_data:
             benchmark_dict = ConditionPrediction.get_frequency_informed_guess(
@@ -550,7 +554,10 @@ class ConditionPrediction:
         )
 
         # Load the best model back and do evaluation
-        pred_model.load_weights(best_checkpoint_filepath)
+        model.load_weights(best_checkpoint_filepath)
+        update_teacher_forcing_model_weights(
+            update_model=pred_model, to_copy_model=model
+        )
         train_val_metrics_dict.update(
             {
                 "val_best": ConditionPrediction.evaluate_model(
@@ -584,7 +591,10 @@ class ConditionPrediction:
             )
             test_metrics_dict = dict(zip(model.metrics_names, test_metrics))
             test_metrics_dict["trust_labelling"] = trust_labelling
-            pred_model.load_weights(best_checkpoint_filepath)
+            model.load_weights(best_checkpoint_filepath)
+            update_teacher_forcing_model_weights(
+                update_model=pred_model, to_copy_model=model
+            )
             test_metrics_dict.update(
                 {
                     "test_best": ConditionPrediction.evaluate_model(
@@ -592,7 +602,10 @@ class ConditionPrediction:
                     )
                 }
             )
-            pred_model.load_weights(last_checkpoint_filepath)
+            model.load_weights(last_checkpoint_filepath)
+            update_teacher_forcing_model_weights(
+                update_model=pred_model, to_copy_model=model
+            )
             test_metrics_dict.update(
                 {
                     "test_last_epoch": ConditionPrediction.evaluate_model(
