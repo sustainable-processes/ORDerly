@@ -193,10 +193,10 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     match = np.array(
         [
             any(
-                np.all(np.sort(component) == np.sort(suggestion))
-                for suggestion in ranked_components_pred[i]
+                np.all(np.sort(true_mol_combo) == np.sort(mol_combo_suggestions))
+                for mol_combo_suggestions in ranked_components_pred[i]
             )
-            for i, component in enumerate(components_true)
+            for i, true_mol_combo in enumerate(components_true)
         ]
     )
 
