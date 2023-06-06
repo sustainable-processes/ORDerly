@@ -575,7 +575,7 @@ class ConditionPrediction:
                 tags=wandb_tags,
                 group=wandb_group,
                 config=config,
-                id=wandb_run_id,
+                id=wandb_run_id if resume else None,
                 resume="allow" if resume else None,
                 # sync_tensorboard=True,
             )
