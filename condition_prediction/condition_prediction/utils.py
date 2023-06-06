@@ -119,7 +119,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     for enc, components in zip(encoders, y_true):
         components_true.append(enc.inverse_transform(components))
     components_true = np.concatenate(components_true, axis=1)
-    
+
     # Components_pred will be an array of dimension b x n x d
     # where b is batch size (number of reactions)
     # n is the beam width, i.e. top n samples

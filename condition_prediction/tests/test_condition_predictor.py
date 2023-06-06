@@ -68,7 +68,7 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     solvents_list_1 = ["THF", "Ethanol", "Methanol", "Water", "Furan"]
     solvents_list_2 = ["Water", "THF", "Methanol", None]
     solvents_lists = [solvents_list_1, solvents_list_2]
-    
+
     ground_truth_df = pd.DataFrame(
         [
             ["THF", "Water"],
@@ -109,7 +109,9 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     ground_truth = []
     encoders = []
     for col, solvent_list in zip(ground_truth_df.columns, solvents_lists):
-        encoder = OneHotEncoder(categories=[solvent_list], sparse_output=False, handle_unknown="ignore")
+        encoder = OneHotEncoder(
+            categories=[solvent_list], sparse_output=False, handle_unknown="ignore"
+        )
         ground_truth_col = encoder.fit_transform(ground_truth_df[[col]])
         ground_truth.append(ground_truth_col)
         encoders.append(encoder)
