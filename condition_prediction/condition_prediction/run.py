@@ -11,7 +11,6 @@ import click
 
 LOG = logging.getLogger(__name__)
 
-from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -34,6 +33,7 @@ from condition_prediction.model import (
 )
 from condition_prediction.utils import (
     TrainingMetrics,
+    download_model_from_wandb,
     frequency_informed_accuracy,
     get_grouped_scores,
     get_grouped_scores_top_n,
@@ -93,8 +93,12 @@ class ConditionPrediction:
     wandb_entity: Optional[str] = None
     wandb_tags: Optional[List[str]] = None
     wandb_group: Optional[str] = None
+    wandb_run_id: Optional[str] = None
+    resume: bool = False
+    resume_from_best: bool = False
     verbosity: int = 2
     random_seed: int = 12345
+    skip_training: bool = False
 
     def __post_init__(self) -> None:
         pass
@@ -131,6 +135,7 @@ class ConditionPrediction:
             random_seed=self.random_seed,
             epochs=self.epochs,
             train_mode=self.train_mode,
+            skip_training=self.skip_training,
             fp_size=self.fp_size,
             dropout=self.dropout,
             hidden_size_1=self.hidden_size_1,
@@ -154,6 +159,9 @@ class ConditionPrediction:
             wandb_logging=self.wandb_logging,
             wandb_tags=self.wandb_tags,
             wandb_group=self.wandb_group,
+            wandb_run_id=self.wandb_run_id,
+            resume=self.resume,
+            resume_from_best=self.resume_from_best,
             verbosity=self.verbosity,
         )
 
@@ -341,6 +349,10 @@ class ConditionPrediction:
         wandb_group: Optional[str] = None,
         verbosity: int = 2,
         dataset_version: str = "v4",
+        skip_training: bool = False,
+        wandb_run_id: Optional[str] = None,
+        resume: bool = False,
+        resume_from_best: bool = False,
     ) -> None:
         """
         Run condition prediction training
@@ -563,6 +575,8 @@ class ConditionPrediction:
                 tags=wandb_tags,
                 group=wandb_group,
                 config=config,
+                id=wandb_run_id,
+                resume="allow" if resume else None,
                 # sync_tensorboard=True,
             )
             callbacks.extend(
@@ -580,31 +594,58 @@ class ConditionPrediction:
                 save_weights_only=True,
             )
         )
-
-        use_multiprocessing = True if workers > 0 else False
-        h = None
         last_checkpoint_filepath = output_folder_path / "weights.last.hdf5"
-        try:
-            h = model.fit(
-                train_dataset,
-                epochs=epochs,
-                verbose=verbosity,
-                validation_data=val_dataset_for_train,
-                callbacks=callbacks,
-                use_multiprocessing=use_multiprocessing,
-                workers=workers,
+        if resume and wandb_run_id is not None:
+            # Download the model weights from wandb
+            api = wandb.Api()
+            run = api.run(f"{wandb_entity}/{wandb_project}/{wandb_run_id}")
+
+            # Download best model
+            download_model_from_wandb(
+                run,
+                alias="best",
+                root=output_folder_path,
             )
-        except KeyboardInterrupt:
-            LOG.info(
-                "Keyboard interrupt detected. Stopping training and doing evaluation."
+            download_model_from_wandb(
+                run,
+                alias="last_epoch",
+                root=output_folder_path,
             )
-        finally:
-            model.save_weights(last_checkpoint_filepath)
+
+            # Update weights
+            if resume_from_best:
+                model.load_weights(best_checkpoint_filepath)
+            else:
+                model.load_weights(last_checkpoint_filepath)
             update_teacher_forcing_model_weights(
                 update_model=pred_model, to_copy_model=model
             )
-        # Upload the best and last model model
-        if wandb_logging:
+
+        use_multiprocessing = True if workers > 0 else False
+        h = None
+        if not skip_training:
+            try:
+                h = model.fit(
+                    train_dataset,
+                    epochs=epochs,
+                    verbose=verbosity,
+                    validation_data=val_dataset_for_train,
+                    callbacks=callbacks,
+                    use_multiprocessing=use_multiprocessing,
+                    workers=workers,
+                )
+            except KeyboardInterrupt:
+                LOG.info(
+                    "Keyboard interrupt detected. Stopping training and doing evaluation."
+                )
+            finally:
+                model.save_weights(last_checkpoint_filepath)
+                update_teacher_forcing_model_weights(
+                    update_model=pred_model, to_copy_model=model
+                )
+
+        # Upload the best and last model
+        if wandb_logging and not skip_training:
             # Save and upload last model
             artifact = wandb.Artifact(  # type: ignore
                 name=f"run_{wandb_run.id}_model",  # type: ignore
@@ -623,6 +664,10 @@ class ConditionPrediction:
 
         # Train and val metrics
         train_val_metrics_dict = {}
+        model.load_weights(last_checkpoint_filepath)
+        update_teacher_forcing_model_weights(
+            update_model=pred_model, to_copy_model=model
+        )
         train_val_metrics_dict["trust_labelling"] = trust_labelling
         train_val_metrics_dict.update(
             {
@@ -697,7 +742,6 @@ class ConditionPrediction:
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             with open(test_metrics_file_path, "w") as file:
                 json.dump(jsonify_dict(test_metrics_dict), file)
-
             if wandb_logging:
                 # Log data
                 artifact = wandb.Artifact(  # type: ignore
