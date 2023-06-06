@@ -102,7 +102,7 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
 
-def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
+def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n):
     """
     Get the top-n accuracy of the predictions for a group of components (e.g. solvents or agents)
     Aka beam search accuracy with beam size n (no pruning)
