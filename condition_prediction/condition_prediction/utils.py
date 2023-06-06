@@ -115,12 +115,15 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
 
     components_true = []
 
-    # Transform the one-hot encoded components back to their original labels
-    # y_true is a OHE array
-    # We want the names of the components (e.g. ["Water", "DMSO"])
+    # Transform the one-hot encoding of the groun truth (y_true) back to their original labels (e.g. ["Water", "DMSO"])
     for enc, components in zip(encoders, y_true):
         components_true.append(enc.inverse_transform(components))
     components_true = np.concatenate(components_true, axis=1)
+    
+    # Components_pred will be an array of dimension b x n x d
+    # where b is batch size (number of reactions)
+    # n is the beam width, i.e. top n samples
+    # d is the number of components being predicted (i.e. solvents, agents)
 
     components_pred = []
     prob_components_pred = []
