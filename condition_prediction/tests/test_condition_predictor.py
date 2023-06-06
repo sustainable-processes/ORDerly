@@ -129,4 +129,4 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
         alt_scores = get_grouped_scores(
             ground_truth, prediction_probability, encoders=encoders
         )
-        assert np.array_equal(alt_scores, scores) 
+        assert np.array_equal(alt_scores, scores)
