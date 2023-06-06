@@ -65,6 +65,10 @@ def test_grouped_scores(one_hot_encode: bool):
     ),
 )
 def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
+    solvents_list_1 = ["THF", "Ethanol", "Methanol", "Water", "Furan"]
+    solvents_list_2 = ["Water", "THF", "Methanol", None]
+    solvents_lists = [solvents_list_1, solvents_list_2]
+    
     ground_truth_df = pd.DataFrame(
         [
             ["THF", "Water"],
@@ -104,17 +108,18 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     # One hot encode the dataframes
     ground_truth = []
     encoders = []
-    for col in ground_truth_df.columns:
-        encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+    for col, solvent_list in zip(ground_truth_df.columns, solvents_lists):
+        encoder = OneHotEncoder(categories=[solvent_list], sparse_output=False, handle_unknown="ignore")
         ground_truth_col = encoder.fit_transform(ground_truth_df[[col]])
         ground_truth.append(ground_truth_col)
         encoders.append(encoder)
 
+    breakpoint()
     assert ground_truth[0].shape == s1.shape
     assert ground_truth[1].shape == s2.shape
 
-    # Average score should be 75%
     scores = get_grouped_scores_top_n(
         ground_truth, prediction_probability, encoders=encoders, top_n=top_n
     )
+    breakpoint()
     assert round(np.mean(scores), 2) == expected_accuracy
