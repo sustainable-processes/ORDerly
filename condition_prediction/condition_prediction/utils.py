@@ -11,6 +11,9 @@ import numpy as np
 from keras import callbacks
 from sklearn.preprocessing import OneHotEncoder
 
+from itertools import product
+import math
+
 
 def log_dir(prefix="", comment=""):
     current_time = datetime.now().strftime("%b%d_%H-%M-%S")
@@ -33,7 +36,7 @@ def apply_train_ohe_fit(df, train_idx, val_idx, test_idx=None, tensor_func=None)
 
     """
 
-    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     _ = enc.fit(df.iloc[train_idx])
 
     encoded_names = set(df.iloc[train_idx][df.columns[0]])
@@ -99,7 +102,108 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
 
-def frequency_informed_accuracy(data_train, data_test):
+def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n):
+    """
+    Get the top-n accuracy of the predictions for a group of components (e.g. solvents or agents)
+    Aka beam search accuracy with beam size n (no pruning)
+
+    Selecting the top 1 combination is easy: just pick the highests probability for each component
+    However, predicting the top n combinations is more difficult, as we need to consider all possible combinations; e.g. would it be better to have the second best solvent1 and the best agent1, or the best solvent1 and the second best agent1?
+    """
+    assert len(encoders) == len(y_true) == len(y_pred)
+    assert y_true[0].shape == y_pred[0].shape
+
+    components_true = []
+
+    # Transform the one-hot encoding of the groun truth (y_true) back to their original labels (e.g. ["Water", "DMSO"])
+    for enc, components in zip(encoders, y_true):
+        components_true.append(enc.inverse_transform(components))
+    components_true = np.concatenate(components_true, axis=1)
+
+    # Components_pred will be an array of dimension b x n x d
+    # where b is batch size (number of reactions)
+    # n is the beam width, i.e. top n samples
+    # d is the number of components being predicted (i.e. solvents, agents)
+
+    components_pred = []
+    prob_components_pred = []
+    for enc, components in zip(encoders, y_pred):
+        # Here we get the indices of top n predictions for each component
+        selection_idx = np.argsort(components, axis=1)[:, -top_n:]
+        # And the probability of those n selections
+        prob_selection = np.sort(components, axis=1)[:, -top_n:]
+        # And convert that to one-hot of shape (n_reactions, n_components{i.e. n}, n_classes)
+        one_hot_targets = np.array(
+            [np.eye(components.shape[1])[idx] for idx in selection_idx]
+        )
+        # And then we get the actual component names
+        component_pred = [enc.inverse_transform(one_hot) for one_hot in one_hot_targets]
+
+        component_pred = np.stack(component_pred, axis=0)
+        components_pred.append(component_pred)
+        prob_components_pred.append(prob_selection)
+    components_pred = np.concatenate(components_pred, axis=2)
+    prob_components_pred = np.array(prob_components_pred)
+    prob_components_pred = np.transpose(prob_components_pred, (1, 2, 0))
+
+    components_true = np.where(components_true == None, "NULL", components_true)
+    components_pred = np.where(components_pred == None, "NULL", components_pred)
+
+    assert components_pred.shape == prob_components_pred.shape
+    # Now we need to find all the possible combinations of the top-n predictions, as well as the associated probabilities for each combination
+
+    # Initialize an empty list to store the combinations
+    all_combinations = []
+    # Initialize an empty list to store the scores
+    all_scores = []
+
+    # Loop through all the elements in a batch
+    for i in range(components_pred.shape[0]):
+        # Initialize an empty list for the current elements
+        current_combinations = []
+        current_scores = []
+        # Get all combinations of the top-n predictions
+        for combo in product(range(top_n), repeat=len(y_true)):
+            # Extract the combination
+            current_combo = [components_pred[i][combo[j]][j] for j in range(2)]
+            current_score = math.prod(
+                prob_components_pred[i][combo[j]][j] for j in range(2)
+            )
+            # Append it to the current list
+            current_combinations.append(current_combo)
+            current_scores.append(current_score)
+        # Append the current combinations to the all combinations
+        all_combinations.append(current_combinations)
+        all_scores.append(current_scores)
+
+    # Convert the list to a numpy array
+    all_combinations = np.array(all_combinations)
+    all_scores = np.array(all_scores)
+
+    # Rank the combinations based on the scores
+    ranking_idx = np.argsort(all_scores, axis=1)[:, ::-1]
+    ranked_components_pred = np.take_along_axis(
+        all_combinations, ranking_idx[..., None], axis=1
+    )
+
+    # Finally, simply slice the tensor to get the top n combinations
+    ranked_components_pred = ranked_components_pred[:, :top_n, :]
+
+    # Checking if true component is within the top-n predicted components
+    match = np.array(
+        [
+            any(
+                np.all(np.sort(true_mol_combo) == np.sort(mol_combo_suggestions))
+                for mol_combo_suggestions in ranked_components_pred[i]
+            )
+            for i, true_mol_combo in enumerate(components_true)
+        ]
+    )
+
+    return match
+
+
+def frequency_informed_accuracy(data_train, data_test, top_n: int = 1):
     """
     Choose the most frequent combination of components in the training data and use that to predict the combination in the test data.
 
@@ -118,12 +222,14 @@ def frequency_informed_accuracy(data_train, data_test):
     row_counts = Counter(data_train_list)
 
     # Find the most frequent row and its count
-    most_frequent_row, _ = row_counts.most_common(1)[0]
+    most_frequent_rows = row_counts.most_common(top_n)
 
     # Count the occurrences of the most frequent row in data_train_np
-    correct_predictions = data_test_list.count(most_frequent_row)
+    correct_predictions = 0
+    for row in most_frequent_rows:
+        correct_predictions += data_test_list.count(row[0])
 
-    return correct_predictions / len(data_test_list), most_frequent_row
+    return correct_predictions / len(data_test_list), most_frequent_rows
 
 
 def get_random_splits(n_indices, train_fraction, train_val_split, random_seed=54321):

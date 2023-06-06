@@ -36,6 +36,7 @@ from condition_prediction.utils import (
     TrainingMetrics,
     frequency_informed_accuracy,
     get_grouped_scores,
+    get_grouped_scores_top_n,
     get_random_splits,
     jsonify_dict,
     post_training_plots,
@@ -169,19 +170,22 @@ class ConditionPrediction:
         mol_5_col = molecule_columns[4]
 
         # Evaulate whether the correct set of labels have been predicted, rather than treating them separately
-        solvent_accuracy, most_common_solvents = frequency_informed_accuracy(
+        # Top 1 accuracy
+        solvent_accuracy_top_1, _ = frequency_informed_accuracy(
             (train_val_df[mol_1_col], train_val_df[mol_2_col]),
             (test_df[mol_1_col], test_df[mol_2_col]),
+            1,
         )
-        agent_accuracy, most_common_agents = frequency_informed_accuracy(
+        agent_accuracy_top_1, _ = frequency_informed_accuracy(
             (
                 train_val_df[mol_3_col],
                 train_val_df[mol_4_col],
                 train_val_df[mol_5_col],
             ),
             (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
+            1,
         )
-        overall_accuracy, most_common_combination = frequency_informed_accuracy(
+        overall_accuracy_top_1, _ = frequency_informed_accuracy(
             (
                 train_val_df[mol_1_col],
                 train_val_df[mol_2_col],
@@ -196,16 +200,59 @@ class ConditionPrediction:
                 test_df[mol_4_col],
                 test_df[mol_5_col],
             ),
+            1,
+        )
+
+        # Top 3 accuracy
+        (
+            solvent_accuracy_top_3,
+            most_common_solvents_top_3,
+        ) = frequency_informed_accuracy(
+            (train_val_df[mol_1_col], train_val_df[mol_2_col]),
+            (test_df[mol_1_col], test_df[mol_2_col]),
+            3,
+        )
+        agent_accuracy_top_3, most_common_agents_top_3 = frequency_informed_accuracy(
+            (
+                train_val_df[mol_3_col],
+                train_val_df[mol_4_col],
+                train_val_df[mol_5_col],
+            ),
+            (test_df[mol_3_col], test_df[mol_4_col], test_df[mol_5_col]),
+            3,
+        )
+        (
+            overall_accuracy_top_3,
+            most_common_combination_top_3,
+        ) = frequency_informed_accuracy(
+            (
+                train_val_df[mol_1_col],
+                train_val_df[mol_2_col],
+                train_val_df[mol_3_col],
+                train_val_df[mol_4_col],
+                train_val_df[mol_5_col],
+            ),
+            (
+                test_df[mol_1_col],
+                test_df[mol_2_col],
+                test_df[mol_3_col],
+                test_df[mol_4_col],
+                test_df[mol_5_col],
+            ),
+            3,
         )
 
         # Save the naive_top_3 benchmark to json
         benchmark_dict = {
-            f"most_common_solvents": most_common_solvents,
-            f"most_common_agents": most_common_agents,
-            f"most_common_combination": most_common_combination,
-            f"frequency_informed_solvent_accuracy": solvent_accuracy,
-            f"frequency_informed_agent_accuracy": agent_accuracy,
-            f"frequency_informed_overall_accuracy": overall_accuracy,
+            f"most_common_solvents_top_3": most_common_solvents_top_3,
+            f"most_common_agents_top_3": most_common_agents_top_3,
+            f"most_common_combination_top_3": most_common_combination_top_3,
+            f"frequency_informed_solvent_accuracy_top_1": solvent_accuracy_top_1,
+            f"frequency_informed_agent_accuracy_top_1": agent_accuracy_top_1,
+            f"frequency_informed_overall_accuracy_top_1": overall_accuracy_top_1,
+            f"frequency_informed_solvent_accuracy_top_3": solvent_accuracy_top_3,
+            f"frequency_informed_agent_accuracy_top_3": agent_accuracy_top_3,
+            f"frequency_informed_overall_accuracy_top_3": overall_accuracy_top_3,
         }
 
         return benchmark_dict
@@ -214,19 +261,47 @@ class ConditionPrediction:
     def evaluate_model(model, dataset, encoders):
         metrics = {}
         predictions = model.predict(dataset)
-        _, unbatched_data = unbatch_dataset(dataset)
-        solvent_scores = get_grouped_scores(
-            unbatched_data[:2], predictions[:2], encoders[:2]
+        _, ground_truth = unbatch_dataset(dataset)
+
+        # Top 1 accuracies
+
+        # Solvent scores
+        solvent_scores_top1 = get_grouped_scores(
+            ground_truth[:2], predictions[:2], encoders[:2]
         )
-        metrics["solvent_accuracy"] = np.mean(solvent_scores)
-        agent_scores = get_grouped_scores(
-            unbatched_data[2:], predictions[2:], encoders[2:]
+        metrics["test_solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
+
+        # 3 agents scores
+        agent_scores_top1 = get_grouped_scores(
+            ground_truth[2:], predictions[2:], encoders[2:]
         )
-        metrics["three_agents_accuracy"] = np.mean(agent_scores)
+        metrics["test_three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
 
         # Overall scores
-        overall_scores = np.stack([solvent_scores, agent_scores], axis=1).all(axis=1)
-        metrics["overall_accuracy"] = np.mean(overall_scores)
+        overall_scores_top1 = np.stack(
+            [solvent_scores_top1, agent_scores_top1], axis=1
+        ).all(axis=1)
+        metrics["test_overall_accuracy_top1"] = np.mean(overall_scores_top1)
+
+        # Top 3 accuracies
+        # Solvent score
+        solvent_scores_top3 = get_grouped_scores_top_n(
+            ground_truth[:2], predictions[:2], encoders[:2], 3
+        )
+        metrics["test_solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
+
+        # 3 agents scores
+        agent_scores_top3 = get_grouped_scores_top_n(
+            ground_truth[2:], predictions[2:], encoders[2:], 3
+        )
+        metrics["test_three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
+
+        # Overall scores
+        overall_scores_top3 = np.stack(
+            [solvent_scores_top3, agent_scores_top3], axis=1
+        ).all(axis=1)
+        metrics["test_overall_accuracy_top3"] = np.mean(overall_scores_top3)
+
         return metrics
 
     @staticmethod
