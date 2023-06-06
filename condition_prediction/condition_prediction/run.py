@@ -36,7 +36,7 @@ from condition_prediction.utils import (
     TrainingMetrics,
     frequency_informed_accuracy,
     get_grouped_scores,
-    get_grouped_scores_top3,
+    get_grouped_scores_top_n,
     get_random_splits,
     jsonify_dict,
     post_training_plots,
