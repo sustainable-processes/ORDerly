@@ -112,7 +112,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     """
     assert len(encoders) == len(y_true) == len(y_pred)
     assert y_true[0].shape == y_pred[0].shape
-    
+
     components_true = []
 
     for enc, components in zip(encoders, y_true):
@@ -173,7 +173,6 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     # Convert the list to a numpy array
     all_combinations = np.array(all_combinations)
     all_scores = np.array(all_scores)
-    breakpoint()
 
     # Rank the combinations based on the scores
     ranking_idx = np.argsort(all_scores, axis=1)[:, ::-1]
@@ -185,11 +184,15 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     ranked_components_pred = ranked_components_pred[:, :top_n, :]
 
     # Checking if true component is within the top-n predicted components
-    match = np.array([
-    any(np.all(np.sort(component) == np.sort(suggestion))
-        for suggestion in ranked_components_pred[i])
-    for i, component in enumerate(components_true)
-    ])
+    match = np.array(
+        [
+            any(
+                np.all(np.sort(component) == np.sort(suggestion))
+                for suggestion in ranked_components_pred[i]
+            )
+            for i, component in enumerate(components_true)
+        ]
+    )
 
     return match
 

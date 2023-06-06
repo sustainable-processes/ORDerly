@@ -56,7 +56,13 @@ def test_grouped_scores(one_hot_encode: bool):
 
 
 @pytest.mark.parametrize(
-    "top_n, expected_accuracy", ([1, round(1/6,2)], [2, round(2/6,2)], [3, round(2/6,2)], [4, round(3/6,2)])
+    "top_n, expected_accuracy",
+    (
+        [1, round(1 / 6, 2)],
+        [2, round(2 / 6, 2)],
+        [3, round(2 / 6, 2)],
+        [4, round(3 / 6, 2)],
+    ),
 )
 def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     ground_truth_df = pd.DataFrame(
@@ -92,7 +98,6 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
             [0.61, 0.12, 0.15, 0.11],
         ]
     )
-    
 
     prediction_probability = [s1, s2]
 
@@ -108,9 +113,8 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     assert ground_truth[0].shape == s1.shape
     assert ground_truth[1].shape == s2.shape
 
-    
     # Average score should be 75%
     scores = get_grouped_scores_top_n(
         ground_truth, prediction_probability, encoders=encoders, top_n=top_n
     )
-    assert round(np.mean(scores),2) == expected_accuracy
+    assert round(np.mean(scores), 2) == expected_accuracy
