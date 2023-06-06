@@ -112,6 +112,8 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n):
     """
     assert len(encoders) == len(y_true) == len(y_pred)
     assert y_true[0].shape == y_pred[0].shape
+    assert len(y_true) == len(encoders) == len(y_pred)
+    num_components = len(encoders)
 
     components_true = []
 
@@ -163,11 +165,13 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n):
         current_combinations = []
         current_scores = []
         # Get all combinations of the top-n predictions
-        for combo in product(range(top_n), repeat=len(y_true)):
+        for combo in product(range(top_n), repeat=num_components):
             # Extract the combination
-            current_combo = [components_pred[i][combo[j]][j] for j in range(2)]
+            current_combo = [
+                components_pred[i][combo[j]][j] for j in range(num_components)
+            ]
             current_score = math.prod(
-                prob_components_pred[i][combo[j]][j] for j in range(2)
+                prob_components_pred[i][combo[j]][j] for j in range(num_components)
             )
             # Append it to the current list
             current_combinations.append(current_combo)
@@ -193,7 +197,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n):
     match = np.array(
         [
             any(
-                np.all(np.sort(true_mol_combo) == np.sort(mol_combo_suggestions))
+                np.array_equal(np.sort(true_mol_combo), np.sort(mol_combo_suggestions))
                 for mol_combo_suggestions in ranked_components_pred[i]
             )
             for i, true_mol_combo in enumerate(components_true)
