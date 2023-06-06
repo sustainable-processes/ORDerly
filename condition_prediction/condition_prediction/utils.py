@@ -1,6 +1,7 @@
 import os
 import socket
 from collections import Counter
+from copy import deepcopy
 from datetime import datetime
 from datetime import datetime as dt
 from typing import List
@@ -9,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras import callbacks
 from sklearn.preprocessing import OneHotEncoder
-from copy import deepcopy
 
 
 def log_dir(prefix="", comment=""):
@@ -126,9 +126,9 @@ def frequency_informed_accuracy(data_train, data_test):
     return correct_predictions / len(data_test_list), most_frequent_row
 
 
-def get_random_splits(n_indices, train_fraction, train_val_split):
+def get_random_splits(n_indices, train_fraction, train_val_split, random_seed=54321):
     # Get indices for train and val
-    rng = np.random.default_rng(54321)
+    rng = np.random.default_rng(random_seed)
     train_val_indexes = np.arange(n_indices)
     rng.shuffle(train_val_indexes)
     train_idx = train_val_indexes[
@@ -218,7 +218,7 @@ def jsonify_dict(d, copy=True):
             pass
         else:
             raise TypeError(
-                f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}."
+                f"Cannot jsonify type for key ({k}) with value {v} and type {type(v)}."
             )
     return d
 
@@ -236,7 +236,7 @@ def unjsonify_dict(d, copy=True):
             pass
         else:
             raise TypeError(
-                f"Cannot unjsonify type for key ({k}) with value {l} and value {type(l)}."
+                f"Cannot unjsonify type for key ({k}) with value {v} and type {type(v)}."
             )
     return d
 
@@ -257,7 +257,7 @@ def jsonify_list(a, copy=True):
             pass
         else:
             raise TypeError(
-                f"Cannot jsonify type for key ({k}) with value {l} and value {type(l)}."
+                f"Cannot jsonify type for index ({i}) with value {l} and type {type(l)}."
             )
     return a
 
