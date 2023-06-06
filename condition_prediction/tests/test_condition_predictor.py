@@ -39,7 +39,7 @@ def test_grouped_scores(one_hot_encode: bool):
         prediction = []
         encoders = []
         for col in ground_truth_df.columns:
-            encoder = OneHotEncoder(sparse=False, handle_unknown="ignore")
+            encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
             ground_truth_col = encoder.fit_transform(ground_truth_df[[col]])
             prediction_col = encoder.transform(prediction_df[[col]])
             ground_truth.append(ground_truth_col)
@@ -105,7 +105,7 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
     ground_truth = []
     encoders = []
     for col in ground_truth_df.columns:
-        encoder = OneHotEncoder(sparse=False, handle_unknown="ignore")
+        encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
         ground_truth_col = encoder.fit_transform(ground_truth_df[[col]])
         ground_truth.append(ground_truth_col)
         encoders.append(encoder)

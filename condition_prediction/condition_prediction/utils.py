@@ -36,7 +36,7 @@ def apply_train_ohe_fit(df, train_idx, val_idx, test_idx=None, tensor_func=None)
 
     """
 
-    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     _ = enc.fit(df.iloc[train_idx])
 
     encoded_names = set(df.iloc[train_idx][df.columns[0]])
