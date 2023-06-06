@@ -151,9 +151,9 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     # Initialize an empty list to store the scores
     all_scores = []
 
-    # Loop through all the samples
+    # Loop through all the elements in a batch
     for i in range(components_pred.shape[0]):
-        # Initialize an empty list for the current sample
+        # Initialize an empty list for the current elements
         current_combinations = []
         current_scores = []
         # Get all combinations of the top-n predictions
