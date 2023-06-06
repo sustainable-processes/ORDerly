@@ -94,7 +94,7 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
 
     s2 = np.array(
         [
-            [0.18, 0.29, 0.37, 0.16],
+            [0.18, 0.37, 0.29, 0.16],
             [0.32, 0.13, 0.23, 0.32],
             [0.23, 0.29, 0.21, 0.27],
             [0.25, 0.22, 0.34, 0.19],
@@ -114,12 +114,11 @@ def test_get_grouped_scores_top_n(top_n: int, expected_accuracy: float):
         ground_truth.append(ground_truth_col)
         encoders.append(encoder)
 
-    breakpoint()
     assert ground_truth[0].shape == s1.shape
     assert ground_truth[1].shape == s2.shape
 
     scores = get_grouped_scores_top_n(
         ground_truth, prediction_probability, encoders=encoders, top_n=top_n
     )
-    breakpoint()
+
     assert round(np.mean(scores), 2) == expected_accuracy
