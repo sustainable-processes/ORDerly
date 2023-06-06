@@ -115,6 +115,9 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
 
     components_true = []
 
+    # Transform the one-hot encoded components back to their original labels
+    # y_true is a OHE array
+    # We want the names of the components (e.g. ["Water", "DMSO"])
     for enc, components in zip(encoders, y_true):
         components_true.append(enc.inverse_transform(components))
     components_true = np.concatenate(components_true, axis=1)
@@ -126,7 +129,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
         selection_idx = np.argsort(components, axis=1)[:, -top_n:]
         # And the probability of those n selections
         prob_selection = np.sort(components, axis=1)[:, -top_n:]
-        # And convert that to one-hot of shape (n_samples, n_components{i.e. n}, n_classes)
+        # And convert that to one-hot of shape (n_reactions, n_components{i.e. n}, n_classes)
         one_hot_targets = np.array(
             [np.eye(components.shape[1])[idx] for idx in selection_idx]
         )
