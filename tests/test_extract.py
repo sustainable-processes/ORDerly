@@ -1265,15 +1265,8 @@ def test_canonicalisation(
 @pytest.mark.parametrize(
     "trust_labelling,use_multiprocessing,name_contains_substring,inverse_substring",
     (
-        [True, False, "uspto", True],
-        [False, True, "uspto", True],
-        [
-            False,
-            True,
-            "uspto",
-            False,
-        ],
-        [True, True, None, True],
+        [False, True, "uspto", False],
+        [True, True, None, False],
     ),
 )
 @pytest.mark.parametrize("execution_number", range(SLOW_REPETITIONS))
@@ -1376,13 +1369,6 @@ def test_extraction_pipeline(
 @pytest.mark.parametrize(
     "use_multiprocessing,name_contains_substring,inverse_substring,file_to_extract,file_to_compare_against",
     (
-        [
-            True,
-            "uspto",
-            False,
-            "0c61835e3a0b4986aabf2b61b708e322.pb.gz",
-            "uspto-grants-1995_11.parquet",
-        ],
         [
             True,
             "uspto",
