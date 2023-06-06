@@ -102,7 +102,7 @@ def get_grouped_scores(y_true, y_pred, encoders=None):
     return np.equal(sorted_arr1, sorted_arr2).all(axis=1)
 
 
-def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
+def get_grouped_scores_top_n(y_true, y_pred, encoders, top_n=3):
     """
     Get the top-n accuracy of the predictions for a group of components (e.g. solvents or agents)
     Aka beam search accuracy with beam size n (no pruning)
@@ -110,6 +110,9 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
     Selecting the top 1 combination is easy: just pick the highests probability for each component
     However, predicting the top n combinations is more difficult, as we need to consider all possible combinations; e.g. would it be better to have the second best solvent1 and the best agent1, or the best solvent1 and the second best agent1?
     """
+    assert len(encoders) == len(y_true) == len(y_pred)
+    assert y_true[0].shape == y_pred[0].shape
+    
     components_true = []
 
     for enc, components in zip(encoders, y_true):
@@ -120,17 +123,15 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
     prob_components_pred = []
     for enc, components in zip(encoders, y_pred):
         # Here we get the indices of top n predictions for each component
-        selection_idx = np.argsort(components, axis=1)[:, -n:]
+        selection_idx = np.argsort(components, axis=1)[:, -top_n:]
         # And the probability of those n selections
-        prob_selection = np.sort(components, axis=1)[:, -n:]
+        prob_selection = np.sort(components, axis=1)[:, -top_n:]
         # And convert that to one-hot of shape (n_samples, n_components{i.e. n}, n_classes)
         one_hot_targets = np.array(
             [np.eye(components.shape[1])[idx] for idx in selection_idx]
         )
         # And then we get the actual component names
-        component_pred = [
-            enc.inverse_transform(one_hot) for one_hot in one_hot_targets
-        ]
+        component_pred = [enc.inverse_transform(one_hot) for one_hot in one_hot_targets]
 
         component_pred = np.stack(component_pred, axis=0)
         components_pred.append(component_pred)
@@ -156,7 +157,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
         current_combinations = []
         current_scores = []
         # Get all combinations of the top-n predictions
-        for combo in product(range(n), repeat=2):
+        for combo in product(range(top_n), repeat=len(y_true)):
             # Extract the combination
             current_combo = [components_pred[i][combo[j]][j] for j in range(2)]
             current_score = math.prod(
@@ -172,6 +173,7 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
     # Convert the list to a numpy array
     all_combinations = np.array(all_combinations)
     all_scores = np.array(all_scores)
+    breakpoint()
 
     # Rank the combinations based on the scores
     ranking_idx = np.argsort(all_scores, axis=1)[:, ::-1]
@@ -180,17 +182,14 @@ def get_grouped_scores_top_n(y_true, y_pred, encoders, n=3):
     )
 
     # Finally, simply slice the tensor to get the top n combinations
-    ranked_components_pred = ranked_components_pred[:, :n, :]
+    ranked_components_pred = ranked_components_pred[:, :top_n, :]
 
     # Checking if true component is within the top-n predicted components
-    match = np.array(
-        [
-            np.isin(
-                np.sort(components_true[i]), np.sort(ranked_components_pred[i])
-            ).any()
-            for i in range(ranked_components_pred.shape[0])
-        ]
-    )
+    match = np.array([
+    any(np.all(np.sort(component) == np.sort(suggestion))
+        for suggestion in ranked_components_pred[i])
+    for i, component in enumerate(components_true)
+    ])
 
     return match
 
