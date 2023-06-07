@@ -132,7 +132,7 @@ def run_sweep(
         with open(commands_filepath, "r") as f:
             lines = f.readlines()
         sweep_id = lines[0].strip()
-        cmds = [line.strip() for line in lines]
+        cmds = [line.strip() for line in lines[1:]]
         print(f"Resuming sweep {sweep_id} from trial {start_idx}")
         run_commands(
             cmds, dry_run=dry_run, max_parallel=max_parallel, start_idx=start_idx
@@ -179,7 +179,7 @@ def run_sweep(
             cmd += f" --{param_name}={value}"
 
         # Add wandb group
-        cmd += f" --wandb_group name={sweep_id}"
+        cmd += f" --wandb_group={sweep_id}"
 
         # Run trial
         cmds.append(cmd)
@@ -191,7 +191,8 @@ def run_sweep(
         commands_filepath_pathlib = (
             commands_filepath_pathlib / f"{sweep_config_pathlib.stem}_commands.txt"
         )
-    with open(commands_filepath_pathlib, "w") as f:
+        commands_filepath = commands_filepath_pathlib
+    with open(commands_filepath, "w") as f:
         f.writelines([sweep_id + "\n"] + [cmd + "\n" for cmd in cmds])
 
     print("Starting sweep ", sweep_id)
@@ -243,7 +244,7 @@ def run_cmd(cmd: str, trial_idx: int):
     help="Index of first trial to run",
 )
 @click.option(
-    "--sweep_filepath",
+    "--commands_filepath",
     type=str,
     default=None,
     help="Path to save sweep results",
@@ -274,7 +275,7 @@ def run_cmd(cmd: str, trial_idx: int):
 def run_sweep_click(
     sweep_config_path: str,
     start_idx: int,
-    sweep_filepath: str,
+    commands_filepath: str,
     sweep_id: str,
     max_parallel: int,
     dry_run: bool,
@@ -283,7 +284,7 @@ def run_sweep_click(
     run_sweep(
         sweep_config_path=sweep_config_path,
         start_idx=start_idx,
-        commands_filepath=sweep_filepath,
+        commands_filepath=commands_filepath,
         sweep_id=sweep_id,
         max_parallel=max_parallel,
         dry_run=dry_run,

@@ -29,7 +29,6 @@ AUTOTUNE = tf.data.AUTOTUNE
 class GenerateData:
     fp_size: int
     radius: int = 3
-    mode: int
     df: pd.DataFrame
     product_fp: Optional[NDArray[np.int64]] = None
     rxn_diff_fp: Optional[NDArray[np.int64]] = None
@@ -38,6 +37,10 @@ class GenerateData:
     mol3: NDArray[np.float32]
     mol4: NDArray[np.float32]
     mol5: NDArray[np.float32]
+
+    # def __post_init__(self):
+    #     initializer = lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)
+    #     self.pool = multiprocessing.Pool(os.cpu_count(), initializer)
 
     def map_idx_to_data(self, idx):
         idx = idx.numpy()
@@ -163,7 +166,7 @@ def get_dataset(
     mol5: NDArray[np.float32],
     df: Optional[pd.DataFrame] = None,
     fp: Optional[NDArray[np.int64]] = None,
-    mode: int = TEACHER_FORCE,
+    # mode: int = TEACHER_FORCE,
     fp_size: int = 2048,
     shuffle: bool = True,
     batch_size: int = 512,
@@ -192,6 +195,10 @@ def get_dataset(
     # Construct outputs
     if fp is None and df is None:
         raise ValueError("Must provide either df or fp")
+    elif fp is not None and df is not None and fp.shape[0] != df.shape[0]:
+        raise ValueError(
+            f"Fingerprint ({fp.shape}) and dataframe ({df.shape}) not the same size"
+        )
 
     if fp is not None:
         product_fp = fp[:, : fp.shape[1] // 2]
@@ -202,7 +209,6 @@ def get_dataset(
 
     fp_generator = GenerateData(
         fp_size=fp_size,
-        mode=mode,
         df=df,
         product_fp=product_fp,
         rxn_diff_fp=rxn_diff_fp,
@@ -221,26 +227,16 @@ def get_dataset(
     if shuffle:
         dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
 
-    def map_func(idx):
-        data = tf.py_function(
-            fp_generator.map_idx_to_data,
-            inp=[idx],
-            Tout=[tf.int64] * 2 + [tf.float32] * 5,
-        )
-
-        if mode == TEACHER_FORCE:
-            X = tuple(data)
-        else:
-            X = tuple(data[:2])
-        y = tuple(data[2:])
-        return X, y
-
     # Batch dataset
     dataset = dataset.batch(batch_size)
 
     # Generate the actual data
     dataset = dataset.map(
-        map_func=map_func,
+        map_func=lambda idx: tf.py_function(
+            fp_generator.map_idx_to_data,
+            inp=[idx],
+            Tout=[tf.int64] * 2 + [tf.float32] * 5,
+        ),
         # num_parallel_calls=os.cpu_count(), deterministic=False
     )
 
@@ -248,21 +244,10 @@ def get_dataset(
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
             cache_dir.mkdir(exist_ok=True)
-            # # Read through dataset once to cache it
-            # print("Caching dataset")
-            # [1 for _ in dataset.as_numpy_iterator()]
+            # Read through dataset once to cache it
+            print("Caching dataset")
+            [1 for _ in dataset.as_numpy_iterator()]
         dataset = dataset.cache(filename=str(cache_dir / "fps"))
-
-    # ensures shape is correct after batching
-    # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
-    def _fixup_shape(X, Y):
-        for i in range(len(X)):
-            X[i].set_shape([None, X[i].shape[1]])
-        for i in range(len(Y)):
-            Y[i].set_shape([None, Y[i].shape[1]])
-        return X, Y
-
-    dataset = dataset.map(_fixup_shape)
 
     if interleave:
         dataset = tf.data.Dataset.range(len(dataset)).interleave(
@@ -275,6 +260,7 @@ def get_dataset(
     if prefetch_buffer_size is None:
         prefetch_buffer_size = AUTOTUNE
     dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
+    print("Prefetch buffer size:", prefetch_buffer_size)
     return dataset
 
 
@@ -287,13 +273,15 @@ def get_datasets(
     fp_size: int = 2048,
     train_val_fp: Optional[np.ndarray] = None,
     test_fp: Optional[np.ndarray] = None,
-    train_mode: int = TEACHER_FORCE,
+    # mode: int = TEACHER_FORCE,
     batch_size: int = 512,
     shuffle_buffer_size: int = 1000,
     prefetch_buffer_size: Optional[int] = None,
     cache_train_data: bool = False,
     cache_val_data: bool = False,
     cache_test_data: bool = False,
+    interleave: bool = False,
+    include_test: bool = True,
 ):
     """
     Get data generators for train, val and test
@@ -378,11 +366,6 @@ def get_datasets(
     )
 
     # Get datsets
-    val_mode = (
-        HARD_SELECTION
-        if train_mode == TEACHER_FORCE or train_mode == HARD_SELECTION
-        else SOFT_SELECTION
-    )
     train_dataset = get_dataset(
         train_mol1,
         train_mol2,
@@ -390,13 +373,15 @@ def get_datasets(
         train_mol4,
         train_mol5,
         df=df.iloc[train_idx],
-        fp=train_val_fp,
-        mode=train_mode,
+        fp=train_val_fp[train_idx] if train_val_fp is not None else None,
+        # mode=train_mode,
         fp_size=fp_size,
         shuffle=True,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
         cache_data=cache_train_data,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_dir=".tf_cache_train/",
     )
     val_dataset = get_dataset(
@@ -406,35 +391,66 @@ def get_datasets(
         val_mol4,
         val_mol5,
         df=df.iloc[val_idx],
-        fp=train_val_fp,
-        mode=val_mode,
+        fp=train_val_fp[val_idx] if train_val_fp is not None else None,
+        # mode=val_mode,
         fp_size=fp_size,
         shuffle=False,
         batch_size=batch_size,
         shuffle_buffer_size=shuffle_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        interleave=interleave,
         cache_data=cache_val_data,
         cache_dir=".tf_cache_val/",
     )
-    test_dataset = get_dataset(
-        test_mol1,
-        test_mol2,
-        test_mol3,
-        test_mol4,
-        test_mol5,
-        df=df.iloc[test_idx],
-        fp=test_fp,
-        mode=val_mode,
-        fp_size=fp_size,
-        shuffle=False,
-        batch_size=batch_size,
-        shuffle_buffer_size=shuffle_buffer_size,
-        cache_data=cache_test_data,
-        cache_dir=".tf_cache_test/",
-    )
+    if include_test:
+        test_dataset = get_dataset(
+            test_mol1,
+            test_mol2,
+            test_mol3,
+            test_mol4,
+            test_mol5,
+            df=df.iloc[test_idx],
+            fp=test_fp,
+            # mode=mode,
+            fp_size=fp_size,
+            shuffle=False,
+            batch_size=batch_size,
+            shuffle_buffer_size=shuffle_buffer_size,
+            prefetch_buffer_size=prefetch_buffer_size,
+            interleave=interleave,
+            cache_data=cache_test_data,
+            cache_dir=".tf_cache_test/",
+        )
+    else:
+        test_dataset = None
 
     encoders = [mol1_enc, mol2_enc, mol3_enc, mol4_enc, mol5_enc]
 
     return train_dataset, val_dataset, test_dataset, encoders
+
+
+def _fixup_shape(X, Y):
+    # ensures shape is correct after batching
+    # See https://github.com/tensorflow/tensorflow/issues/32912#issuecomment-550363802
+    for i in range(len(X)):
+        X[i].set_shape([None, X[i].shape[1]])
+    for i in range(len(Y)):
+        Y[i].set_shape([None, Y[i].shape[1]])
+    return X, Y
+
+
+def rearrange_data_teacher_force(*data):
+    X = tuple(data)
+    y = tuple(data[2:])
+    X, y = _fixup_shape(X, y)
+    return X, y
+
+
+def rearrange_data(*data):
+    X = tuple(data[:2])
+    y = tuple(data[2:])
+    X, y = _fixup_shape(X, y)
+    return X, y
 
 
 def unbatch_dataset(dataset):

@@ -1,5 +1,5 @@
-base_command: poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20" --train_fraction=0.2 --train_val_split=0.8 --overwrite=True --epochs=1000 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity="ceb-sre" --wandb_tag no_map --wandb_tag with_trust
-num_trials: 20
+base_command: python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20" --train_fraction=0.2 --train_val_split=0.8 --overwrite=True --batch_size 65000 --epochs=200 --early_stopping_patience=0 --generate_fingerprints=True --fp_size 16384 --evaluate_on_test_data=True --cache_train_data=True --cache_val_data=True --cache_test_data=True --wandb_entity="ceb-sre" --wandb_tag no_map --wandb_tag with_trust
+num_trials: 50
 params:
   ### Model related parameters ###
   hidden_size_1:

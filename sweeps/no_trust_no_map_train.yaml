@@ -1,10 +1,10 @@
-base_command: poetry run python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map_20" --train_fraction=0.2 --train_val_split=0.8 --overwrite=True --epochs=1000 --early_stopping_patience=0 --evaluate_on_test_data=True --wandb_entity="ceb-sre" --wandb_tag no_map --wandb_tag no_trust 
-num_trials: 20
+base_command: python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map" --train_fraction=1.0 --train_val_split=0.8 --overwrite=True --batch_size=65536 --epochs=100 --early_stopping_patience=0 --generate_fingerprints=True --fp_size 2048 --cache_train_data=True --cache_val_data=True --cache_test_data=True --evaluate_on_test_data=True --wandb_entity="ceb-sre" --wandb_tag no_map --wandb_tag no_trust
+num_trials: 50
 params:
   ### Model related parameters ###
   hidden_size_1:
     min: 64
-    max: 1022
+    max: 1024
     scaling: linear
     type: integer
   hidden_size_2:
@@ -19,8 +19,8 @@ params:
     scaling: linear
     type: float
   lr:
-    min: 0.00001
-    max: 0.1
+    min: 0.001
+    max: 1.0
     scaling: log
     type: float
   reduce_lr_on_plateau_patience:
