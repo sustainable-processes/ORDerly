@@ -277,38 +277,38 @@ class ConditionPrediction:
         solvent_scores_top1 = get_grouped_scores(
             ground_truth[:2], predictions[:2], encoders[:2]
         )
-        metrics["test_solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
+        metrics["solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
 
         # 3 agents scores
         agent_scores_top1 = get_grouped_scores(
             ground_truth[2:], predictions[2:], encoders[2:]
         )
-        metrics["test_three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
+        metrics["three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
 
         # Overall scores
         overall_scores_top1 = np.stack(
             [solvent_scores_top1, agent_scores_top1], axis=1
         ).all(axis=1)
-        metrics["test_overall_accuracy_top1"] = np.mean(overall_scores_top1)
+        metrics["overall_accuracy_top1"] = np.mean(overall_scores_top1)
 
         # Top 3 accuracies
         # Solvent score
         solvent_scores_top3 = get_grouped_scores_top_n(
             ground_truth[:2], predictions[:2], encoders[:2], 3
         )
-        metrics["test_solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
+        metrics["solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
 
         # 3 agents scores
         agent_scores_top3 = get_grouped_scores_top_n(
             ground_truth[2:], predictions[2:], encoders[2:], 3
         )
-        metrics["test_three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
+        metrics["three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
 
         # Overall scores
         overall_scores_top3 = np.stack(
             [solvent_scores_top3, agent_scores_top3], axis=1
         ).all(axis=1)
-        metrics["test_overall_accuracy_top3"] = np.mean(overall_scores_top3)
+        metrics["overall_accuracy_top3"] = np.mean(overall_scores_top3)
 
         return metrics
 

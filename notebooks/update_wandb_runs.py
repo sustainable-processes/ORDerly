@@ -15,19 +15,19 @@ wandb_project = "orderly"
 # Loop through all relevant runs on wandb to get run_ids, datasets and random seeds
 # For each rerun the conditionprediction with skip_training=True and resume=True
 DATASETS = [
-    "with_trust_with_map",
-    "with_trust_no_map",
-    "no_trust_no_map",
+    # "with_trust_with_map",
+    # "with_trust_no_map",
+    # "no_trust_no_map",
     "no_trust_with_map",
 ]
 BASE_PATH = pathlib.Path("/project/studios/orderly-preprocessing/ORDerly/")
 DATASETS_PATH = BASE_PATH / "data/orderly/datasets/"
 MODEL_PATH = pathlib.Path("models/")
 configs = []
-for random_seed in [12345, 54321, 98765]:
+for random_seed in [98765]:
     for dataset in DATASETS:
         filters = {
-            "state": "finished",
+            # "state": "finished",
             "config.output_folder_path": {
                 "$in": [
                     f"models/{dataset}",
