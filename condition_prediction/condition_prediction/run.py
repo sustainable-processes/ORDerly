@@ -99,6 +99,7 @@ class ConditionPrediction:
     verbosity: int = 2
     random_seed: int = 12345
     skip_training: bool = False
+    dataset_version: str = "v4"
 
     def __post_init__(self) -> None:
         pass
@@ -163,6 +164,7 @@ class ConditionPrediction:
             resume=self.resume,
             resume_from_best=self.resume_from_best,
             verbosity=self.verbosity,
+            dataset_version=self.dataset_version,
         )
 
     @staticmethod
