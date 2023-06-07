@@ -41,10 +41,13 @@ class ORDerlyPlotter:
 
     def __post_init__(self) -> None:
         self.df = pd.read_parquet(self.clean_data_path)
+        self.axis_fontsize = 16
+
+        self.heading_fontsize = 18
         # Increase the font size
 
         # Increase the font size for other elements
-        plt.rcParams.update({'font.size': 12})
+        #plt.rcParams.update({'font.size': 12})
         
         # Decrease the font size for tick labels
         # plt.xticks(fontsize=12)
@@ -69,12 +72,16 @@ class ORDerlyPlotter:
 
     import matplotlib.ticker as ticker
 
+    import matplotlib.ticker as ticker
+
     @staticmethod
     def plot_num_rxn_component(
         df: pd.DataFrame,
         col_starts_with: str,
         plot_output_path: pathlib.Path,
         num_columns: int = 5,
+        heading_fontsize: int = 18,
+        axis_fontsize: int = 16,
     ) -> None:
         # clear the figure
         plt.clf()
@@ -99,23 +106,29 @@ class ORDerlyPlotter:
 
         # set the plot title and axis labels
         # plt.title(f"Components per reaction") # Usually the title is added on top of the figure on overleaf, after (a)
-        plt.ylabel(f"Number of reactions")
-        plt.xlabel(f"Number of {col_starts_with}s")
+        plt.ylabel(f"Number of reactions (thousands)", fontsize=heading_fontsize)
+        plt.xlabel(f"Number of {col_starts_with}s", fontsize=heading_fontsize)
 
-        # Format y-axis labels with commas
-        plt.gca().yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+        # Format y-axis labels with commas and divide by 1000
+        plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}"))
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
-        # Add a legend
-        plt.legend(["Rxn (before filtering)", f"Rxn (after {col_starts_with} filtering)".capitalize()], loc="right")
+        # Add a legend and move it up
+        plt.legend(["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72), fontsize=axis_fontsize)
+
+
+        # Set y-axis tick font size
+        plt.yticks(fontsize=16)
+        plt.xticks(fontsize=16)
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
         # save the plot to file
-        plt.savefig(figure_file_path, bbox_inches="tight", dpi=600)
+        plt.savefig(figure_file_path, bbox_inches="tight", dpi=300)
         return
+
 
 
     @staticmethod
