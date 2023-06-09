@@ -11,16 +11,15 @@ import click
 
 LOG = logging.getLogger(__name__)
 
-from functools import partial
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import wandb
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
-import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.data_generator import (
     get_datasets,
@@ -34,6 +33,7 @@ from condition_prediction.model import (
 )
 from condition_prediction.utils import (
     TrainingMetrics,
+    download_model_from_wandb,
     frequency_informed_accuracy,
     get_grouped_scores,
     get_grouped_scores_top_n,
@@ -93,8 +93,13 @@ class ConditionPrediction:
     wandb_entity: Optional[str] = None
     wandb_tags: Optional[List[str]] = None
     wandb_group: Optional[str] = None
+    wandb_run_id: Optional[str] = None
+    resume: bool = False
+    resume_from_best: bool = False
     verbosity: int = 2
     random_seed: int = 12345
+    skip_training: bool = False
+    dataset_version: str = "v5"
 
     def __post_init__(self) -> None:
         pass
@@ -131,6 +136,7 @@ class ConditionPrediction:
             random_seed=self.random_seed,
             epochs=self.epochs,
             train_mode=self.train_mode,
+            skip_training=self.skip_training,
             fp_size=self.fp_size,
             dropout=self.dropout,
             hidden_size_1=self.hidden_size_1,
@@ -154,7 +160,11 @@ class ConditionPrediction:
             wandb_logging=self.wandb_logging,
             wandb_tags=self.wandb_tags,
             wandb_group=self.wandb_group,
+            wandb_run_id=self.wandb_run_id,
+            resume=self.resume,
+            resume_from_best=self.resume_from_best,
             verbosity=self.verbosity,
+            dataset_version=self.dataset_version,
         )
 
     @staticmethod
@@ -269,38 +279,38 @@ class ConditionPrediction:
         solvent_scores_top1 = get_grouped_scores(
             ground_truth[:2], predictions[:2], encoders[:2]
         )
-        metrics["test_solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
+        metrics["solvent_accuracy_top1"] = np.mean(solvent_scores_top1)
 
         # 3 agents scores
         agent_scores_top1 = get_grouped_scores(
             ground_truth[2:], predictions[2:], encoders[2:]
         )
-        metrics["test_three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
+        metrics["three_agents_accuracy_top1"] = np.mean(agent_scores_top1)
 
         # Overall scores
         overall_scores_top1 = np.stack(
             [solvent_scores_top1, agent_scores_top1], axis=1
         ).all(axis=1)
-        metrics["test_overall_accuracy_top1"] = np.mean(overall_scores_top1)
+        metrics["overall_accuracy_top1"] = np.mean(overall_scores_top1)
 
         # Top 3 accuracies
         # Solvent score
         solvent_scores_top3 = get_grouped_scores_top_n(
             ground_truth[:2], predictions[:2], encoders[:2], 3
         )
-        metrics["test_solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
+        metrics["solvent_accuracy_top3"] = np.mean(solvent_scores_top3)
 
         # 3 agents scores
         agent_scores_top3 = get_grouped_scores_top_n(
             ground_truth[2:], predictions[2:], encoders[2:], 3
         )
-        metrics["test_three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
+        metrics["three_agents_accuracy_top3"] = np.mean(agent_scores_top3)
 
         # Overall scores
         overall_scores_top3 = np.stack(
             [solvent_scores_top3, agent_scores_top3], axis=1
         ).all(axis=1)
-        metrics["test_overall_accuracy_top3"] = np.mean(overall_scores_top3)
+        metrics["overall_accuracy_top3"] = np.mean(overall_scores_top3)
 
         return metrics
 
@@ -340,7 +350,11 @@ class ConditionPrediction:
         wandb_tags: Optional[List[str]] = None,
         wandb_group: Optional[str] = None,
         verbosity: int = 2,
-        dataset_version: str = "v4",
+        dataset_version: str = "v5",
+        skip_training: bool = False,
+        wandb_run_id: Optional[str] = None,
+        resume: bool = False,
+        resume_from_best: bool = False,
     ) -> None:
         """
         Run condition prediction training
@@ -563,6 +577,8 @@ class ConditionPrediction:
                 tags=wandb_tags,
                 group=wandb_group,
                 config=config,
+                id=wandb_run_id if resume else None,
+                resume="allow" if resume else None,
                 # sync_tensorboard=True,
             )
             callbacks.extend(
@@ -580,31 +596,58 @@ class ConditionPrediction:
                 save_weights_only=True,
             )
         )
-
-        use_multiprocessing = True if workers > 0 else False
-        h = None
         last_checkpoint_filepath = output_folder_path / "weights.last.hdf5"
-        try:
-            h = model.fit(
-                train_dataset,
-                epochs=epochs,
-                verbose=verbosity,
-                validation_data=val_dataset_for_train,
-                callbacks=callbacks,
-                use_multiprocessing=use_multiprocessing,
-                workers=workers,
+        if resume and wandb_run_id is not None:
+            # Download the model weights from wandb
+            api = wandb.Api()
+            run = api.run(f"{wandb_entity}/{wandb_project}/{wandb_run_id}")
+
+            # Download best model
+            download_model_from_wandb(
+                run,
+                alias="best",
+                root=output_folder_path,
             )
-        except KeyboardInterrupt:
-            LOG.info(
-                "Keyboard interrupt detected. Stopping training and doing evaluation."
+            download_model_from_wandb(
+                run,
+                alias="last_epoch",
+                root=output_folder_path,
             )
-        finally:
-            model.save_weights(last_checkpoint_filepath)
+
+            # Update weights
+            if resume_from_best:
+                model.load_weights(best_checkpoint_filepath)
+            else:
+                model.load_weights(last_checkpoint_filepath)
             update_teacher_forcing_model_weights(
                 update_model=pred_model, to_copy_model=model
             )
-        # Upload the best and last model model
-        if wandb_logging:
+
+        use_multiprocessing = True if workers > 0 else False
+        h = None
+        if not skip_training:
+            try:
+                h = model.fit(
+                    train_dataset,
+                    epochs=epochs,
+                    verbose=verbosity,
+                    validation_data=val_dataset_for_train,
+                    callbacks=callbacks,
+                    use_multiprocessing=use_multiprocessing,
+                    workers=workers,
+                )
+            except KeyboardInterrupt:
+                LOG.info(
+                    "Keyboard interrupt detected. Stopping training and doing evaluation."
+                )
+            finally:
+                model.save_weights(last_checkpoint_filepath)
+                update_teacher_forcing_model_weights(
+                    update_model=pred_model, to_copy_model=model
+                )
+
+        # Upload the best and last model
+        if wandb_logging and not skip_training:
             # Save and upload last model
             artifact = wandb.Artifact(  # type: ignore
                 name=f"run_{wandb_run.id}_model",  # type: ignore
@@ -623,6 +666,10 @@ class ConditionPrediction:
 
         # Train and val metrics
         train_val_metrics_dict = {}
+        model.load_weights(last_checkpoint_filepath)
+        update_teacher_forcing_model_weights(
+            update_model=pred_model, to_copy_model=model
+        )
         train_val_metrics_dict["trust_labelling"] = trust_labelling
         train_val_metrics_dict.update(
             {
@@ -697,7 +744,6 @@ class ConditionPrediction:
             test_metrics_file_path = output_folder_path / "test_metrics.json"
             with open(test_metrics_file_path, "w") as file:
                 json.dump(jsonify_dict(test_metrics_dict), file)
-
             if wandb_logging:
                 # Log data
                 artifact = wandb.Artifact(  # type: ignore
@@ -756,6 +802,12 @@ class ConditionPrediction:
     default=1,
     type=int,
     help="Training mode. 0 for Teacher force, 1 for hard seleciton, 2 for soft selection",
+)
+@click.option(
+    "--dataset_version",
+    default="v5",
+    type=str,
+    help="The version of the dataset",
 )
 @click.option(
     "--epochs",
@@ -932,6 +984,7 @@ def main_click(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    dataset_version: str,
     random_seed: int,
     epochs: int,
     train_mode: int,
@@ -989,6 +1042,7 @@ def main_click(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         random_seed=random_seed,
+        dataset_version=dataset_version,
         epochs=epochs,
         train_mode=train_mode,
         early_stopping_patience=early_stopping_patience,
@@ -1028,6 +1082,7 @@ def main(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    dataset_version: str,
     epochs: int,
     random_seed: int,
     train_mode: int,
@@ -1134,6 +1189,7 @@ def main(
         output_folder_path=output_folder_path,
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        dataset_version=dataset_version,
         random_seed=random_seed,
         generate_fingerprints=generate_fingerprints,
         fp_size=fp_size,
