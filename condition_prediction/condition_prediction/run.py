@@ -15,11 +15,11 @@ LOG = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import wandb
 from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
-import wandb
 from condition_prediction.constants import HARD_SELECTION, SOFT_SELECTION, TEACHER_FORCE
 from condition_prediction.data_generator import (
     get_datasets,
@@ -99,7 +99,7 @@ class ConditionPrediction:
     verbosity: int = 2
     random_seed: int = 12345
     skip_training: bool = False
-    dataset_version: str = "v4"
+    dataset_version: str = "v5"
 
     def __post_init__(self) -> None:
         pass
@@ -350,7 +350,7 @@ class ConditionPrediction:
         wandb_tags: Optional[List[str]] = None,
         wandb_group: Optional[str] = None,
         verbosity: int = 2,
-        dataset_version: str = "v4",
+        dataset_version: str = "v5",
         skip_training: bool = False,
         wandb_run_id: Optional[str] = None,
         resume: bool = False,
