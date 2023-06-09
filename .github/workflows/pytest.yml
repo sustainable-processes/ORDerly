@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # [, ubuntu-latest, windows-latest, ubuntu-18, ubuntu-20]
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository code
