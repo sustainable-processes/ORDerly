@@ -804,6 +804,12 @@ class ConditionPrediction:
     help="Training mode. 0 for Teacher force, 1 for hard seleciton, 2 for soft selection",
 )
 @click.option(
+    "--dataset_version",
+    default="v5",
+    type=str,
+    help="The version of the dataset",
+)
+@click.option(
     "--epochs",
     default=20,
     type=int,
@@ -978,6 +984,7 @@ def main_click(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    dataset_version: str,
     random_seed: int,
     epochs: int,
     train_mode: int,
@@ -1035,6 +1042,7 @@ def main_click(
         train_fraction=train_fraction,
         train_val_split=train_val_split,
         random_seed=random_seed,
+        dataset_version=dataset_version,
         epochs=epochs,
         train_mode=train_mode,
         early_stopping_patience=early_stopping_patience,
@@ -1074,6 +1082,7 @@ def main(
     output_folder_path: pathlib.Path,
     train_fraction: float,
     train_val_split: float,
+    dataset_version: str,
     epochs: int,
     random_seed: int,
     train_mode: int,
@@ -1180,6 +1189,7 @@ def main(
         output_folder_path=output_folder_path,
         train_fraction=train_fraction,
         train_val_split=train_val_split,
+        dataset_version=dataset_version,
         random_seed=random_seed,
         generate_fingerprints=generate_fingerprints,
         fp_size=fp_size,

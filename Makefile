@@ -289,36 +289,38 @@ paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
 # Full dataset
 no_trust_no_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 no_trust_with_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_no_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_with_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 # 20% of data
 no_trust_no_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 no_trust_with_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_no_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_with_map_train_20:
 	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
 
 
 # Sweeps
-RANDOM_SEEDS = 54321 98765
-# 12345
+RANDOM_SEEDS = 12345 54321 98765
 TRAIN_FRACS =   1.0 0.2 0.4 0.6 0.8
-DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets_$(dataset_version)/
+# Path on lightning
+# DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets_$(dataset_version)/
+# Normal path
+DATASETS_PATH = ORDerly/data/orderly/datasets_$(dataset_version)/
 DATASETS = no_trust_with_map  no_trust_no_map with_trust_with_map with_trust_no_map 
 dataset_size_sweep:
 	@for random_seed in ${RANDOM_SEEDS}; \
@@ -327,7 +329,7 @@ dataset_size_sweep:
 		do \
 			for train_frac in ${TRAIN_FRACS}; \
 			do \
-				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --train_mode=0 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=$(WANDB_ENTITY); \
+				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --dataset_version=$(datset_version) --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --train_mode=0 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=$(WANDB_ENTITY) ; \
 			done \
 		done \
 	done
