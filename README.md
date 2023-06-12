@@ -25,7 +25,8 @@ Use ORDerly to:
 
 <!-- Section on extracting and cleaning a dataset-->
 
-# 📖 Extract and clean a dataset
+📖 Extract and clean a dataset
+------------------------------
  
 ### Download data from ORD
 
