@@ -9,9 +9,7 @@ pip install orderly
 🤔 What is this?
 -----------------
 
-Machine learning has the potential to provide tremendous value to chemistry. However, large amounts of clean high-quality data are needed to train models.
-
-It has been challenging to get  high quality data for chemical reactions. 
+Machine learning has the potential to provide tremendous value to chemistry. However, large amounts of clean high-quality data are needed to train models
 
 ORDerly cleans chemical reaction data from the growing [Open Reaction Database (ORD)](https://docs.open-reaction-database.org/en/latest/) 
 
