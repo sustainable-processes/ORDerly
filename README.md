@@ -1,14 +1,94 @@
-# ORDerly
+# ORDerly: Standardised cleaning of chemical reactions
 
-Cleaning and extraction of data from ORD
+This repository is the official implementation of [ORDerly](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467). 
 
-The scripts herein will extract and clean data from ORD with various manual steps relying on chemical domain knowledge. This results in an open-source dataset containing a mapped reaction, reactants, products, solvents, reagents, catalysts, and yields in a pandas DataFrame structure that should also be easily usable by people with little knowledge of chemistry.
+<img src="images/abstract_fig.png" alt="Abstract Figure" width="300">
 
-# Usage
+Use ORDerly to:
+- Access the [ORDerly benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) for reaction condition prediction.
+- Extract, clean, and train a model on USPTO data in ORD format using default arguments.
+- Apply customised extraction and cleaning operations to your own data proprietary data in ORD format.
+- Reproduce results from the paper. 
 
-### 1. Install
+<!--
+>📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
+-->
 
-#### I Download the ORD data
+
+
+
+
+# Simple setup
+Using default arguments.
+
+## ORDerly
+### Installation
+
+`pip install orderly`
+
+### Download data from the publically available ORD database 
+
+`orderly download`
+This will create a folder called `/data/ord/` in your current directory, and download the data into `ord/`
+
+Alternatively, you can also follow the instructions on the [official website](https://github.com/open-reaction-database/ord-data) to download the data in ```ord-data/data/```.
+
+### Extract data from your ORD files
+
+`orderly extract`
+
+If you want to run ORDerly on your own data, and want to specify the input and output path:
+
+`orderly extract --input_path="/data/ord/" --output_path="/data/orderly/"`
+
+This will generate a parquet file for each ORD file.
+
+### Cleaning the data
+
+`orderly clean`
+
+This will produce train and test parquet files, along with a .json file showing the arguments used and a .log file showing the operations run.
+
+## Training a condition prediction algorithm with this data
+
+For this, clone the repository and use the makefile.
+
+### Requirements
+Python dependencies can be installed via ```poetry``` from within the `orderly/condition_prediction` folder:
+
+- run in terminal: ```poetry install```
+
+### Train model
+
+
+
+
+
+
+# Customisable setup
+
+
+
+
+
+
+## Requirements
+
+To install requirements:
+
+```setup
+pip install -r requirements.txt
+```
+
+
+
+
+
+
+## Download ORD data
+The data should be placed within `data/ord`
+
+### Using the ORD database
 
 We want to download the ORD data locally, this can be done through any of the following methods:
 
@@ -23,33 +103,76 @@ We want to download the ORD data locally, this can be done through any of the fo
     make sudo_chown
     ```
 
-#### II Install OS depenencies
- 
-You might need some environment dependencies. If running locally these will need to be dealt with. However, if running using docker, the depenencies will be managed in the build script.
 
-- Linux: For you will likely have some missing dependencies, these can be installed via apt for example: 
+### Using your own data in ORD format
 
+
+## Train
+
+To train the model(s) in the paper, run this command:
+
+```train
+python train.py --input-data <path_to_data> --alpha 10 --beta 20
 ```
-sudo apt-get update
-sudo apt-get install libpq-dev gcc -y
+
+>📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
+
+## Evaluation
+
+To evaluate my model on ImageNet, run:
+
+```eval
+python eval.py --model-file mymodel.pth --benchmark imagenet
 ```
 
-#### III Install Python dependencies
+>📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
 
-To install the dependencies this can be done via ```poetry``` or you can run the environment through docker.
+## Pre-trained Models
 
-- For poetry (run in terminal):
-    Python dependencies: ```poetry install```
-- For docker (run in terminal):
-    ```bash
-    build_orderly
-    run_orderly
-    ```
-    You can validate the install works by running
-    ```bash
-    build_orderly_extras
-    run_orderly_pytest
-    ```
+You can download pretrained models here:
+
+- [My awesome model](https://drive.google.com/mymodel.pth) trained on ImageNet using parameters x,y,z. 
+
+>📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models.
+
+## Results
+
+Our model achieves the following performance on :
+
+### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
+
+| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
+| ------------------ |---------------- | -------------- |
+| My awesome model   |     85%         |      95%       |
+
+>📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
+
+
+## Contributing
+
+>📋  Pick a licence and describe how to contribute to your code repository. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### 2. Run extraction
@@ -60,30 +183,3 @@ We can run extraction using: ```poetry run python -m orderly.extract```. Using `
 
 We can run cleaning using: ```poetry run python -m orderly.clean```. Using ```poetry run python -m orderly.clean --help``` will explain the arguments. Certain args must be set such as data paths.
 
-# ML models trained on ORDerly
-
-We plan to show the usefulness of ORDerly by training ML models from the literature on ORDerly for standardised prediction tasks. Prediction tasks include:
-- Yield prediction
-    - https://chemrxiv.org/engage/chemrxiv/article-details/6150143118be8575b030ad43
-- Retrosynthesis
-- Forward prediction
-- Condition prediction
-
-We may be able to use https://deepchem.io/models
-
-
-## Appendix
-
-### Solvents
-
-In data/solvents.csv you'll find a list of solvens which we use to label solvents (to avoid relying on the labelling in ORD), this list was created from the intersection of solvents coming from three different sources. The following procedure was followed for the construction of solvents.csv:
-
-1. Data curation: We compiled a list of solvent names from the following 3 sources. Unfortunately they did not include SMILES strings.
- - https://doi.org/10.1039/C9SC01844A
- - https://www.acs.org/greenchemistry/research-innovation/tools-for-green-chemistry/solvent-selection-tool.html
- - https://github.com/sustainable-processes/summit/blob/main/data/ucb_pharma_approved_list.csv
-
-2. Filtering: Make all solvent names lower case, strip spaces, find and remove duplicate names. (Before: 458+272+115=845 rows in total. After removing duplicates: 615)
-3. Name resolution: The dataframe has 4 columns of identifiers: 3 for (english) solvent names, and 1 for CAS numbers. We ran (Pura)[https://github.com/sustainable-processes/pura] with <services=[PubChem(autocomplete=True), Opsin(), CIR(),]> and <agreement=2> separately on each of the three solvent name columns, and <services=[CAS()]>, <agreement=1> to resolve the CAS numbers.
-4. Agreement: We now had up to 4 SMILES strings for each solvent, and the SMILES string was trusted when all of them were in agreement (either the other items were the same SMILES or empty). There were ~40 rows with disagreement, and these were resolved manually (by cross-checking name and CAS with PubChem/Wikipedia).
-5. The final dataset consists of the following columns: 'solvent_name_1', 'solvent_name_2', 'solvent_name_3', 'cas_number', 'chemical_formula', 'smiles', 'source'.
