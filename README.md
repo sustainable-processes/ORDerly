@@ -162,8 +162,9 @@ Top-3 exact match combination accuracy (\%): frequency informed guess  // model 
 | Agents             | 54 // 70 // 35%                | 58 // 72 // 32%                 | 19 // 39 // 25%                    | 21 // 42 // 27%                      |
 | Solvents & Agents  | 31 // 44 // 19%                | 33 // 47 // 21%                 | 4 // 21 // 18%                     | 5 // 24 // 21%                       |
 
-Where AIB\% is the Average Improvement of the model over the Baseline (i.e. a frequency informed guess): 
-$`AIB% = (A_m - A_b) / (1 - A_b)`$
+Where AIB\% is the Average Improvement of the model over the Baseline (i.e. a frequency informed guess), where $A_m$ is the accuracy of the model, and $A_B$ is the accuracy of the baseline: 
+$`AIB = (A_m - A_b) / (1 - A_b)`$
+
 
 
 Full API documentation
