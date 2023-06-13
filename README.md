@@ -179,9 +179,25 @@ There are also a number of customisable steps for the cleaning:
 ```orderly clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9```
 
 
-## Contributing
+## Issues?
+Submit an [issue](https://github.com/sustainable-processes/ORDerly/issues) or send an email to dsw46@cam.ac.uk.
 
->📋  Pick a licence and describe how to contribute to your code repository. 
+## Citing
+
+If you find this project useful, we encourage you to
+
+* Star this repository :star: 
+<!-- * Cite our [paper](https://chemistry-europe.onlinelibrary.wiley.com/doi/full/10.1002/cmtd.202000051).
+```
+@article{Felton2021,
+author = "Kobi Felton and Jan Rittig and Alexei Lapkin",
+title = "{Summit: Benchmarking Machine Learning Methods for Reaction Optimisation}",
+year = "2021",
+month = "2",
+url = "https://chemistry-europe.onlinelibrary.wiley.com/doi/full/10.1002/cmtd.202000051",
+journal = "Chemistry Methods"
+} -->
+```
 
 
 
