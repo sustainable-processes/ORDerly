@@ -41,18 +41,18 @@ class ORDerlyPlotter:
 
     def __post_init__(self) -> None:
         self.df = pd.read_parquet(self.clean_data_path)
-        self.axis_fontsize = 16
-
+        self.axis_font_size = 16
         self.heading_fontsize = 18
-        # Increase the font size
-
-        # Increase the font size for other elements
-        #plt.rcParams.update({'font.size': 12})
         
-        # Decrease the font size for tick labels
-        # plt.xticks(fontsize=12)
-        # plt.yticks(fontsize=12)
-
+        plt.rcParams.update({
+            'font.size': 16,  # Default font size
+            'xtick.labelsize': 16,  # X-axis tick font size
+            'ytick.labelsize': 16,  # Y-axis tick font size
+            'legend.fontsize': 16,  # Legend font size
+            'axes.labelsize': 18,  # X and Y axis label font size
+        })
+        
+  
 
 
     ####################################################################################################
@@ -80,8 +80,6 @@ class ORDerlyPlotter:
         col_starts_with: str,
         plot_output_path: pathlib.Path,
         num_columns: int = 5,
-        heading_fontsize: int = 18,
-        axis_fontsize: int = 16,
     ) -> None:
         # clear the figure
         plt.clf()
@@ -106,8 +104,8 @@ class ORDerlyPlotter:
 
         # set the plot title and axis labels
         # plt.title(f"Components per reaction") # Usually the title is added on top of the figure on overleaf, after (a)
-        plt.ylabel(f"Number of reactions (thousands)", fontsize=heading_fontsize)
-        plt.xlabel(f"Number of {col_starts_with}s", fontsize=heading_fontsize)
+        plt.ylabel(f"Number of reactions (thousands)")
+        plt.xlabel(f"Number of {col_starts_with}s")
 
         # Format y-axis labels with commas and divide by 1000
         plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}"))
@@ -116,12 +114,8 @@ class ORDerlyPlotter:
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
         # Add a legend and move it up
-        plt.legend(["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72), fontsize=axis_fontsize)
+        plt.legend(["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72))
 
-
-        # Set y-axis tick font size
-        plt.yticks(fontsize=16)
-        plt.xticks(fontsize=16)
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
@@ -255,11 +249,17 @@ class ORDerlyPlotter:
 
         # set the plot title and axis labels
         #plt.title(f"Removing rare molecules") Title should be added on overleaf
-        plt.ylabel(f"Number of reactions")
+        plt.ylabel(f"Number of reactions (thousands)")
         plt.xlabel(f"Minimum frequency of occurrence")
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=total_num_reactions, color="red", linestyle="--")
+
+
+
+        plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}"))
+        
+
 
         # Add a legend
         plt.legend(["Total reactions", f"Number of reactions".capitalize()], loc='right')
