@@ -4,17 +4,17 @@
 
 ## Quick Install
 
-pip install orderly
+```pip install orderly```
 
 🤔 What is this?
 -----------------
 
 Machine learning has the potential to provide tremendous value to chemistry. However, large amounts of clean high-quality data are needed to train models
 
-ORDerly cleans chemical reaction data from the growing [Open Reaction Database (ORD)](https://docs.open-reaction-database.org/en/latest/) 
+ORDerly cleans chemical reaction data from the growing [Open Reaction Database (ORD)](https://docs.open-reaction-database.org/en/latest/).
 
 Use ORDerly to:
-- [Extract and clean your own dataset from ORD](#📖-extract-and-clean-a-dataset)
+- Extract and clean your own dataset from ORD
 - Access the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) for reaction condition prediction.
 - Reproduce results from our paper including training a ML model to predict reaction conditions
 
@@ -58,7 +58,7 @@ Reaction condition prediction is the problem of predicting the things "above the
 
 <!-- Include image of a reactions -->
 
-You can use the following code to download the condition prediction benchmark data without installing ORDerly. Make sure to install needed dependencies first.
+You can either download the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) directly, use the following code to download it (without installing ORDerly). Make sure to install needed dependencies first.
 
 
 ```pip install requests fastparquet pandas```
@@ -161,6 +161,8 @@ Top-3 exact match combination accuracy (\%): frequency informed guess  // model 
 | Solvents           | 47 // 58 // 21%                | 50 // 61 // 22%                 | 23 // 42 // 26%                    | 24 // 45 // 28%                      |
 | Agents             | 54 // 70 // 35%                | 58 // 72 // 32%                 | 19 // 39 // 25%                    | 21 // 42 // 27%                      |
 | Solvents & Agents  | 31 // 44 // 19%                | 33 // 47 // 21%                 | 4 // 21 // 18%                     | 5 // 24 // 21%                       |
+
+Where AIB\% is the Average Improvement of the model over the Baseline (i.e. a frequency informed guess): AIB% = (A_m - A_b) / (1 - A_b)
 
 
 Full API documentation
