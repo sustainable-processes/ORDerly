@@ -113,19 +113,6 @@ run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
 
 
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-train_model:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
-
-
-
-
->>>>>>> 0cbe31b (Run paper table (#135))
-=======
->>>>>>> 70daca32c81590f78ac549eac63068a897e07027
 ####################################################################################################
 # 									ORDerly make commands for the paper
 ####################################################################################################
