@@ -14,6 +14,7 @@ import tqdm.contrib.logging
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from orderly.types import *
 
@@ -40,6 +41,18 @@ class ORDerlyPlotter:
 
     def __post_init__(self) -> None:
         self.df = pd.read_parquet(self.clean_data_path)
+        self.axis_font_size = 16
+        self.heading_fontsize = 18
+
+        plt.rcParams.update(
+            {
+                "font.size": 16,  # Default font size
+                "xtick.labelsize": 16,  # X-axis tick font size
+                "ytick.labelsize": 16,  # Y-axis tick font size
+                "legend.fontsize": 16,  # Legend font size
+                "axes.labelsize": 18,  # X and Y axis label font size
+            }
+        )
 
     ####################################################################################################
 
@@ -55,6 +68,10 @@ class ORDerlyPlotter:
             ORDerlyPlotter.plot_num_rxn_component(
                 self.df, molecule, self.plot_output_path
             )
+
+    import matplotlib.ticker as ticker
+
+    import matplotlib.ticker as ticker
 
     @staticmethod
     def plot_num_rxn_component(
@@ -75,27 +92,34 @@ class ORDerlyPlotter:
         plotting_subset = counts[:num_columns]
         # create a bar plot of string counts for each column
         plt.bar(
-            range(1, num_columns + 1), plotting_subset
+            range(1, num_columns + 1), plotting_subset, color="grey", edgecolor="black"
         )  # Adjusted to start at index 1
 
         # set the x-axis tick labels to the column names
         # plt.xticks(range(len(self.columns_to_plot)), self.columns_to_plot, rotation=90)
 
         # set the plot title and axis labels
-        plt.title(f"Components per reaction")
-        plt.ylabel(f"Number of reactions")
+        # plt.title(f"Components per reaction") # Usually the title is added on top of the figure on overleaf, after (a)
+        plt.ylabel(f"Number of reactions (thousands)")
         plt.xlabel(f"Number of {col_starts_with}s")
+
+        # Format y-axis labels with commas and divide by 1000
+        plt.gca().yaxis.set_major_formatter(
+            ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
+        )
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
-        # Add a legend
-        plt.legend(["Total reactions", f"{col_starts_with} counts".capitalize()])
+        # Add a legend and move it up
+        plt.legend(
+            ["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72)
+        )
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
         # save the plot to file
-        plt.savefig(figure_file_path, bbox_inches="tight", dpi=600)
+        plt.savefig(figure_file_path, bbox_inches="tight", dpi=300)
         return
 
     @staticmethod
@@ -204,7 +228,6 @@ class ORDerlyPlotter:
 
         # Get the value counts for each column
         value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from)
-        ORDerlyPlotter.plot_value_counts(value_counts, plot_output_path)
         total_num_reactions = df.shape[0]
         num_reactions = []
         frequency = []
@@ -218,18 +241,28 @@ class ORDerlyPlotter:
             frequency.append(i)
 
         # Plot the results
-        plt.bar(frequency, num_reactions, width=freq_step, edgecolor="black")
+        plt.bar(
+            frequency, num_reactions, width=freq_step, edgecolor="black", color="grey"
+        )
 
         # set the plot title and axis labels
-        plt.title(f"Removing rare molecules")
-        plt.ylabel(f"Number of reactions")
+        # plt.title(f"Removing rare molecules") Title should be added on overleaf
+        plt.ylabel(f"Number of reactions (thousands)")
         plt.xlabel(f"Minimum frequency of occurrence")
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=total_num_reactions, color="red", linestyle="--")
 
+        plt.gca().yaxis.set_major_formatter(
+            ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
+        )
+
         # Add a legend
-        plt.legend(["Total reactions", f"Number of reactions".capitalize()])
+        plt.legend(
+            ["Total reactions", f"Number of reactions".capitalize()], loc="right"
+        )
+        # Adjust the legend position
+        # plt.legend.set_bbox_to_anchor((1, 0.8))
 
         figure_file_path = (
             plot_output_path / f"min_freq_{freq_step}_{freq_threshold}.png"
@@ -240,40 +273,101 @@ class ORDerlyPlotter:
 
         return
 
+    ####################################################################################################
+    def plot_molecule_popularity_histograms(self) -> None:
+        for molecule in [
+            "reactant",
+            "product",
+            "solvent",
+            "catalyst",
+            "agent",
+        ]:
+            if molecule + "_000" in self.df.columns:
+                ORDerlyPlotter.plot_molecule_popularity_histogram(
+                    self.df, molecule, self.plot_output_path
+                )
+
     @staticmethod
-    def plot_value_counts(
-        value_counts: pd.Series,
+    def plot_molecule_popularity_histogram(
+        df: pd.DataFrame,
+        molecule_type: str,
         plot_output_path: pathlib.Path,
         num_molecules_to_plot: int = 100,
     ) -> None:
-        # clear the figure
+        """
+        Plot a histogram showing how often the most popular molecules in the dataset appear.
+        """
         plt.clf()
+        if molecule_type.lower() == "catalyst":
+            # Define the list of columns to check
+            columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=(molecule_type, "reagent"),
+            )
+        else:
+            # Define the list of columns to check
+            columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=(molecule_type,),
+            )
+        # Get the value counts for each column and remove "NULL"
+        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from).drop(
+            "NULL", errors="ignore"
+        )
         sub_value_counts = value_counts[:num_molecules_to_plot]
-        # Plot the results
+
+        if molecule_type.lower() == "product":
+            divider = 1
+        else:
+            divider = 1000
+
+        # Plot the results in thousands
         plt.bar(
-            range(1, len(sub_value_counts) + 1), sub_value_counts, edgecolor="black"
+            range(1, len(sub_value_counts) + 1),
+            sub_value_counts / divider,
+            edgecolor="black",
+            color="grey",
         )
         # set the plot title and axis labels
 
-        plt.title(f"Frequency of occurrence of molecules")
-        plt.ylabel(f"Number of occurrences of molecules")
-        plt.xlabel(f"Molecules")
+        plt.title(f"Most popular {molecule_type}s")
+        plt.xlabel(f"Popularity rank")
 
-        figure_file_path = plot_output_path / f"value_counts.png"
+        # Get top 10 molecules
+        top_10 = sub_value_counts.head(10)
+
+        # Conditional formatting for products
+        molecule_entries = []
+        for molecule, count in top_10.items():
+            if (
+                molecule
+                == "c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+            ):
+                molecule = "tetrakistriphenylphosphine palladium"
+            if molecule_type.lower() == "product":
+                molecule_entries.append(f"{molecule}: {count}")
+            else:
+                molecule_entries.append(f"{molecule}: {count / 1000:.1f}k")
+        top_10_list = "\n".join(molecule_entries)
+
+        # Add top 10 list inside the plot, aligned to the left
+        plt.text(
+            0.95,
+            0.65,
+            f"Top 10 {molecule_type}s:\n{top_10_list}",
+            transform=plt.gca().transAxes,
+            fontsize=10,
+            verticalalignment="center",
+            ha="right",
+            bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
+        )
+
+        figure_file_path = plot_output_path / f"{molecule_type}_popularity.png"
 
         # save the plot to file
         plt.savefig(figure_file_path, bbox_inches="tight", dpi=600)
 
-        # clear the figure
-        plt.clf()
-
         return
-
-    ####################################################################################################
-
-    def plot_waterfall(self) -> None:
-        # TODO: Though I'm not sure that a waterfall plot is actually the best way to show how data is filtered out by ORDerly. Perhaps better simply with a table?
-        pass
 
 
 @click.command()
@@ -320,11 +414,11 @@ class ORDerlyPlotter:
     help="Size of the step when plotting impact of min_frequency_of_occurrence (between 0 and freq_threshold)",
 )
 @click.option(
-    "--plot_waterfall_bool",
+    "--plot_molecule_popularity_histograms",
     type=bool,
     default=False,
     show_default=True,
-    help="If true, plots a waterfall chart showing how many reactions are removed at each step of the cleaning process",
+    help="If true, plots a histogram showing the popularity of the most commonly occurring molecules in the dataset",
 )
 @click.option(
     "--log_file",
@@ -341,7 +435,7 @@ def main_click(
     plot_frequency_of_occurrence_bool: bool,
     freq_threshold: int,
     freq_step: int,
-    plot_waterfall_bool: bool,
+    plot_molecule_popularity_histograms: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -364,7 +458,7 @@ def main_click(
         plot_frequency_of_occurrence_bool=plot_frequency_of_occurrence_bool,
         freq_threshold=freq_threshold,
         freq_step=freq_step,
-        plot_waterfall_bool=plot_waterfall_bool,
+        plot_molecule_popularity_histograms=plot_molecule_popularity_histograms,
         log_file=_log_file,
         log_level=log_level,
     )
@@ -377,7 +471,7 @@ def main(
     plot_frequency_of_occurrence_bool: bool,
     freq_threshold: int,
     freq_step: int,
-    plot_waterfall_bool: bool,
+    plot_molecule_popularity_histograms: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -424,8 +518,8 @@ def main(
         instance.plot_num_rxn_components()
     if plot_frequency_of_occurrence_bool:
         instance.plot_frequency_of_occurrence()
-    if plot_waterfall_bool:
-        instance.plot_waterfall()
+    if plot_molecule_popularity_histograms:
+        instance.plot_molecule_popularity_histograms()
 
     LOG.info(f"completed plots, saving to {plot_output_path}")
 

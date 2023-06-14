@@ -113,7 +113,6 @@ run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
 
 
-
 ####################################################################################################
 # 									ORDerly make commands for the paper
 ####################################################################################################
@@ -125,8 +124,9 @@ run_python_310:
 # 4. Run a cleaning with decided upon number of columns to keep
 # 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
 # 6. Generate the four datasets we need for the paper (split into train and test set)
-# 7. Generate fingerprints for each dataset
-# 8. Train & evaluate a model on each dataset
+# 7. Plot histograms with the occurrence of the most common reactants, products, solvents, agents
+# 8. Generate fingerprints for each dataset
+# 9. Train & evaluate a model on each dataset
 
 # 1. Extract 
 
@@ -141,20 +141,20 @@ paper_1: paper_extract_uspto_no_trust paper_extract_uspto_with_trust
 # 2. Clean (unfiltered)
 
 paper_clean_uspto_no_trust_unfiltered: #requires: paper_extract_uspto_no_trust
-	python -m orderly.clean --output_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=5 --num_reactant=5 --num_solv=10 --num_agent=10 --num_cat=0 --num_reag=0 --consistent_yield=False --train_test_split_fraction=0.0
+	python -m orderly.clean --output_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=-1 --num_reactant=-1 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --train_test_split_fraction=0.0
 
 paper_clean_uspto_with_trust_unfiltered: #requires: paper_extract_uspto_with_trust
-	python -m orderly.clean --output_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=5 --num_reactant=5 --num_solv=10 --num_agent=0 --num_cat=5 --num_reag=10 --consistent_yield=False --train_test_split_fraction=0.0
+	python -m orderly.clean --output_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=-1 --num_reactant=-1 --num_solv=-1 --num_agent=0 --num_cat=-1 --num_reag=-1 --consistent_yield=False --train_test_split_fraction=0.0
 
 paper_2: paper_clean_uspto_no_trust_unfiltered paper_clean_uspto_with_trust_unfiltered
 
 # 3. Plots
 
 paper_plot_uspto_no_trust_unfiltered_num_rxn_components: #requires: paper_clean_uspto_no_trust_unfiltered
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=False
 
 paper_plot_uspto_with_trust_unfiltered_num_rxn_components: #requires: paper_clean_uspto_with_trust_unfiltered
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=False
 
 paper_3: paper_plot_uspto_no_trust_unfiltered_num_rxn_components paper_plot_uspto_with_trust_unfiltered_num_rxn_components
 
@@ -170,16 +170,17 @@ paper_4: paper_clean_uspto_no_trust_filtered paper_clean_uspto_with_trust_filter
 
 # 5. plot min freq of occurence
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=100 --freq_step=10
 
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_100_1000:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=1000 --freq_step=100
+	
 
 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_10_100:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=100 --freq_step=10
 
 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_100_1000:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=1000 --freq_step=100
 
 paper_5 : paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_100_1000 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_10_100 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_100_1000
 
@@ -199,7 +200,16 @@ paper_gen_uspto_with_trust_no_map: #requires: paper_extract_uspto_with_trust
 
 paper_6: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
 
-# 7. gen fp
+# 7. Plot plot_molecule_popularity_histograms 
+paper_plot_uspto_no_trust_no_map:
+	python -m orderly.plot --clean_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=True 
+
+paper_plot_uspto_with_trust_no_map:
+	python -m orderly.plot --clean_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=True
+	
+paper_7 : paper_plot_uspto_no_trust_no_map  paper_plot_uspto_with_trust_no_map
+
+# 8. gen fp
 
 fp_no_trust_no_map_test:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
@@ -221,14 +231,14 @@ fp_with_trust_no_map_test:
 fp_with_trust_no_map_train:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
 
-paper_7: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
+paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
 
 #Generate datasets for paper
-paper_get_datasets: paper_1 paper_6 paper_7
+paper_get_datasets: paper_1 paper_6 paper_8
 
-paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
+paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_8
 
-# 8. train models
+# 9. train models
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
 # Full dataset
 no_trust_no_map_train:
@@ -254,7 +264,7 @@ with_trust_no_map_train_20:
 	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_with_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY)
 
 
 # Sweeps
