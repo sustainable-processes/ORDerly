@@ -43,17 +43,16 @@ class ORDerlyPlotter:
         self.df = pd.read_parquet(self.clean_data_path)
         self.axis_font_size = 16
         self.heading_fontsize = 18
-        
-        plt.rcParams.update({
-            'font.size': 16,  # Default font size
-            'xtick.labelsize': 16,  # X-axis tick font size
-            'ytick.labelsize': 16,  # Y-axis tick font size
-            'legend.fontsize': 16,  # Legend font size
-            'axes.labelsize': 18,  # X and Y axis label font size
-        })
-        
-  
 
+        plt.rcParams.update(
+            {
+                "font.size": 16,  # Default font size
+                "xtick.labelsize": 16,  # X-axis tick font size
+                "ytick.labelsize": 16,  # Y-axis tick font size
+                "legend.fontsize": 16,  # Legend font size
+                "axes.labelsize": 18,  # X and Y axis label font size
+            }
+        )
 
     ####################################################################################################
 
@@ -93,10 +92,7 @@ class ORDerlyPlotter:
         plotting_subset = counts[:num_columns]
         # create a bar plot of string counts for each column
         plt.bar(
-            range(1, num_columns + 1),
-            plotting_subset,
-            color='grey',
-            edgecolor='black'
+            range(1, num_columns + 1), plotting_subset, color="grey", edgecolor="black"
         )  # Adjusted to start at index 1
 
         # set the x-axis tick labels to the column names
@@ -108,22 +104,23 @@ class ORDerlyPlotter:
         plt.xlabel(f"Number of {col_starts_with}s")
 
         # Format y-axis labels with commas and divide by 1000
-        plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}"))
+        plt.gca().yaxis.set_major_formatter(
+            ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
+        )
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
         # Add a legend and move it up
-        plt.legend(["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72))
-
+        plt.legend(
+            ["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72)
+        )
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
         # save the plot to file
         plt.savefig(figure_file_path, bbox_inches="tight", dpi=300)
         return
-
-
 
     @staticmethod
     def _get_columns_to_plot(df: pd.DataFrame, col_starts_with: str) -> List[str]:
@@ -244,26 +241,28 @@ class ORDerlyPlotter:
             frequency.append(i)
 
         # Plot the results
-        plt.bar(frequency, num_reactions, width=freq_step, edgecolor="black", color="grey")
+        plt.bar(
+            frequency, num_reactions, width=freq_step, edgecolor="black", color="grey"
+        )
 
         # set the plot title and axis labels
-        #plt.title(f"Removing rare molecules") Title should be added on overleaf
+        # plt.title(f"Removing rare molecules") Title should be added on overleaf
         plt.ylabel(f"Number of reactions (thousands)")
         plt.xlabel(f"Minimum frequency of occurrence")
 
         # Add a horizontal line at df.shape[0]
         plt.axhline(y=total_num_reactions, color="red", linestyle="--")
 
-
-
-        plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}"))
-        
-
+        plt.gca().yaxis.set_major_formatter(
+            ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
+        )
 
         # Add a legend
-        plt.legend(["Total reactions", f"Number of reactions".capitalize()], loc='right')
+        plt.legend(
+            ["Total reactions", f"Number of reactions".capitalize()], loc="right"
+        )
         # Adjust the legend position
-        #plt.legend.set_bbox_to_anchor((1, 0.8))
+        # plt.legend.set_bbox_to_anchor((1, 0.8))
 
         figure_file_path = (
             plot_output_path / f"min_freq_{freq_step}_{freq_threshold}.png"
@@ -299,7 +298,7 @@ class ORDerlyPlotter:
         Plot a histogram showing how often the most popular molecules in the dataset appear.
         """
         plt.clf()
-        if molecule_type.lower() == 'catalyst':
+        if molecule_type.lower() == "catalyst":
             # Define the list of columns to check
             columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
                 columns=df.columns,
@@ -312,17 +311,22 @@ class ORDerlyPlotter:
                 target_strings=molecule_type,
             )
         # Get the value counts for each column and remove "NULL"
-        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from).drop("NULL", errors='ignore')
+        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from).drop(
+            "NULL", errors="ignore"
+        )
         sub_value_counts = value_counts[:num_molecules_to_plot]
-        
-        if molecule_type.lower() == 'product':
-            divider=1
+
+        if molecule_type.lower() == "product":
+            divider = 1
         else:
-            divider=1000
+            divider = 1000
 
         # Plot the results in thousands
         plt.bar(
-            range(1, len(sub_value_counts) + 1), sub_value_counts / divider, edgecolor="black", color="grey"
+            range(1, len(sub_value_counts) + 1),
+            sub_value_counts / divider,
+            edgecolor="black",
+            color="grey",
         )
         # set the plot title and axis labels
 
@@ -331,22 +335,31 @@ class ORDerlyPlotter:
 
         # Get top 10 molecules
         top_10 = sub_value_counts.head(10)
-        
+
         # Conditional formatting for products
         molecule_entries = []
         for molecule, count in top_10.items():
-            if molecule == "c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1":
+            if (
+                molecule
+                == "c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1"
+            ):
                 molecule = "tetrakistriphenylphosphine palladium"
-            if molecule_type.lower() == 'product':
-                molecule_entries.append(f'{molecule}: {count}')
+            if molecule_type.lower() == "product":
+                molecule_entries.append(f"{molecule}: {count}")
             else:
-                molecule_entries.append(f'{molecule}: {count / 1000:.1f}k')
-        top_10_list = '\n'.join(molecule_entries)
+                molecule_entries.append(f"{molecule}: {count / 1000:.1f}k")
+        top_10_list = "\n".join(molecule_entries)
 
         # Add top 10 list inside the plot, aligned to the left
         plt.text(
-            0.95, 0.65, f"Top 10 {molecule_type}s:\n{top_10_list}",
-            transform=plt.gca().transAxes, fontsize=10, verticalalignment='center', ha='right', bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5)
+            0.95,
+            0.65,
+            f"Top 10 {molecule_type}s:\n{top_10_list}",
+            transform=plt.gca().transAxes,
+            fontsize=10,
+            verticalalignment="center",
+            ha="right",
+            bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
         )
 
         figure_file_path = plot_output_path / f"{molecule_type}_popularity.png"
