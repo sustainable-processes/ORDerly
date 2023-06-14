@@ -7,6 +7,7 @@ clean_default_num_agent=3
 clean_default_num_cat=1
 clean_default_num_reag=2
 WANDB_ENTITY=ceb-sre
+dataset_version=v5
 
 
 mypy_orderly:
@@ -40,51 +41,6 @@ pytest_condition_prediction:
 
 pytestx:
 	python -m pytest -vv --exitfirst
-
-extract_all_no_trust:
-	python -m orderly.extract --name_contains_substring="" --trust_labelling=False --output_path="data/orderly/all_no_trust"
-
-clean_all_no_trust:
-	python -m orderly.clean --output_path="data/orderly/all_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
-
-gen_all_no_trust: extract_all_no_trust clean_all_no_trust
-	
-extract_all_trust:
-	python -m orderly.extract --name_contains_substring="" --trust_labelling=True --output_path="data/orderly/all_trust"
-
-clean_all_trust:
-	python -m orderly.clean --output_path="data/orderly/all_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/all_trust/extracted_ords" --molecules_to_remove_path="data/orderly/all_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag)
-
-gen_all_trust: extract_all_trust clean_all_trust
-	
-extract_uspto_no_trust:
-	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust"
-
-clean_uspto_no_trust:
-	python -m orderly.clean --output_path="data/orderly/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --num_agent=$(clean_default_num_agent) --num_cat=0 --num_reag=0
-
-gen_uspto_no_trust: extract_uspto_no_trust clean_uspto_no_trust
-	
-extract_uspto_trust:
-	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=True --output_path="data/orderly/uspto_trust"
-
-clean_uspto_trust:
-	python -m orderly.clean --output_path="data/orderly/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --num_agent=0 --num_cat=$(clean_default_num_cat) --num_reag=$(clean_default_num_reag) 
-
-gen_uspto_trust: extract_uspto_trust clean_uspto_trust
-	
-gen_datasets: gen_uspto_no_trust gen_uspto_trust gen_all_no_trust gen_all_trust
-
-clean_unfiltered_uspto_no_trust:
-	python -m orderly.clean --output_path="data/orderly/unfiltered/uspto_no_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=100 --num_cat=0 --num_reag=0 --consistent_yield=False	
-
-clean_unfiltered_uspto_trust:
-	python -m orderly.clean --output_path="data/orderly/unfiltered/uspto_trust/orderly_ord.parquet" --ord_extraction_path="data/orderly/uspto_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_trust/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=100 --num_reactant=100 --num_solv=100 --num_agent=0 --num_cat=100 --num_reag=100 --consistent_yield=False
-
-clean_unfiltered_uspto: clean_unfiltered_uspto_no_trust clean_unfiltered_uspto_trust
-
-gen_unfiltered_uspto: extract_uspto_no_trust extract_uspto_trust clean_unfiltered_uspto 
-
 
 gen_test_data:
 	python -m orderly.extract --data_path=orderly/data/test_data/ord_test_data --output_path=orderly/data/test_data/extracted_ord_test_data_trust_labelling  --trust_labelling=True --name_contains_substring="" --overwrite=False --use_multiprocessing=True
@@ -153,20 +109,8 @@ _root_get_ord:
 sudo_chown:
 	sudo chown -R $(uid):$(gid) $(current_dir)
 
-build_rxnmapper:
-	docker image build --target rxnmapper_base --tag rxnmapper_base .
-
-run_rxnmapper:
-	docker run -v $(current_dir)/data:/tmp_data -it rxnmapper_base
-
 run_python_310:
 	docker run -it python:3.10-slim-buster /bin/bash
-
-
-
-train_model:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=True --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5
-
 
 
 
@@ -242,40 +186,40 @@ paper_5 : paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100 
 
 # 6. clean (final)
 paper_gen_uspto_no_trust_no_map: #requires: paper_extract_uspto_no_trust
-	python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
+	python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
 
 paper_gen_uspto_no_trust_with_map: #requires: paper_extract_uspto_no_trust
-	python -m orderly.clean --output_path="data/orderly/datasets/orderly_no_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
+	python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
 
 paper_gen_uspto_with_trust_with_map: #requires: paper_extract_uspto_with_trust
-	python -m orderly.clean --output_path="data/orderly/datasets/orderly_with_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=0 --num_cat=1 --num_reag=2 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
+	python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=True --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=0 --num_cat=1 --num_reag=2 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
 
 paper_gen_uspto_with_trust_no_map: #requires: paper_extract_uspto_with_trust
-	python -m orderly.clean --output_path="data/orderly/datasets/orderly_with_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=0 --num_cat=1 --num_reag=2 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
+	python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_with_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_with_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=0 --num_cat=1 --num_reag=2 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9
 
 paper_6: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
 
 # 7. gen fp
 
 fp_no_trust_no_map_test:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
 fp_no_trust_no_map_train:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
 
 fp_no_trust_with_map_test:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --fp_size=2048 --overwrite=False
 fp_no_trust_with_map_train:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --fp_size=2048 --overwrite=False
 
 fp_with_trust_with_map_test:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --fp_size=2048 --overwrite=False
 fp_with_trust_with_map_train:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --fp_size=2048 --overwrite=False
 
 fp_with_trust_no_map_test:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
 fp_with_trust_no_map_train:
-	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
 
 paper_7: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
 
@@ -288,36 +232,39 @@ paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
 # Full dataset
 no_trust_no_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 no_trust_with_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_no_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_with_map_train:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map"  --train_fraction=1 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 # 20% of data
 no_trust_no_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --output_folder_path="models/no_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 no_trust_with_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_test.parquet" --output_folder_path="models/no_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_no_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_test.parquet" --output_folder_path="models/with_trust_no_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY) --dataset_version=$(datset_version)
 
 with_trust_with_map_train_20:
-	python -m condition_prediction --train_data_path="data/orderly/datasets/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
+	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=WANDB_ENTITY
 
 
 # Sweeps
 RANDOM_SEEDS = 12345 54321 98765
-TRAIN_FRACS =  0.2 0.4 0.6 0.8 1.0
-DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets/
-DATASETS = no_trust_no_map no_trust_with_map with_trust_no_map with_trust_with_map
+TRAIN_FRACS =   1.0 0.2 0.4 0.6 0.8
+# Path on lightning
+# DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets_$(dataset_version)/
+# Normal path
+DATASETS_PATH = ORDerly/data/orderly/datasets_$(dataset_version)/
+DATASETS = no_trust_with_map  no_trust_no_map with_trust_with_map with_trust_no_map 
 dataset_size_sweep:
 	@for random_seed in ${RANDOM_SEEDS}; \
 	do \
@@ -325,7 +272,7 @@ dataset_size_sweep:
 		do \
 			for train_frac in ${TRAIN_FRACS}; \
 			do \
-				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=$(WANDB_ENTITY); \
+				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --dataset_version=$(datset_version) --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --train_mode=0 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=$(WANDB_ENTITY) ; \
 			done \
 		done \
 	done

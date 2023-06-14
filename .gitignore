@@ -124,7 +124,6 @@ venv.bak/
 
 runs/
 data/
-!reaction_utils-main/rxnutils/data/
 
 # Spyder project settings
 .spyderproject

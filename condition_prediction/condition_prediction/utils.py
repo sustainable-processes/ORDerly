@@ -1,18 +1,19 @@
+import math
 import os
 import socket
 from collections import Counter
 from copy import deepcopy
 from datetime import datetime
 from datetime import datetime as dt
-from typing import List
+from itertools import product
+from pathlib import Path
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import callbacks
 from sklearn.preprocessing import OneHotEncoder
-
-from itertools import product
-import math
+from wandb.sdk.wandb_run import Run
 
 
 def log_dir(prefix="", comment=""):
@@ -392,3 +393,33 @@ def listtonumpy(a, copy=True):
     if transform_all:
         a = np.array(a)
     return a
+
+
+def download_model_from_wandb(
+    run: Run, alias="best", weights_file="weights.best.hdf5", root=None
+) -> Tuple[Path, str]:
+    """Download best model from wandb
+
+    Arguments
+    ----------
+    run: wandb.Run
+
+
+    Returns
+    -------
+    Path to best model checkpoint
+
+    """
+    # Get best checkpoint
+    artifacts = run.logged_artifacts()  # type: ignore
+    ckpt_path = None
+    artifact_name = None
+    for artifact in artifacts:
+        if artifact.type == "model" and alias in artifact.aliases:
+            ckpt_path = artifact.download(root=root)
+            artifact_name = artifact.name
+    if ckpt_path is None or artifact_name is None:
+        raise ValueError("No checkpoint found with alias: {}".format(alias))
+    ckpt_path = Path(ckpt_path) / weights_file
+
+    return ckpt_path, artifact_name
