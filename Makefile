@@ -125,8 +125,9 @@ run_python_310:
 # 4. Run a cleaning with decided upon number of columns to keep
 # 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
 # 6. Generate the four datasets we need for the paper (split into train and test set)
-# 7. Generate fingerprints for each dataset
-# 8. Train & evaluate a model on each dataset
+# 7. Plot histograms with the occurrence of the most common reactants, products, solvents, agents
+# 8. Generate fingerprints for each dataset
+# 9. Train & evaluate a model on each dataset
 
 # 1. Extract 
 
@@ -151,10 +152,10 @@ paper_2: paper_clean_uspto_no_trust_unfiltered paper_clean_uspto_with_trust_unfi
 # 3. Plots
 
 paper_plot_uspto_no_trust_unfiltered_num_rxn_components: #requires: paper_clean_uspto_no_trust_unfiltered
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=False
 
 paper_plot_uspto_with_trust_unfiltered_num_rxn_components: #requires: paper_clean_uspto_with_trust_unfiltered
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_waterfall_bool=False
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/unfiltered/unfiltered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=True --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=False
 
 paper_3: paper_plot_uspto_no_trust_unfiltered_num_rxn_components paper_plot_uspto_with_trust_unfiltered_num_rxn_components
 
@@ -170,16 +171,17 @@ paper_4: paper_clean_uspto_no_trust_filtered paper_clean_uspto_with_trust_filter
 
 # 5. plot min freq of occurence
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=100 --freq_step=10
 
 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_100_1000:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_no_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=1000 --freq_step=100
+	
 
 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_10_100:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=100 --freq_step=10
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=100 --freq_step=10
 
 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_100_1000:
-	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_waterfall_bool=False --freq_threshold=1000 --freq_step=100
+	python -m orderly.plot --clean_data_path="data/orderly/uspto_with_trust/filtered/filtered_orderly_ord.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=True --plot_molecule_popularity_histograms=False --freq_threshold=1000 --freq_step=100
 
 paper_5 : paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_10_100 paper_plot_uspto_no_trust_filtered_min_frequency_of_occurrence_100_1000 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_10_100 paper_plot_uspto_with_trust_filtered_min_frequency_of_occurrence_100_1000
 
@@ -199,7 +201,16 @@ paper_gen_uspto_with_trust_no_map: #requires: paper_extract_uspto_with_trust
 
 paper_6: paper_gen_uspto_no_trust_no_map paper_gen_uspto_no_trust_with_map paper_gen_uspto_with_trust_with_map paper_gen_uspto_with_trust_no_map
 
-# 7. gen fp
+# 7. Plot plot_molecule_popularity_histograms 
+paper_plot_uspto_no_trust_no_map:
+	python -m orderly.plot --clean_data_path="data/orderly/datasets/orderly_no_trust_no_map_train.parquet" --plot_output_path="data/orderly/plot_no_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=True 
+
+paper_plot_uspto_with_trust_no_map:
+	python -m orderly.plot --clean_data_path="data/orderly/datasets/orderly_with_trust_no_map_train.parquet" --plot_output_path="data/orderly/plot_with_trust/" --plot_num_rxn_components_bool=False --plot_frequency_of_occurrence_bool=False --plot_molecule_popularity_histograms=True
+	
+paper_7 : paper_plot_uspto_no_trust_no_map  paper_plot_uspto_with_trust_no_map
+
+# 8. gen fp
 
 fp_no_trust_no_map_test:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
@@ -221,14 +232,14 @@ fp_with_trust_no_map_test:
 fp_with_trust_no_map_train:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
 
-paper_7: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
+paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
 
 #Generate datasets for paper
-paper_get_datasets: paper_1 paper_6 paper_7
+paper_get_datasets: paper_1 paper_6 paper_8
 
-paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_7
+paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_8
 
-# 8. train models
+# 9. train models
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
 # Full dataset
 no_trust_no_map_train:

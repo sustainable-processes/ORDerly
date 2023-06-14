@@ -231,7 +231,6 @@ class ORDerlyPlotter:
 
         # Get the value counts for each column
         value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from)
-        ORDerlyPlotter.plot_value_counts(value_counts, plot_output_path)
         total_num_reactions = df.shape[0]
         num_reactions = []
         frequency = []
@@ -275,40 +274,67 @@ class ORDerlyPlotter:
 
         return
 
+    ####################################################################################################
+    def plot_molecule_popularity_histograms(self) -> None:
+        for molecule in [
+            "reactant",
+            "product",
+            "solvent",
+            "catalyst",
+            "reagent",
+            "agent",
+        ]:
+            if molecule + "_000" in self.df.columns:
+                ORDerlyPlotter.plot_molecule_popularity_histogram(
+                    self.df, molecule, self.plot_output_path
+                )
+
     @staticmethod
-    def plot_value_counts(
-        value_counts: pd.Series,
+    def plot_molecule_popularity_histogram(
+        df,
+        molecule_type,
         plot_output_path: pathlib.Path,
         num_molecules_to_plot: int = 100,
     ) -> None:
-        # clear the figure
+        """
+        Plot a histogram showing how often the most popular molecules in the dataset appear.
+        """
         plt.clf()
+        # Define the list of columns to check
+        columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
+            columns=df.columns,
+            target_strings=molecule_type,
+        )
+        # Get the value counts for each column
+        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from)
         sub_value_counts = value_counts[:num_molecules_to_plot]
+
         # Plot the results
         plt.bar(
             range(1, len(sub_value_counts) + 1), sub_value_counts, edgecolor="black"
         )
         # set the plot title and axis labels
 
-        plt.title(f"Frequency of occurrence of molecules")
-        plt.ylabel(f"Number of occurrences of molecules")
-        plt.xlabel(f"Molecules")
+        plt.title(f"Most popular {molecule_type}s")
+        plt.ylabel(f"Number of occurrences")
+        plt.xlabel(f"Popularity rank")
 
-        figure_file_path = plot_output_path / f"value_counts.png"
+        # Get top 10 molecules
+        top_10 = sub_value_counts.head(10)
+        top_10_list = '\n'.join([f'{molecule}: {count / 1000:.1f}k' for molecule, count in top_10.items()])
+
+        # Add top 10 list inside the plot
+        plt.text(
+            0.5, 0.5, f"Top 10 {molecule_type}s:\n{top_10_list}",
+            transform=plt.gca().transAxes, fontsize=10, verticalalignment='center', ha='center', bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5)
+        )
+
+        figure_file_path = plot_output_path / f"{molecule_type}_popularity.png"
 
         # save the plot to file
         plt.savefig(figure_file_path, bbox_inches="tight", dpi=600)
 
-        # clear the figure
-        plt.clf()
-
         return
-
-    ####################################################################################################
-
-    def plot_waterfall(self) -> None:
-        # TODO: Though I'm not sure that a waterfall plot is actually the best way to show how data is filtered out by ORDerly. Perhaps better simply with a table?
-        pass
 
 
 @click.command()
@@ -355,11 +381,11 @@ class ORDerlyPlotter:
     help="Size of the step when plotting impact of min_frequency_of_occurrence (between 0 and freq_threshold)",
 )
 @click.option(
-    "--plot_waterfall_bool",
+    "--plot_molecule_popularity_histograms",
     type=bool,
     default=False,
     show_default=True,
-    help="If true, plots a waterfall chart showing how many reactions are removed at each step of the cleaning process",
+    help="If true, plots a histogram showing the popularity of the most commonly occurring molecules in the dataset",
 )
 @click.option(
     "--log_file",
@@ -376,7 +402,7 @@ def main_click(
     plot_frequency_of_occurrence_bool: bool,
     freq_threshold: int,
     freq_step: int,
-    plot_waterfall_bool: bool,
+    plot_molecule_popularity_histograms: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -399,7 +425,7 @@ def main_click(
         plot_frequency_of_occurrence_bool=plot_frequency_of_occurrence_bool,
         freq_threshold=freq_threshold,
         freq_step=freq_step,
-        plot_waterfall_bool=plot_waterfall_bool,
+        plot_molecule_popularity_histograms=plot_molecule_popularity_histograms,
         log_file=_log_file,
         log_level=log_level,
     )
@@ -412,7 +438,7 @@ def main(
     plot_frequency_of_occurrence_bool: bool,
     freq_threshold: int,
     freq_step: int,
-    plot_waterfall_bool: bool,
+    plot_molecule_popularity_histograms: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
     log_level: int = logging.INFO,
 ) -> None:
@@ -459,8 +485,8 @@ def main(
         instance.plot_num_rxn_components()
     if plot_frequency_of_occurrence_bool:
         instance.plot_frequency_of_occurrence()
-    if plot_waterfall_bool:
-        instance.plot_waterfall()
+    if plot_molecule_popularity_histograms:
+        instance.plot_molecule_popularity_histograms()
 
     LOG.info(f"completed plots, saving to {plot_output_path}")
 
