@@ -289,8 +289,8 @@ class ORDerlyPlotter:
 
     @staticmethod
     def plot_molecule_popularity_histogram(
-        df,
-        molecule_type,
+        df: pd.DataFrame,
+        molecule_type: str,
         plot_output_path: pathlib.Path,
         num_molecules_to_plot: int = 100,
     ) -> None:
@@ -308,7 +308,7 @@ class ORDerlyPlotter:
             # Define the list of columns to check
             columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
                 columns=df.columns,
-                target_strings=molecule_type,
+                target_strings=(molecule_type,),
             )
         # Get the value counts for each column and remove "NULL"
         value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from).drop(
