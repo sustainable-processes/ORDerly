@@ -281,7 +281,6 @@ class ORDerlyPlotter:
             "product",
             "solvent",
             "catalyst",
-            "reagent",
             "agent",
         ]:
             if molecule + "_000" in self.df.columns:
@@ -300,33 +299,54 @@ class ORDerlyPlotter:
         Plot a histogram showing how often the most popular molecules in the dataset appear.
         """
         plt.clf()
-        # Define the list of columns to check
-        columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
-            columns=df.columns,
-            target_strings=molecule_type,
-        )
-        # Get the value counts for each column
-        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from)
+        if molecule_type.lower() == 'catalyst':
+            # Define the list of columns to check
+            columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=(molecule_type, "reagent"),
+            )
+        else:
+            # Define the list of columns to check
+            columns_to_count_from = ORDerlyPlotter._get_columns_beginning_with_str(
+                columns=df.columns,
+                target_strings=molecule_type,
+            )
+        # Get the value counts for each column and remove "NULL"
+        value_counts = ORDerlyPlotter._get_value_counts(df, columns_to_count_from).drop("NULL", errors='ignore')
         sub_value_counts = value_counts[:num_molecules_to_plot]
+        
+        if molecule_type.lower() == 'product':
+            divider=1
+        else:
+            divider=1000
 
-        # Plot the results
+        # Plot the results in thousands
         plt.bar(
-            range(1, len(sub_value_counts) + 1), sub_value_counts, edgecolor="black"
+            range(1, len(sub_value_counts) + 1), sub_value_counts / divider, edgecolor="black", color="grey"
         )
         # set the plot title and axis labels
 
         plt.title(f"Most popular {molecule_type}s")
-        plt.ylabel(f"Number of occurrences")
         plt.xlabel(f"Popularity rank")
 
         # Get top 10 molecules
         top_10 = sub_value_counts.head(10)
-        top_10_list = '\n'.join([f'{molecule}: {count / 1000:.1f}k' for molecule, count in top_10.items()])
+        
+        # Conditional formatting for products
+        molecule_entries = []
+        for molecule, count in top_10.items():
+            if molecule == "c1ccc([P](c2ccccc2)(c2ccccc2)[Pd]([P](c2ccccc2)(c2ccccc2)c2ccccc2)([P](c2ccccc2)(c2ccccc2)c2ccccc2)[P](c2ccccc2)(c2ccccc2)c2ccccc2)cc1":
+                molecule = "tetrakistriphenylphosphine palladium"
+            if molecule_type.lower() == 'product':
+                molecule_entries.append(f'{molecule}: {count}')
+            else:
+                molecule_entries.append(f'{molecule}: {count / 1000:.1f}k')
+        top_10_list = '\n'.join(molecule_entries)
 
-        # Add top 10 list inside the plot
+        # Add top 10 list inside the plot, aligned to the left
         plt.text(
-            0.5, 0.5, f"Top 10 {molecule_type}s:\n{top_10_list}",
-            transform=plt.gca().transAxes, fontsize=10, verticalalignment='center', ha='center', bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5)
+            0.95, 0.65, f"Top 10 {molecule_type}s:\n{top_10_list}",
+            transform=plt.gca().transAxes, fontsize=10, verticalalignment='center', ha='right', bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5)
         )
 
         figure_file_path = plot_output_path / f"{molecule_type}_popularity.png"
