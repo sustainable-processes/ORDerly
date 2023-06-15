@@ -4,10 +4,9 @@ on: push
 
 jobs:
   orderly:
-    strategy:
-      fail-fast: false
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.8", "3.9", "3.10"]
         group: [1, 2, 3, 4, 5]
