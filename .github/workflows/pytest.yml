@@ -33,7 +33,7 @@ jobs:
         run: sudo apt-get install -y libpq-dev
 
       - name: Install poetry
-        run: python -m pip install --upgrade poetry wheel
+        uses: Gr1N/setup-poetry@v8
 
       - name: Set Poetry config
         run: |
@@ -66,10 +66,8 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install coverage
+        run: pip install coverage
 
       - name: Download all artifacts
         # Downloads coverage1, coverage2, etc.
