@@ -7,8 +7,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+    os: ubuntu-latest
+    strategy:
       matrix:
-        os: [ubuntu-latest] # [, ubuntu-latest, windows-latest, ubuntu-18, ubuntu-20]
+        python: ["3.8", "3.9", "3.10"]
+        group: [1, 2, 3, 4, 5]
     timeout-minutes: 15
 
     steps:
@@ -19,7 +22,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python }}
 
       - name: Install libpq-dev
         if: matrix.os == 'ubuntu-latest'
@@ -42,7 +45,7 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: poetry run pytest -v --cov --cov-fail-under=85 --cov-report html --ignore=condition_prediction
+        run: poetry run pytest -v --cov --cov-fail-under=85 --cov-report html --ignore=condition_prediction --splits 5 --group ${{ matrix.group }} --splitting-algorithm least_duration
 
       - name: Upload
         uses: actions/upload-artifact@v1
