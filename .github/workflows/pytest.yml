@@ -4,10 +4,9 @@ on: push
 
 jobs:
   orderly:
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-    os: ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python: ["3.8", "3.9", "3.10"]
