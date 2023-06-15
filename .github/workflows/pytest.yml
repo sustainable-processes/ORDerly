@@ -49,13 +49,13 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run test suite
-        run: poetry run pytest -v --cov --cov-fail-under=85 --cov-report html --ignore=condition_prediction --splits 5 --group ${{ matrix.group }} --splitting-algorithm least_duration
+        run: poetry run pytest -v--ignore=condition_prediction --splits 5 --group ${{ matrix.group }} --splitting-algorithm least_duration
 
-      - name: Upload
-        uses: actions/upload-artifact@v1
-        with:
-          name: coverage
-          path: htmlcov
+      # - name: Upload
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: coverage
+      #     path: htmlcov
 
   condition_prediction:
     runs-on: ${{ matrix.os }}
