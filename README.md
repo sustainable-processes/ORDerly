@@ -101,9 +101,6 @@ test_df = pd.read_parquet("orderly_benchmark/orderly_benchmark_test.parquet")
 </details>
 
 
-## Reproduce results form the paper
-TODO
-
 <!-- ###  Training a condition prediction algorithm with this data -->
 
 <!-- ### Requirements
@@ -145,7 +142,7 @@ You can download pretrained models here:
 >📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models.
 @Kobi see inspiration above -->
 
-Reproducing results from paper
+📋 Reproducing results from paper
 ------------------------------
 
 To reproduce the results from the paper, please clone the repository, and use poetry to install the requirements (see above). Towards the bottom of the makefile, you will find a comprehensive 8 step list of steps to generate all the datasets and reproduce all results presented in the paper. 
