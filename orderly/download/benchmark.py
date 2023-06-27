@@ -41,12 +41,12 @@ LOG = logging.getLogger(__name__)
 )
 @click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def download_benchmark_click(
-    benchmark_zip_file,
-    benchmark_directory,
-    version,
-    log_file,
-    log_level,
-):
+    benchmark_zip_file: str,
+    benchmark_directory: str,
+    version: int,
+    log_file: str,
+    log_level: int,
+) -> None:
     download_benchmark(
         benchmark_zip_file=benchmark_zip_file,
         benchmark_directory=pathlib.Path(benchmark_directory),
@@ -62,7 +62,7 @@ def download_benchmark(
     version: int = 2,
     log_file: pathlib.Path = pathlib.Path("download.log"),
     log_level: int = logging.INFO,
-):
+) -> None:
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
