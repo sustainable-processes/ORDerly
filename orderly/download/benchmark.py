@@ -10,6 +10,7 @@ import pandas as pd
 LOG = logging.getLogger(__name__)
 
 
+@click.command()
 @click.option(
     "--benchmark_zip_file",
     type=str,
@@ -62,7 +63,6 @@ def download_benchmark(
     log_file: pathlib.Path = pathlib.Path("download.log"),
     log_level: int = logging.INFO,
 ):
-    
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
