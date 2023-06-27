@@ -29,17 +29,18 @@ Use ORDerly to:
 ### Download data from ORD
 
 ```orderly download```
+
 This will create a folder called ```/data/ord/``` in your current directory, and download the data into ```ord/```
 
 Alternatively, you can also follow the instructions on the [official website](https://github.com/open-reaction-database/ord-data) to download the data in ```ord-data/data/```.
 
 ### Extract data from the ORD files
 
-```orderly extract```
+```python -m orderly.extract```
 
 If you want to run ORDerly on your own data, and want to specify the input and output path:
 
-```orderly extract --input_path="/data/ord/" --output_path="/data/orderly/"```
+```python -m orderly.extract --input_path="/data/ord/" --output_path="/data/orderly/"```
 
 This will generate a parquet file for each ORD file.
 
@@ -49,6 +50,7 @@ This will generate a parquet file for each ORD file.
 
 This will produce train and test parquet files, along with a .json file showing the arguments used and a .log file showing the operations run.
 
+```python -m orderly.clean```
 
 <!-- Section on downloading the benchmark -->
 🚀 Download the condition prediction benchmark dataset
@@ -170,7 +172,7 @@ Full API documentation
 ## Extraction
 There are two different ways to extract data from ORD files, trusting the labelling, or using the reaction string (as specified in the ```trust_labelling``` boolean). Below you see all the arguments that can be passed to the extraction script, change as appropriate:
 
-``` orderly extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False```
+```orderly extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False```
 
 ## Cleaning
 There are also a number of customisable steps for the cleaning:
