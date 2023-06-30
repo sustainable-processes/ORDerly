@@ -31,11 +31,13 @@ psutil = "^5.9.4"
 click-loglevel = "^0.4.0.post1"
 types-requests = "^2.31.0.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+pytest-split = "^0.8.1"
 pytest = "^7.2.2"
 black = "^23.3.0"
 mypy = "^1.2.0"
 ipykernel = "^6.22.0"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
