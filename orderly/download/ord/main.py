@@ -85,7 +85,7 @@ def download_ord_click(
 ):
 
     if system == "default":
-        system = None
+        system = None  # type: ignore
     download_ord(
         output_control=output_control, 
         system=system
