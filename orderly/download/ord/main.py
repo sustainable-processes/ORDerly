@@ -79,17 +79,10 @@ def download_ord(output_control: bool = True, system: Optional[str] = None) -> N
     show_default=True,
     help='controls the system used ("Windows", "Linux", "MacOS")',
 )
-def download_ord_click(
-    output_control: bool,
-    system: str
-):
-
+def download_ord_click(output_control: bool, system: str):
     if system == "default":
         system = None  # type: ignore
-    download_ord(
-        output_control=output_control, 
-        system=system
-    )
+    download_ord(output_control=output_control, system=system)
 
 
 if __name__ == "__main__":
