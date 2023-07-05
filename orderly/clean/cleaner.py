@@ -420,7 +420,6 @@ class Cleaner:
         sorted_row = not_na_values.append(na_values).reset_index(drop=True)
         return sorted_row
 
-
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
     ) -> pd.Series:
