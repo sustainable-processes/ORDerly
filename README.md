@@ -28,7 +28,7 @@ Use ORDerly to:
  
 ### Download data from ORD
 
-```orderly download```
+```orderly -m download.ord```
 
 This will create a folder called ```/data/ord/``` in your current directory, and download the data into ```ord/```
 
@@ -46,8 +46,6 @@ This will generate a parquet file for each ORD file.
 
 ### Clean the data
 
-```orderly clean```
-
 This will produce train and test parquet files, along with a .json file showing the arguments used and a .log file showing the operations run.
 
 ```python -m orderly.clean```
@@ -60,13 +58,21 @@ Reaction condition prediction is the problem of predicting the things "above the
 
 <!-- Include image of a reactions -->
 
-You can either download the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) directly, use the following code to download it (without installing ORDerly). Make sure to install needed dependencies first.
+There are three options for donwloading the benchmark.
 
+1) If you have orderly installed you can download the benchmark using this command:
 
-```pip install requests fastparquet pandas```
+```orderly -m download.benchmark```
+
+2) Or you can either download the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) directly
+
+3) Or use the following code to download it (without installing ORDerly). Make sure to install needed dependencies first (shown below).
+
 
 <details>
 <summary>Toggle to see code to download benchmark</summary>
+
+```pip install requests fastparquet pandas```
 
 ```python
 import pathlib

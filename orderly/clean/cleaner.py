@@ -414,7 +414,11 @@ class Cleaner:
         return sorted([col for col in columns if col.startswith(target_strings)])
 
     def _sort_row(row: pd.Series) -> pd.Series:
-        return pd.Series(sorted(row, key=lambda x: pd.isna(x)), index=row.index)
+        isna = row.isna()
+        not_na_values = row[~isna]
+        na_values = row[isna]
+        sorted_row = pd.concat([not_na_values, na_values]).reset_index(drop=True)
+        return sorted_row
 
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
@@ -458,13 +462,11 @@ class Cleaner:
                 )
             else:
                 # Apply a lambda function to sort the elements within each row, placing None values last
-                df.loc[:, ordering_target_columns] = df.loc[
-                    :, ordering_target_columns
-                ].apply(
-                    Cleaner._sort_row,
-                    axis=1,
+                result = df.loc[:, ordering_target_columns].apply(
+                    Cleaner._sort_row, axis=1
                 )
-
+                result.columns = ordering_target_columns
+                df.loc[:, ordering_target_columns] = result
         return df
 
     @staticmethod
