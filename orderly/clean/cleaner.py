@@ -414,7 +414,7 @@ class Cleaner:
         return sorted([col for col in columns if col.startswith(target_strings)])
 
     def _sort_row(row: pd.Series) -> pd.Series:
-        sorted_row = row.sort_values(key=pd.isna)
+        sorted_row = row.sort_values(key=lambda x: (pd.isna(x), x))
         return sorted_row
 
     def _sort_row_relative(
