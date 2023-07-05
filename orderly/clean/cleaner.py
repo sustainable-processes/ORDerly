@@ -417,7 +417,7 @@ class Cleaner:
         isna = row.isna()
         not_na_values = row[~isna]
         na_values = row[isna]
-        sorted_row = not_na_values.append(na_values).reset_index(drop=True)
+        sorted_row = not_na_values._append(na_values).reset_index(drop=True)
         return sorted_row
 
     def _sort_row_relative(
