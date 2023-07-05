@@ -462,7 +462,9 @@ class Cleaner:
                 )
             else:
                 # Apply a lambda function to sort the elements within each row, placing None values last
-                result = df.loc[:, ordering_target_columns].apply(Cleaner._sort_row, axis=1)
+                result = df.loc[:, ordering_target_columns].apply(
+                    Cleaner._sort_row, axis=1
+                )
                 result.columns = ordering_target_columns
                 df.loc[:, ordering_target_columns] = result
         return df
