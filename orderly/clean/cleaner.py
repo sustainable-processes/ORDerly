@@ -417,7 +417,7 @@ class Cleaner:
         isna = row.isna()
         not_na_values = row[~isna]
         na_values = row[isna]
-        sorted_row = not_na_values._append(na_values).reset_index(drop=True)
+        sorted_row = pd.concat([not_na_values, na_values]).reset_index(drop=True)
         return sorted_row
 
     def _sort_row_relative(
@@ -462,13 +462,9 @@ class Cleaner:
                 )
             else:
                 # Apply a lambda function to sort the elements within each row, placing None values last
-                df.loc[:, ordering_target_columns] = df.loc[
-                    :, ordering_target_columns
-                ].apply(
-                    Cleaner._sort_row,
-                    axis=1,
-                )
-
+                result = df.loc[:, ordering_target_columns].apply(Cleaner._sort_row, axis=1)
+                result.columns = ordering_target_columns
+                df.loc[:, ordering_target_columns] = result
         return df
 
     @staticmethod
