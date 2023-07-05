@@ -414,8 +414,12 @@ class Cleaner:
         return sorted([col for col in columns if col.startswith(target_strings)])
 
     def _sort_row(row: pd.Series) -> pd.Series:
-        sorted_row = row.sort_values(key=lambda x: (pd.isna(x), x))
+        isna = row.isna()
+        not_na_values = row[~isna]
+        na_values = row[isna]
+        sorted_row = not_na_values.append(na_values).reset_index(drop=True)
         return sorted_row
+
 
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
