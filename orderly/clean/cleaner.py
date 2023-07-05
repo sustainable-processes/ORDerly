@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import pathlib
-from typing import Dict, List, Optional, Tuple, TypedDict
+from typing import Dict, List, Optional, Tuple
 
 import click
 import numpy as np
@@ -413,10 +413,9 @@ class Cleaner:
 
         return sorted([col for col in columns if col.startswith(target_strings)])
 
-
-    def _sort_row(row: pd.Series) -> pd.Series:    
-        sorted_row = sorted(row, key=lambda x: pd.isna(x))  # type: ignore[no-any-return]
-        return pd.Series(sorted_row, index=row.index) 
+    def _sort_row(row: pd.Series) -> pd.Series:
+        sorted_row = row.sort_values(key=pd.isna)
+        return sorted_row
 
     def _sort_row_relative(
         row: pd.Series, to_sort: List[str], to_keep_ordered: List[str]
