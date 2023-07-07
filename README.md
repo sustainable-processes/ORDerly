@@ -30,7 +30,7 @@ Use ORDerly to:
  
 ### Download data from ORD
 
-```orderly -m download.ord```
+```python -m orderly.download.ord```
 
 This will create a folder called ```/data/ord/``` in your current directory, and download the data into ```ord/```
 
