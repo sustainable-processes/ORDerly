@@ -64,7 +64,7 @@ There are three options for donwloading the benchmark.
 
 1) If you have orderly installed you can download the benchmark using this command:
 
-```orderly -m download.benchmark```
+```python -m orderly.download.benchmark```
 
 2) Or you can either download the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) directly
 
