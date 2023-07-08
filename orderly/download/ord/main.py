@@ -56,7 +56,7 @@ def download_ord(output_control: bool = True, system: Optional[str] = None) -> N
     elif system == "Linux":
         linux_download(output_control=output_control)
         return
-    elif system == "Darwin": #MacOS
+    elif system == "Darwin":  # MacOS
         mac_download(output_control=output_control)
     else:
         e = NotImplementedError()
