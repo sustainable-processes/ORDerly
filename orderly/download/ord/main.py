@@ -50,16 +50,18 @@ def download_ord(output_control: bool = True, system: Optional[str] = None) -> N
     if system is None:
         system = platform.system()
     if system == "Windows":
-        e = NotImplementedError()
+        e = NotImplementedError(
+            "Windows not supported, please use Windows Subsystem for Linux (WSL) or download manually."
+        )
         LOG.error(e)
         raise e
     elif system == "Linux":
         linux_download(output_control=output_control)
         return
-    elif system == "Darwin": #MacOS
+    elif system == "Darwin":  # MacOS
         mac_download(output_control=output_control)
     else:
-        e = NotImplementedError()
+        e = NotImplementedError(f"{system} is not supported.")
         LOG.error(e)
         raise e
 

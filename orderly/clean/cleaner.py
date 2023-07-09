@@ -952,14 +952,14 @@ def get_matching_indices(
 @click.option(
     "--num_reactant",
     type=int,
-    default=5,
+    default=2,
     show_default=True,
     help="The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.",
 )
 @click.option(
     "--num_product",
     type=int,
-    default=5,
+    default=1,
     show_default=True,
     help="See help for num_reactant",
 )
@@ -994,14 +994,14 @@ def get_matching_indices(
 @click.option(
     "--min_frequency_of_occurrence",
     type=int,
-    default=15,
+    default=100,
     show_default=True,
     help="The minimum number of times a molecule must appear in the dataset (cumulatively, as an agent, solvent, catalyst, or reagent) to be kept. Infrequently occuring molecules will probably add more noise than signal to the dataset, so it is best to remove them.",
 )
 @click.option(
     "--map_rare_molecules_to_other",
     type=bool,
-    default=True,
+    default=False,
     help="If True, molecules that appear less than map_rare_to_other_threshold times will be mapped to the 'other' category. If False, the reaction they appear in will be removed.",
 )
 @click.option(
@@ -1027,7 +1027,7 @@ def get_matching_indices(
 @click.option(
     "--scramble",
     type=bool,
-    default=False,
+    default=True,
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
