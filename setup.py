@@ -9,6 +9,7 @@ setup(
     description="A wrapper for downloading ORD-schema data, extracting and cleaning the data",
     license="MIT",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author=[
         "Daniel S. Wigh <dsw46@cam.ac.uk>",
         "Joe Arrowsmith <joearrowsmith0@gmail.com>",
