@@ -6,6 +6,8 @@
 
 ## Quick Install
 
+Requires Python 3.10 (Tested on MacOS and Linux)
+
 ```pip install orderly```
 
 🤔 What is this?
