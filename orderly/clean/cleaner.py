@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import tqdm
 import tqdm.contrib.logging
-from click_loglevel import LogLevel
 from numpy.typing import NDArray
 from rdkit import Chem as rdkit_Chem
 from rdkit.rdBase import BlockLogs as rdkit_BlockLogs
@@ -1051,7 +1050,6 @@ def get_matching_indices(
     show_default=True,
     help="path for the log file for cleaning",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     output_path: pathlib.Path,
     ord_extraction_path: pathlib.Path,
@@ -1079,7 +1077,6 @@ def main_click(
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
-    log_level: int,
 ) -> None:
     """
     After running orderly.extract, this script will merge and apply further cleaning to the data.
@@ -1137,7 +1134,6 @@ def main_click(
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
-        log_level=log_level,
     )
 
 

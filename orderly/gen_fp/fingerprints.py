@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import tqdm
 import tqdm.contrib.logging
-from click_loglevel import LogLevel
 from numpy.typing import NDArray
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
@@ -122,12 +121,10 @@ class GenerateFingerprints:
     show_default=True,
     help="If true, will overwrite the existing fingerprints folder",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     clean_data_folder_path: pathlib.Path,
     fp_size: int,
     overwrite: bool = False,
-    log_level: int = logging.INFO,
 ) -> None:
     """
     After extraction and cleaning, this can generate the fingerprints used in the condition prediction model of the ORDerly paper.
@@ -137,7 +134,6 @@ def main_click(
         clean_data_file_path=pathlib.Path(clean_data_folder_path),
         fp_size=fp_size,
         overwrite=overwrite,
-        log_level=log_level,
     )
 
 

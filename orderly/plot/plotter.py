@@ -7,8 +7,6 @@ import datetime
 import pathlib
 import click
 
-from click_loglevel import LogLevel
-
 import tqdm
 import tqdm.contrib.logging
 import pandas as pd
@@ -427,7 +425,6 @@ class ORDerlyPlotter:
     show_default=True,
     help="path for the log file for cleaning",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     clean_data_path: pathlib.Path,
     plot_output_path: pathlib.Path,
@@ -437,7 +434,6 @@ def main_click(
     freq_step: int,
     plot_molecule_popularity_histograms: bool,
     log_file: pathlib.Path = pathlib.Path("plots.log"),
-    log_level: int = logging.INFO,
 ) -> None:
     """
     After extraction and cleaning, this can generate the plots used in the ORDerly paper.
@@ -460,7 +456,6 @@ def main_click(
         freq_step=freq_step,
         plot_molecule_popularity_histograms=plot_molecule_popularity_histograms,
         log_file=_log_file,
-        log_level=log_level,
     )
 
 
