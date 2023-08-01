@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
     name="orderly",
-    version="0.1.3",
+    version="0.1.4",
     description="A wrapper for downloading ORD-schema data, extracting and cleaning the data",
     license="MIT",
     long_description_content_type="text/markdown",
@@ -17,5 +17,5 @@ setup(
         "Kobi C. Felton <kcmf2@cam.ac.uk>",
         "Alexei A. Lapkin <aal35@cam.ac.uk>",
     ],
-    packages=["orderly"],
+    packages=find_packages(),
 )
