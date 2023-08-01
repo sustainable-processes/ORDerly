@@ -18,9 +18,9 @@ Machine learning has the potential to provide tremendous value to chemistry. How
 ORDerly cleans chemical reaction data from the growing [Open Reaction Database (ORD)](https://docs.open-reaction-database.org/en/latest/).
 
 Use ORDerly to:
-- Extract and clean your own dataset from ORD
+- Extract and clean your own datasets.
 - Access the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) for reaction condition prediction.
-- Reproduce results from our paper including training a ML model to predict reaction conditions
+- Reproduce results from our paper including training a ML model to predict reaction conditions.
 
 <img src="images/abstract_fig.png" alt="Abstract Figure" width="300">
 
@@ -38,7 +38,7 @@ This will create a folder called ```/data/ord/``` in your current directory, and
 
 Data in ORD format should be placed in a folder called ```/data/ord/```. You can either use your own data, or the open-source ORD data.
 
-To download the ORD data follow the instructions on the [official website](https://github.com/open-reaction-database/ord-data) (i.e. download GitLFS and clone their repository) and then place it within a folder called ```/data/ord/```.
+To download the ORD data follow the instructions in the [ORD repository](https://github.com/open-reaction-database/ord-data) (i.e. download [Git LFS](https://git-lfs.com/) and clone their repository) and then place it within a folder called ```/data/ord/```.
 
 ### Extract data from the ORD files
 
