@@ -5,8 +5,6 @@ import pathlib
 import click
 import json
 
-from click_loglevel import LogLevel
-
 import pandas as pd
 import tqdm
 import tqdm.contrib.logging
@@ -339,7 +337,6 @@ def extract(
     show_default=True,
     help="path for the log file for extraction",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     data_path: str,
     ord_file_ending: str,
@@ -355,7 +352,6 @@ def main_click(
     inverse_substring: bool,
     overwrite: bool,
     log_file: str,
-    log_level: int,
 ) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to file. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
@@ -446,7 +442,6 @@ def main_click(
         inverse_substring=inverse_substring,
         overwrite=overwrite,
         log_file=_log_file,
-        log_level=log_level,
     )
 
 

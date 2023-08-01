@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import wandb
-from click_loglevel import LogLevel
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
@@ -977,7 +976,6 @@ class ConditionPrediction:
     show_default=True,
     help="path for the log file for model",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def main_click(
     train_data_path: pathlib.Path,
     test_data_path: pathlib.Path,
@@ -1014,7 +1012,6 @@ def main_click(
     prefetch_buffer_size: int,
     interleave: bool,
     log_file: pathlib.Path = pathlib.Path("model.log"),
-    log_level: int = logging.INFO,
     verbosity: int = 2,
 ) -> None:
     """
@@ -1071,7 +1068,6 @@ def main_click(
         prefetch_buffer_size=prefetch_buffer_size,
         interleave=interleave,
         log_file=log_file,
-        log_level=log_level,
         verbosity=verbosity,
     )
 

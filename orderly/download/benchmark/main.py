@@ -4,7 +4,6 @@ import click
 import logging
 import requests
 
-from click_loglevel import LogLevel
 import pandas as pd
 
 LOG = logging.getLogger(__name__)
@@ -39,20 +38,17 @@ LOG = logging.getLogger(__name__)
     show_default=True,
     help="path for the log file for download",
 )
-@click.option("--log-level", type=LogLevel(), default=logging.INFO)
 def download_benchmark_click(
     benchmark_zip_file: str,
     benchmark_directory: str,
     version: int,
     log_file: str,
-    log_level: int,
 ) -> None:
     download_benchmark(
         benchmark_zip_file=benchmark_zip_file,
         benchmark_directory=pathlib.Path(benchmark_directory),
         version=version,
         log_file=pathlib.Path(log_file),
-        log_level=log_level,
     )
 
 
