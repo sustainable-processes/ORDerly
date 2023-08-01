@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "ORDerly"
-version = "0.0.1"
-description = "Cleaning and extraction of data from ORD"
+version = "0.2.0"
+description = "Extraction and cleaning of chemical reactions data from ORD"
 authors = [
     "Daniel S. Wigh <dsw46@cam.ac.uk>",
     "Joe Arrowsmith <joearrowsmith0@gmail.com>",
     "Alexander Pomberger <ap2153@cam.ac.uk>",
+    "Kobi C. Felton <kcmf2@cam.ac.uk>",
     "Alexei A. Lapkin <aal35@cam.ac.uk>",
 ]
 maintainers = [
@@ -15,9 +16,9 @@ maintainers = [
 # New attributes
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/dswigh/orderly"
-repository = "https://github.com/dswigh/orderly"
-keywords = ["ord-schema", "RDKit", "ord-data"]
+homepage = "https://github.com/sustainable-processes/ORDerly"
+repository = "https://github.com/sustainable-processes/ORDerly"
+keywords = ["ord-schema", "RDKit", "ord-data", "chemical-reactions"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
