@@ -32,11 +32,13 @@ Use ORDerly to:
  
 ### Download data from ORD
 
-```python -m orderly.download.ord```
+<!-- ```python -m orderly.download.ord```
 
-This will create a folder called ```/data/ord/``` in your current directory, and download the data into ```ord/```
+This will create a folder called ```/data/ord/``` in your current directory, and download the data into ```ord/``` -->
 
-Alternatively, you can also follow the instructions on the [official website](https://github.com/open-reaction-database/ord-data) to download the data in ```ord-data/data/```.
+Data in ORD format should be placed in a folder called ```/data/ord/```. You can either use your own data, or the open-source ORD data.
+
+To download the ORD data follow the instructions on the [official website](https://github.com/open-reaction-database/ord-data) (i.e. download GitLFS and clone their repository) and then place it within a folder called ```/data/ord/```.
 
 ### Extract data from the ORD files
 
