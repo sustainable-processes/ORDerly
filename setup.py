@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="orderly",
-    version="0.1.4",
+    version="0.1.5",
     description="A wrapper for downloading ORD-schema data, extracting and cleaning the data",
     license="MIT",
     long_description_content_type="text/markdown",
@@ -18,4 +18,5 @@ setup(
         "Alexei A. Lapkin <aal35@cam.ac.uk>",
     ],
     packages=find_packages(),
+    package_data={"orderly": ["data/solvents.csv"]},
 )
