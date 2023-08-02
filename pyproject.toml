@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ORDerly"
-version = "0.2.4"
+version = "1.0.0"
 description = "Extraction and cleaning of chemical reactions data from ORD"
 authors = [
     "Daniel S. Wigh <dsw46@cam.ac.uk>",
