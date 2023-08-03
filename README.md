@@ -162,17 +162,17 @@ Submit an [issue](https://github.com/sustainable-processes/ORDerly/issues) or se
 If you find this project useful, we encourage you to
 
 * Star this repository :star: 
-<!-- * Cite our [paper](https://chemistry-europe.onlinelibrary.wiley.com/doi/full/10.1002/cmtd.202000051).
+* Cite our [paper](https://chemrxiv.org/engage/chemrxiv/article-details/64ca5d3e4a3f7d0c0d78ca42).
 ```
-@article{Felton2021,
-author = "Kobi Felton and Jan Rittig and Alexei Lapkin",
-title = "{Summit: Benchmarking Machine Learning Methods for Reaction Optimisation}",
-year = "2021",
-month = "2",
-url = "https://chemistry-europe.onlinelibrary.wiley.com/doi/full/10.1002/cmtd.202000051",
-journal = "Chemistry Methods"
+@article{Wigh2023,
+author = "Daniel Wigh, Joe Arrowsmith, Alexander Pomberger, Kobi Felton, and Alexei Lapkin",
+title = "{ORDerly: Datasets and benchmarks for chemical reaction data}",
+year = "2023",
+month = "8",
+url = "https://chemrxiv.org/engage/chemrxiv/article-details/64ca5d3e4a3f7d0c0d78ca42",
+journal = "ChemRxiv"
 } 
-```-->
+```
 
 
 
