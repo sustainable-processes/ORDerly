@@ -1,6 +1,7 @@
 # misc
 .DS_Store
 *.log
+rxnfp/
 
 #condition_prediction/
 models/
