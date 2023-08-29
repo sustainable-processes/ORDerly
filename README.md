@@ -1,8 +1,10 @@
 # ORDerly
 
+This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, a preprint has been published on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/64ca5d3e4a3f7d0c0d78ca42).
+
 🧪 Cleaning chemical reaction data 🧪
 
-🎯 [Condition Prediction Benchmark](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) 🎯
+🎯 [Chemical Reaction Benchmarks](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) 🎯
 
 ## Quick Install
 
