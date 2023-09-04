@@ -1,6 +1,8 @@
 # ORDerly
 
-This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, a preprint has been published on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/64ca5d3e4a3f7d0c0d78ca42).
+![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
+
+This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, a preprint has been published on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/64ee4a7479853bbd78b21dc7).
 
 🧪 Cleaning chemical reaction data 🧪
 
