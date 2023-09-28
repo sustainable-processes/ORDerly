@@ -157,6 +157,33 @@ There are also a number of customisable steps for the cleaning:
 
 A list of solvents (names and SMILES) commonly used in pharmaceutical chemistry can be found at orderly/data/solvents.csv
 
+## Regenerate ORDerly benchmarks
+
+Start by extracting all USPTO data:
+
+```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False```
+
+Now select your desired dataset:
+
+### ORDerly-condition
+
+```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_condition.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=True --remove_reactions_with_no_agents=True```
+
+### ORDerly-forward
+
+```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_forward.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=False --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+
+### ORDerly-retro
+
+```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_retro.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+
+## Dataset from all non-USPTO data
+
+First extract all non-USPTO data with the extraction script.
+
+```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/not_uspto" --consider_molecule_names=False --inverse_substring=True```
+
+Next, simply use the same cleaning script as for USPTO (e.g. ORDerly-retro) for your desired task. The data will then be cleaned in the same way. This is a nice way to create test sets with no leakage. 
 
 ## Issues?
 Submit an [issue](https://github.com/sustainable-processes/ORDerly/issues) or send an email to dsw46@cam.ac.uk.
