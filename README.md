@@ -163,7 +163,7 @@ Start by extracting all USPTO data:
 
 ```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False```
 
-Now select your desired dataset:
+If you would like to extract all data in ORD (instead of just USPTO data) simply set `name_contains_substring=""`. Now select your desired dataset:
 
 ### ORDerly-condition
 
