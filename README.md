@@ -42,7 +42,7 @@ This will create a folder called ```/data/ord/``` in your current directory, and
 
 Data in ORD format should be placed in a folder called ```/data/ord/```. You can either use your own data, or the open-source ORD data.
 
-To download the ORD data follow the instructions in the [ORD repository](https://github.com/open-reaction-database/ord-data) (i.e. download [Git LFS](https://git-lfs.com/) and clone their repository) and then place it within a folder called ```/data/ord/```.
+To download the ORD data follow the instructions in the [ORD repository](https://github.com/open-reaction-database/ord-data) (i.e. download [Git LFS](https://git-lfs.com/) and clone their repository. E.g. ```brew install git-lfs``` -> ```git lfs install``` -> ```git lfs pull```). Then place the data within a folder called ```/data/ord/```.
 
 ### Extract data from the ORD files
 
