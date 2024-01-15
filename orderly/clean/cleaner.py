@@ -112,7 +112,7 @@ class Cleaner:
         # create a new "original_index" col
         df = df.reset_index()
         df = df.rename(columns={"index": "original_index"})
-        
+
         # the columns below have an unstandardised length so we fill the nan values with a specific string to avoid ambiguity of none / nan
         target_strings = (
             "agent",
@@ -169,10 +169,9 @@ class Cleaner:
     @staticmethod
     def _remove_reactions_with_too_many_of_component(
         df: pd.DataFrame,
-        component_name: str, # E.g. reactant, product, solvent, agent, catalyst, reagent
+        component_name: str,  # E.g. reactant, product, solvent, agent, catalyst, reagent
         number_of_columns_to_keep: int,
     ) -> pd.DataFrame:
-
         LOG.info(
             f"Removing reactions with too many components for {component_name=} threshold={number_of_columns_to_keep}"
         )
@@ -831,7 +830,9 @@ class Cleaner:
             df = Cleaner._replace_None_with_NA(df, components)
         df = df.sort_index(axis=1)
         # move "original_index" to the front
-        df = df[["original_index"] + [col for col in df.columns if col != "original_index"]]
+        df = df[
+            ["original_index"] + [col for col in df.columns if col != "original_index"]
+        ]
         return df
 
 

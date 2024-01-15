@@ -45,7 +45,7 @@ def get_file_names(
                 files.append(j)
             elif include_cleaned_USPTO_file:
                 files.append(j)
-    
+
     return sorted(
         files
     )  # sort just so that there is no randomness in order of processing
