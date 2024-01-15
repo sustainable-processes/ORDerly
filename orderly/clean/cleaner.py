@@ -945,7 +945,7 @@ def get_matching_indices(
 @click.option(
     "--remove_reactions_with_no_agents",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with no agents (ie no reagents AND no catalysts). Does not consider solvents",
 )
