@@ -1038,7 +1038,7 @@ def get_matching_indices(
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
-    "--train_test_split_fraction",
+    "--train_size",
     type=float,
     default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
@@ -1081,7 +1081,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    train_test_split_fraction: float,
+    train_size: float,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -1138,7 +1138,7 @@ def main_click(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
         scramble=scramble,
-        train_test_split_fraction=train_test_split_fraction,
+        train_size=train_size,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -1167,7 +1167,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    train_test_split_fraction: float,
+    train_size: float,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1268,7 +1268,7 @@ def main(
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
         "scramble": scramble,
-        "train_test_split_fraction": train_test_split_fraction,
+        "train_size": train_size,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1321,7 +1321,7 @@ def main(
         disable_tqdm=disable_tqdm,
     )
 
-    if train_test_split_fraction not in [0.0, 1.0]:
+    if train_size not in [0.0, 1.0]:
         df = instance.cleaned_reactions
         LOG.info("Applying random split")
         # Get indices for train and val
@@ -1329,10 +1329,10 @@ def main(
         train_test_indices = np.arange(df.shape[0])
         rng.shuffle(train_test_indices)
         train_indices = train_test_indices[
-            : int(train_test_indices.shape[0] * train_test_split_fraction)
+            : int(train_test_indices.shape[0] * train_size)
         ]
         test_indices = train_test_indices[
-            int(train_test_indices.shape[0] * train_test_split_fraction) :
+            int(train_test_indices.shape[0] * train_size) :
         ]
 
         # input_columns = list(
@@ -1355,7 +1355,7 @@ def main(
         train_indices = np.append(train_indices, matching_indices)
 
         fraction_of_test_data_moved_to_train = len(matching_indices) / int(
-            train_test_indices.shape[0] * (1 - train_test_split_fraction)
+            train_test_indices.shape[0] * (1 - train_size)
         )
 
         LOG.info(f"{fraction_of_test_data_moved_to_train=}")
