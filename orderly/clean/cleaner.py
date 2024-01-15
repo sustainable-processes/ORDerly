@@ -952,7 +952,7 @@ def get_matching_indices(
 @click.option(
     "--consistent_yield",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
 )
