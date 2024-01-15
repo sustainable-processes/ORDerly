@@ -938,7 +938,7 @@ def get_matching_indices(
 @click.option(
     "--remove_reactions_with_no_solvents",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with no solvents",
 )
