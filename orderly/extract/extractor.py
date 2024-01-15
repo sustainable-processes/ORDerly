@@ -248,11 +248,12 @@ class OrdExtractor:
                 # check reactant is mapped and also that it's not in the products
                 mol = rdkit_Chem.MolFromSmiles(r_map)
                 if mol != None:
-                    if any(
-                        atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
-                    ) and (  # any(generator)
-                        r_clean not in products_from_rxn_without_mapping
-                    ):
+                    if (
+                        any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms())
+                        and (  # any(generator)
+                            r_clean not in products_from_rxn_without_mapping
+                        )
+                    ) or (r_clean == "[H][H]"):
                         reactants.append(r_clean)
                     else:
                         cleaned_agents.append(r_clean)
@@ -275,7 +276,10 @@ class OrdExtractor:
                     ):
                         products.append(p_clean)
                     else:
-                        cleaned_agents.append(p_clean)
+                        # cleaned_agents.append(p_clean)
+
+                        # it's a side product, so we should just discard it
+                        pass
 
             # Finally, now that we have the genuine reactants and products, we should remove any agents that are also present in the reactants or products
             cleaned_agents = [

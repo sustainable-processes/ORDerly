@@ -109,6 +109,10 @@ class Cleaner:
         LOG.info("Successfully read all data")
         df = pd.concat(dfs, ignore_index=True)
 
+        # create a new "original_index" col
+        df = df.reset_index()
+        df = df.rename(columns={"index": "original_index"})
+
         # the columns below have an unstandardised length so we fill the nan values with a specific string to avoid ambiguity of none / nan
         target_strings = (
             "agent",
@@ -165,7 +169,7 @@ class Cleaner:
     @staticmethod
     def _remove_reactions_with_too_many_of_component(
         df: pd.DataFrame,
-        component_name: str,
+        component_name: str,  # E.g. reactant, product, solvent, agent, catalyst, reagent
         number_of_columns_to_keep: int,
     ) -> pd.DataFrame:
         LOG.info(
@@ -514,7 +518,7 @@ class Cleaner:
             all_component_cols += component_columns
 
         sub_df = df[all_component_cols]
-        sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
+        sub_df = sub_df.map(lambda x: pd.NA if x is None else x)
 
         df = df.drop(all_component_cols, axis=1)
         df = pd.concat([df, sub_df], axis=1)
@@ -825,6 +829,10 @@ class Cleaner:
             df = Cleaner._move_none_to_after_data(df, components)
             df = Cleaner._replace_None_with_NA(df, components)
         df = df.sort_index(axis=1)
+        # move "original_index" to the front
+        df = df[
+            ["original_index"] + [col for col in df.columns if col != "original_index"]
+        ]
         return df
 
 
@@ -944,7 +952,7 @@ def get_matching_indices(
 @click.option(
     "--consistent_yield",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
 )
@@ -1030,7 +1038,7 @@ def get_matching_indices(
     help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
 )
 @click.option(
-    "--train_test_split_fraction",
+    "--train_size",
     type=float,
     default=0.9,
     help="If True, applies random split to create train and test set (90/10); a dict of the train and test indices will be saved to the output_path (instead of a df)",
@@ -1073,7 +1081,7 @@ def main_click(
     set_unresolved_names_to_none: bool,
     drop_duplicates: bool,
     scramble: bool,
-    train_test_split_fraction: float,
+    train_size: float,
     disable_tqdm: bool,
     overwrite: bool,
     log_file: str,
@@ -1130,7 +1138,7 @@ def main_click(
         set_unresolved_names_to_none=set_unresolved_names_to_none,
         drop_duplicates=drop_duplicates,
         scramble=scramble,
-        train_test_split_fraction=train_test_split_fraction,
+        train_size=train_size,
         disable_tqdm=disable_tqdm,
         overwrite=overwrite,
         log_file=_log_file,
@@ -1159,7 +1167,7 @@ def main(
     remove_rxn_with_unresolved_names: bool,
     set_unresolved_names_to_none: bool,
     scramble: bool,
-    train_test_split_fraction: float,
+    train_size: float,
     drop_duplicates: bool,
     disable_tqdm: bool,
     overwrite: bool,
@@ -1260,7 +1268,7 @@ def main(
         "set_unresolved_names_to_none": set_unresolved_names_to_none,
         "drop_duplicates": drop_duplicates,
         "scramble": scramble,
-        "train_test_split_fraction": train_test_split_fraction,
+        "train_size": train_size,
     }
 
     file_name = pathlib.Path(output_path).name
@@ -1313,7 +1321,7 @@ def main(
         disable_tqdm=disable_tqdm,
     )
 
-    if train_test_split_fraction not in [0.0, 1.0]:
+    if train_size not in [0.0, 1.0]:
         df = instance.cleaned_reactions
         LOG.info("Applying random split")
         # Get indices for train and val
@@ -1321,10 +1329,10 @@ def main(
         train_test_indices = np.arange(df.shape[0])
         rng.shuffle(train_test_indices)
         train_indices = train_test_indices[
-            : int(train_test_indices.shape[0] * train_test_split_fraction)
+            : int(train_test_indices.shape[0] * train_size)
         ]
         test_indices = train_test_indices[
-            int(train_test_indices.shape[0] * train_test_split_fraction) :
+            int(train_test_indices.shape[0] * train_size) :
         ]
 
         # input_columns = list(
@@ -1347,7 +1355,7 @@ def main(
         train_indices = np.append(train_indices, matching_indices)
 
         fraction_of_test_data_moved_to_train = len(matching_indices) / int(
-            train_test_indices.shape[0] * (1 - train_test_split_fraction)
+            train_test_indices.shape[0] * (1 - train_size)
         )
 
         LOG.info(f"{fraction_of_test_data_moved_to_train=}")

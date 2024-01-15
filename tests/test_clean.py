@@ -86,7 +86,7 @@ def get_cleaned_df(
         remove_reactions_with_no_agents=remove_reactions_with_no_agents,
         remove_reactions_with_no_conditions=remove_reactions_with_no_conditions,
         scramble=False,
-        train_test_split_fraction=0,
+        train_size=0,
         drop_duplicates=drop_duplicates,
         disable_tqdm=False,
         overwrite=False,
@@ -125,6 +125,41 @@ def cleaned_df_params_default(
     return (
         get_cleaned_df(
             tmp_path / "cleaned_df" / "orderly_ord.parquet",
+            *updated_args,
+        ),
+        request.param,
+    )
+
+
+@pytest.fixture
+def cleaned_df_params_default2(
+    tmp_path: pathlib.Path, request: pytest.FixtureRequest
+) -> Tuple[pd.DataFrame, List[Any]]:
+    """Copy of 'cleaned_df_params_default', but needed a second fixture for one of the tests."""
+    assert len(request.param) == 10
+    updated_args = request.param + [
+        True,
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
+        False,
+        True,
+    ]
+    # set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn: bool,
+    # set_unresolved_names_to_none: bool,
+    # remove_rxn_with_unresolved_names: bool,
+    # remove_reactions_with_no_reactants: bool,
+    # remove_reactions_with_no_products: bool,
+    # remove_reactions_with_no_solvents: bool,
+    # remove_reactions_with_no_agents: bool,
+    # remove_reactions_with_no_conditions: bool,
+    # drop_duplicates: bool
+    return (
+        get_cleaned_df(
+            tmp_path / "cleaned_df2" / "orderly_ord.parquet",
             *updated_args,
         ),
         request.param,
@@ -1148,6 +1183,56 @@ def test_frequency_params_default(
 
     if not cleaned_rare.empty:
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
+
+
+#####
+
+
+@pytest.mark.parametrize(
+    "cleaned_df_params_default,cleaned_df_params_default2",
+    (
+        pytest.param(
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:T/F|consistent_yield:F|map_rare_molecules_to_other:F|15",
+        ),
+        pytest.param(
+            [False, False, 5, 5, 2, 3, 0, 0, 5, False],
+            [False, False, 5, 5, 2, 3, 0, 0, 15, False],
+            id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|5/15",
+        ),
+    ),
+    indirect=["cleaned_df_params_default", "cleaned_df_params_default2"],
+)
+def test_original_index(
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_default2: Tuple[pd.DataFrame, List[Any]],
+) -> None:
+    """
+    Test that the reaction referred to with "original_index" is the same accross different ways of cleaning the dataset.
+    """
+
+    import copy
+
+    df1, params1 = copy.copy(cleaned_df_params_default)
+    df2, params2 = copy.copy(cleaned_df_params_default2)
+
+    assert len(params1) == len(params2)
+    assert len(params1) == 10
+
+    import pandas as pd
+
+    # find an "original_index" they all have in common
+    indices_in_common = set(df1["original_index"]).intersection(
+        set(df2["original_index"])
+    )
+    for i in indices_in_common:
+        a = df1[df1["original_index"] == i]["rxn_str"].iloc[0]
+        b = df2[df2["original_index"] == i]["rxn_str"].iloc[0]
+        assert a == b
+
+
+#####
 
 
 @pytest.mark.parametrize(

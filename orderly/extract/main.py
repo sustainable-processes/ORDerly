@@ -337,6 +337,13 @@ def extract(
     show_default=True,
     help="path for the log file for extraction",
 )
+@click.option(
+    "--log_level",
+    type=int,
+    default=logging.INFO,
+    show_default=True,
+    help="The log level",
+)
 def main_click(
     data_path: str,
     ord_file_ending: str,
@@ -352,6 +359,7 @@ def main_click(
     inverse_substring: bool,
     overwrite: bool,
     log_file: str,
+    log_level: int = logging.INFO,
 ) -> None:
     """
     After downloading the dataset from ORD, this script will extract the data and write it to file. During extraction we also extract unresolvable/uncanonicalisable molecules and keep a record of these and then remove them during cleaning
@@ -442,6 +450,7 @@ def main_click(
         inverse_substring=inverse_substring,
         overwrite=overwrite,
         log_file=_log_file,
+        log_level=log_level,
     )
 
 
@@ -615,6 +624,7 @@ def main(
         else:
             with tqdm.contrib.logging.logging_redirect_tqdm(loggers=[LOG]):
                 for file in tqdm.tqdm(files):
+                    LOG.debug(f"Attempting extraction for {file}")
                     extract(file=file, **kwargs)  # type: ignore
                     # mypy fails with kwargs
     except KeyboardInterrupt:
