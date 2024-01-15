@@ -275,7 +275,10 @@ class OrdExtractor:
                     ):
                         products.append(p_clean)
                     else:
-                        cleaned_agents.append(p_clean)
+                        # cleaned_agents.append(p_clean)
+
+                        # it's a side product, so we should just discard it
+                        pass
 
             # Finally, now that we have the genuine reactants and products, we should remove any agents that are also present in the reactants or products
             cleaned_agents = [
