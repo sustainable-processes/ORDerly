@@ -1213,6 +1213,7 @@ def test_original_index(
     """
 
     import copy
+
     df1, params1 = copy.copy(cleaned_df_params_default)
     df2, params2 = copy.copy(cleaned_df_params_default2)
 
