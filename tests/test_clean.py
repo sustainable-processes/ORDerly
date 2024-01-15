@@ -159,7 +159,7 @@ def cleaned_df_params_default2(
     # drop_duplicates: bool
     return (
         get_cleaned_df(
-            tmp_path / "cleaned_df" / "orderly_ord.parquet",
+            tmp_path / "cleaned_df2" / "orderly_ord.parquet",
             *updated_args,
         ),
         request.param,
@@ -1192,27 +1192,27 @@ def test_frequency_params_default(
     "cleaned_df_params_default,cleaned_df_params_default2",
     (
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 15, False],
+            [True, False, 5, 5, 2, 0, 2, 1, 15, False],
             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
             id="trust_labelling:T/F|consistent_yield:F|map_rare_molecules_to_other:F|15",
         ),
         pytest.param(
-            [True, False, 5, 5, 2, 3, 0, 0, 5, False],
+            [False, False, 5, 5, 2, 3, 0, 0, 5, False],
             [False, False, 5, 5, 2, 3, 0, 0, 15, False],
             id="trust_labelling:F|consistent_yield:F|map_rare_molecules_to_other:F|5/15",
         ),
     ),
+    indirect=["cleaned_df_params_default", "cleaned_df_params_default2"],
 )
 def test_original_index(
-    cleaned_df_params_default: List[Any],
-    cleaned_df_params_default2: List[Any],
+    cleaned_df_params_default: Tuple[pd.DataFrame, List[Any]],
+    cleaned_df_params_default2: Tuple[pd.DataFrame, List[Any]],
 ) -> None:
     """
     Test that the reaction referred to with "original_index" is the same accross different ways of cleaning the dataset.
     """
 
     import copy
-
     df1, params1 = copy.copy(cleaned_df_params_default)
     df2, params2 = copy.copy(cleaned_df_params_default2)
 
