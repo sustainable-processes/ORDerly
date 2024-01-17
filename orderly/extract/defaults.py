@@ -79,6 +79,7 @@ def get_molecule_replacements() -> Dict[MOLECULE_IDENTIFIER, SMILES]:
     molecule_replacements["[Pd on-carbon]"] = "[Pd]"
     molecule_replacements["[Pd].C"] = "[Pd]"
     molecule_replacements["[Pd]/C"] = "[Pd]"
+    molecule_replacements["[Pd]/[C]]"] = "[Pd]"
     molecule_replacements["[TEA]"] = "OCCN(CCO)CCO"
     molecule_replacements["[Ti-superoxide]"] = "O=[O-].[Ti]"
     molecule_replacements[
