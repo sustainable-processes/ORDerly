@@ -338,6 +338,21 @@ def test_rxn_string_and_is_mapped(
             [],
             False,
         ],
+        [ # Test that [C] is removed correctly when [Pd] is present
+            "ord_dataset-0b70410902ae4139bd5d334881938f69",
+            262,
+            None,
+            [
+                "O=C1C[C@@H](C(=O)N[C@@H](Cc2c[nH]cn2)C(=O)N2CCC[C@H]2C(=O)OCc2ccccc2)N1",
+            ],
+            [
+                "[Pd]",
+            ],
+            ["O=C1C[C@@H](C(=O)N[C@@H](Cc2c[nH]cn2)C(=O)N2CCC[C@H]2C(=O)O)N1"],
+            'C([O:8][C:9](=[O:32])[C@@H:10]1[CH2:14][CH2:13][CH2:12][N:11]1[C:15](=[O:31])[C@H:16]([CH2:25][C:26]1[N:30]=[CH:29][NH:28][CH:27]=1)[NH:17][C:18]([C@H:20]1[NH:23][C:22](=[O:24])[CH2:21]1)=[O:19])C1C=CC=CC=1>CO.[C].[Pd]>[NH:23]1[C@H:20]([C:18]([NH:17][C@H:16]([C:15]([N:11]2[CH2:12][CH2:13][CH2:14][C@H:10]2[C:9]([OH:32])=[O:8])=[O:31])[CH2:25][C:26]2[N:30]=[CH:29][NH:28][CH:27]=2)=[O:19])[CH2:21][C:22]1=[O:24]',
+            [],
+            False,
+        ],
         [
             "ord_dataset-0bb2e99daa66408fb8dbd6a0781d241c",
             0,
