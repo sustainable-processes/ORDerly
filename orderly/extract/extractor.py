@@ -1018,8 +1018,6 @@ class OrdExtractor:
         if contains_transition_metal(agents):
             # Remove "[C]" and "C" from agents
             agents = [a for a in agents if a not in ["[C]", "C"]]
-            
-
 
         if _yields == []:
             _yields = [None] * len(products)
