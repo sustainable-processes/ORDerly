@@ -1008,7 +1008,7 @@ class OrdExtractor:
         )
 
         # Add paladium on carbon exception: Delete carbon if Pd exists. Expand exception to other transition metals
-        def contains_transition_metal(agents):
+        def contains_transition_metal(agents: AGENTS) -> bool:
             for agent in agents:
                 if orderly.extract.defaults.has_transition_metal(agent):
                     return True
