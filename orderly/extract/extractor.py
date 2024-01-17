@@ -1007,6 +1007,20 @@ class OrdExtractor:
             catalysts, rxn_non_smiles_names_set
         )
 
+        # Add paladium on carbon exception: Delete carbon if Pd exists. Expand exception to other transition metals
+        def contains_transition_metal(agents):
+            for agent in agents:
+                if orderly.extract.defaults.has_transition_metal(agent):
+                    return True
+            return False
+
+        # Check if any agent contains a transition metal
+        if contains_transition_metal(agents):
+            # Remove "[C]" and "C" from agents
+            agents = [a for a in agents if a not in ["[C]", "C"]]
+            
+
+
         if _yields == []:
             _yields = [None] * len(products)
         yields = _yields
