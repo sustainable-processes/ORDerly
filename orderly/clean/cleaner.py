@@ -518,7 +518,7 @@ class Cleaner:
             all_component_cols += component_columns
 
         sub_df = df[all_component_cols]
-        sub_df = sub_df.map(lambda x: pd.NA if x is None else x)
+        sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
 
         df = df.drop(all_component_cols, axis=1)
         df = pd.concat([df, sub_df], axis=1)
