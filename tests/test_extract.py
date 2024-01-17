@@ -345,7 +345,8 @@ def test_rxn_string_and_is_mapped(
             [
                 "O=C1C[C@@H](C(=O)N[C@@H](Cc2c[nH]cn2)C(=O)N2CCC[C@H]2C(=O)OCc2ccccc2)N1",
             ],
-            [   "CO",
+            [
+                "CO",
                 "[C]",
                 "[Pd]",
             ],
@@ -1121,7 +1122,7 @@ def test_match_yield_with_product(
             None,
             None,
             "C([O:8][C:9](=[O:32])[C@@H:10]1[CH2:14][CH2:13][CH2:12][N:11]1[C:15](=[O:31])[C@H:16]([CH2:25][C:26]1[N:30]=[CH:29][NH:28][CH:27]=1)[NH:17][C:18]([C@H:20]1[NH:23][C:22](=[O:24])[CH2:21]1)=[O:19])C1C=CC=CC=1>CO.[C].[Pd]>[NH:23]1[C@H:20]([C:18]([NH:17][C@H:16]([C:15]([N:11]2[CH2:12][CH2:13][CH2:14][C@H:10]2[C:9]([OH:32])=[O:8])=[O:31])[CH2:25][C:26]2[N:30]=[CH:29][NH:28][CH:27]=2)=[O:19])[CH2:21][C:22]1=[O:24]",
-            'In 150 ml of methanol was dissolved 782 mg of Nα -[(S)-2-azetidinone-4-carbonyl]-L-histidyl-L-proline benzyl ester (12) and the compound (12) was hydrogenated for 2 hours at room temperature using 156 mg of 10% palladium-carbon as a catalyst. When the catalyst was filtered off and the filtrate was concentrated, 620 mg of Nα -[(S)-2-azetidinone-4-carbonyl]-L-histidyl-L-proline (13) was obtained.',
+            "In 150 ml of methanol was dissolved 782 mg of Nα -[(S)-2-azetidinone-4-carbonyl]-L-histidyl-L-proline benzyl ester (12) and the compound (12) was hydrogenated for 2 hours at room temperature using 156 mg of 10% palladium-carbon as a catalyst. When the catalyst was filtered off and the filtrate was concentrated, 620 mg of Nα -[(S)-2-azetidinone-4-carbonyl]-L-histidyl-L-proline (13) was obtained.",
             None,
             [],
             True,
@@ -1131,23 +1132,21 @@ def test_match_yield_with_product(
             277,
             {},
             False,
-            [
-                'O=C([C@@H]1CCCN1C(=O)OCc1ccccc1)N1CCOCC1',
-                "[H][H]"
-            ],
+            ["O=C([C@@H]1CCCN1C(=O)OCc1ccccc1)N1CCOCC1", "[H][H]"],
             [
                 "[Pd]",
             ],
             [],
-            ['CCO',],
+            [
+                "CCO",
+            ],
             [],
-            ['O=C([C@@H]1CCCN1)N1CCOCC1'],
+            ["O=C([C@@H]1CCCN1)N1CCOCC1"],
             [98.7],
             None,
             None,
             "C(OC([N:11]1[CH2:23][CH2:22][CH2:21][C@H:12]1[C:13]([N:15]1[CH2:20][CH2:19][O:18][CH2:17][CH2:16]1)=[O:14])=O)C1C=CC=CC=1.[H][H]>C(O)C.[C].[Pd]>[NH:11]1[CH2:23][CH2:22][CH2:21][C@H:12]1[C:13]([N:15]1[CH2:20][CH2:19][O:18][CH2:17][CH2:16]1)=[O:14]",
-            'In 100 ml of ethanol was suspended 4.9 g of compound (83) and after adding thereto 250 mg of 10% palladium carbon, the mixture was stirred for 4 hours in a hydrogen stream. After filtering off 10% palladiumcarbon, ethanol was distilled off under reduced pressure from the filtrate to provide 2.8 g of crude N-(L-prolyl)morpholine (84).'
-,
+            "In 100 ml of ethanol was suspended 4.9 g of compound (83) and after adding thereto 250 mg of 10% palladium carbon, the mixture was stirred for 4 hours in a hydrogen stream. After filtering off 10% palladiumcarbon, ethanol was distilled off under reduced pressure from the filtrate to provide 2.8 g of crude N-(L-prolyl)morpholine (84).",
             None,
             [],
             True,
