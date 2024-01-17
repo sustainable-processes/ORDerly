@@ -1126,6 +1126,32 @@ def test_match_yield_with_product(
             [],
             True,
         ],
+        [  # Test that [H][H] is correctly classified as a reactant
+            "ord_dataset-0b70410902ae4139bd5d334881938f69",
+            277,
+            {},
+            False,
+            [
+                'O=C([C@@H]1CCCN1C(=O)OCc1ccccc1)N1CCOCC1',
+                "[H][H]"
+            ],
+            [
+                "[Pd]",
+            ],
+            [],
+            ['CCO',],
+            [],
+            ['O=C([C@@H]1CCCN1)N1CCOCC1'],
+            [98.7],
+            None,
+            None,
+            "C(OC([N:11]1[CH2:23][CH2:22][CH2:21][C@H:12]1[C:13]([N:15]1[CH2:20][CH2:19][O:18][CH2:17][CH2:16]1)=[O:14])=O)C1C=CC=CC=1.[H][H]>C(O)C.[C].[Pd]>[NH:11]1[CH2:23][CH2:22][CH2:21][C@H:12]1[C:13]([N:15]1[CH2:20][CH2:19][O:18][CH2:17][CH2:16]1)=[O:14]",
+            'In 100 ml of ethanol was suspended 4.9 g of compound (83) and after adding thereto 250 mg of 10% palladium carbon, the mixture was stirred for 4 hours in a hydrogen stream. After filtering off 10% palladiumcarbon, ethanol was distilled off under reduced pressure from the filtrate to provide 2.8 g of crude N-(L-prolyl)morpholine (84).'
+,
+            None,
+            [],
+            True,
+        ],
         [
             "ord_dataset-85c00026681b46f89ef8634d2b8618c3",
             3948,
