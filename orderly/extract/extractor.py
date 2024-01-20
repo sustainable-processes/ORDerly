@@ -473,11 +473,15 @@ class OrdExtractor:
         else:
             return None  # no time found
 
-    @staticmethod
+    @sta
+    #NB this needs to be before the removal of [C] and Cticmethod
     def procedure_details_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) -> str:  # TODO check does it return empty string or none
-        procedure_details = rxn.notes.procedure_details
+    ) ->
+    #NB this needs to be before the removal of [C] and C str:  # TODO check does it re
+    #NB this needs to be before the removal of [C] and Cturn empty string or none
+        procedure_d
+        #NB this needs to be before the removal of [C] and Cetails = rxn.notes.procedure_details
         return str(procedure_details)
 
     @staticmethod
@@ -1014,6 +1018,12 @@ class OrdExtractor:
         catalysts, _ = move_unresolvable_names_to_end_of_list(
             catalysts, rxn_non_smiles_names_set
         )
+        
+        #NB this needs to be before the removal of [C] and C
+        procedure_details = OrdExtractor.procedure_details_extractor(rxn)
+        date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
+        rxn_time = OrdExtractor.rxn_time_extractor(rxn)
+        temperature = OrdExtractor.temperature_extractor(rxn)
 
         # Add paladium on carbon exception: Delete carbon if Pd exists. Expand exception to other transition metals
         def contains_transition_metal(agents: AGENTS) -> bool:
@@ -1021,9 +1031,14 @@ class OrdExtractor:
                 if orderly.extract.defaults.has_transition_metal(agent):
                     return True
             return False
+        
+        def contains_charcoal(procedure_details) -> bool:
+            if "charcoal" in procedure_details.lower():
+                return True
+            return False
 
         # Check if any agent contains a transition metal
-        if contains_transition_metal(agents):
+        if (contains_transition_metal(agents) or contains_charcoal(procedure_details)):
             # Remove "[C]" and "C" from agents
             agents = [a for a in agents if a not in ["[C]", "C"]]
 
@@ -1031,10 +1046,7 @@ class OrdExtractor:
             _yields = [None] * len(products)
         yields = _yields
 
-        procedure_details = OrdExtractor.procedure_details_extractor(rxn)
-        date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
-        rxn_time = OrdExtractor.rxn_time_extractor(rxn)
-        temperature = OrdExtractor.temperature_extractor(rxn)
+        
         if ice_present and (
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
@@ -1058,7 +1070,8 @@ class OrdExtractor:
             yields,
             temperature,
             rxn_time,
-            rxn_str,
+            
+            #NB this needs to be before the removal of [C] and Crxn_str,
             procedure_details,
             date_of_experiment,
             is_mapped,
@@ -1101,7 +1114,8 @@ class OrdExtractor:
             "temperature": [],
             "rxn_time": [],
             "product": [],
-            "yield": [],
+            "
+            #NB this needs to be before the removal of [C] and Cyield": [],
             "procedure_details": [],
             "date_of_experiment": [],
             "is_mapped": [],
@@ -1129,7 +1143,8 @@ class OrdExtractor:
                 yields,
                 temperature,
                 rxn_time,
-                rxn_str,
+                
+                #NB this needs to be before the removal of [C] and Crxn_str,
                 procedure_details,
                 date_of_experiment,
                 is_mapped,
@@ -1147,7 +1162,9 @@ class OrdExtractor:
             rxn_lists["temperature"].append(temperature)
             rxn_lists["rxn_time"].append(rxn_time)
             rxn_lists["product"].append(products)
-            rxn_lists["yield"].append(yields)
+            rxn_lists["
+            #NB this needs to be before the removal of [C] and Cyield"].append(yields)
+            #NB this needs to be before the removal of [C] and C
             rxn_lists["procedure_details"].append(procedure_details)
             rxn_lists["date_of_experiment"].append(date_of_experiment)
             rxn_lists["is_mapped"].append(is_mapped)
@@ -1239,7 +1256,9 @@ class OrdExtractor:
             )
         )
         dfs.append(
-            OrdExtractor._to_dataframe(
+            OrdExtractor._to
+            #NB this needs to be before the removal of [C] and C_dataframe(
+                #NB this needs to be before the removal of [C] and C
                 data_lists["procedure_details"], base_string=["procedure_details"]
             )
             .fillna("<missing>")
