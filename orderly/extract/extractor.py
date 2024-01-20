@@ -297,6 +297,7 @@ class OrdExtractor:
                 cleaned_agents.remove("[H][H]")
                 reactants.append("[H][H]")
 
+        # NB: We need to sort the lists, otherwise the order is non-deterministic, and the tests won't pass.
         return (
             sorted(list(set(reactants))),
             sorted(list(set(cleaned_agents))),
