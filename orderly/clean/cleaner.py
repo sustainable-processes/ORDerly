@@ -475,10 +475,19 @@ class Cleaner:
     @staticmethod
     def _scramble(
         df: pd.DataFrame,
-        components: Tuple[str, ...] = ("agent", "solvent", "catalyst", "reagent"),
+        components: Tuple[str, ...] = (
+            "reactant",
+            "product",
+            "solvent",
+            "catalyst",
+            "reagent",
+        ),
         seed: int = 42,
     ) -> pd.DataFrame:
-        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline."""
+        """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of products, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.
+
+        NB: agents not scrambled by default, since we need their ordering to let transition metals be first.
+        """
         list_of_dfs = []
         all_component_cols = []
         np.random.seed(seed)
@@ -518,7 +527,7 @@ class Cleaner:
             all_component_cols += component_columns
 
         sub_df = df[all_component_cols]
-        sub_df = sub_df.map(lambda x: pd.NA if x is None else x)
+        sub_df = sub_df.applymap(lambda x: pd.NA if x is None else x)
 
         df = df.drop(all_component_cols, axis=1)
         df = pd.concat([df, sub_df], axis=1)
@@ -823,8 +832,8 @@ class Cleaner:
         df.reset_index(inplace=True, drop=True)
 
         if self.scramble:
-            LOG.info(f"Scrambling the order of the components")
-            components = ("agent", "solvent", "reagent", "catalyst")
+            components = ("reactant", "product", "solvent", "catalyst", "reagent")
+            LOG.info(f"Scrambling the order of the components: {components=}")
             df = Cleaner._scramble(df, components)
             df = Cleaner._move_none_to_after_data(df, components)
             df = Cleaner._replace_None_with_NA(df, components)
@@ -938,14 +947,14 @@ def get_matching_indices(
 @click.option(
     "--remove_reactions_with_no_solvents",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with no solvents",
 )
 @click.option(
     "--remove_reactions_with_no_agents",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help="Remove reactions with no agents (ie no reagents AND no catalysts). Does not consider solvents",
 )
@@ -1035,7 +1044,7 @@ def get_matching_indices(
     "--scramble",
     type=bool,
     default=True,
-    help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.",
+    help="If True, the order of the reactants be scrambled (ie between reactant_001, reactant_002, etc). Ordering of prodcuts, agents, solvents, reagents, and catalysts will also be scrambled. Will also scramble the reaction indices. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.NB: agents not scrambled by default, since we need their ordering to let transition metals be first.",
 )
 @click.option(
     "--train_size",

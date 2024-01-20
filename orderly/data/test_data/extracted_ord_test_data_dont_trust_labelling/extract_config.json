@@ -340,6 +340,7 @@
         "[Pd on-carbon]": "[Pd]",
         "[Pd].C": "[Pd]",
         "[Pd]/C": "[Pd]",
+        "[Pd]/[C]]": "[Pd]",
         "[TEA]": "OCCN(CCO)CCO",
         "[Ti-superoxide]": "O=[O-].[Ti]",
         "[[Pd].c1ccc(P(c2ccccc2)c2ccccc2)cc1]": "[Pd]c1ccc(P(c2ccccc2)c2ccccc2)cc1",

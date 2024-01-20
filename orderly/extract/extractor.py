@@ -248,12 +248,11 @@ class OrdExtractor:
                 # check reactant is mapped and also that it's not in the products
                 mol = rdkit_Chem.MolFromSmiles(r_map)
                 if mol != None:
-                    if (
-                        any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms())
-                        and (  # any(generator)
-                            r_clean not in products_from_rxn_without_mapping
-                        )
-                    ) or (r_clean == "[H][H]"):
+                    if any(
+                        atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
+                    ) and (  # any(generator)
+                        r_clean not in products_from_rxn_without_mapping
+                    ):
                         reactants.append(r_clean)
                     else:
                         cleaned_agents.append(r_clean)
@@ -285,10 +284,19 @@ class OrdExtractor:
             cleaned_agents = [
                 a for a in cleaned_agents if a not in reactants and a not in products
             ]
+            # We also add an exception for [H][H], this should always be a reactant
+            # Move [H][H] from agents to reactants
+            if "[H][H]" in cleaned_agents:
+                cleaned_agents.remove("[H][H]")
+                reactants.append("[H][H]")
         else:
             reactants = reactants_from_rxn_without_mapping
             products = products_from_rxn_without_mapping
+            if "[H][H]" in cleaned_agents:
+                cleaned_agents.remove("[H][H]")
+                reactants.append("[H][H]")
 
+        # NB: We need to sort the lists, otherwise the order is non-deterministic, and the tests won't pass.
         return (
             sorted(list(set(reactants))),
             sorted(list(set(cleaned_agents))),
@@ -1007,14 +1015,33 @@ class OrdExtractor:
             catalysts, rxn_non_smiles_names_set
         )
 
-        if _yields == []:
-            _yields = [None] * len(products)
-        yields = _yields
-
+        # NB this needs to be before the removal of [C] and C
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
         temperature = OrdExtractor.temperature_extractor(rxn)
+
+        # Add paladium on carbon exception: Delete carbon if Pd exists. Expand exception to other transition metals
+        def contains_transition_metal(agents: AGENTS) -> bool:
+            for agent in agents:
+                if orderly.extract.defaults.has_transition_metal(agent):
+                    return True
+            return False
+
+        def contains_charcoal(procedure_details: str) -> bool:
+            if "charcoal" in procedure_details.lower():
+                return True
+            return False
+
+        # Check if any agent contains a transition metal
+        if contains_transition_metal(agents) or contains_charcoal(procedure_details):
+            # Remove "[C]" and "C" from agents
+            agents = [a for a in agents if a not in ["[C]", "C"]]
+
+        if _yields == []:
+            _yields = [None] * len(products)
+        yields = _yields
+
         if ice_present and (
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
