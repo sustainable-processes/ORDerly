@@ -125,9 +125,13 @@ run_python_310:
 # 5. Plot histogram showing dataset size as a function of min_frequency_of_occurrence (can probably use the min_frequency code from the cleaner within the plotter)
 # 6. Generate the six condition prediction datasets we need for the paper (split into train and test set)
 # 7. Plot histograms with the occurrence of the most common reactants, products, solvents, agents
-# 8. Generate the final benchmark datasets (split into train and test set)
-# 9. Generate fingerprints for each dataset
-# 10. Train & evaluate a model on each dataset
+# 8. Generate fingerprints for each dataset
+# 9. Train & evaluate a model on each dataset
+
+### Benchmark generation
+# I. Extract data
+# II. Clean data
+
 
 # 1. Extract 
 
@@ -217,20 +221,8 @@ paper_plot_uspto_with_trust_no_map:
 	
 paper_7 : paper_plot_uspto_no_trust_no_map  paper_plot_uspto_with_trust_no_map
 
-# 8. Gen benchmarks (final datasets)
 
-paper_orderly_condition:
-
-
-paper_orderly_forward:
-
-paper_orderly_retro:
-
-paper_orderly_yield:
-
-
-
-# 9. gen fp
+# 8. gen fp
 
 fp_no_trust_no_map_test:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map_test.parquet" --fp_size=2048 --overwrite=False
@@ -255,9 +247,9 @@ fp_with_trust_no_map_train:
 paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
 
 #Generate datasets for paper
-paper_get_datasets: paper_1 paper_6 paper_8
+paper_get_datasets: paper_1 paper_6
 
-paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_8 paper_9
+paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_8
 
 # 9. train models
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
@@ -287,6 +279,9 @@ with_trust_no_map_train_20:
 with_trust_with_map_train_20:
 	python -m condition_prediction --train_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_train.parquet" --test_data_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --output_folder_path="models/with_trust_with_map_20"  --train_fraction=0.2 --train_val_split=0.8 --overwrite=False --epochs=20 --evaluate_on_test_data=True --early_stopping_patience=5 --wandb_entity=$(WANDB_ENTITY)
 
+################################################
+# Generate ORDerly benchmarks
+################################################
 
 # Sweeps
 RANDOM_SEEDS = 12345 54321 98765
