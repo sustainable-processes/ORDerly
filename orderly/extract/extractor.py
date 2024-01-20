@@ -474,15 +474,11 @@ class OrdExtractor:
         else:
             return None  # no time found
 
-    @sta
-    #NB this needs to be before the removal of [C] and Cticmethod
+    @staticmethod
     def procedure_details_extractor(
         rxn: ord_reaction_pb2.Reaction,
-    ) ->
-    #NB this needs to be before the removal of [C] and C str:  # TODO check does it re
-    #NB this needs to be before the removal of [C] and Cturn empty string or none
-        procedure_d
-        #NB this needs to be before the removal of [C] and Cetails = rxn.notes.procedure_details
+    ) -> str:  # TODO check does it return empty string or none
+        procedure_details = rxn.notes.procedure_details
         return str(procedure_details)
 
     @staticmethod
@@ -1071,8 +1067,7 @@ class OrdExtractor:
             yields,
             temperature,
             rxn_time,
-            
-            #NB this needs to be before the removal of [C] and Crxn_str,
+            rxn_str,
             procedure_details,
             date_of_experiment,
             is_mapped,
@@ -1115,8 +1110,7 @@ class OrdExtractor:
             "temperature": [],
             "rxn_time": [],
             "product": [],
-            "
-            #NB this needs to be before the removal of [C] and Cyield": [],
+            "yield": [],
             "procedure_details": [],
             "date_of_experiment": [],
             "is_mapped": [],
@@ -1144,8 +1138,7 @@ class OrdExtractor:
                 yields,
                 temperature,
                 rxn_time,
-                
-                #NB this needs to be before the removal of [C] and Crxn_str,
+                rxn_str,
                 procedure_details,
                 date_of_experiment,
                 is_mapped,
@@ -1163,9 +1156,7 @@ class OrdExtractor:
             rxn_lists["temperature"].append(temperature)
             rxn_lists["rxn_time"].append(rxn_time)
             rxn_lists["product"].append(products)
-            rxn_lists["
-            #NB this needs to be before the removal of [C] and Cyield"].append(yields)
-            #NB this needs to be before the removal of [C] and C
+            rxn_lists["yield"].append(yields)
             rxn_lists["procedure_details"].append(procedure_details)
             rxn_lists["date_of_experiment"].append(date_of_experiment)
             rxn_lists["is_mapped"].append(is_mapped)
@@ -1257,9 +1248,7 @@ class OrdExtractor:
             )
         )
         dfs.append(
-            OrdExtractor._to
-            #NB this needs to be before the removal of [C] and C_dataframe(
-                #NB this needs to be before the removal of [C] and C
+            OrdExtractor._to_dataframe(
                 data_lists["procedure_details"], base_string=["procedure_details"]
             )
             .fillna("<missing>")
