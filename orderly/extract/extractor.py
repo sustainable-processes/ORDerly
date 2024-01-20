@@ -253,7 +253,7 @@ class OrdExtractor:
                         and (  # any(generator)
                             r_clean not in products_from_rxn_without_mapping
                         )
-                    ) or (r_clean == "[H][H]"):
+                    ):
                         reactants.append(r_clean)
                     else:
                         cleaned_agents.append(r_clean)
@@ -285,9 +285,17 @@ class OrdExtractor:
             cleaned_agents = [
                 a for a in cleaned_agents if a not in reactants and a not in products
             ]
+            # We also add an exception for [H][H], this should always be a reactant
+            # Move [H][H] from agents to reactants
+            if "[H][H]" in cleaned_agents:
+                cleaned_agents.remove("[H][H]")
+                reactants.append("[H][H]")
         else:
             reactants = reactants_from_rxn_without_mapping
             products = products_from_rxn_without_mapping
+            if "[H][H]" in cleaned_agents:
+                cleaned_agents.remove("[H][H]")
+                reactants.append("[H][H]")
 
         return (
             sorted(list(set(reactants))),
