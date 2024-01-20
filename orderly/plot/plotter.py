@@ -106,13 +106,13 @@ class ORDerlyPlotter:
             ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
         )
 
-        # Add a horizontal line at df.shape[0]
-        plt.axhline(y=df.shape[0], color="red", linestyle="--")
+        # # Add a horizontal line at df.shape[0]
+        # plt.axhline(y=df.shape[0], color="red", linestyle="--")
 
-        # Add a legend and move it up
-        plt.legend(
-            ["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72)
-        )
+        # # Add a legend and move it up
+        # plt.legend(
+        #     ["Before filtering", f"After filtering".capitalize()], loc=(0.5, 0.72)
+        # )
 
         figure_file_path = plot_output_path / f"{col_starts_with}_counts.png"
 
@@ -248,17 +248,18 @@ class ORDerlyPlotter:
         plt.ylabel(f"Number of reactions (thousands)")
         plt.xlabel(f"Minimum frequency of occurrence")
 
-        # Add a horizontal line at df.shape[0]
-        plt.axhline(y=total_num_reactions, color="red", linestyle="--")
+        # # Add a horizontal line at df.shape[0]
+        # plt.axhline(y=total_num_reactions, color="red", linestyle="--")
 
         plt.gca().yaxis.set_major_formatter(
             ticker.FuncFormatter(lambda x, pos: f"{x/1000:,.0f}")
         )
 
-        # Add a legend
-        plt.legend(
-            ["Total reactions", f"Number of reactions".capitalize()], loc="right"
-        )
+        # # Add a legend
+        # plt.legend(
+        #     ["Total reactions", f"Number of reactions".capitalize()], loc="right"
+        # )
+
         # Adjust the legend position
         # plt.legend.set_bbox_to_anchor((1, 0.8))
 
