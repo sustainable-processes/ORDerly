@@ -248,11 +248,10 @@ class OrdExtractor:
                 # check reactant is mapped and also that it's not in the products
                 mol = rdkit_Chem.MolFromSmiles(r_map)
                 if mol != None:
-                    if (
-                        any(atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms())
-                        and (  # any(generator)
-                            r_clean not in products_from_rxn_without_mapping
-                        )
+                    if any(
+                        atom.HasProp("molAtomMapNumber") for atom in mol.GetAtoms()
+                    ) and (  # any(generator)
+                        r_clean not in products_from_rxn_without_mapping
                     ):
                         reactants.append(r_clean)
                     else:
@@ -1015,8 +1014,8 @@ class OrdExtractor:
         catalysts, _ = move_unresolvable_names_to_end_of_list(
             catalysts, rxn_non_smiles_names_set
         )
-        
-        #NB this needs to be before the removal of [C] and C
+
+        # NB this needs to be before the removal of [C] and C
         procedure_details = OrdExtractor.procedure_details_extractor(rxn)
         date_of_experiment = OrdExtractor.date_of_experiment_extractor(rxn)
         rxn_time = OrdExtractor.rxn_time_extractor(rxn)
@@ -1028,14 +1027,14 @@ class OrdExtractor:
                 if orderly.extract.defaults.has_transition_metal(agent):
                     return True
             return False
-        
+
         def contains_charcoal(procedure_details) -> bool:
             if "charcoal" in procedure_details.lower():
                 return True
             return False
 
         # Check if any agent contains a transition metal
-        if (contains_transition_metal(agents) or contains_charcoal(procedure_details)):
+        if contains_transition_metal(agents) or contains_charcoal(procedure_details):
             # Remove "[C]" and "C" from agents
             agents = [a for a in agents if a not in ["[C]", "C"]]
 
@@ -1043,7 +1042,6 @@ class OrdExtractor:
             _yields = [None] * len(products)
         yields = _yields
 
-        
         if ice_present and (
             temperature is None
         ):  # We trust the labelled temperature more, but if there is no labelled temperature, and they added ice, we should set the temperature to 0C
