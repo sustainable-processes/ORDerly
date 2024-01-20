@@ -475,12 +475,19 @@ class Cleaner:
     @staticmethod
     def _scramble(
         df: pd.DataFrame,
-        components: Tuple[str, ...] = ("reactant", "product", "solvent", "catalyst", "reagent"),
+        components: Tuple[str, ...] = (
+            "reactant",
+            "product",
+            "solvent",
+            "catalyst",
+            "reagent",
+        ),
         seed: int = 42,
     ) -> pd.DataFrame:
         """Scrambles the order of the reactants (ie between reactant_001, reactant_002, etc). Ordering of products, solvents, reagents, and catalysts will also be scrambled. This is done to prevent the model from learning the order of the molecules, which is not important for the reaction prediction task. It only done at the very end because scrambling can be non-deterministic between versions/operating systems, so it would be difficult to debug if done earlier in the pipeline.
-        
-        NB: agents not scrambled by default, since we need their ordering to let transition metals be first."""
+
+        NB: agents not scrambled by default, since we need their ordering to let transition metals be first.
+        """
         list_of_dfs = []
         all_component_cols = []
         np.random.seed(seed)
