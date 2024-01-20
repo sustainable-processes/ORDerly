@@ -1028,7 +1028,7 @@ class OrdExtractor:
                     return True
             return False
 
-        def contains_charcoal(procedure_details) -> bool:
+        def contains_charcoal(procedure_details: str) -> bool:
             if "charcoal" in procedure_details.lower():
                 return True
             return False
