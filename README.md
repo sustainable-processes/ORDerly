@@ -23,7 +23,7 @@ ORDerly cleans chemical reaction data from the growing [Open Reaction Database (
 
 Use ORDerly to:
 - Extract and clean your own datasets.
-- Access the [ORDerly condition prediction benchmark dataset](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) for reaction condition prediction.
+- Access the [ORDerly benchmark datasets](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) for predicting reaction products, conditions, retrosynthesis, and yield.
 - Reproduce results from our paper including training a ML model to predict reaction conditions.
 
 <img src="images/abstract_fig.png" alt="Abstract Figure" width="300">
@@ -153,7 +153,7 @@ There are two different ways to extract data from ORD files, trusting the labell
 ## Cleaning
 There are also a number of customisable steps for the cleaning:
 
-```python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9```
+```python -m orderly.clean --output_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_map.parquet" --ord_extraction_path="data/orderly/uspto_no_trust/extracted_ords" --molecules_to_remove_path="data/orderly/uspto_no_trust/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9```
 
 A list of solvents (names and SMILES) commonly used in pharmaceutical chemistry can be found at orderly/data/solvents.csv
 
@@ -161,21 +161,26 @@ A list of solvents (names and SMILES) commonly used in pharmaceutical chemistry 
 
 Start by extracting all USPTO data:
 
-```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto_no_trust" --consider_molecule_names=False```
+```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto" --consider_molecule_names=False```
 
 If you would like to extract all data in ORD (instead of just USPTO data) simply set `name_contains_substring=""`. Now select your desired dataset:
 
 ### ORDerly-condition
 
-```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_condition.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_condition.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=100 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=2 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 ### ORDerly-forward
 
-```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_forward.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=False --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_forward.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 ### ORDerly-retro
 
-```python -m orderly.clean --output_path="../orderly_generated_datasets/orderly_retro.parquet" --ord_extraction_path="data/orderly/extracted_ords" --molecules_to_remove_path="data/orderly/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --set_unresolved_names_to_none_if_mapped_rxn_str_exists_else_del_rxn=True --remove_rxn_with_unresolved_names=False --set_unresolved_names_to_none=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=False --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_retro.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+
+
+### ORDerly-yield
+
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_yield.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 ## Dataset from all non-USPTO data
 
