@@ -283,6 +283,34 @@ with_trust_with_map_train_20:
 # Generate ORDerly benchmarks
 ################################################
 
+# I. Extract data
+
+extract_uspto:
+	python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/uspto" --consider_molecule_names=False
+
+extract_non_uspto:
+	python -m orderly.extract --name_contains_substring="uspto" --inverse_substring=True --trust_labelling=False --output_path="data/orderly/non_uspto" --consider_molecule_names=False
+	
+# II. Clean data
+
+clean_orderly_condition:
+	pass #TODO
+
+clean_orderly_forward:
+	python -m orderly.clean --output_path="../orderly_benchmarks/orderly_forward.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
+
+clean_orderly_forward_non_uspto:
+	python -m orderly.clean --output_path="../orderly_benchmarks/orderly_forward_non_uspto.parquet" --ord_extraction_path="data/orderly/non_uspto" --molecules_to_remove_path="data/orderly/non_uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
+
+clean_orderly_retro:
+	python -m orderly.clean --output_path="../orderly_benchmarks/orderly_retro.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
+
+clean_orderly_retro_non_uspto:
+	python -m orderly.clean --output_path="../orderly_benchmarks/orderly_retro_non_uspto.parquet" --ord_extraction_path="data/orderly/non_uspto" --molecules_to_remove_path="data/orderly/non_uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
+
+clean_orderly_yield:
+	python -m orderly.clean --output_path="../orderly_benchmarks/orderly_yield.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
+
 # Sweeps
 RANDOM_SEEDS = 12345 54321 98765
 TRAIN_FRACS =   1.0 0.2 0.4 0.6 0.8
