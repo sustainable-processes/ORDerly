@@ -28,7 +28,7 @@ class Cleaner:
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions without any products and/or reactants (remove_reactions_with_no_reactants, remove_reactions_with_no_products, remove_reactions_with_no_conditions)
     3) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
-    4) Remove reactions with inconsistent yields (consistent_yield)
+    4) Remove reactions with either inconsistent or missing yields (consistent_yield)
     5) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
@@ -46,7 +46,7 @@ class Cleaner:
         remove_reactions_with_no_conditions (bool): Remove reactions with no conditions (e.g. no solvent, catalyst, reagent, agent)
         remove_reactions_with_no_solvents (bool): Remove reactions with no solvents
         remove_reactions_with_no_agents (bool): Remove reactions with no agents
-        consistent_yield (bool): Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)
+        consistent_yield (bool): Remove reactions with inconsistent or no reported yields (e.g. if the sum is under 0% or above 100%, or missing)
         num_reactant (int): The number of molecules of that type to keep. Keep in mind that if trust_labelling=True in orderly.extract, there will only be agents, but no catalysts/reagents, and if trust_labelling=False, there will only be catalysts and reagents, but no agents. Agents should be seen as a 'parent' category of reagents and catalysts; solvents should fall under this category as well, but since the space of solvents is more well defined (and we have a list of the most industrially relevant solvents which we can refer to), we can separate out the solvents. Therefore, if trust_labelling=True, num_catalyst and num_reagent should be set to 0, and if trust_labelling=False, num_agent should be set to 0. It is recommended to set trust_labelling=True, as we don't believe that the original labelling of catalysts and reagents that reliable; furthermore, what constitutes a catalyst and what constitutes a reagent is not always clear, adding further ambiguity to the labelling, so it's probably best to merge these.
         num_product (int): See help for num_reactant
         num_solv (int): See help for num_reactant
@@ -307,11 +307,10 @@ class Cleaner:
         # Compute the sum of the yield columns for each row
         df = df.assign(total_yield=df[yield_columns].sum(axis=1))
 
-        # Filter out reactions where the total_yield is less than or equal to 100, or is NaN or None
+        # Only keep reactions where the total_yield is (less than or equal to 100) and (greater than or equal to 0)
         mask = (
             (df["total_yield"] <= 100)
-            | pd.isna(df["total_yield"])
-            | pd.isnull(df["total_yield"])
+            | (df["total_yield"] >= 0)
         )
         df = df[mask]
 
@@ -1102,7 +1101,7 @@ def main_click(
 
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
-    3) Remove reactions with inconsistent yields (consistent_yield)
+    3) Remove reactions with inconsistent or missing yields (consistent_yield)
     4) Handle rare molecules (frequency of occurrence <= min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
@@ -1190,7 +1189,7 @@ def main(
 
     1) Merge the parquet files generated during orderly.extract into a df
     2) Remove reactions with too many reactants, products, sovlents, agents, catalysts, and reagents (num_reactant, num_product, num_solv, num_agent, num_cat, num_reag)
-    3) Remove reactions with inconsistent yields (consistent_yield)
+    3) Remove reactions with inconsistent or missing yields (consistent_yield)
     4) Handle rare molecules (frequency of occurrence < min_frequency_of_occurrence)
         a) If map_rare_molecules_to_other is True, map rare molecules to 'other'
         b) If map_rare_molecules_to_other is False, remove reactions that contain rare molecules
