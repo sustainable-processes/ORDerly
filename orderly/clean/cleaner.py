@@ -290,7 +290,7 @@ class Cleaner:
     def _remove_with_inconsistent_yield(
         df: pd.DataFrame, num_product: int
     ) -> pd.DataFrame:
-        # Keep rows with yield <= 100 or missing yield values
+        # Keep rows with yield <= 100 and >= 0
         mask = pd.Series(data=True, index=df.index)  # start with all rows selected
         for i in range(num_product):
             yield_col = f"yield_{i:03d}"
@@ -308,7 +308,7 @@ class Cleaner:
         df = df.assign(total_yield=df[yield_columns].sum(axis=1))
 
         # Only keep reactions where the total_yield is (less than or equal to 100) and (greater than or equal to 0)
-        mask = (df["total_yield"] <= 100) | (df["total_yield"] >= 0)
+        mask = df["total_yield"] <= 100
         df = df[mask]
 
         # Drop the 'total_yield' column from the DataFrame
@@ -959,7 +959,7 @@ def get_matching_indices(
     type=bool,
     default=False,
     show_default=True,
-    help="Remove reactions with inconsistent reported yields (e.g. if the sum is under 0% or above 100%. Reactions with nan yields are not removed)",
+    help="Remove reactions with inconsistent or no reported yields (e.g. if the sum is under 0% or above 100%).",
 )
 @click.option(
     "--num_reactant",
