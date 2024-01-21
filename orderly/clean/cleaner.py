@@ -308,10 +308,7 @@ class Cleaner:
         df = df.assign(total_yield=df[yield_columns].sum(axis=1))
 
         # Only keep reactions where the total_yield is (less than or equal to 100) and (greater than or equal to 0)
-        mask = (
-            (df["total_yield"] <= 100)
-            | (df["total_yield"] >= 0)
-        )
+        mask = (df["total_yield"] <= 100) | (df["total_yield"] >= 0)
         df = df[mask]
 
         # Drop the 'total_yield' column from the DataFrame
