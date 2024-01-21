@@ -1184,6 +1184,20 @@ def test_frequency_params_default(
     if not cleaned_rare.empty:
         assert uncleaned_rare.index.intersection(cleaned_value_counts.index).empty
 
+    consistent_yield = params[1]
+    if consistent_yield:
+        # Check there's no instance of na and None in the yield column
+        num_products = params[3]
+        
+        # Assuming num_products is defined and cleaned_df is your DataFrame
+        yield_columns = [f"yield_{i:03d}" for i in range(num_products)]
+
+        # Summing over the specified columns for each row and creating a new column 'total yield'
+        cleaned_df['total yield'] = cleaned_df[yield_columns].sum(axis=1)
+        
+        assert all(cleaned_df['total yield'].apply(lambda x: 0 <= x <= 100)), "Total yield values are not all floats in range 0-100"
+        
+
 
 #####
 
