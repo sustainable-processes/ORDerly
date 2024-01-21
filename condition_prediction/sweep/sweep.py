@@ -1,4 +1,4 @@
-"""Hyperparameter tuning script"""
+"""Script for hyperparameter tuning"""
 import json
 import multiprocessing as mp
 import random
@@ -165,7 +165,7 @@ def run_sweep(
     if shuffle:
         random.shuffle(trials)
 
-    # Sweep ID for grouping in wandb interface
+    # Define the sweep ID for grouping in the wandb interface
     if not sweep_id:
         sweep_id = id_generator()
         sweep_id = f"sweep_{sweep_id}"
