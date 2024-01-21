@@ -200,10 +200,14 @@ def run_sweep(
 
 
 def run_commands(cmds, dry_run: bool = False, max_parallel: int = 1, start_idx=0):
-    if not dry_run:
-        pool = mp.Pool(max_parallel)
-    else:
-        pool = None
+    try:
+        if not dry_run:
+            pool = mp.Pool(max_parallel)
+        else:
+            pool = None
+    except Exception as e:
+        print("Failed to create multiprocessing pool: %s" % e)
+        raise
 
     results = []
     idx = start_idx
