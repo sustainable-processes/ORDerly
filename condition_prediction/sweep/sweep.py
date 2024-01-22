@@ -7,6 +7,7 @@ import string
 import subprocess
 from copy import deepcopy
 from pathlib import Path
+import pandas
 from typing import Dict, Optional, Union
 
 import click
@@ -99,7 +100,8 @@ def run_sweep(
     """Run hyperparameter search
 
     Parameters
-    ----------
+    - Fixes the failing GitHub Actions
+ + '''Fixes the failing GitHub Actions''' -
     sweep_config_path : str
         Path to sweep config file
     start_idx: int
