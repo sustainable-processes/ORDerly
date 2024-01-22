@@ -868,6 +868,11 @@ def get_matching_indices(
     LOG.info(
         f"preparing to move rows from test to train set based on {reactant_columns=} and {product_columns=}"
     )
+
+    # Need to fillna with "NULL" so that the matching works
+    for col in reactant_columns + product_columns:
+        df[col] = df[col].fillna("NULL")
+    
     # Get reaction 'hashes'
     reaction_hashes = [
         ".".join(
@@ -1347,11 +1352,10 @@ def main(
         reactant_columns = list(df.columns[df.columns.str.startswith("reactant")])
         product_columns = list(df.columns[df.columns.str.startswith("product")])
 
-        for col in reactant_columns + product_columns:
-            df[col] = df[col].fillna("NULL")
+        df_for_matching = df.copy()
 
         matching_indices = get_matching_indices(
-            df, train_indices, test_indices, reactant_columns, product_columns
+            df_for_matching, train_indices, test_indices, reactant_columns, product_columns
         )
 
         # drop the matching rows from the test set
