@@ -764,25 +764,59 @@ class Cleaner:
                 f"After removing reactions with inconsistent yields: {df.shape[0]}"
             )
 
-        # drop duplicates
-        if self.drop_duplicates:
-            col_subset = [
-                col
-                for col in df.columns
-                if col.startswith(
-                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
-                )
+        def get_columns_for_duplicate_checking(
+            df: pd.DataFrame, consistent_yield: bool
+        ) -> List[str]:
+            """Get the columns to check for duplicates"""
+            if consistent_yield:
+                columns = [
+                    "reactant",
+                    "product",
+                    "solvent",
+                    "reagent",
+                    "agent",
+                    "catalyst",
+                    "yield",
+                ]
+            else:
+                columns = [
+                    "reactant",
+                    "product",
+                    "solvent",
+                    "reagent",
+                    "agent",
+                    "catalyst",
+                ]
+
+            columns_to_check = [
+                col for col in df.columns if col.startswith(tuple(columns))
             ]
-            LOG.info(
-                f"Before removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
-            )
-            df = df.drop_duplicates(subset=col_subset, keep="first")
-            LOG.info(
-                f"After removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
-            )
+            return columns_to_check
+
+        # Rearrange the row order of the df randomly, but deterministically, so it's a random rxn that get's dropped, not the oldest (since the oldest rxns are at the top of the df)
+        # Setting a seed for reproducibility
+        np.random.seed(12345)
+
+        # Assign a random number to each row
+        df["random"] = np.random.rand(len(df))
+
+        # Sort by the random number
+        df.sort_values("random", inplace=True)
 
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
+            # drop duplicates
+            if self.drop_duplicates:
+                col_subset = get_columns_for_duplicate_checking(
+                    df, self.consistent_yield
+                )
+                LOG.info(
+                    f"Before removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+                )
+                df = df.drop_duplicates(subset=col_subset, keep="first")
+                LOG.info(
+                    f"After removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+                )
             # Define the list of columns to check
 
             columns_to_count_from = self._get_columns_beginning_with_str(
@@ -810,22 +844,29 @@ class Cleaner:
 
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
-            col_subset = [
-                col
-                for col in df.columns
-                if col.startswith(
-                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
-                )
-            ]
+            col_subset = col_subset = get_columns_for_duplicate_checking(
+                df, self.consistent_yield
+            )
             LOG.info(
-                f"Before removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+                f"Before removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
             df = df.drop_duplicates(subset=col_subset, keep="first")
             LOG.info(
-                f"After removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+                f"After removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
+            # Track how many reactions have multiple different yields
+            if self.consistent_yield:
+                secondary_df = df.copy()
+                secondary_col_subset = get_columns_for_duplicate_checking(
+                    secondary_df, not self.consistent_yield
+                )
+                secondary_df.drop_duplicates(subset=secondary_col_subset, keep="first")
+                LOG.info(
+                    f"Total number of reactions: {df.shape[0]}. Reactions with multiple yields: {df.shape[0] - secondary_df.shape[0]}"
+                )
 
-        df.reset_index(inplace=True, drop=True)
+        df.drop("random", axis=1, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
         if self.scramble:
             components = ("reactant", "product", "solvent", "catalyst", "reagent")
@@ -872,7 +913,7 @@ def get_matching_indices(
     # Need to fillna with "NULL" so that the matching works
     for col in reactant_columns + product_columns:
         df[col] = df[col].fillna("NULL")
-    
+
     # Get reaction 'hashes'
     reaction_hashes = [
         ".".join(
@@ -1355,7 +1396,11 @@ def main(
         df_for_matching = df.copy()
 
         matching_indices = get_matching_indices(
-            df_for_matching, train_indices, test_indices, reactant_columns, product_columns
+            df_for_matching,
+            train_indices,
+            test_indices,
+            reactant_columns,
+            product_columns,
         )
 
         # drop the matching rows from the test set

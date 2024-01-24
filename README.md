@@ -171,16 +171,16 @@ If you would like to extract all data in ORD (instead of just USPTO data) simply
 
 ### ORDerly-forward
 
-```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_forward.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_forward.parquet" --ord_extraction_path="data/orderly/uspto/extracted_ords" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=2 --num_reactant=3 --num_solv=3 --num_agent=3 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_size=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 ### ORDerly-retro
 
-```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_retro.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_retro.parquet" --ord_extraction_path="data/orderly/uspto/extracted_ords" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=False --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 
 ### ORDerly-yield
 
-```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_yield.parquet" --ord_extraction_path="data/orderly/uspto" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
+```python -m orderly.clean --output_path="../orderly_benchmarks/orderly_yield.parquet" --ord_extraction_path="data/orderly/uspto/extracted_ords" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False```
 
 ## Dataset from all non-USPTO data
 
