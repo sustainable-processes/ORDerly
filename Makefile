@@ -249,7 +249,7 @@ paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_t
 #Generate datasets for paper
 paper_get_datasets: paper_1 paper_6
 
-paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6 paper_8
+paper_gen_all: paper_1 paper_2 paper_3 paper_4 paper_5 paper_6
 
 # 9. train models
 #Remember to switch env here (must contain TF, e.g. tf_mac_m1)
@@ -312,7 +312,8 @@ clean_orderly_yield:
 	python -m orderly.clean --output_path="data/orderly/orderly_benchmarks/orderly_yield.parquet" --ord_extraction_path="data/orderly/uspto/extracted_ords" --molecules_to_remove_path="data/orderly/uspto/all_molecule_names.csv" --min_frequency_of_occurrence=0 --map_rare_molecules_to_other=False --num_product=1 --num_reactant=2 --num_solv=-1 --num_agent=-1 --num_cat=0 --num_reag=0 --consistent_yield=True --scramble=True --train_test_split_fraction=0.9 --remove_reactions_with_no_reactants=True --remove_reactions_with_no_products=True --remove_reactions_with_no_solvents=False --remove_reactions_with_no_agents=False
 
 # ORDerly cond missing and orderly yield, not determined yet
-gen_all_benchmarks: clean_orderly_forward clean_orderly_forward_non_uspto clean_orderly_retro clean_orderly_retro_non_uspto
+gen_all_benchmarks: clean_orderly_forward clean_orderly_forward_non_uspto clean_orderly_retro clean_orderly_retro_non_uspto clean_orderly_yield
+do_all_cleaning: paper_2 paper_3 paper_4 paper_5 paper_6 gen_all_benchmarks
 
 # Sweeps
 RANDOM_SEEDS = 12345 54321 98765
