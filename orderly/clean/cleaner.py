@@ -788,7 +788,7 @@ class Cleaner:
                     "catalyst",
                 ]
 
-            columns_to_check = [col for col in df.columns if col.startswith(columns)]
+            columns_to_check = [col for col in df.columns if col.startswith(tuple(columns))]
             return columns_to_check
 
         # Rearrange the row order of the df randomly, but deterministically, so it's a random rxn that get's dropped, not the oldest (since the oldest rxns are at the top of the df)
