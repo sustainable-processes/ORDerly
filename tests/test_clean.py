@@ -891,6 +891,10 @@ def test_get_cleaned_df(
 
     cleaned_df, _ = copy.copy(cleaned_df_params_default)
     assert not cleaned_df.empty
+    
+    # check that "NULL" is not in the dataframe
+    assert not "NULL" in cleaned_df.values
+    
     # TODO: check that there's only NaN or NaT, but no None
 
 
