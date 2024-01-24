@@ -837,6 +837,14 @@ class Cleaner:
             LOG.info(
                 f"After removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
+            # Track how many reactions have multiple different yields
+            if self.consistent_yield:
+                secondary_df = df.copy()
+                secondary_col_subset = get_columns_for_duplicate_checking(secondary_df, not self.consistent_yield)
+                secondary_df.drop_duplicates(subset=secondary_col_subset, keep="first")
+                LOG.info(
+                    f"Total number of reactions: {df.shape[0]}. Reactions with multiple yields: {df.shape[0] - secondary_df.shape[0]}"
+                )
 
         df.drop('random', axis=1, inplace=True)
         df.reset_index(drop=True, inplace=True)
