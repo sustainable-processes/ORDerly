@@ -765,11 +765,11 @@ class Cleaner:
             )
 
         def get_columns_for_duplicate_checking(
-            df: pd.DataFrame, consistent_yield
+            df: pd.DataFrame, consistent_yield: bool
         ) -> List[str]:
             """Get the columns to check for duplicates"""
             if consistent_yield:
-                columns = (
+                columns = [
                     "reactant",
                     "product",
                     "solvent",
@@ -777,16 +777,16 @@ class Cleaner:
                     "agent",
                     "catalyst",
                     "yield",
-                )
+                ]
             else:
-                columns = (
+                columns = [
                     "reactant",
                     "product",
                     "solvent",
                     "reagent",
                     "agent",
                     "catalyst",
-                )
+                ]
 
             columns_to_check = [col for col in df.columns if col.startswith(columns)]
             return columns_to_check
