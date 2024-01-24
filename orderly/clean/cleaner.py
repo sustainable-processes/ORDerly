@@ -764,25 +764,33 @@ class Cleaner:
                 f"After removing reactions with inconsistent yields: {df.shape[0]}"
             )
 
-        # drop duplicates
-        if self.drop_duplicates:
-            col_subset = [
+        def get_columns_for_duplicate_checking(df: pd.DataFrame, consistent_yield) -> List[str]:
+            """Get the columns to check for duplicates"""
+            if consistent_yield:
+                columns = ("reactant", "product", "solvent", "reagent", "agent", "catalyst", "yield")
+            else:
+                columns = ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
+            
+            columns_to_check = [
                 col
                 for col in df.columns
                 if col.startswith(
-                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
+                    columns
                 )
             ]
-            LOG.info(
-                f"Before removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
-            )
-            df = df.drop_duplicates(subset=col_subset, keep="first")
-            LOG.info(
-                f"After removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
-            )
-
+            return columns_to_check
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
+            # drop duplicates
+            if self.drop_duplicates:
+                col_subset = get_columns_for_duplicate_checking(df, self.consistent_yield)
+                LOG.info(
+                    f"Before removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+                )
+                df = df.drop_duplicates(subset=col_subset, keep="first")
+                LOG.info(
+                    f"After removing duplicates (before map_to_other) ({col_subset=}): {df.shape[0]}"
+                )
             # Define the list of columns to check
 
             columns_to_count_from = self._get_columns_beginning_with_str(
@@ -810,19 +818,13 @@ class Cleaner:
 
         # drop duplicates deals with any final duplicates from mapping rares to other
         if self.drop_duplicates:
-            col_subset = [
-                col
-                for col in df.columns
-                if col.startswith(
-                    ("reactant", "product", "solvent", "reagent", "agent", "catalyst")
-                )
-            ]
+            col_subset = col_subset = get_columns_for_duplicate_checking(df, self.consistent_yield)
             LOG.info(
-                f"Before removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+                f"Before removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
             df = df.drop_duplicates(subset=col_subset, keep="first")
             LOG.info(
-                f"After removing duplicates (after map_to_other) ({col_subset=}): {df.shape[0]}"
+                f"After removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
 
         df.reset_index(inplace=True, drop=True)
