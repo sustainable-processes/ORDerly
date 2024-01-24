@@ -779,6 +779,17 @@ class Cleaner:
                 )
             ]
             return columns_to_check
+        
+        # Rearrange the row order of the df randomly, but deterministically, so it's a random rxn that get's dropped, not the oldest (since the oldest rxns are at the top of the df)
+        # Setting a seed for reproducibility
+        np.random.seed(12345)
+
+        # Assign a random number to each row
+        df['random'] = np.random.rand(len(df))
+
+        # Sort by the random number
+        df.sort_values('random', inplace=True)
+        
         # Remove reactions with rare molecules
         if self.min_frequency_of_occurrence != 0:  # We need to check for rare molecules
             # drop duplicates
@@ -827,7 +838,8 @@ class Cleaner:
                 f"After removing duplicates (after map_to_other, if applicable) ({col_subset=}): {df.shape[0]}"
             )
 
-        df.reset_index(inplace=True, drop=True)
+        df.drop('random', axis=1, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
         if self.scramble:
             components = ("reactant", "product", "solvent", "catalyst", "reagent")
