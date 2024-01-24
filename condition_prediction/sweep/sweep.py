@@ -5,9 +5,13 @@ import random
 import shutil
 import string
 import subprocess
+import os
+import wandb
+
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Optional, Union
+import halton
 
 import click
 from sweep.halton import generate_search
