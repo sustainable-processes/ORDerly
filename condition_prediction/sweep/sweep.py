@@ -272,6 +272,12 @@ def run_cmd(cmd: str, trial_idx: int):
     is_flag=True,
     help="Resume a sweep from sweep_filepath starting at start_idx",
 )
+@click.option(
+    "--log_path",
+    type=str,
+    default=None,
+    help="Path for logging sweep results",
+)
 def run_sweep_click(
     sweep_config_path: str,
     start_idx: int,
