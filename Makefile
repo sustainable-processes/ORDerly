@@ -234,6 +234,11 @@ fp_no_trust_with_map_test:
 fp_no_trust_with_map_train:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_with_map_train.parquet" --fp_size=2048 --overwrite=False
 
+fp_no_trust_no_min_freq_test:
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_min_freq_test.parquet" --fp_size=2048 --overwrite=False
+fp_no_trust_no_min_freq_train:
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_no_trust_no_min_freq_train.parquet" --fp_size=2048 --overwrite=False
+
 fp_with_trust_with_map_test:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_with_map_test.parquet" --fp_size=2048 --overwrite=False
 fp_with_trust_with_map_train:
@@ -244,7 +249,12 @@ fp_with_trust_no_map_test:
 fp_with_trust_no_map_train:
 	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_map_train.parquet" --fp_size=2048 --overwrite=False
 
-paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train
+fp_with_trust_no_min_freq_test:
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_min_freq_test.parquet" --fp_size=2048 --overwrite=False
+fp_with_trust_no_min_freq_train:
+	python -m orderly.gen_fp --clean_data_folder_path="data/orderly/datasets_$(dataset_version)/orderly_with_trust_no_min_freq_train.parquet" --fp_size=2048 --overwrite=False
+
+paper_8: fp_no_trust_no_map_test fp_no_trust_no_map_train fp_no_trust_with_map_test fp_no_trust_no_min_freq_test fp_no_trust_no_min_freq_train fp_no_trust_with_map_train fp_with_trust_with_map_test fp_with_trust_with_map_train fp_with_trust_no_map_test fp_with_trust_no_map_train fp_with_trust_no_min_freq_test fp_with_trust_no_min_freq_train
 
 #Generate datasets for paper
 paper_get_datasets: paper_1 paper_6
