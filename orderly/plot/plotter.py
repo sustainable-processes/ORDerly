@@ -76,7 +76,7 @@ class ORDerlyPlotter:
         df: pd.DataFrame,
         col_starts_with: str,
         plot_output_path: pathlib.Path,
-        num_columns: int = 5,
+        num_columns: int = 6,
     ) -> None:
         # clear the figure
         plt.clf()
@@ -86,12 +86,40 @@ class ORDerlyPlotter:
             return
         df_subset = df[col_subset]
         counts = ORDerlyPlotter._count_strings(df_subset)
+        
+        @staticmethod
+        def transform_list(at_least_counts):
+            """
+            Transforms a list of counts representing the number of rows with at least N strings
+            to a list representing the number of rows with exactly N strings.
 
-        plotting_subset = counts[:num_columns]
+            :param at_least_counts: List[int], where each element represents the number of rows
+                                    with at least N strings for index N.
+            :return: List[int], where each element represents the number of rows with exactly
+                    N strings for index N.
+            """
+            histogram_counts = []
+            for i in range(len(at_least_counts)):
+                if i == len(at_least_counts) - 1:
+                    # For the last element, it's already the exact count
+                    histogram_counts.append(at_least_counts[i])
+                else:
+                    # Subtract the sum of the remaining elements from the current element
+                    histogram_counts.append(at_least_counts[i] - at_least_counts[i + 1])
+            return histogram_counts
+
+        histogram_counts = transform_list(counts)
+        
+        # also want the number of reactions with 0 of that component
+        histogram_counts = [df.shape[0] - counts[0]] + histogram_counts
+        
+        plotting_subset = histogram_counts[:num_columns]
+        if len(plotting_subset) < num_columns:
+            plotting_subset += [0] * (num_columns - len(plotting_subset))
         # create a bar plot of string counts for each column
         plt.bar(
-            range(1, num_columns + 1), plotting_subset, color="grey", edgecolor="black"
-        )  # Adjusted to start at index 1
+            range(num_columns), plotting_subset, color="grey", edgecolor="black"
+        )
 
         # set the x-axis tick labels to the column names
         # plt.xticks(range(len(self.columns_to_plot)), self.columns_to_plot, rotation=90)
@@ -279,6 +307,7 @@ class ORDerlyPlotter:
             "product",
             "solvent",
             "catalyst",
+            "reagent",
             "agent",
         ]:
             if molecule + "_000" in self.df.columns:
