@@ -188,7 +188,7 @@ First extract all non-USPTO data with the extraction script.
 
 ```python -m orderly.extract --name_contains_substring="uspto" --trust_labelling=False --output_path="data/orderly/not_uspto" --consider_molecule_names=False --inverse_substring=True```
 
-Next, simply use the same cleaning script as for USPTO (e.g. ORDerly-retro) for your desired task. The data will then be cleaned in the same way. This is a nice way to create test sets with no leakage. 
+Next, simply use the same cleaning script as for USPTO (e.g. ORDerly-retro) for your desired task. The data will then be cleaned in the same way. This is a nice way to create test sets with no leakage. Remember to set `--train_size=1` if you don't want the dataset to be split in two.
 
 ## Issues?
 Submit an [issue](https://github.com/sustainable-processes/ORDerly/issues) or send an email to dsw46@cam.ac.uk.
