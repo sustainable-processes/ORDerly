@@ -7,7 +7,7 @@ clean_default_num_agent=3
 clean_default_num_cat=1
 clean_default_num_reag=2
 WANDB_ENTITY=ceb-sre
-dataset_version=v5
+dataset_version=v6
 
 
 mypy_orderly:
