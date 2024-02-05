@@ -310,6 +310,8 @@ class Cleaner:
         # Only keep reactions where the total_yield is (less than or equal to 100) and (greater than or equal to 0)
         mask = df["total_yield"] <= 100
         df = df[mask]
+        # drop rows with total_yield empty or na
+        df = df.dropna(subset=["total_yield"])
 
         # Drop the 'total_yield' column from the DataFrame
         df = df.drop("total_yield", axis=1)
