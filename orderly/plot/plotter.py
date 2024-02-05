@@ -86,9 +86,8 @@ class ORDerlyPlotter:
             return
         df_subset = df[col_subset]
         counts = ORDerlyPlotter._count_strings(df_subset)
-        
-        @staticmethod
-        def transform_list(at_least_counts):
+
+        def transform_list(at_least_counts: List[int]) -> List[int]:
             """
             Transforms a list of counts representing the number of rows with at least N strings
             to a list representing the number of rows with exactly N strings.
@@ -109,24 +108,22 @@ class ORDerlyPlotter:
             return histogram_counts
 
         histogram_counts = transform_list(counts)
-        
+
         # also want the number of reactions with 0 of that component
         histogram_counts = [df.shape[0] - counts[0]] + histogram_counts
-        
+
         plotting_subset = histogram_counts[:num_columns]
         if len(plotting_subset) < num_columns:
             plotting_subset += [0] * (num_columns - len(plotting_subset))
         # create a bar plot of string counts for each column
-        plt.bar(
-            range(num_columns), plotting_subset, color="grey", edgecolor="black"
-        )
+        plt.bar(range(num_columns), plotting_subset, color="grey", edgecolor="black")
 
         # set the x-axis tick labels to the column names
         # plt.xticks(range(len(self.columns_to_plot)), self.columns_to_plot, rotation=90)
 
         # set the plot title and axis labels
         # plt.title(f"Components per reaction") # Usually the title is added on top of the figure on overleaf, after (a)
-        plt.ylabel(f"Number of reactions (thousands)")
+        plt.ylabel(f"Number of reactions (1000s)")
         plt.xlabel(f"Number of {col_starts_with}s")
 
         # Format y-axis labels with commas and divide by 1000
@@ -273,7 +270,7 @@ class ORDerlyPlotter:
 
         # set the plot title and axis labels
         # plt.title(f"Removing rare molecules") Title should be added on overleaf
-        plt.ylabel(f"Number of reactions (thousands)")
+        plt.ylabel(f"Number of reactions (1000s)")
         plt.xlabel(f"Minimum frequency of occurrence")
 
         # # Add a horizontal line at df.shape[0]
