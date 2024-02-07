@@ -326,13 +326,14 @@ gen_all_benchmarks: clean_orderly_forward clean_orderly_forward_non_uspto clean_
 do_all_cleaning: paper_2 paper_3 paper_4 paper_5 paper_6 gen_all_benchmarks
 
 # Sweeps
-RANDOM_SEEDS = 12345 54321 98765
-TRAIN_FRACS =   1.0 0.2 0.4 0.6 0.8
+RANDOM_SEEDS = 12345
+TRAIN_FRACS =   1.0
 # Path on lightning
-# DATASETS_PATH = /project/studios/orderly-preprocessing/ORDerly/data/orderly/datasets_$(dataset_version)/
+DATASETS_PATH = /teamspace/studios/orderly-preprocessing/ORDerly/data/orderly/datasets_$(dataset_version)/
 # Normal path
-DATASETS_PATH = ORDerly/data/orderly/datasets_$(dataset_version)/
-DATASETS = no_trust_with_map  no_trust_no_map with_trust_with_map with_trust_no_map 
+# DATASETS_PATH = ORDerly/data/orderly/datasets_$(dataset_version)/
+# DATASETS = no_trust_with_map no_trust_no_map no_trust_no_min_freq with_trust_with_map with_trust_no_map with_trust_no_min_freq
+DATASETS = no_trust_no_min_freq
 dataset_size_sweep:
 	@for random_seed in ${RANDOM_SEEDS}; \
 	do \
@@ -340,7 +341,7 @@ dataset_size_sweep:
 		do \
 			for train_frac in ${TRAIN_FRACS}; \
 			do \
-				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --dataset_version=$(datset_version) --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=512 --epochs=100 --train_mode=0 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=$(WANDB_ENTITY) ; \
+				rm -rf .tf_cache* && python -m condition_prediction --train_data_path=${DATASETS_PATH}/orderly_$${dataset}_train.parquet --test_data_path=${DATASETS_PATH}/orderly_$${dataset}_test.parquet --output_folder_path=models/$${dataset} --dataset_version=${datset_version} --train_fraction=$${train_frac} --train_val_split=0.8 --random_seed=$${random_seed} --overwrite=True --batch_size=256 --epochs=100 --train_mode=0 --early_stopping_patience=0  --evaluate_on_test_data=True --wandb_entity=${WANDB_ENTITY} ; \
 			done \
 		done \
 	done
