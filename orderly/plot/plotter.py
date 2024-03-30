@@ -343,8 +343,10 @@ class ORDerlyPlotter:
 
         if molecule_type.lower() == "product":
             divider = 1
+            plt.ylabel("Frequency")
         else:
             divider = 1000
+            plt.ylabel("Frequency (1000s)")
 
         # Plot the results in thousands
         plt.bar(
@@ -356,6 +358,7 @@ class ORDerlyPlotter:
         # set the plot title and axis labels
 
         plt.title(f"Most popular {molecule_type}s")
+        
         plt.xlabel(f"Popularity rank")
 
         # Get top 10 molecules
