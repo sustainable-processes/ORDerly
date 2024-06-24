@@ -41,8 +41,11 @@ jobs:
 
       # run poetry install if the poetry lock has changed
       - name: Install dependencies
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        # if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+
+      - name: Verify fastparquet installation
+        run: poetry run python -c "import fastparquet; print(fastparquet.__version__)"
 
       - name: Run test suite
         run: poetry run pytest -v --cov --ignore=condition_prediction --splits 5 --group ${{ matrix.group }} --splitting-algorithm least_duration
