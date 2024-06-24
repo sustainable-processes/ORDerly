@@ -1328,7 +1328,7 @@ def main(
     clean_config_path = (
         pathlib.Path(output_path).parent / f"{file_name}_clean_config.json"
     )
-    if clean_config_path != "clean.json":
+    if clean_config_path != pathlib.Path("clean.json"):
         clean_config_path = pathlib.Path(clean_config_path)
     else:
         clean_config_path = pathlib.Path(output_path).parent / "clean_config.json"

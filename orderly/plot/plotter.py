@@ -444,8 +444,9 @@ def main_click(
     1) If plot_num_rxn_components_bool: plots the number of reactions with a given number of reactants, products, solvents, agents, catalysts, and reagents
     2) If plot_frequency_of_occurrence_bool: plots the frequency of occurrence of molecules in the dataset
     """
-    _log_file = pathlib.Path(plot_output_path) / f"plot.log"
-    if log_file != "default_path_plot.log":
+    default_log_path = pathlib.Path("default_path_plot.log")
+    _log_file = pathlib.Path(plot_output_path) / "plot.log"
+    if log_file != default_log_path:
         _log_file = pathlib.Path(log_file)
 
     main(
