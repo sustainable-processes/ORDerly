@@ -2,7 +2,7 @@ current_dir = $(shell pwd)
 uid = $(shell id -u)
 gid = $(shell id -g)
 download_path=ord/
-
+ 
 clean_default_num_agent=3
 clean_default_num_cat=1
 clean_default_num_reag=2
