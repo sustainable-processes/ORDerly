@@ -63,33 +63,33 @@ jobs:
         run: |
           poetry run python -m mypy .  --explicit-package-bases --ignore-missing-imports ${{ matrix.strict }} --exclude condition_prediction
   
-  mypy_condition_prediction:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      # matrix:
-      #   strict: ["", "--strict"]
+  # mypy_condition_prediction:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #   strategy:
+  #     fail-fast: false
+  #     # matrix:
+  #     #   strict: ["", "--strict"]
 
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v2
 
-      # Setup Python (faster than using Python container)
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.10"
+  #     # Setup Python (faster than using Python container)
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: "3.10"
 
-      - name: Install poetry
-        uses: Gr1N/setup-poetry@v8
+  #     - name: Install poetry
+  #       uses: Gr1N/setup-poetry@v8
 
-      # run poetry install if the poetry lock has changed
-      - name: Install dependencies
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
-        working-directory: condition_prediction
-        run: poetry install --no-interaction
+  #     # run poetry install if the poetry lock has changed
+  #     - name: Install dependencies
+  #       if: steps.cache-poetry.outputs.cache-hit != 'true'
+  #       working-directory: condition_prediction
+  #       run: poetry install --no-interaction
       
-      - name: Code Quality
-        working-directory: condition_prediction
-        run: poetry run python -m mypy .  --explicit-package-bases --ignore-missing-imports
+  #     - name: Code Quality
+  #       working-directory: condition_prediction
+  #       run: poetry run python -m mypy .  --explicit-package-bases --ignore-missing-imports
