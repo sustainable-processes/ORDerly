@@ -2,7 +2,7 @@
 
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
 
-This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, a preprint has been published on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/64ee4a7479853bbd78b21dc7).
+This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, which has been published in [JCIM](https://pubs.acs.org/doi/10.1021/acs.jcim.4c00292).
 
 🧪 Cleaning chemical reaction data 🧪
 
