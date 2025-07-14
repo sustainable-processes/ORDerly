@@ -8,7 +8,7 @@ This is the code for ORDerly: Datasets and benchmarks for chemical reaction data
 
 🎯 [Chemical Reaction Data Benchmarks](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) 🎯
 
-🤖 [Chemical Reaction Transformer Models](https://figshare.com/account/articles/29552543) 🤖
+🤖 [Chemical Reaction Transformer Models](https://figshare.com/articles/dataset/ORDerly_Transformer_Models_for_chemical_tasks/29552543) 🤖
 
 ## Quick Install
 
