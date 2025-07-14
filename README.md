@@ -4,9 +4,11 @@
 
 This is the code for ORDerly: Datasets and benchmarks for chemical reaction data, which has been published in [JCIM](https://pubs.acs.org/doi/10.1021/acs.jcim.4c00292).
 
-🧪 Cleaning chemical reaction data 🧪
+🧪 [Cleaning chemical reaction data](https://pubs.acs.org/doi/10.1021/acs.jcim.4c00292) 🧪
 
-🎯 [Chemical Reaction Benchmarks](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) 🎯
+🎯 [Chemical Reaction Data Benchmarks](https://figshare.com/articles/dataset/ORDerly_chemical_reactions_condition_benchmarks/23298467) 🎯
+
+🤖 [Chemical Reaction Transformer Models](https://figshare.com/account/articles/29552543) 🤖
 
 ## Quick Install
 
